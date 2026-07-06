@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { createFilter, toggleFilterOption, type MultiFilter } from './core'
-import { addFilterParams, addTimeRangeParams, defineValueFilter } from './query'
+import type { MultiFilter } from './core'
+import { addFilterParams, addTimeRangeParams } from './query'
 import { createTimeRangeFilter } from './time'
 
 type Option = { id: string }
@@ -81,46 +81,5 @@ describe('addTimeRangeParams', () => {
     const params: Record<string, unknown> = {}
     addTimeRangeParams(params, createTimeRangeFilter(), null)
     expect(params).toEqual({})
-  })
-})
-
-describe('defineValueFilter', () => {
-  test('create / has / clear round-trip through the filters record', () => {
-    const def = defineValueFilter('kind', 'kind', idOf)
-    const filters = { kind: def.create() }
-    expect(def.has(filters)).toBe(false)
-
-    toggleFilterOption(filters.kind, { id: 'x' }, idOf)
-    expect(def.has(filters)).toBe(true)
-
-    def.clear(filters)
-    expect(def.has(filters)).toBe(false)
-    expect(filters.kind).toEqual(createFilter<Option>())
-  })
-
-  test('addParams serializes via the configured body key', () => {
-    const def = defineValueFilter('kind', 'kind', idOf)
-    const filters = { kind: filterWith('include', ['x']) }
-    const params: Record<string, unknown> = {}
-    def.addParams(params, filters)
-    expect(params).toEqual({ kind: { include: ['x'] } })
-  })
-
-  test('addParams forwards the serverValues hook', () => {
-    const def = defineValueFilter('status', 'status', idOf)
-    const filters = { status: filterWith('include', ['active', 'unverified']) }
-    const params: Record<string, unknown> = {}
-    def.addParams(params, filters, values =>
-      values.filter(value => value !== 'unverified')
-    )
-    expect(params).toEqual({ status: { include: ['active'] } })
-  })
-
-  test('fingerprint is stable under selection order (sorted)', () => {
-    const def = defineValueFilter('kind', 'kind', idOf)
-    const forward = { kind: filterWith('include', ['a', 'b']) }
-    const reversed = { kind: filterWith('include', ['b', 'a']) }
-    expect(def.fingerprint(forward)).toBe('include:a,b')
-    expect(def.fingerprint(reversed)).toBe(def.fingerprint(forward))
   })
 })

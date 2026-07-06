@@ -11,7 +11,12 @@
   import { page } from '$app/state'
   import type { MultiFilter } from '$lib/filters/core'
   import FilterBar from '$lib/filters/filter-bar.svelte'
-  import { uniqueTeamOptions, type ValueFilterFamily } from '$lib/filters/ui'
+  import {
+    normalizeSearchText,
+    searchMatches,
+    uniqueTeamOptions,
+    type ValueFilterFamily,
+  } from '$lib/filters/ui'
   import IconTableFilled from '$lib/icons/icon-table-filled.svelte'
   import {
     useAdminChallenges,
@@ -92,13 +97,14 @@
     }))
   )
   const challengeOptions = $derived.by(() => {
-    const query = filters.challenge.search.trim().toLowerCase()
+    const query = normalizeSearchText(filters.challenge.search)
     if (!query) return allChallengeOptions
-    return allChallengeOptions.filter(challenge => {
-      const haystack =
-        `${challenge.name} ${challenge.category} ${getCategoryConfig(challenge.category).name}`.toLowerCase()
-      return haystack.includes(query)
-    })
+    return allChallengeOptions.filter(challenge =>
+      searchMatches(
+        query,
+        `${challenge.name} ${challenge.category} ${getCategoryConfig(challenge.category).name}`
+      )
+    )
   })
   const categoryOptions = $derived.by(() => {
     const categories = new Set(

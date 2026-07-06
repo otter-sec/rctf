@@ -19,7 +19,6 @@ import {
   GoodAdminUserVerificationsV2,
   GoodInstancerSchema,
   ListExternalAuthClientsRouteV2,
-  Permissions,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -73,25 +72,6 @@ export function dataOrNull<R extends { kind: string }, K extends R['kind']>(
       data: Extract<R, { kind: K }> extends { data: infer D } ? D : never
     }
   ).data
-}
-
-/**
- * Whether a permission bitmask grants every bit of a required permission.
- *
- * @param perms - The viewer's permission bitmask.
- * @param required - The permission bit(s) that must all be present.
- */
-export function hasPermission(perms: number, required: number): boolean {
-  return (perms & required) === required
-}
-
-/**
- * Whether a viewer may read the pending user-verification queue.
- *
- * @param perms - The viewer's permission bitmask.
- */
-export function canReadUserVerifications(perms: number): boolean {
-  return hasPermission(perms, Permissions.usersWrite)
 }
 
 export const adminChallengesQueryOptions = queryOptions({

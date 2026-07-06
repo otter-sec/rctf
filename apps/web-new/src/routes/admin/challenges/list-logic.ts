@@ -1,5 +1,6 @@
 import type { AdminChallenge } from '@rctf/types'
 import { ChallengeScoringKind } from '@rctf/types'
+import { normalizeSearchText, searchMatches } from '$lib/filters/ui'
 import { getCategoryKeyOrAlias, getCategoryOrder } from '$lib/utils/categories'
 
 export interface CategoryGroup {
@@ -40,15 +41,12 @@ export function filterChallenges(
   challenges: AdminChallenge[],
   query: string
 ): AdminChallenge[] {
-  const needle = query.trim().toLowerCase()
+  const needle = normalizeSearchText(query)
   if (!needle) {
     return challenges
   }
-  return challenges.filter(
-    challenge =>
-      challenge.name.toLowerCase().includes(needle) ||
-      challenge.category.toLowerCase().includes(needle) ||
-      challenge.author.toLowerCase().includes(needle)
+  return challenges.filter(challenge =>
+    searchMatches(needle, challenge.name, challenge.category, challenge.author)
   )
 }
 

@@ -16,6 +16,7 @@ import {
 } from '@rctf/types'
 import { filterFingerprint, type MultiFilter } from '$lib/filters/core'
 import { addFilterParams } from '$lib/filters/query'
+import { normalizeSearchText, searchMatches } from '$lib/filters/ui'
 import type { AdminUsersQueryParams } from '$lib/query/keys'
 import type {
   SortState,
@@ -237,18 +238,19 @@ export function pendingVerificationMatchesFilters(
   if (!matchesStatus(filters.status, true)) return false
   if (!matchesDivision(filters.division, verification.division)) return false
 
-  const search = filters.search.trim().toLowerCase()
+  const search = normalizeSearchText(filters.search)
   if (!search) return true
 
   const divisionLabel =
     divisions?.[verification.division] ?? verification.division
-  return [
+  return searchMatches(
+    search,
     verification.name,
     verification.email,
     verification.division,
     divisionLabel,
-    'unverified',
-  ].some(value => value.toLowerCase().includes(search))
+    'unverified'
+  )
 }
 
 export const SORT_DEFAULTS: Record<AdminTeamSortBy, TableSortOrder> = {
@@ -259,10 +261,6 @@ export const SORT_DEFAULTS: Record<AdminTeamSortBy, TableSortOrder> = {
   [AdminTeamSortBy.SCORE]: 'desc',
   [AdminTeamSortBy.SOLVES]: 'desc',
   [AdminTeamSortBy.CREATED_AT]: 'desc',
-}
-
-export function defaultSortOrder(sortBy: AdminTeamSortBy): TableSortOrder {
-  return SORT_DEFAULTS[sortBy]
 }
 
 /** Builds the registered-team query params (server does search/sort/filter/page). */

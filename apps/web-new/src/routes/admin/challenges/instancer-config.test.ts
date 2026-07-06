@@ -4,7 +4,6 @@ import {
   addExpose,
   defaultExpose,
   defaultInstancerConfig,
-  isValidPort,
   removeExpose,
   resolveInstancer,
   resolveInstancerValidity,
@@ -143,16 +142,6 @@ describe('expose helpers', () => {
     expect(next[0]!.containerPort).toBe(80)
     expect(list[1]!.containerPort).toBe(80)
     expect(next[0]).toBe(list[0]!)
-  })
-
-  it('validates container port bounds', () => {
-    expect(isValidPort(1)).toBe(true)
-    expect(isValidPort(65535)).toBe(true)
-    expect(isValidPort(0)).toBe(false)
-    expect(isValidPort(65536)).toBe(false)
-    expect(isValidPort(-1)).toBe(false)
-    expect(isValidPort(1.5)).toBe(false)
-    expect(isValidPort(Number.NaN)).toBe(false)
   })
 })
 

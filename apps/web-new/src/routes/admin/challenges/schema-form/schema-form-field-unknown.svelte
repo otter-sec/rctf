@@ -2,6 +2,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import type { FieldProps } from './types'
+  import { fieldLabel } from './utils'
 
   interface Props extends FieldProps {
     showLabel?: boolean
@@ -17,7 +18,7 @@
     required = false,
   }: Props = $props()
 
-  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
 
   function handleInput(event: Event) {

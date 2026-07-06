@@ -82,6 +82,15 @@ export function resolveValue(schema: JsonSchema, value: unknown): unknown {
   return value
 }
 
+/** Display label for a field: schema title, else the last path segment. */
+export function fieldLabel(
+  schema: JsonSchema,
+  path: string[],
+  fallback = ''
+): string {
+  return schema.title ?? path[path.length - 1] ?? fallback
+}
+
 export function getItemLabel(
   item: unknown,
   index: number,
@@ -115,6 +124,49 @@ export function renameRecordKey(
     result[k === oldKey ? newKey : k] = v
   }
   return result
+}
+
+/** The record's per-entry value schema: `additionalProperties` when it is a schema, else string. */
+export function recordValueSchema(schema: JsonSchema): JsonSchema {
+  return (
+    typeof schema.additionalProperties === 'object'
+      ? schema.additionalProperties
+      : { type: 'string' }
+  ) as JsonSchema
+}
+
+/** Adds `key` with the schema default; null when the key is blank or already present. */
+export function addRecordEntry(
+  value: unknown,
+  key: string,
+  valueSchema: JsonSchema
+): Record<string, unknown> | null {
+  const record = (value ?? {}) as Record<string, unknown>
+  if (!key.trim() || Object.hasOwn(record, key)) return null
+  return { ...record, [key]: defaultValue(valueSchema) }
+}
+
+/** Removes `key`, returning a new record. */
+export function removeRecordEntry(
+  value: unknown,
+  key: string
+): Record<string, unknown> {
+  const next = { ...((value ?? {}) as Record<string, unknown>) }
+  delete next[key]
+  return next
+}
+
+/** Renames `oldKey` preserving entry order; null when blank, unchanged, or colliding. */
+export function renameRecordEntry(
+  value: unknown,
+  oldKey: string,
+  newKey: string
+): Record<string, unknown> | null {
+  const record = (value ?? {}) as Record<string, unknown>
+  if (!newKey.trim() || oldKey === newKey || Object.hasOwn(record, newKey)) {
+    return null
+  }
+  return renameRecordKey(record, oldKey, newKey)
 }
 
 export function parseNumber(str: string): number | undefined {

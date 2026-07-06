@@ -23,8 +23,8 @@
   import { goto } from '$app/navigation'
   import { apiRequest, showApiError } from '$lib/api'
   import AvatarUpload from '$lib/components/avatar-upload.svelte'
+  import DivisionMenu from '$lib/components/division-menu.svelte'
   import FlagPicker from '$lib/components/flag-picker.svelte'
-  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconCopy from '$lib/icons/icon-copy.svelte'
   import IconFilter from '$lib/icons/icon-filter.svelte'
   import IconKeyFilled from '$lib/icons/icon-key-filled.svelte'
@@ -38,7 +38,7 @@
   import Card from '$lib/ui/card.svelte'
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import { buildLoginUrl } from '$lib/utils/auth'
@@ -324,20 +324,12 @@
         {#if showDivision}
           <Field label="Division">
             {#snippet children({ describedBy })}
-              <Menu label="Select division" items={divisionItems} placement="bottom-start">
-                {#snippet trigger({ props })}
-                  <button
-                    {...props}
-                    type="button"
-                    data-division-trigger
-                    aria-describedby={describedBy}
-                    disabled={busy}
-                  >
-                    <span>{selectedDivisionLabel}</span>
-                    <IconChevronDown aria-hidden="true" />
-                  </button>
-                {/snippet}
-              </Menu>
+              <DivisionMenu
+                items={divisionItems}
+                selectedLabel={selectedDivisionLabel}
+                {describedBy}
+                disabled={busy}
+              />
             {/snippet}
           </Field>
         {/if}
@@ -463,50 +455,6 @@
     :global(button) {
       justify-content: flex-start;
       inline-size: 100%;
-    }
-  }
-
-  button[data-division-trigger] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3xs);
-    inline-size: 100%;
-    block-size: 2.25rem;
-    padding-inline: var(--space-2xs);
-    color: var(--foreground-l0);
-    background: var(--background-l4);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-
-    span {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    :global(svg) {
-      flex-shrink: 0;
-      opacity: 0.5;
-    }
-
-    &:hover {
-      background: var(--background-l5);
-    }
-
-    &[data-state='open'] {
-      border-color: var(--border);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -1px;
-    }
-
-    &:disabled {
-      pointer-events: none;
-      opacity: 0.5;
     }
   }
 </style>

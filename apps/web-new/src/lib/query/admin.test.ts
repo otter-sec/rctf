@@ -1,4 +1,3 @@
-import { Permissions } from '@rctf/types'
 // admin.ts imports $lib/api, which pulls in the SvelteKit virtual module
 // $app/environment. bun test can't resolve that, so stub it before the module
 // is dynamically imported below. Static imports resolve before mock.module runs,
@@ -53,25 +52,5 @@ describe('dataOrNull', () => {
   test('returns null for a non-good response kind (badEndpoint gating)', () => {
     const bad = { kind: 'badEndpoint', data: null } as Response
     expect(admin.dataOrNull(bad, 'good')).toBeNull()
-  })
-})
-
-describe('hasPermission', () => {
-  const { usersWrite, challsRead } = Permissions
-
-  test('true when the required bit is set', () => {
-    expect(admin.hasPermission(usersWrite, usersWrite)).toBe(true)
-    expect(admin.hasPermission(usersWrite | challsRead, usersWrite)).toBe(true)
-  })
-
-  test('false when the required bit is missing', () => {
-    expect(admin.hasPermission(challsRead, usersWrite)).toBe(false)
-    expect(admin.hasPermission(0, usersWrite)).toBe(false)
-  })
-
-  test('requires every bit of a compound permission', () => {
-    const required = usersWrite | challsRead
-    expect(admin.hasPermission(usersWrite, required)).toBe(false)
-    expect(admin.hasPermission(required, required)).toBe(true)
   })
 })

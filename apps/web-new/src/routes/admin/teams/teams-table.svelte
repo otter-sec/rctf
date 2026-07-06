@@ -20,6 +20,7 @@
   import AdminTable from '../admin-table.svelte'
   import {
     ROW_HEIGHT,
+    rowDisplayTime,
     SORT_DEFAULTS,
     statusLabel,
     statusTone,
@@ -204,8 +205,7 @@
 {/snippet}
 
 {#snippet timeCell(row: TeamRow)}
-  {@const timestamp =
-    row.kind === 'registered' ? new Date(row.team.createdAt).getTime() : row.verification.expiresAt}
+  {@const timestamp = rowDisplayTime(row)}
   {@const offset = formatCtfOffset(timestamp, startTime)}
   <time-cell data-tip={utcLabel(row, timestamp)}>
     <local>{row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}</local>

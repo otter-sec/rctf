@@ -6,6 +6,7 @@
   import type { FieldProps } from './types'
   import {
     isNullable as checkNullable,
+    fieldLabel,
     fromNullSentinel,
     getEffectiveSchema,
     NULL_SENTINEL,
@@ -29,7 +30,7 @@
     required = false,
   }: Props = $props()
 
-  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
   const isTextarea = $derived((schema.maxLength ?? 0) > 100 || schema.format === 'textarea')
   const pathKey = $derived(path.join('.'))

@@ -2,7 +2,7 @@
   import Checkbox from '$lib/ui/checkbox.svelte'
   import Field from '$lib/ui/field.svelte'
   import type { FieldProps } from './types'
-  import { resolveValue } from './utils'
+  import { fieldLabel, resolveValue } from './utils'
 
   interface Props extends FieldProps {
     showLabel?: boolean
@@ -18,7 +18,7 @@
     required = false,
   }: Props = $props()
 
-  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
   const resolved = $derived(resolveValue(schema, value) as boolean | undefined)
   const displayValue = $derived(resolved ?? false)

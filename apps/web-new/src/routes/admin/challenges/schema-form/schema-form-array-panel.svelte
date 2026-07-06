@@ -4,7 +4,7 @@
   import SchemaFormPanelItem from './schema-form-panel-item.svelte'
   import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
   import type { FieldProps, JsonSchema } from './types'
-  import { defaultValue, getItemLabel } from './utils'
+  import { defaultValue, fieldLabel, getItemLabel } from './utils'
 
   interface Props extends FieldProps {}
 
@@ -12,7 +12,7 @@
 
   const items = $derived((value ?? []) as unknown[])
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
-  const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
+  const label = $derived(fieldLabel(schema, path, 'Items'))
 
   let selectedIndex = $state(0)
 
@@ -33,14 +33,14 @@
   }
 </script>
 
-<SchemaFormPanelLayout label={label as string}>
+<SchemaFormPanelLayout {label}>
   {#snippet sidebar()}
     {#if items.length === 0}
       <panel-empty>No items</panel-empty>
     {:else}
       {#each items as item, i (i)}
         <SchemaFormPanelItem
-          label={getItemLabel(item, i, label as string)}
+          label={getItemLabel(item, i, label)}
           active={selectedIndex === i}
           removeLabel="Remove item"
           {disabled}

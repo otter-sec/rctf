@@ -5,8 +5,15 @@
   import Input from '$lib/ui/input.svelte'
   import { SvelteMap } from 'svelte/reactivity'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps, JsonSchema } from './types'
-  import { defaultValue, parseNumber, renameRecordKey } from './utils'
+  import type { FieldProps } from './types'
+  import {
+    addRecordEntry,
+    fieldLabel,
+    parseNumber,
+    recordValueSchema,
+    removeRecordEntry,
+    renameRecordEntry,
+  } from './utils'
   import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
@@ -14,12 +21,8 @@
   let { schema, value, path, onChange, onError, disabled = false }: Props = $props()
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
-  const valueSchema = $derived(
-    (typeof schema.additionalProperties === 'object'
-      ? schema.additionalProperties
-      : { type: 'string' }) as JsonSchema
-  )
-  const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
+  const valueSchema = $derived(recordValueSchema(schema))
+  const label = $derived(fieldLabel(schema, path, 'Items'))
   const description = $derived(schema.description)
   const isNumeric = $derived(valueSchema.type === 'number' || valueSchema.type === 'integer')
   const isBoolean = $derived(valueSchema.type === 'boolean')
@@ -73,18 +76,14 @@
   }
 
   function addEntry(key: string) {
-    if (!key.trim() || entries.some(([k]) => k === key)) return
-    onChange(path, {
-      ...((value as Record<string, unknown>) ?? {}),
-      [key]: defaultValue(valueSchema),
-    })
+    const next = addRecordEntry(value, key, valueSchema)
+    if (!next) return
+    onChange(path, next)
     newKeyInput = ''
   }
 
   function removeEntry(key: string) {
-    const next = { ...((value as Record<string, unknown>) ?? {}) }
-    delete next[key]
-    onChange(path, next)
+    onChange(path, removeRecordEntry(value, key))
 
     const pathKey = basePath ? `${basePath}.${key}` : key
     onError?.(pathKey, null)
@@ -93,7 +92,8 @@
   }
 
   function renameEntry(oldKey: string, newKey: string) {
-    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) {
+    const next = renameRecordEntry(value, oldKey, newKey)
+    if (!next) {
       keyInputs[oldKey] = oldKey
       return
     }
@@ -102,7 +102,7 @@
     delete keyInputs[oldKey]
     keyInputs[newKey] = newKey
 
-    onChange(path, renameRecordKey((value as Record<string, unknown>) ?? {}, oldKey, newKey))
+    onChange(path, next)
 
     const oldPathKey = basePath ? `${basePath}.${oldKey}` : oldKey
     onError?.(oldPathKey, null)

@@ -37,11 +37,8 @@
   const isMobile = $derived(innerWidth > 0 && innerWidth < DESKTOP_MIN_WIDTH)
   const listMinSize = $derived(innerWidth < WIDE_MIN_WIDTH ? 40 : 20)
 
-  const selectedChallenge = $derived(
-    selectedId ? (challenges.find(c => c.id === selectedId) ?? null) : null
-  )
   const drawerTitle = $derived(
-    isCreating ? 'New challenge' : (selectedChallenge?.name ?? 'Challenge details')
+    isCreating ? 'New challenge' : (editor.challenge?.name ?? 'Challenge details')
   )
 
   // Drawer visibility is derived, not latched: it opens whenever mobile has an

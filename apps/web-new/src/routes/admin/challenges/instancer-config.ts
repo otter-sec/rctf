@@ -21,8 +21,6 @@ export interface InstancerValidityInput {
 }
 
 const DEFAULT_TIMEOUT_MS = 120000
-const MIN_PORT = 1
-const MAX_PORT = 65535
 
 /**
  * Picks the instancer to edit: the requested name when it is registered,
@@ -115,11 +113,6 @@ export function updateExpose(
   patch: Partial<ExposeConfig>
 ): ExposeConfig[] {
   return list.map((entry, i) => (i === index ? { ...entry, ...patch } : entry))
-}
-
-/** Whether a container port is a whole number within the valid 1–65535 range. */
-export function isValidPort(port: number): boolean {
-  return Number.isInteger(port) && port >= MIN_PORT && port <= MAX_PORT
 }
 
 /**

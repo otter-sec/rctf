@@ -2,7 +2,7 @@
   import Button from '$lib/ui/button.svelte'
   import SchemaFormField from './schema-form-field.svelte'
   import type { FieldProps } from './types'
-  import { defaultValue } from './utils'
+  import { defaultValue, fieldLabel } from './utils'
 
   interface Props extends FieldProps {
     showLabel?: boolean
@@ -24,7 +24,7 @@
   const obj = $derived((value ?? {}) as Record<string, unknown>)
   const entries = $derived(Object.entries(schema.properties ?? {}))
   const requiredFields = $derived(new Set(schema.required ?? []))
-  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const label = $derived(fieldLabel(schema, path))
 
   function enableObject() {
     onChange(path, defaultValue(schema))

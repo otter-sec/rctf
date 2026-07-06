@@ -72,6 +72,15 @@
   </family-row>
 {/snippet}
 
+{#snippet drillHeader()}
+  <drill-header>
+    <button type="button" onclick={() => (active = null)}>
+      <IconChevronRight aria-hidden="true" data-back />
+      {activeLabel}
+    </button>
+  </drill-header>
+{/snippet}
+
 {#snippet timeRow()}
   {#if timeFamily}
     <family-row>
@@ -102,20 +111,10 @@
       {#snippet panel({ close })}
         <funnel-panel {@attach () => reset()}>
           {#if active === 'time'}
-            <drill-header>
-              <button type="button" onclick={() => (active = null)}>
-                <IconChevronRight aria-hidden="true" data-back />
-                {activeLabel}
-              </button>
-            </drill-header>
+            {@render drillHeader()}
             {@render timeMenu?.({ close })}
           {:else if active}
-            <drill-header>
-              <button type="button" onclick={() => (active = null)}>
-                <IconChevronRight aria-hidden="true" data-back />
-                {activeLabel}
-              </button>
-            </drill-header>
+            {@render drillHeader()}
             <FilterOptionList family={active} searchable={!!active.search} />
           {:else}
             <FilterSearchInput

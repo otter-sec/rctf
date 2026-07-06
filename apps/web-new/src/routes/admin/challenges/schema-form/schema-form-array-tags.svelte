@@ -3,6 +3,7 @@
   import Field from '$lib/ui/field.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
   import type { FieldProps, JsonSchema } from './types'
+  import { fieldLabel } from './utils'
   import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
@@ -11,7 +12,7 @@
 
   const items = $derived((value ?? []) as unknown[])
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
-  const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
+  const label = $derived(fieldLabel(schema, path, 'Items'))
   const description = $derived(schema.description)
   const isNumeric = $derived(itemSchema.type === 'number' || itemSchema.type === 'integer')
   const enumValues = $derived(itemSchema.enum as unknown[] | undefined)
@@ -38,7 +39,7 @@
   }
 </script>
 
-<Field label={label as string} {description}>
+<Field {label} {description}>
   {#snippet children({ id, describedBy })}
     {#if enumValues}
       <checkbox-group aria-describedby={describedBy}>

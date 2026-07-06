@@ -12,15 +12,15 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
+  import DivisionMenu from '$lib/components/division-menu.svelte'
   import FlagPicker from '$lib/components/flag-picker.svelte'
   import { useApiForm } from '$lib/forms/use-api-form.svelte'
-  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import { queryKeys } from '$lib/query/keys'
   import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import {
@@ -185,20 +185,12 @@
     {#if showDivision}
       <Field label="Division" error={profileForm.errors.division}>
         {#snippet children({ describedBy })}
-          <Menu label="Select division" items={divisionItems} placement="bottom-start">
-            {#snippet trigger({ props })}
-              <button
-                {...props}
-                type="button"
-                data-division-trigger
-                aria-describedby={describedBy}
-                disabled={loading}
-              >
-                <span>{selectedDivisionLabel}</span>
-                <IconChevronDown aria-hidden="true" />
-              </button>
-            {/snippet}
-          </Menu>
+          <DivisionMenu
+            items={divisionItems}
+            selectedLabel={selectedDivisionLabel}
+            {describedBy}
+            disabled={loading}
+          />
         {/snippet}
       </Field>
     {/if}
@@ -299,49 +291,5 @@
     color: var(--foreground-destructive);
     background: var(--background-destructive);
     border-radius: var(--radius-md);
-  }
-
-  button[data-division-trigger] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3xs);
-    inline-size: 100%;
-    block-size: 2.25rem;
-    padding-inline: var(--space-2xs);
-    color: var(--foreground-l0);
-    background: var(--background-l4);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-
-    span {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-
-    :global(svg) {
-      flex-shrink: 0;
-      opacity: 0.5;
-    }
-
-    &:hover {
-      background: var(--background-l5);
-    }
-
-    &[data-state='open'] {
-      border-color: var(--border);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -1px;
-    }
-
-    &:disabled {
-      pointer-events: none;
-      opacity: 0.5;
-    }
   }
 </style>

@@ -2,7 +2,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import type { FieldProps } from './types'
-  import { isNullable as checkNullable, parseNumber, resolveValue } from './utils'
+  import { isNullable as checkNullable, fieldLabel, parseNumber, resolveValue } from './utils'
   import { validateValue } from './validate'
 
   interface Props extends FieldProps {
@@ -20,7 +20,7 @@
     required = false,
   }: Props = $props()
 
-  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
   const pathKey = $derived(path.join('.'))
   const resolved = $derived(resolveValue(schema, value))

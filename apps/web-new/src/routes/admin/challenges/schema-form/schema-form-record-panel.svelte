@@ -6,20 +6,22 @@
   import SchemaFormPanelItem from './schema-form-panel-item.svelte'
   import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps, JsonSchema } from './types'
-  import { defaultValue, renameRecordKey } from './utils'
+  import type { FieldProps } from './types'
+  import {
+    addRecordEntry,
+    fieldLabel,
+    recordValueSchema,
+    removeRecordEntry,
+    renameRecordEntry,
+  } from './utils'
 
   interface Props extends FieldProps {}
 
   let { schema, value, path, onChange, onError, disabled = false }: Props = $props()
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
-  const valueSchema = $derived(
-    (typeof schema.additionalProperties === 'object'
-      ? schema.additionalProperties
-      : { type: 'string' }) as JsonSchema
-  )
-  const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
+  const valueSchema = $derived(recordValueSchema(schema))
+  const label = $derived(fieldLabel(schema, path, 'Items'))
 
   const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
   const availableKeys = $derived(
@@ -58,29 +60,26 @@
   })
 
   function addEntry(key: string) {
-    if (!key.trim() || entries.some(([k]) => k === key)) return
-    onChange(path, {
-      ...((value as Record<string, unknown>) ?? {}),
-      [key]: defaultValue(valueSchema),
-    })
+    const next = addRecordEntry(value, key, valueSchema)
+    if (!next) return
+    onChange(path, next)
     selectedKey = key
     newKeyInput = ''
   }
 
   function removeEntry(key: string) {
-    const next = { ...((value as Record<string, unknown>) ?? {}) }
-    delete next[key]
-    onChange(path, next)
+    onChange(path, removeRecordEntry(value, key))
   }
 
   function renameEntry(oldKey: string, newKey: string) {
-    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) {
+    const next = renameRecordEntry(value, oldKey, newKey)
+    if (!next) {
       keyNameInput = oldKey
       return
     }
     pendingKey = newKey
     keyNameInput = newKey
-    onChange(path, renameRecordKey((value as Record<string, unknown>) ?? {}, oldKey, newKey))
+    onChange(path, next)
   }
 
   function addFromControls() {
@@ -95,7 +94,7 @@
   }
 </script>
 
-<SchemaFormPanelLayout label={label as string}>
+<SchemaFormPanelLayout {label}>
   {#snippet sidebar()}
     {#if entries.length === 0}
       <panel-empty>No entries</panel-empty>

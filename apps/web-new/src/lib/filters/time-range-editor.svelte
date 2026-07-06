@@ -59,46 +59,37 @@
     {/each}
   </mode-toggle>
 
+  {#snippet boundField(
+    label: string,
+    type: string,
+    value: string,
+    placeholder: string | undefined,
+    onValue: (value: string) => void
+  )}
+    <field-label>
+      <span>{label}</span>
+      <Input
+        {type}
+        {value}
+        {placeholder}
+        aria-invalid={!!error}
+        oninput={event => edit(() => onValue(event.currentTarget.value))}
+      />
+    </field-label>
+  {/snippet}
+
   {#if filter.mode === 'relative'}
-    <field-label>
-      <span>From</span>
-      <Input
-        type="text"
-        value={filter.relativeStart}
-        placeholder="2d 4h"
-        aria-invalid={!!error}
-        oninput={event => edit(() => (filter.relativeStart = event.currentTarget.value))}
-      />
-    </field-label>
-    <field-label>
-      <span>To</span>
-      <Input
-        type="text"
-        value={filter.relativeEnd}
-        placeholder="2d 6h"
-        aria-invalid={!!error}
-        oninput={event => edit(() => (filter.relativeEnd = event.currentTarget.value))}
-      />
-    </field-label>
+    {@render boundField(
+      'From',
+      'text',
+      filter.relativeStart,
+      '2d 4h',
+      v => (filter.relativeStart = v)
+    )}
+    {@render boundField('To', 'text', filter.relativeEnd, '2d 6h', v => (filter.relativeEnd = v))}
   {:else}
-    <field-label>
-      <span>From</span>
-      <Input
-        type="datetime-local"
-        value={filter.start}
-        aria-invalid={!!error}
-        oninput={event => edit(() => (filter.start = event.currentTarget.value))}
-      />
-    </field-label>
-    <field-label>
-      <span>To</span>
-      <Input
-        type="datetime-local"
-        value={filter.end}
-        aria-invalid={!!error}
-        oninput={event => edit(() => (filter.end = event.currentTarget.value))}
-      />
-    </field-label>
+    {@render boundField('From', 'datetime-local', filter.start, undefined, v => (filter.start = v))}
+    {@render boundField('To', 'datetime-local', filter.end, undefined, v => (filter.end = v))}
   {/if}
 
   {#if error}

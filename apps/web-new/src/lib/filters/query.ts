@@ -1,26 +1,7 @@
-import {
-  clearFilter,
-  createFilter,
-  filterFingerprint,
-  type MultiFilter,
-} from './core'
+import type { MultiFilter } from './core'
 import { resolveTimeRangeFilter, type TimeRangeFilter } from './time'
 
 type FilterParams = Record<string, unknown>
-
-export type ValueFilterDefinition<Id extends string, T> = {
-  id: Id
-  bodyKey: string
-  create: () => MultiFilter<T>
-  has: (filters: Record<Id, MultiFilter<T>>) => boolean
-  clear: (filters: Record<Id, MultiFilter<T>>) => void
-  fingerprint: (filters: Record<Id, MultiFilter<T>>) => string
-  addParams: (
-    params: FilterParams,
-    filters: Record<Id, MultiFilter<T>>,
-    serverValues?: (values: string[]) => string[]
-  ) => void
-}
 
 export function addFilterParams<T>(
   params: FilterParams,
@@ -53,29 +34,4 @@ export function addTimeRangeParams(
 
   if (createdAfter) params.createdAfter = createdAfter
   if (createdBefore) params.createdBefore = createdBefore
-}
-
-export function defineValueFilter<Id extends string, T>(
-  id: Id,
-  bodyKey: string,
-  valueFor: (option: T) => string
-): ValueFilterDefinition<Id, T> {
-  const getFilter = (filters: Record<Id, MultiFilter<T>>) => filters[id]
-
-  return {
-    id,
-    bodyKey,
-    create: () => createFilter<T>(),
-    has: filters => getFilter(filters).selected.length > 0,
-    clear: filters => clearFilter(getFilter(filters)),
-    fingerprint: filters => filterFingerprint(getFilter(filters), valueFor),
-    addParams: (params, filters, serverValues) =>
-      addFilterParams(
-        params,
-        bodyKey,
-        getFilter(filters),
-        valueFor,
-        serverValues
-      ),
-  }
 }
