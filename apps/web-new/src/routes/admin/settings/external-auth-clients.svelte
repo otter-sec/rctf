@@ -39,6 +39,10 @@
   const clientsQuery = useAdminExternalAuthClients()
   const clients = $derived(clientsQuery.data ?? [])
 
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = clientsQuery.isPending
+
   let creating = $state(false)
   let submitting = $state(false)
   let deleting = $state(false)
@@ -172,7 +176,7 @@
     {:else if clients.length === 0 && !creating}
       <EmptyState title="No external apps" subtitle="Register a service to issue login tokens." />
     {:else}
-      <client-list>
+      <client-list data-reveal={revealAfterLoading || undefined}>
         {#each clients as client (client.id)}
           <client-row>
             <client-heading>

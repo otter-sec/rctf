@@ -26,6 +26,10 @@
   let { config, disabled, onChange }: Props = $props()
 
   const statusQuery = useAdminBotStatus()
+
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = statusQuery.isPending
   const status = $derived(statusQuery.data ?? null)
   const language = $derived(status?.configLanguage ?? 'typescript')
 
@@ -55,43 +59,51 @@
       subtitle="No admin bot service is configured on the backend."
     />
   {:else}
-    <Section title="Configuration">
-      <form-field>
-        <field-label>Enable admin bot</field-label>
-        <FieldSelect
-          label={config.enabled ? 'Enabled' : 'Disabled'}
-          items={enableItems}
-          {disabled}
-        />
-      </form-field>
-    </Section>
-
-    {#if config.enabled}
-      <Section title="Challenge code">
-        <code-editor>
-          <code-language>{language}</code-language>
-          <Textarea
-            data-mono
-            rows={16}
-            value={config.code}
+    <adminbot-reveal data-reveal={revealAfterLoading || undefined}>
+      <Section title="Configuration">
+        <form-field>
+          <field-label>Enable admin bot</field-label>
+          <FieldSelect
+            label={config.enabled ? 'Enabled' : 'Disabled'}
+            items={enableItems}
             {disabled}
-            placeholder={`// Write your admin bot challenge code here (${language})…`}
-            oninput={e => onChange({ ...config, code: e.currentTarget.value })}
-          ></Textarea>
-        </code-editor>
+          />
+        </form-field>
       </Section>
-    {/if}
+
+      {#if config.enabled}
+        <Section title="Challenge code">
+          <code-editor>
+            <code-language>{language}</code-language>
+            <Textarea
+              data-mono
+              rows={16}
+              value={config.code}
+              {disabled}
+              placeholder={`// Write your admin bot challenge code here (${language})…`}
+              oninput={e => onChange({ ...config, code: e.currentTarget.value })}
+            ></Textarea>
+          </code-editor>
+        </Section>
+      {/if}
+    </adminbot-reveal>
   {/if}
 </adminbot-pane>
 
 <style>
+  adminbot-reveal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
   adminbot-pane {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: var(--space-s);
     min-block-size: 0;
-    padding: var(--space-l);
+    padding: var(--space-2xs) var(--space-s) var(--space-s);
     overflow-y: auto;
   }
 

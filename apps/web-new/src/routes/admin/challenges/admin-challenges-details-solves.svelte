@@ -46,6 +46,10 @@
     () => totalSolves
   )
 
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = solvesQuery.isPending
+
   const canRevoke = $derived(hasPermissions(userQuery.data, Permissions.challsSolveWrite))
   const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
@@ -137,7 +141,7 @@
       subtitle="This challenge has not been solved yet."
     />
   {:else}
-    <solves-viewport>
+    <solves-viewport data-reveal={revealAfterLoading || undefined}>
       <solves-scroll {@attach captureScroll} tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}

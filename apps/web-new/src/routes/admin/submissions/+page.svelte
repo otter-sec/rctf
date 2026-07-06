@@ -62,6 +62,10 @@
   const submissionsQuery = useAdminSubmissionsInfinite(() =>
     buildSubmissionsBody(filters, sort, ctfStartTime)
   )
+
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = submissionsQuery.isPending
   const submissions = $derived(
     (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
   )
@@ -181,67 +185,76 @@
       </Card>
     </page-status>
   {:else}
-    <AdminTable
-      rows={submissions}
-      rowHeight={48}
-      headerHeight={42}
-      overscan={6}
-      {fingerprint}
-      hasNextPage={submissionsQuery.hasNextPage ?? false}
-      isFetchingNextPage={submissionsQuery.isFetchingNextPage}
-      onLoadMore={() => submissionsQuery.fetchNextPage()}
-      filtered={hasFilters}
-      bind:expandedId
-      expandable
-      rowId={submission => submission.id}
-      minTableWidth={296}
-    >
-      {#snippet toolbar()}
-        <FilterBar
-          {families}
-          {filterFor}
-          timeFilter={filters.time}
-          ctfStartTime={ctfStartTime ?? null}
-          hasActiveFilters={hasFilters}
-          onClearAll={() => clearSubmissionFilters(filters)}
-          fetching={submissionsQuery.isFetching}
-        />
-      {/snippet}
+    <submissions-reveal data-reveal={revealAfterLoading || undefined}>
+      <AdminTable
+        rows={submissions}
+        rowHeight={48}
+        headerHeight={42}
+        overscan={6}
+        {fingerprint}
+        hasNextPage={submissionsQuery.hasNextPage ?? false}
+        isFetchingNextPage={submissionsQuery.isFetchingNextPage}
+        onLoadMore={() => submissionsQuery.fetchNextPage()}
+        filtered={hasFilters}
+        bind:expandedId
+        expandable
+        rowId={submission => submission.id}
+        minTableWidth={296}
+      >
+        {#snippet toolbar()}
+          <FilterBar
+            {families}
+            {filterFor}
+            timeFilter={filters.time}
+            ctfStartTime={ctfStartTime ?? null}
+            hasActiveFilters={hasFilters}
+            onClearAll={() => clearSubmissionFilters(filters)}
+            fetching={submissionsQuery.isFetching}
+          />
+        {/snippet}
 
-      {#snippet header()}
-        <SubmissionsHeader {sort} {onSort} />
-      {/snippet}
+        {#snippet header()}
+          <SubmissionsHeader {sort} {onSort} />
+        {/snippet}
 
-      {#snippet row(submission, index)}
-        <SubmissionsRow
-          {submission}
-          {index}
-          expanded={expandedId === submission.id}
-          {ctfStartTime}
-          onToggle={toggleExpanded}
-        />
-      {/snippet}
+        {#snippet row(submission, index)}
+          <SubmissionsRow
+            {submission}
+            {index}
+            expanded={expandedId === submission.id}
+            {ctfStartTime}
+            onToggle={toggleExpanded}
+          />
+        {/snippet}
 
-      {#snippet detailRow(submission)}
-        <SubmissionsDetailRow {submission} onClose={() => (expandedId = null)} />
-      {/snippet}
+        {#snippet detailRow(submission)}
+          <SubmissionsDetailRow {submission} onClose={() => (expandedId = null)} />
+        {/snippet}
 
-      {#snippet emptyState(filtered)}
-        <EmptyState
-          icon={IconTableFilled}
-          title={filtered ? 'No matching submissions' : 'No submissions'}
-          subtitle={filtered
-            ? 'Adjust or clear the filters to broaden the audit trail.'
-            : 'Submission IPs will appear here once teams submit flags or admin bot jobs'}
-        />
-      {/snippet}
-    </AdminTable>
+        {#snippet emptyState(filtered)}
+          <EmptyState
+            icon={IconTableFilled}
+            title={filtered ? 'No matching submissions' : 'No submissions'}
+            subtitle={filtered
+              ? 'Adjust or clear the filters to broaden the audit trail.'
+              : 'Submission IPs will appear here once teams submit flags or admin bot jobs'}
+          />
+        {/snippet}
+      </AdminTable>
+    </submissions-reveal>
   {/if}
 </submissions-page>
 
 <style>
   /* The app shell only guarantees min-block-size: 100dvh, so bound the height
      here — the table shell scrolls internally. */
+  submissions-reveal {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
   submissions-page {
     display: flex;
     flex-direction: column;

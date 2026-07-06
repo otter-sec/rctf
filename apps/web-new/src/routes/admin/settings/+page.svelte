@@ -55,6 +55,10 @@
   const configQuery = useClientConfig()
   const settingsQuery = useAdminSettings()
 
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = settingsQuery.isPending
+
   const user = $derived(userQuery.data)
   const ctfName = $derived(configQuery.data?.ctfName)
   const defaults = $derived(settingsQuery.data?.defaults)
@@ -298,7 +302,7 @@
 {:else if form && defaults}
   {@const settingsDefaults = defaults}
   {@const settingsForm = form}
-  <settings-page>
+  <settings-page data-reveal={revealAfterLoading || undefined}>
     <settings-form>
       <settings-group>
         {@render groupHeader(

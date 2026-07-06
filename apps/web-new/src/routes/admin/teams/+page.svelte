@@ -122,6 +122,10 @@
   )
   const verificationsQuery = useAdminUserVerifications(() => canWrite)
 
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = usersQuery.isPending
+
   const registeredRows = $derived<TeamRow[]>(
     shouldFetchRegistered
       ? (usersQuery.data?.pages.flatMap(page => page.users) ?? []).map(team => ({
@@ -312,35 +316,37 @@
       </Card>
     </teams-status>
   {:else}
-    <TeamsTable
-      {rows}
-      bind:sort
-      bind:search
-      {families}
-      {filterFor}
-      {hasActiveFilters}
-      onClearAll={clearAllFilters}
-      fetching={usersQuery.isFetching && !usersQuery.isFetchingNextPage}
-      {fingerprint}
-      {divisions}
-      startTime={clientConfig?.startTime}
-      hasNextPage={usersQuery.hasNextPage ?? false}
-      isFetchingNextPage={usersQuery.isFetchingNextPage}
-      onLoadMore={() => usersQuery.fetchNextPage()}
-      {canManage}
-      {copyingId}
-      {updatingId}
-      {deletingId}
-      {completingId}
-      {resendingId}
-      onCopyEmail={copyEmail}
-      onManage={manage}
-      onCopyToken={requestCopyToken}
-      onBan={requestBan}
-      onDelete={requestDelete}
-      onResend={resendVerification}
-      onVerify={verifyTeam}
-    />
+    <teams-reveal data-reveal={revealAfterLoading || undefined}>
+      <TeamsTable
+        {rows}
+        bind:sort
+        bind:search
+        {families}
+        {filterFor}
+        {hasActiveFilters}
+        onClearAll={clearAllFilters}
+        fetching={usersQuery.isFetching && !usersQuery.isFetchingNextPage}
+        {fingerprint}
+        {divisions}
+        startTime={clientConfig?.startTime}
+        hasNextPage={usersQuery.hasNextPage ?? false}
+        isFetchingNextPage={usersQuery.isFetchingNextPage}
+        onLoadMore={() => usersQuery.fetchNextPage()}
+        {canManage}
+        {copyingId}
+        {updatingId}
+        {deletingId}
+        {completingId}
+        {resendingId}
+        onCopyEmail={copyEmail}
+        onManage={manage}
+        onCopyToken={requestCopyToken}
+        onBan={requestBan}
+        onDelete={requestDelete}
+        onResend={resendVerification}
+        onVerify={verifyTeam}
+      />
+    </teams-reveal>
   {/if}
 </teams-page>
 
@@ -357,6 +363,13 @@
 />
 
 <style>
+  teams-reveal {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
   teams-page {
     display: flex;
     flex-direction: column;

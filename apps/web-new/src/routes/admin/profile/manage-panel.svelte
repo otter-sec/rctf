@@ -70,6 +70,10 @@
   const adminUserQuery = useAdminUser(() => (canWrite ? userId : null))
 
   const adminUser = $derived(adminUserQuery.data)
+
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = adminUserQuery.isPending
   const clientConfig = $derived<ClientConfig | undefined>(configQuery.data)
 
   let pendingAction = $state<ActionKind | null>(null)
@@ -289,7 +293,7 @@
     <p>Your account needs the manage-teams permission to edit this team.</p>
   </Card>
 {:else if adminUser && clientConfig}
-  <manage-panel>
+  <manage-panel data-reveal={revealAfterLoading || undefined}>
     <AvatarUpload
       name={adminUser.name}
       avatarUrl={adminUser.avatarUrl}

@@ -17,6 +17,10 @@
   const challenges = $derived(challengesQuery.data)
   const isPending = $derived(challengesQuery.isPending)
   const error = $derived(challengesQuery.error)
+
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = challengesQuery.isPending
 </script>
 
 <svelte:head>
@@ -26,7 +30,9 @@
 </svelte:head>
 
 {#if challenges}
-  <AdminChallenges />
+  <admin-challenges-reveal data-reveal={revealAfterLoading || undefined}>
+    <AdminChallenges />
+  </admin-challenges-reveal>
 {:else if isPending}
   <page-status>
     <Spinner />
@@ -40,6 +46,10 @@
 {/if}
 
 <style>
+  admin-challenges-reveal {
+    display: block;
+  }
+
   page-status {
     display: flex;
     flex: 1;

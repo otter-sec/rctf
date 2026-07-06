@@ -126,13 +126,25 @@
       invalid: !instancerValid,
     },
     { value: 'adminbot', label: 'Admin bot', icon: IconRobot },
-    {
-      value: 'solves',
-      label: 'Solves',
-      icon: IconTrophyFilled,
-      count: totalSolves || undefined,
-    },
+    // Dynamic challenges have no flag solves — their points arrive via the
+    // scoring webhook — so the Solves tab only exists for decay scoring.
+    ...(isDynamic
+      ? []
+      : [
+          {
+            value: 'solves',
+            label: 'Solves',
+            icon: IconTrophyFilled,
+            count: totalSolves || undefined,
+          },
+        ]),
   ])
+
+  // If the Solves tab disappears from under the active selection (a dynamic
+  // challenge is selected, or the kind switches), fall back to Details.
+  $effect(() => {
+    if (isDynamic && tab === 'solves') tab = 'details'
+  })
 
   function changeScoringKind(kind: ChallengeScoringKind) {
     if (kind === ChallengeScoringKind.DYNAMIC) {

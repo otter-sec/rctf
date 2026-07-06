@@ -46,6 +46,10 @@
   let { config, challengeId, disabled, valid = $bindable(true), onChange }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
+
+  // Non-reactive read: true only when this mount starts behind the spinner, so
+  // a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = schemaQuery.isPending
   const schema = $derived(schemaQuery.data ?? null)
   const instancers = $derived(schema?.instancers ?? [])
   const hasMultiple = $derived(instancers.length > 1)
@@ -162,127 +166,135 @@
       subtitle="No on-demand instancer provider is configured on the backend."
     />
   {:else}
-    <Section title="Configuration">
-      <config-fields>
-        <form-field>
-          <field-label>Enable instancer</field-label>
-          <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
-        </form-field>
-
-        {#if config}
-          {#if hasMultiple}
-            <form-field>
-              <field-label>Instancer</field-label>
-              <FieldSelect
-                label={active?.name ?? 'Select instancer'}
-                items={instancerItems}
-                {disabled}
-              />
-            </form-field>
-          {/if}
-
-          <field-grid>
-            <form-field>
-              <field-label>Integration ID</field-label>
-              <Input
-                type="text"
-                data-mono
-                placeholder="challenge-id"
-                value={config.challengeIntegrationId}
-                {disabled}
-                oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
-              />
-            </form-field>
-            <form-field>
-              <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
-              <Input
-                type="number"
-                min={0}
-                value={timeoutToSeconds(config.timeoutMilliseconds)}
-                {disabled}
-                oninput={e =>
-                  patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
-              />
-            </form-field>
-          </field-grid>
-
+    <instancer-reveal data-reveal={revealAfterLoading || undefined}>
+      <Section title="Configuration">
+        <config-fields>
           <form-field>
-            <field-label>Allow extending</field-label>
-            <FieldSelect
-              label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
-              items={extendItems}
-              {disabled}
-            />
+            <field-label>Enable instancer</field-label>
+            <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
           </form-field>
-        {/if}
-      </config-fields>
-    </Section>
 
-    {#if config}
-      <Section title="Provider config">
-        <provider-config>
-          <provider-toolbar>
-            <button type="button" onclick={() => (advanced ? exitAdvanced() : enterAdvanced())}>
-              {advanced ? 'Form editor' : 'Advanced (YAML)'}
-            </button>
-          </provider-toolbar>
-          {#if advanced}
-            <Textarea
-              data-mono
-              rows={12}
-              value={yamlText}
-              aria-invalid={Boolean(yamlError)}
-              {disabled}
-              placeholder="# YAML configuration…"
-              oninput={e => applyYaml(e.currentTarget.value)}
-            ></Textarea>
-            {#if yamlError}<field-error>{yamlError}</field-error>{/if}
-          {:else if active}
-            <SchemaForm
-              schema={active.schema as unknown as JsonSchema}
-              value={config.config}
-              onChange={next => patch({ config: next })}
-              {disabled}
-              bind:valid={schemaFormValid}
-            />
-          {:else}
-            <provider-empty>No provider schema available.</provider-empty>
+          {#if config}
+            {#if hasMultiple}
+              <form-field>
+                <field-label>Instancer</field-label>
+                <FieldSelect
+                  label={active?.name ?? 'Select instancer'}
+                  items={instancerItems}
+                  {disabled}
+                />
+              </form-field>
+            {/if}
+
+            <field-grid>
+              <form-field>
+                <field-label>Integration ID</field-label>
+                <Input
+                  type="text"
+                  data-mono
+                  placeholder="challenge-id"
+                  value={config.challengeIntegrationId}
+                  {disabled}
+                  oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
+                />
+              </form-field>
+              <form-field>
+                <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={timeoutToSeconds(config.timeoutMilliseconds)}
+                  {disabled}
+                  oninput={e =>
+                    patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
+                />
+              </form-field>
+            </field-grid>
+
+            <form-field>
+              <field-label>Allow extending</field-label>
+              <FieldSelect
+                label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
+                items={extendItems}
+                {disabled}
+              />
+            </form-field>
           {/if}
-        </provider-config>
+        </config-fields>
       </Section>
 
-      <Section title="Exposed ports">
-        <AdminChallengesDetailsInstancerExpose
-          expose={config.expose ?? []}
-          {disabled}
-          onChange={onExposeChange}
-        />
-      </Section>
+      {#if config}
+        <Section title="Provider config">
+          <provider-config>
+            <provider-toolbar>
+              <button type="button" onclick={() => (advanced ? exitAdvanced() : enterAdvanced())}>
+                {advanced ? 'Form editor' : 'Advanced (YAML)'}
+              </button>
+            </provider-toolbar>
+            {#if advanced}
+              <Textarea
+                data-mono
+                rows={12}
+                value={yamlText}
+                aria-invalid={Boolean(yamlError)}
+                {disabled}
+                placeholder="# YAML configuration…"
+                oninput={e => applyYaml(e.currentTarget.value)}
+              ></Textarea>
+              {#if yamlError}<field-error>{yamlError}</field-error>{/if}
+            {:else if active}
+              <SchemaForm
+                schema={active.schema as unknown as JsonSchema}
+                value={config.config}
+                onChange={next => patch({ config: next })}
+                {disabled}
+                bind:valid={schemaFormValid}
+              />
+            {:else}
+              <provider-empty>No provider schema available.</provider-empty>
+            {/if}
+          </provider-config>
+        </Section>
 
-      {#if challengeId}
-        <Section title="Instance management">
-          <ChallengesDetailsOverviewInstancer
-            {challengeId}
-            instancerLifetime={config.timeoutMilliseconds}
-            instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
-            instancerStoppable={active?.canStop ?? true}
-            instancerActions={[]}
-            onSolve={() => {}}
+        <Section title="Exposed ports">
+          <AdminChallengesDetailsInstancerExpose
+            expose={config.expose ?? []}
+            {disabled}
+            onChange={onExposeChange}
           />
         </Section>
+
+        {#if challengeId}
+          <Section title="Instance management">
+            <ChallengesDetailsOverviewInstancer
+              {challengeId}
+              instancerLifetime={config.timeoutMilliseconds}
+              instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
+              instancerStoppable={active?.canStop ?? true}
+              instancerActions={[]}
+              onSolve={() => {}}
+            />
+          </Section>
+        {/if}
       {/if}
-    {/if}
+    </instancer-reveal>
   {/if}
 </instancer-pane>
 
 <style>
+  instancer-reveal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
   instancer-pane {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: var(--space-s);
     min-block-size: 0;
-    padding: var(--space-l);
+    padding: var(--space-2xs) var(--space-s) var(--space-s);
     overflow-y: auto;
   }
 
