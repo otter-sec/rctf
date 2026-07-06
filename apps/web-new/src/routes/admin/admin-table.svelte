@@ -190,6 +190,10 @@
     overflow: auto;
     outline: none;
     overscroll-behavior: none;
+    /* Recycled rows + a growing list are exactly what browser scroll anchoring
+       misreads: it picks an anchor node, the virtualizer moves it, the browser
+       compensates, and the view drifts on its own. Virtual scrollers opt out. */
+    overflow-anchor: none;
   }
 
   admin-min {
