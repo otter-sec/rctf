@@ -6,6 +6,7 @@
   Category tokens come from `data-category-color` on the group.
 -->
 <script lang="ts">
+  import { clampBoxPosition } from '$lib/chart/tooltip-position'
   import type { CategoryColor, CategoryConfig } from '$lib/utils/categories'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
 
@@ -54,12 +55,14 @@
   const MATH_Y = SEP_Y + 18
   const NAME_MAX = 22
 
-  const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
-
-  const boxX = $derived(
-    clamp(x > chartWidth / 2 ? x - WIDTH - GAP : x + GAP, 4, Math.max(4, chartWidth - WIDTH - 4))
+  const box = $derived(
+    clampBoxPosition(
+      { x, y },
+      { width: WIDTH, height: HEIGHT },
+      { width: chartWidth, height: chartHeight },
+      GAP
+    )
   )
-  const boxY = $derived(clamp(y - HEIGHT / 2, 4, Math.max(4, chartHeight - HEIGHT - 4)))
 
   const deltaLabel = $derived(points === null ? '+n/a' : `+${points.toLocaleString()}`)
 
@@ -68,7 +71,7 @@
   }
 </script>
 
-<g data-solve-tooltip data-category-color={color} transform="translate({boxX},{boxY})">
+<g data-solve-tooltip data-category-color={color} transform="translate({box.x},{box.y})">
   <rect data-tt-box width={WIDTH} height={HEIGHT} rx="6" />
   <text data-tt-time x={PAD} y={REL_Y}>{formatRelativeHoursMinutes(time, startTime)}</text>
   <text data-tt-local x={PAD} y={LOCAL_Y}>{formatLocalTime(time)}</text>

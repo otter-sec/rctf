@@ -1,7 +1,6 @@
 import type { CategoryColor, CategoryConfig } from '$lib/utils/categories'
 import {
   getProfileCategoryDisplay,
-  sortProfileSolves,
   type ProfileDynamicScore,
   type ProfileSolve,
 } from './profile-analytics-data'
@@ -30,6 +29,7 @@ export type GraphSolveDot = {
 
 export type ProfileGraphInput = {
   graphData: GraphSampleInput
+  /** Must be pre-sorted chronologically, e.g. via `sortProfileSolves`. */
   solves: ProfileSolve[]
   dynamicScores: ProfileDynamicScore[]
   startTime: number
@@ -107,6 +107,7 @@ function staticScoreBefore(
   return scoreAt(time, staticLine)
 }
 
+/** `solves` must already be time-sorted (see `sortProfileSolves`); caller's contract. */
 function buildSolveDots(
   solves: ProfileSolve[],
   staticLine: GraphLinePoint[],
@@ -114,7 +115,7 @@ function buildSolveDots(
 ): GraphSolveDot[] {
   let runningScore = 0
 
-  return sortProfileSolves(solves).map(solve => {
+  return solves.map(solve => {
     const points = solve.awardedPoints ?? solve.points
     const category = getProfileCategoryDisplay(solve.category)
     // With dynamic scoring the naive accumulator overshoots, so the static
@@ -173,6 +174,8 @@ function scoreMax(points: GraphLinePoint[]): number {
  * from the graph samples, static as total minus the dynamic score at each time,
  * dynamic from the sampled history (or a flat current value), all split only
  * when `splitDynamicScore` is set and dynamic data exists.
+ *
+ * `input.solves` must already be time-sorted (see `ProfileGraphInput.solves`).
  */
 export function buildProfileGraphData(
   input: ProfileGraphInput

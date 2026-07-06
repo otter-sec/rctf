@@ -14,6 +14,7 @@
 </script>
 
 <script lang="ts">
+  import { clampBoxPosition } from '$lib/chart/tooltip-position'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
 
   interface Props {
@@ -40,12 +41,14 @@
 
   const height = $derived(ROWS_TOP + rows.length * ROW_H + PAD - 4)
 
-  const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
-
-  const boxX = $derived(
-    clamp(x > chartWidth / 2 ? x - WIDTH - GAP : x + GAP, 4, Math.max(4, chartWidth - WIDTH - 4))
+  const box = $derived(
+    clampBoxPosition(
+      { x, y },
+      { width: WIDTH, height },
+      { width: chartWidth, height: chartHeight },
+      GAP
+    )
   )
-  const boxY = $derived(clamp(y - height / 2, 4, Math.max(4, chartHeight - height - 4)))
 
   const headerTime = $derived(rows[0]?.time ?? startTime)
 
@@ -54,7 +57,7 @@
   }
 </script>
 
-<g data-chart-tooltip transform="translate({boxX},{boxY})">
+<g data-chart-tooltip transform="translate({box.x},{box.y})">
   <rect data-tt-box width={WIDTH} {height} rx="6" />
   <text data-tt-time x={PAD} y={RELATIVE_Y}
     >{formatRelativeHoursMinutes(headerTime, startTime)}</text

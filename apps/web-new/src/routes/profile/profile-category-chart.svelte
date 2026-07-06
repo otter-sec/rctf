@@ -8,6 +8,8 @@
   into an HTML tooltip — no per-segment tooltip instances.
 -->
 <script lang="ts">
+  import ChartTip from '$lib/chart/chart-tip.svelte'
+  import { createHoverTip } from '$lib/chart/hover-tip.svelte'
   import { createLinearScale } from '$lib/chart/scale'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import IconCheck from '$lib/icons/icon-check.svelte'
@@ -39,8 +41,7 @@
   const uid = componentId.replace(/[^a-zA-Z0-9_-]/g, '-')
 
   let width = $state(0)
-  let activeKey = $state<string | null>(null)
-  let tip = $state<{ x: number; y: number } | null>(null)
+  const hover = createHoverTip('data-seg-hit', 'segKey')
 
   const height = $derived(data.length * ROW_H + PAD_TOP + PAD_BOTTOM)
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
@@ -66,7 +67,7 @@
     return map
   })
 
-  const active = $derived(activeKey === null ? null : (hitByKey.get(activeKey) ?? null))
+  const active = $derived(hover.activeKey === null ? null : (hitByKey.get(hover.activeKey) ?? null))
 
   function rowY(index: number): number {
     return PAD_TOP + index * ROW_H + ROW_INSET
@@ -79,25 +80,6 @@
     if (segment.hatched) return 'dynamic'
     return 'solved'
   }
-
-  function handleMove(event: PointerEvent) {
-    const svg = event.currentTarget as SVGSVGElement
-    const target = event.target as Element | null
-    const hit = target?.closest<SVGRectElement>('[data-seg-hit]') ?? null
-    if (!hit) {
-      activeKey = null
-      tip = null
-      return
-    }
-    activeKey = hit.dataset.segKey ?? null
-    const rect = svg.getBoundingClientRect()
-    tip = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-  }
-
-  function handleLeave() {
-    activeKey = null
-    tip = null
-  }
 </script>
 
 {#if data.length > 0}
@@ -108,8 +90,8 @@
         aria-label="Points by category"
         {width}
         {height}
-        onpointermove={handleMove}
-        onpointerleave={handleLeave}
+        onpointermove={hover.handleMove}
+        onpointerleave={hover.handleLeave}
       >
         {#each xTicks.values as value (value)}
           {@const gx = xScale(value)}
@@ -161,7 +143,7 @@
                   {#if segment.hatched}
                     <rect x={sx} {y} width={sw} height={barHeight} fill="url(#{hatchId})" />
                   {/if}
-                  {#if activeKey === key}
+                  {#if hover.activeKey === key}
                     <rect
                       data-seg-active
                       data-kind={kind}
@@ -268,12 +250,14 @@
       </svg>
     </div>
 
-    {#if active && tip}
+    {#if active && hover.tip}
       {@const Icon = active.item.icon}
-      <chart-tip
-        data-category-color={active.item.color}
-        data-flip={tip.x > width / 2 || undefined}
-        style="--tip-x: {tip.x}px; --tip-y: {tip.y}px"
+      <ChartTip
+        x={hover.tip.x}
+        y={hover.tip.y}
+        flip={hover.tip.x > width / 2}
+        wide
+        categoryColor={active.item.color}
       >
         <tip-heading>
           <Icon width="16" height="16" />
@@ -291,7 +275,7 @@
             {active.item.detail}
           {/if}
         </span>
-      </chart-tip>
+      </ChartTip>
     {/if}
   </category-root>
 {:else}
@@ -421,27 +405,6 @@
 
   [data-seg-hit] {
     fill: transparent;
-  }
-
-  chart-tip {
-    position: absolute;
-    inset-block-start: var(--tip-y);
-    inset-inline-start: var(--tip-x);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-    max-inline-size: 16rem;
-    padding: var(--space-2xs) var(--space-xs);
-    font-size: var(--step--1);
-    background: var(--background-l4);
-    border: 1px solid var(--background-l5);
-    border-radius: var(--radius-md);
-    pointer-events: none;
-    transform: translate(0.75rem, -50%);
-
-    &[data-flip] {
-      transform: translate(calc(-100% - 0.75rem), -50%);
-    }
   }
 
   tip-heading {

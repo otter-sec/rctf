@@ -5,6 +5,8 @@
   hovered row into an HTML tooltip (`x/y challenges` + points earned).
 -->
 <script lang="ts">
+  import ChartTip from '$lib/chart/chart-tip.svelte'
+  import { createHoverTip } from '$lib/chart/hover-tip.svelte'
   import { createLinearScale } from '$lib/chart/scale'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import { maxChartValue, type DifficultyDatum } from './profile-analytics-data'
@@ -24,8 +26,7 @@
 
   let width = $state(0)
   let height = $state(0)
-  let activeIndex = $state<number | null>(null)
-  let tip = $state<{ x: number; y: number } | null>(null)
+  const hover = createHoverTip('data-row-hit', 'index')
 
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = $derived(Math.max(PAD_TOP, height - PAD_BOTTOM))
@@ -35,29 +36,11 @@
   const xScale = $derived(createLinearScale([0, chartMax], [PAD_LEFT, innerRight]))
   const xTicks = $derived(niceLinearTicks(chartMax, 4))
 
+  const activeIndex = $derived(hover.activeKey === null ? null : Number(hover.activeKey))
   const active = $derived(activeIndex === null ? null : (data[activeIndex] ?? null))
 
   function rowY(index: number): number {
     return PAD_TOP + index * rowHeight + ROW_INSET
-  }
-
-  function handleMove(event: PointerEvent) {
-    const svg = event.currentTarget as SVGSVGElement
-    const target = event.target as Element | null
-    const hit = target?.closest<SVGRectElement>('[data-row-hit]') ?? null
-    if (!hit) {
-      activeIndex = null
-      tip = null
-      return
-    }
-    activeIndex = Number(hit.dataset.index)
-    const rect = svg.getBoundingClientRect()
-    tip = { x: event.clientX - rect.left, y: event.clientY - rect.top }
-  }
-
-  function handleLeave() {
-    activeIndex = null
-    tip = null
   }
 </script>
 
@@ -68,8 +51,8 @@
       aria-label="Difficulty profile"
       {width}
       {height}
-      onpointermove={handleMove}
-      onpointerleave={handleLeave}
+      onpointermove={hover.handleMove}
+      onpointerleave={hover.handleLeave}
     >
       {#each xTicks.values as value (value)}
         {@const gx = xScale(value)}
@@ -113,17 +96,14 @@
     </svg>
   </div>
 
-  {#if active && tip}
-    <chart-tip
-      data-flip={tip.x > width / 2 || undefined}
-      style="--tip-x: {tip.x}px; --tip-y: {tip.y}px"
-    >
+  {#if active && hover.tip}
+    <ChartTip x={hover.tip.x} y={hover.tip.y} flip={hover.tip.x > width / 2}>
       <span data-heading>{active.label}</span>
       <span data-detail
         >{active.value.toLocaleString()}/{active.max.toLocaleString()} challenges</span
       >
       <span data-detail>{active.detail}</span>
-    </chart-tip>
+    </ChartTip>
   {/if}
 </difficulty-root>
 
@@ -185,26 +165,6 @@
 
   [data-row-hit] {
     fill: transparent;
-  }
-
-  chart-tip {
-    position: absolute;
-    inset-block-start: var(--tip-y);
-    inset-inline-start: var(--tip-x);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-    padding: var(--space-2xs) var(--space-xs);
-    font-size: var(--step--1);
-    background: var(--background-l4);
-    border: 1px solid var(--background-l5);
-    border-radius: var(--radius-md);
-    pointer-events: none;
-    transform: translate(0.75rem, -50%);
-
-    &[data-flip] {
-      transform: translate(calc(-100% - 0.75rem), -50%);
-    }
   }
 
   [data-heading] {

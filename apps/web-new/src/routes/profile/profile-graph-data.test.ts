@@ -154,13 +154,13 @@ describe('buildProfileGraphData solve dots', () => {
     expect(data.solveDots[0]).toMatchObject({ points: 120, score: 120 })
   })
 
-  test('sorts solves chronologically before accumulating', () => {
+  test('accumulates in the order solves are given (caller must pre-sort)', () => {
     const data = buildProfileGraphData(
       input({
         graphData: twoSamples,
         solves: [
-          solve({ id: 'b', createdAt: 250, points: 50 }),
           solve({ id: 'a', createdAt: 150, points: 100 }),
+          solve({ id: 'b', createdAt: 250, points: 50 }),
         ],
       })
     )

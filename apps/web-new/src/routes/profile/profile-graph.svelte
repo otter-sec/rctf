@@ -12,6 +12,7 @@
   import { monotoneCubicPath } from '$lib/chart/path'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
+  import { clampBoxPosition } from '$lib/chart/tooltip-position'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
@@ -129,18 +130,15 @@
 
   const sampleHeight = $derived(SAMPLE_ROWS_TOP + sampleRows.length * SAMPLE_ROW_H + SAMPLE_PAD - 2)
 
-  const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
   const anchorX = $derived(nearest ? nearest.point.x : 0)
   const anchorY = $derived(nearest ? nearest.point.y : 0)
-  const sampleBoxX = $derived(
-    clamp(
-      anchorX > width / 2 ? anchorX - SAMPLE_W - 12 : anchorX + 12,
-      4,
-      Math.max(4, width - SAMPLE_W - 4)
+  const sampleBox = $derived(
+    clampBoxPosition(
+      { x: anchorX, y: anchorY },
+      { width: SAMPLE_W, height: sampleHeight },
+      { width, height },
+      12
     )
-  )
-  const sampleBoxY = $derived(
-    clamp(anchorY - sampleHeight / 2, 4, Math.max(4, height - sampleHeight - 4))
   )
 
   const hasContent = $derived(graph.xDomain !== null)
@@ -226,7 +224,7 @@
             score={hoveredSolve.score}
           />
         {:else if hoveredSample}
-          <g data-sample-tooltip transform="translate({sampleBoxX},{sampleBoxY})">
+          <g data-sample-tooltip transform="translate({sampleBox.x},{sampleBox.y})">
             <rect data-tt-box width={SAMPLE_W} height={sampleHeight} rx="6" />
             <text data-tt-time x={SAMPLE_PAD} y={SAMPLE_REL_Y}>
               {formatRelativeHoursMinutes(hoveredSample.time, startTime)}

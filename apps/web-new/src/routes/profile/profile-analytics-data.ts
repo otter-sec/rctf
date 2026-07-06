@@ -23,6 +23,29 @@ export type ChallengeInfo = {
   scoringKind?: 'decay' | 'dynamic'
 }
 
+// Shape of a single entry in the leaderboard-challenges query record. A subset
+// of the API response (sortWeight/firstSolvers are unused here).
+type LeaderboardChallengeEntry = {
+  name: string
+  category: string
+  points: number
+  solves: number
+  scoringKind?: 'decay' | 'dynamic'
+}
+
+export function toChallengeInfos(
+  challenges: Record<string, LeaderboardChallengeEntry> | undefined
+): ChallengeInfo[] {
+  return Object.entries(challenges ?? {}).map(([id, challenge]) => ({
+    id,
+    name: challenge.name,
+    category: challenge.category,
+    points: challenge.points,
+    solves: challenge.solves,
+    scoringKind: challenge.scoringKind,
+  }))
+}
+
 export type CategoryStat = {
   key: string
   label: string
