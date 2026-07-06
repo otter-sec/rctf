@@ -7,16 +7,15 @@
 -->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
+  import ChartTip from '$lib/chart/chart-tip.svelte'
   import Line from '$lib/chart/line.svelte'
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { monotoneCubicPath } from '$lib/chart/path'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
-  import { clampBoxPosition } from '$lib/chart/tooltip-position'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
   import type { ProfileDynamicScore, ProfileSolve } from './profile-analytics-data'
   import { compactNumber } from './profile-chart-utils'
   import { buildProfileGraphData, scoreAt, type GraphSampleInput } from './profile-graph-data'
@@ -44,13 +43,6 @@
   const PAD_RIGHT = 8
   const PAD_BOTTOM = 24
   const PAD_LEFT = 44
-
-  const SAMPLE_W = 164
-  const SAMPLE_PAD = 10
-  const SAMPLE_REL_Y = SAMPLE_PAD + 10
-  const SAMPLE_LOCAL_Y = SAMPLE_REL_Y + 12
-  const SAMPLE_ROWS_TOP = SAMPLE_LOCAL_Y + 16
-  const SAMPLE_ROW_H = 15
 
   let width = $state(0)
   let height = $state(0)
@@ -128,18 +120,8 @@
     return [{ label: 'Total score', value: hoveredSample.score }]
   })
 
-  const sampleHeight = $derived(SAMPLE_ROWS_TOP + sampleRows.length * SAMPLE_ROW_H + SAMPLE_PAD - 2)
-
   const anchorX = $derived(nearest ? nearest.point.x : 0)
   const anchorY = $derived(nearest ? nearest.point.y : 0)
-  const sampleBox = $derived(
-    clampBoxPosition(
-      { x: anchorX, y: anchorY },
-      { width: SAMPLE_W, height: sampleHeight },
-      { width, height },
-      12
-    )
-  )
 
   const hasContent = $derived(graph.xDomain !== null)
 
@@ -206,43 +188,42 @@
         {#if nearest}
           <circle data-hover-ring cx={anchorX} cy={anchorY} r="6" />
         {/if}
-
-        {#if hoveredSolve}
-          <ProfileSolveTooltip
-            x={anchorX}
-            y={anchorY}
-            chartWidth={width}
-            chartHeight={height}
-            {startTime}
-            time={hoveredSolve.time}
-            color={hoveredSolve.color}
-            categoryIcon={hoveredSolve.categoryIcon}
-            catShort={hoveredSolve.catShort}
-            name={hoveredSolve.name}
-            scoreBefore={hoveredSolve.scoreBefore}
-            points={hoveredSolve.points}
-            score={hoveredSolve.score}
-          />
-        {:else if hoveredSample}
-          <g data-sample-tooltip transform="translate({sampleBox.x},{sampleBox.y})">
-            <rect data-tt-box width={SAMPLE_W} height={sampleHeight} rx="6" />
-            <text data-tt-time x={SAMPLE_PAD} y={SAMPLE_REL_Y}>
-              {formatRelativeHoursMinutes(hoveredSample.time, startTime)}
-            </text>
-            <text data-tt-local x={SAMPLE_PAD} y={SAMPLE_LOCAL_Y}>
-              {formatLocalTime(hoveredSample.time)}
-            </text>
-            {#each sampleRows as row, index (row.label)}
-              {@const rowY = SAMPLE_ROWS_TOP + index * SAMPLE_ROW_H}
-              <text data-tt-label x={SAMPLE_PAD} y={rowY}>{row.label}</text>
-              <text data-tt-value x={SAMPLE_W - SAMPLE_PAD} y={rowY} text-anchor="end">
-                {row.value.toLocaleString()} pts
-              </text>
-            {/each}
-          </g>
-        {/if}
       </svg>
     </div>
+
+    {#if hoveredSolve}
+      <ProfileSolveTooltip
+        x={anchorX}
+        y={anchorY}
+        chartWidth={width}
+        chartHeight={height}
+        {startTime}
+        time={hoveredSolve.time}
+        color={hoveredSolve.color}
+        categoryIcon={hoveredSolve.categoryIcon}
+        catShort={hoveredSolve.catShort}
+        name={hoveredSolve.name}
+        scoreBefore={hoveredSolve.scoreBefore}
+        points={hoveredSolve.points}
+        score={hoveredSolve.score}
+      />
+    {:else if hoveredSample}
+      <ChartTip
+        x={anchorX}
+        y={anchorY}
+        chartWidth={width}
+        chartHeight={height}
+        time={hoveredSample.time}
+        {startTime}
+      >
+        <sample-rows>
+          {#each sampleRows as row (row.label)}
+            <span data-label>{row.label}</span>
+            <span data-value>{row.value.toLocaleString()} pts</span>
+          {/each}
+        </sample-rows>
+      </ChartTip>
+    {/if}
   {:else}
     <EmptyState icon={IconChartAreaLineFilled} title="No score graph data." />
   {/if}
@@ -311,34 +292,22 @@
     pointer-events: none;
   }
 
-  [data-sample-tooltip] {
-    pointer-events: none;
-  }
-
-  [data-tt-box] {
-    fill: var(--background-l4);
-    stroke: var(--background-l5);
-    stroke-width: 1;
-  }
-
-  [data-tt-time] {
-    font-size: 0.6875rem;
-    fill: var(--foreground-l3);
-  }
-
-  [data-tt-local] {
-    font-size: 0.5625rem;
-    fill: var(--foreground-l3);
-  }
-
-  [data-tt-label] {
-    font-size: 0.625rem;
-    fill: var(--foreground-l4);
-  }
-
-  [data-tt-value] {
-    font-size: 0.6875rem;
+  sample-rows {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0.125rem var(--space-s);
+    min-inline-size: 9rem;
     font-variant-numeric: tabular-nums;
-    fill: var(--foreground-l1);
+
+    [data-label] {
+      align-self: center;
+      font-size: 0.625rem;
+      color: var(--foreground-l4);
+    }
+
+    [data-value] {
+      text-align: end;
+      color: var(--foreground-l1);
+    }
   }
 </style>

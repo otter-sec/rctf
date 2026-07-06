@@ -41,6 +41,10 @@
   )
   const selfQuery = useChallengeSolvesSelf(() => challenge.id)
 
+  // Non-reactive read: true only when this mount actually starts behind the
+  // spinner, so a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = solvesQuery.isPending
+
   const currentUser = $derived(userQuery.data)
   const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
@@ -124,7 +128,7 @@
       subtitle="Be the first to solve this challenge!"
     />
   {:else}
-    <solves-viewport>
+    <solves-viewport data-reveal={revealAfterLoading || undefined}>
       <solves-scroll {@attach captureScroll} tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}

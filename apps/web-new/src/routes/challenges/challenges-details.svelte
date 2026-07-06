@@ -10,6 +10,9 @@
 -->
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
+  import { captureElement } from '$lib/attachments/capture-element'
+  import EdgeFades from '$lib/components/edge-fades.svelte'
+  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import IconFileInfoFilled from '$lib/icons/icon-file-info-filled.svelte'
   import IconFlagFilled from '$lib/icons/icon-flag-filled.svelte'
@@ -65,6 +68,13 @@
   // Fall back to 'details' whenever the lifted selection is not valid for this
   // challenge (e.g. 'scores' persisted from a dynamic challenge onto a flag one).
   const activeTab = $derived(tabItems.some(item => item.value === tab) ? tab : 'details')
+
+  // The details tab owns its scroll region (solves/scores bring their own) so
+  // it can carry the same edge fades as the other tabs.
+  let detailsScroll = $state<HTMLElement | null>(null)
+  const captureDetailsScroll = captureElement<HTMLElement>(node => (detailsScroll = node))
+  const detailsGeometry = createScrollGeometry(() => detailsScroll)
+  const detailsFades = deriveEdgeFades(detailsGeometry)
 </script>
 
 {#if challenge}
@@ -76,7 +86,12 @@
         {#snippet content({ value })}
           {#if value === activeTab && challenge}
             {#if value === 'details'}
-              <ChallengeDetailsOverview {challenge} {onSolve} />
+              <details-viewport>
+                <details-scroll {@attach captureDetailsScroll} tabindex="-1">
+                  <ChallengeDetailsOverview {challenge} {onSolve} />
+                </details-scroll>
+                <EdgeFades top={detailsFades.top} bottom={detailsFades.bottom} />
+              </details-viewport>
             {:else if value === 'solves'}
               <ChallengeDetailsSolves {challenge} />
             {:else if value === 'scores'}
@@ -146,11 +161,29 @@
     }
 
     :global([data-scope='tabs'][data-part='content']:not([hidden])) {
+      display: flex;
       flex: 1;
+      flex-direction: column;
       min-block-size: 0;
-      overflow-y: auto;
+      overflow: hidden;
       background: var(--background-l2);
     }
+  }
+
+  details-viewport {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  details-scroll {
+    display: block;
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+    outline: none;
   }
 
   details-footer {

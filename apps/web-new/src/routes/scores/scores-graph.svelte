@@ -263,17 +263,20 @@
         <g data-series-role={hoveredSeries.role}>
           <circle data-hover-dot cx={hoverPx.x} cy={hoverPx.y} r="3.5" fill="currentColor" />
         </g>
-        <ChartTooltip
-          x={hoverPx.x}
-          y={hoverPx.y}
-          chartWidth={width}
-          chartHeight={height}
-          rows={tooltipRows}
-          {startTime}
-        />
       {/if}
     </svg>
   </div>
+
+  {#if hoverPx && hoveredSeries}
+    <ChartTooltip
+      x={hoverPx.x}
+      y={hoverPx.y}
+      chartWidth={width}
+      chartHeight={height}
+      rows={tooltipRows}
+      {startTime}
+    />
+  {/if}
 
   <graph-controls-slot>
     <GraphControls {showTop3Context} {showSelfContext} {onToggleTop3} {onToggleSelf} />

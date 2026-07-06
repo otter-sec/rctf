@@ -255,7 +255,8 @@
       <ChartTip
         x={hover.tip.x}
         y={hover.tip.y}
-        flip={hover.tip.x > width / 2}
+        chartWidth={width}
+        chartHeight={height}
         wide
         categoryColor={active.item.color}
       >

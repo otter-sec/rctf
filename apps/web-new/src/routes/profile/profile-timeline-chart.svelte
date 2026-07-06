@@ -113,26 +113,29 @@
           />
         {/each}
 
-        {#if hovered && nearest}
+        {#if nearest}
           <circle data-hover-ring cx={nearest.point.x} cy={nearest.point.y} r="6" />
-          <ProfileSolveTooltip
-            x={nearest.point.x}
-            y={nearest.point.y}
-            chartWidth={width}
-            chartHeight={height}
-            {startTime}
-            time={hovered.datum.time}
-            color={hovered.datum.color}
-            categoryIcon={hovered.datum.categoryIcon}
-            catShort={hovered.datum.categoryLabel}
-            name={hovered.datum.name}
-            scoreBefore={hovered.datum.scoreBefore}
-            points={hovered.datum.points}
-            score={hovered.datum.score}
-          />
         {/if}
       </svg>
     </div>
+
+    {#if hovered && nearest}
+      <ProfileSolveTooltip
+        x={nearest.point.x}
+        y={nearest.point.y}
+        chartWidth={width}
+        chartHeight={height}
+        {startTime}
+        time={hovered.datum.time}
+        color={hovered.datum.color}
+        categoryIcon={hovered.datum.categoryIcon}
+        catShort={hovered.datum.categoryLabel}
+        name={hovered.datum.name}
+        scoreBefore={hovered.datum.scoreBefore}
+        points={hovered.datum.points}
+        score={hovered.datum.score}
+      />
+    {/if}
   </timeline-root>
 {:else}
   <EmptyState icon={IconFlagFilled} title="No solves yet." />
@@ -140,6 +143,7 @@
 
 <style>
   timeline-root {
+    position: relative;
     display: block;
     inline-size: 100%;
     block-size: var(--chart-height);

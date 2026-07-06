@@ -1,8 +1,8 @@
 <!--
-  Hover tooltip rendered as pure SVG so it can be positioned via the `transform`
-  presentation attribute (no inline styles) and share the parent <svg>'s
-  coordinate space. Each row shows a colour swatch, name, score, plus a shared
-  relative + local time header. Placement flips to stay inside the plot.
+  Hover tooltip for the multi-team score graphs: a shared relative + local time
+  header over one row per series (colour swatch, name, score). HTML overlay on
+  the shared ChartTip container — render it outside the <svg>, inside the
+  chart's relative root.
 -->
 <script module lang="ts">
   export interface TooltipRow {
@@ -14,8 +14,7 @@
 </script>
 
 <script lang="ts">
-  import { clampBoxPosition, truncateLabel } from '$lib/chart/tooltip-position'
-  import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
+  import ChartTip from '$lib/chart/chart-tip.svelte'
 
   interface Props {
     /** Anchor point in px (the highlighted sample). */
@@ -29,83 +28,46 @@
 
   let { x, y, chartWidth, chartHeight, rows, startTime }: Props = $props()
 
-  const WIDTH = 184
-  const PAD = 8
-  const GAP = 12
-  const RELATIVE_Y = PAD + 10
-  const LOCAL_Y = RELATIVE_Y + 11
-  const ROWS_TOP = LOCAL_Y + 8
-  const ROW_H = 16
-  const SWATCH = 8
-
-  const height = $derived(ROWS_TOP + rows.length * ROW_H + PAD - 4)
-
-  const box = $derived(
-    clampBoxPosition(
-      { x, y },
-      { width: WIDTH, height },
-      { width: chartWidth, height: chartHeight },
-      GAP
-    )
-  )
-
   const headerTime = $derived(rows[0]?.time ?? startTime)
 </script>
 
-<g data-chart-tooltip transform="translate({box.x},{box.y})">
-  <rect data-tt-box width={WIDTH} {height} rx="6" />
-  <text data-tt-time x={PAD} y={RELATIVE_Y}
-    >{formatRelativeHoursMinutes(headerTime, startTime)}</text
-  >
-  <text data-tt-local x={PAD} y={LOCAL_Y}>{formatLocalTime(headerTime)}</text>
+<ChartTip {x} {y} {chartWidth} {chartHeight} time={headerTime} {startTime}>
   {#each rows as row, index (index)}
-    {@const rowY = ROWS_TOP + index * ROW_H}
-    <rect
-      data-tt-swatch
-      data-series-role={row.role}
-      x={PAD}
-      y={rowY}
-      width={SWATCH}
-      height={SWATCH}
-      rx="2"
-      fill="currentColor"
-    />
-    <text data-tt-name x={PAD + SWATCH + 6} y={rowY + SWATCH}>{truncateLabel(row.name)}</text>
-    <text data-tt-score x={WIDTH - PAD} y={rowY + SWATCH} text-anchor="end">
-      {row.score.toLocaleString()} pts
-    </text>
+    <tooltip-row>
+      <color-swatch data-series-role={row.role}></color-swatch>
+      <span>{row.name}</span>
+      <strong>{row.score.toLocaleString()} pts</strong>
+    </tooltip-row>
   {/each}
-</g>
+</ChartTip>
 
 <style>
-  [data-chart-tooltip] {
-    pointer-events: none;
+  tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
   }
 
-  [data-tt-box] {
-    fill: var(--background-l4);
-    stroke: var(--background-l5);
-    stroke-width: 1;
+  color-swatch {
+    flex-shrink: 0;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    background: currentColor;
+    border-radius: var(--radius-xs);
   }
 
-  [data-tt-time] {
-    font-size: 0.6875rem;
-    fill: var(--foreground-l3);
+  span {
+    max-inline-size: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  [data-tt-local] {
-    font-size: 0.5625rem;
-    fill: var(--foreground-l3);
-  }
-
-  [data-tt-name] {
-    font-size: 0.6875rem;
-    fill: var(--foreground-l1);
-  }
-
-  [data-tt-score] {
-    font-size: 0.6875rem;
+  strong {
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-xs);
+    color: var(--foreground-l3);
+    font-weight: var(--font-weight-normal);
     font-variant-numeric: tabular-nums;
-    fill: var(--foreground-l2);
   }
 </style>

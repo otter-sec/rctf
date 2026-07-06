@@ -1,14 +1,13 @@
 <!--
-  Solve hover card for the profile score graph. Rendered as pure SVG (positioned
-  by the `transform` presentation attribute) so it lives in the graph's <svg>
-  coordinate space, matching the chart-tooltip idiom. Shows the solve time,
-  category icon + `cat / name`, and the `before + points = after` arithmetic.
-  Category tokens come from `data-category-color` on the group.
+  Solve hover card shared by the profile score graph and solve timeline: solve
+  time header, category icon + `cat / name`, and the `before + points = after`
+  arithmetic below a separator. HTML overlay on the shared ChartTip container —
+  render it outside the <svg>, inside the chart's relative root. Category
+  tokens come from `categoryColor` on the container.
 -->
 <script lang="ts">
-  import { clampBoxPosition, truncateLabel } from '$lib/chart/tooltip-position'
+  import ChartTip from '$lib/chart/chart-tip.svelte'
   import type { CategoryColor, CategoryConfig } from '$lib/utils/categories'
-  import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
 
   interface Props {
     /** Anchor point in px (the hovered dot). */
@@ -43,102 +42,68 @@
     score,
   }: Props = $props()
 
-  const WIDTH = 220
-  const HEIGHT = 92
-  const PAD = 10
-  const GAP = 12
-  const ICON = 14
-  const REL_Y = PAD + 10
-  const LOCAL_Y = REL_Y + 12
-  const CHAL_Y = LOCAL_Y + 22
-  const SEP_Y = CHAL_Y + 12
-  const MATH_Y = SEP_Y + 18
-
-  const box = $derived(
-    clampBoxPosition(
-      { x, y },
-      { width: WIDTH, height: HEIGHT },
-      { width: chartWidth, height: chartHeight },
-      GAP
-    )
-  )
-
   const deltaLabel = $derived(points === null ? '+n/a' : `+${points.toLocaleString()}`)
 </script>
 
-<g data-solve-tooltip data-category-color={color} transform="translate({box.x},{box.y})">
-  <rect data-tt-box width={WIDTH} height={HEIGHT} rx="6" />
-  <text data-tt-time x={PAD} y={REL_Y}>{formatRelativeHoursMinutes(time, startTime)}</text>
-  <text data-tt-local x={PAD} y={LOCAL_Y}>{formatLocalTime(time)}</text>
-
-  <CategoryIcon x={PAD} y={CHAL_Y - 12} width={ICON} height={ICON} />
-  <text x={PAD + ICON + 6} y={CHAL_Y}>
-    <tspan data-tt-cat>{catShort} /</tspan>
-    <tspan data-tt-name dx="4">{truncateLabel(name)}</tspan>
-  </text>
-
-  <line data-tt-sep x1={PAD} y1={SEP_Y} x2={WIDTH - PAD} y2={SEP_Y} />
-  <text data-tt-math x={PAD} y={MATH_Y}>
-    <tspan data-tt-num>{scoreBefore.toLocaleString()} pts</tspan>
-    <tspan data-tt-delta dx="6">{deltaLabel} pts</tspan>
-    <tspan data-tt-eq dx="6">=</tspan>
-    <tspan data-tt-num dx="6">{score.toLocaleString()} pts</tspan>
-  </text>
-</g>
+<ChartTip {x} {y} {chartWidth} {chartHeight} {time} {startTime} categoryColor={color}>
+  <solve-challenge>
+    <CategoryIcon width="14" height="14" />
+    <span data-cat>{catShort} /</span>
+    <span data-name>{name}</span>
+  </solve-challenge>
+  <solve-math>
+    <span data-num>{scoreBefore.toLocaleString()} pts</span>
+    <span data-delta>{deltaLabel} pts</span>
+    <span data-eq>=</span>
+    <span data-num>{score.toLocaleString()} pts</span>
+  </solve-math>
+</ChartTip>
 
 <style>
-  [data-solve-tooltip] {
-    pointer-events: none;
+  solve-challenge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    min-inline-size: 13rem;
+    max-inline-size: 16rem;
     color: var(--category-foreground-l1);
+
+    :global(svg) {
+      flex-shrink: 0;
+    }
   }
 
-  [data-tt-box] {
-    fill: var(--background-l4);
-    stroke: var(--background-l5);
-    stroke-width: 1;
+  [data-cat] {
+    flex-shrink: 0;
+    font-weight: var(--font-weight-medium);
   }
 
-  [data-tt-time] {
-    font-size: 0.6875rem;
-    fill: var(--foreground-l3);
+  [data-name] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--category-foreground-l0);
   }
 
-  [data-tt-local] {
-    font-size: 0.5625rem;
-    fill: var(--foreground-l3);
-  }
-
-  [data-tt-cat] {
-    font-size: 0.6875rem;
-    font-weight: 500;
-    fill: var(--category-foreground-l1);
-  }
-
-  [data-tt-name] {
-    font-size: 0.6875rem;
-    fill: var(--category-foreground-l0);
-  }
-
-  [data-tt-sep] {
-    stroke: var(--background-l5);
-    stroke-width: 1;
-  }
-
-  [data-tt-math] {
-    font-size: 0.6875rem;
+  solve-math {
+    display: flex;
+    gap: var(--space-3xs);
+    margin-block-start: var(--space-3xs);
+    padding-block-start: var(--space-2xs);
+    border-block-start: 2px solid var(--background-l5);
     font-variant-numeric: tabular-nums;
   }
 
-  [data-tt-num] {
-    fill: var(--foreground-l1);
+  [data-num] {
+    color: var(--foreground-l1);
   }
 
-  [data-tt-delta] {
-    font-weight: 500;
-    fill: var(--foreground-success);
+  [data-delta] {
+    color: var(--foreground-success);
+    font-weight: var(--font-weight-medium);
   }
 
-  [data-tt-eq] {
-    fill: var(--foreground-l4);
+  [data-eq] {
+    color: var(--foreground-l4);
   }
 </style>

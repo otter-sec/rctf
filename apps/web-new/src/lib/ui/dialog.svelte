@@ -93,7 +93,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
-    padding: var(--space-m);
+    padding: var(--dialog-content-padding, var(--space-m));
     overflow-y: auto;
     background: var(--background-l1);
     border: 2px solid var(--border);
@@ -130,14 +130,15 @@
     }
   }
 
+  /* Full-bleed: the close trigger must land exactly where the header trigger
+     sits, which only holds when the sheet spans the whole viewport. */
   [data-presentation='sheet'] {
     justify-content: flex-start;
 
     [data-part='content'] {
       block-size: 100%;
-      inline-size: min(20rem, 90vw);
-      border-block: none;
-      border-inline-start: none;
+      inline-size: 100%;
+      border: none;
     }
   }
 
@@ -155,7 +156,6 @@
       max-block-size: var(--dialog-drawer-max-size, 85dvh);
       border-inline: none;
       border-block-end: none;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
   }
 </style>

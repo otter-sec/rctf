@@ -488,7 +488,7 @@
   --foreground-self-l0:   var(--jade-11);
   --foreground-self-l1:   var(--jade-a11);
   --background-nth:       light-dark(var(--background-l4), var(--background-l3));
-  --foreground-nth-l0:    light-dark(var(--foreground-l1), var(--foreground-l2));
+  --foreground-nth-l0:    var(--foreground-l0);
   --foreground-nth-l1:    var(--foreground-l3);
 
   --foreground-first:   var(--red-9);

@@ -50,6 +50,10 @@
 
   // `tabs` is a fixed per-route array, so the first tab is a stable default.
   let activeTab = $state(untrack(() => tabs[0]?.value ?? ''))
+
+  // Non-reactive read: true only when this visit actually starts behind the
+  // spinner, so a warm-cache revisit doesn't replay the reveal fade.
+  const revealAfterLoading = untrack(() => status) === 'loading'
 </script>
 
 {#if status === 'loading'}
@@ -65,6 +69,7 @@
     data-active-tab={activeTab}
     data-desktop-column={desktopColumn}
     data-hide-tablist={hideTablistOnDesktop || undefined}
+    data-reveal={revealAfterLoading || undefined}
   >
     <!-- Paint layers: the rounded-top card surfaces behind each column (old
          app's bg-l1 + rounded-t-3xl panes). Grid items paint in DOM order, so

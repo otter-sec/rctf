@@ -96,26 +96,8 @@
     max-inline-size: 100%;
     padding-inline: 1rem;
 
-    /* Fade the board in only when this visit started behind the spinner; a
-       warm-cache revisit mounts it without replaying the reveal. */
-    &[data-reveal] {
-      animation: scores-fade-in 300ms ease;
-    }
-
     @media (width >= 48rem) {
       padding-inline: 2.25rem;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      &[data-reveal] {
-        animation: none;
-      }
-    }
-  }
-
-  @keyframes scores-fade-in {
-    from {
-      opacity: 0;
     }
   }
 

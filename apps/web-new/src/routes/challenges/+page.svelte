@@ -19,6 +19,10 @@
   const isPending = $derived(challengesQuery.isPending)
   const error = $derived(challengesQuery.error)
   const isNotStarted = $derived(ApiError.isNotStarted(error))
+
+  // Non-reactive read: true only when this visit actually starts behind the
+  // spinner, so a warm-cache revisit doesn't replay the reveal fade.
+  const revealAfterLoading = challengesQuery.isPending
 </script>
 
 <svelte:head>
@@ -28,7 +32,9 @@
 </svelte:head>
 
 {#if challenges && challenges.length > 0}
-  <Challenges />
+  <challenges-reveal data-reveal={revealAfterLoading || undefined}>
+    <Challenges />
+  </challenges-reveal>
 {:else if isPending}
   <page-status>
     <Spinner />
@@ -55,6 +61,12 @@
 {/if}
 
 <style>
+  /* The board fades as one unit; challenges-page sizes itself to the viewport,
+     so a plain block wrapper doesn't disturb the layout. */
+  challenges-reveal {
+    display: block;
+  }
+
   page-status,
   challenges-empty {
     display: flex;

@@ -9,7 +9,6 @@
 -->
 <script lang="ts">
   import type { ClientConfig } from '@rctf/types'
-  import Section from '$lib/ui/section.svelte'
   import {
     buildActivityDomain,
     buildCadenceData,
@@ -79,7 +78,8 @@
 </script>
 
 <profile-analytics>
-  <Section title="Score over time">
+  <section>
+    <h2>Score over time</h2>
     <graph-frame>
       <ProfileGraph
         graphData={graphData ?? { points: [] }}
@@ -90,35 +90,61 @@
         {splitDynamicScore}
       />
     </graph-frame>
-  </Section>
+  </section>
 
-  <Section title="Points by category">
+  <section>
+    <h2>Points by category</h2>
     <ProfileCategoryChart data={categoryPointsData} emptyMessage="No points data." />
-  </Section>
+  </section>
 
-  <Section title="Solve timeline">
+  <section>
+    <h2>Solve timeline</h2>
     <ProfileTimelineChart
       data={timelineData}
       categories={timelineCategories}
       {activityDomain}
       {startTime}
     />
-  </Section>
+  </section>
 
-  <Section title="Solve cadence">
+  <section>
+    <h2>Solve cadence</h2>
     <ProfileCadenceChart data={cadenceData} ctfStart={startTime} />
-  </Section>
+  </section>
 
-  <Section title="Difficulty profile">
+  <section>
+    <h2>Difficulty profile</h2>
     <ProfileDifficultyChart data={difficultyData} />
-  </Section>
+  </section>
 </profile-analytics>
 
 <style>
   profile-analytics {
     display: flex;
     flex-direction: column;
-    gap: var(--space-m);
+  }
+
+  /* Old-app section chrome: a title over each chart, separated by hairlines
+     rather than boxed cards. */
+  section {
+    padding-block: var(--space-s);
+    border-block-end: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+
+    &:first-child {
+      padding-block-start: 0;
+    }
+
+    &:last-child {
+      padding-block-end: 0;
+      border-block-end: none;
+    }
+  }
+
+  h2 {
+    margin: 0 0 var(--space-xs);
+    font-size: var(--step--1);
+    font-weight: var(--font-weight-normal);
+    color: var(--foreground-l1);
   }
 
   graph-frame {

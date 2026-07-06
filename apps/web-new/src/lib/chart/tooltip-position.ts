@@ -1,8 +1,8 @@
 /**
- * Placement math shared by every SVG hover tooltip: flip to the other side of
- * the anchor once it crosses the chart's horizontal midpoint (so the box
- * never covers the hovered point), then clamp the box into the chart bounds
- * with a fixed inset.
+ * Placement math for the shared chart tooltip: flip to the other side of the
+ * anchor once it crosses the chart's horizontal midpoint (so the box never
+ * covers the hovered point), then clamp the box into the chart bounds with a
+ * fixed inset.
  */
 
 export interface Point {
@@ -40,9 +40,4 @@ export function clampBoxPosition(
     Math.max(4, chart.height - box.height - 4)
   )
   return { x, y }
-}
-
-/** Ellipsizes a tooltip label to the width the fixed-size boxes were tuned for. */
-export function truncateLabel(value: string, max = 22): string {
-  return value.length > max ? `${value.slice(0, max - 1)}…` : value
 }

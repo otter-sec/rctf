@@ -177,6 +177,13 @@
     }
   }
 
+  /* Match the header's fixed 0.75rem/1rem padding so the sheet's close button
+     renders exactly where the hamburger trigger sits — opening the sheet reads
+     as the icon swapping in place rather than jumping. */
+  :global([data-presentation='sheet']) {
+    --dialog-content-padding: 0.75rem 1rem;
+  }
+
   /* the sheet body is portaled to <body>, so these rules must not be nested
      under mobile-nav — scoping still applies, DOM ancestry does not */
   button,

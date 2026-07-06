@@ -10,6 +10,7 @@
   import { mergeProps } from '@zag-js/svelte'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import IconCheck from '$lib/icons/icon-check.svelte'
+  import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
   import IconClockFilled from '$lib/icons/icon-clock-filled.svelte'
   import IconCoinFilled from '$lib/icons/icon-coin-filled.svelte'
   import IconEyeClosed from '$lib/icons/icon-eye-closed.svelte'
@@ -239,6 +240,7 @@
                   <strong>{entries.length}</strong>
                 {/if}
               </span>
+              <IconChevronRight data-slot="chevron" />
             </button>
           </solves-group-header>
         {/snippet}
@@ -416,7 +418,7 @@
     }
   }
 
-  button {
+  toggle-group button {
     display: inline-flex;
     flex: 1;
     align-items: center;
@@ -496,7 +498,6 @@
 
     button {
       display: flex;
-      block-size: auto;
       align-items: center;
       gap: 0.625rem;
       inline-size: 100%;
@@ -504,18 +505,27 @@
       text-align: start;
       color: var(--category-foreground-l1);
       background: var(--category-background-l0);
-      border-radius: 0;
       cursor: pointer;
 
       &:focus-visible {
         outline: 2px solid var(--ring);
         outline-offset: -2px;
       }
+
+      &[data-expanded] :global([data-slot='chevron']) {
+        rotate: 90deg;
+      }
     }
 
     :global([data-slot='icon']) {
       flex-shrink: 0;
       font-size: 1rem;
+    }
+
+    :global([data-slot='chevron']) {
+      flex-shrink: 0;
+      font-size: 1.25rem;
+      transition: rotate 200ms ease;
     }
 
     [data-slot='name'] {

@@ -258,9 +258,12 @@
     &[data-form='mobile'] {
       flex-direction: column;
 
+      /* Full-width under the header on mobile — a rounded top-right corner
+         against the straight header edge reads as a glitch. */
       pane-surface[data-side='list'] {
         flex: 1;
         min-block-size: 0;
+        border-start-end-radius: 0;
       }
     }
   }

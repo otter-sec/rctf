@@ -118,7 +118,7 @@
     display: flex;
     min-inline-size: 0;
     flex-direction: column;
-    gap: var(--space-2xs);
+    gap: 0.375rem;
   }
 
   profile-name {
@@ -133,7 +133,7 @@
   dl {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: var(--space-3xs) var(--space-s);
+    gap: 0.125rem var(--space-s);
     margin: 0;
     font-size: var(--step--1);
 
@@ -206,7 +206,7 @@
     profile-ranks {
       flex-direction: column;
       align-items: flex-end;
-      gap: var(--space-3xs);
+      gap: 0.125rem;
     }
   }
 </style>

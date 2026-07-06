@@ -47,6 +47,10 @@
     () => ({ limit: 1, offset: 0 })
   )
 
+  // Non-reactive read: true only when this mount actually starts behind the
+  // spinner, so a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = scoresQuery.isPending
+
   const currentUser = $derived(userQuery.data)
   const clientConfig = $derived(clientConfigQuery.data)
   const startTime = $derived(clientConfig?.startTime ?? 0)
@@ -140,11 +144,11 @@
       subtitle="Scores appear here once the scoring feed publishes them."
     />
   {:else}
-    <scores-graph>
+    <scores-graph data-reveal={revealAfterLoading || undefined}>
       <ChallengeDetailsScoresGraph {graph} selfId={currentUser?.id ?? null} {startTime} {endTime} />
     </scores-graph>
 
-    <scores-viewport>
+    <scores-viewport data-reveal={revealAfterLoading || undefined}>
       <scores-scroll {@attach captureScroll} tabindex="-1">
         <scores-list>
           {#each allScores as score, index (score.userId)}
