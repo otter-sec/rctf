@@ -182,6 +182,7 @@
         "@tanstack/virtual-core": "3.17.2",
         "@zag-js/accordion": "1.41.2",
         "@zag-js/avatar": "1.41.2",
+        "@zag-js/combobox": "1.41.2",
         "@zag-js/dialog": "1.41.2",
         "@zag-js/menu": "1.41.2",
         "@zag-js/progress": "1.41.2",
@@ -1067,6 +1068,10 @@
 
     "@zag-js/avatar": ["@zag-js/avatar@1.41.2", "", { "dependencies": { "@zag-js/anatomy": "1.41.2", "@zag-js/core": "1.41.2", "@zag-js/dom-query": "1.41.2", "@zag-js/types": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-+4K0tRtIQysMGuERh5JRmn46uq7gJ6IjJd5DKj74VBtVVY8T6HGk0D0DZxmOIgADHP1qSvowLDoOX8kUyBHarQ=="],
 
+    "@zag-js/collection": ["@zag-js/collection@1.41.2", "", { "dependencies": { "@zag-js/utils": "1.41.2" } }, "sha512-ZZWuvfPZI8ccWd4aLpuU47k1jSc9eO+F3FM3iBJuvgegCH6g3+HDEwGN6wdePHnYfv7zyIKCGKr816zXcIWQbw=="],
+
+    "@zag-js/combobox": ["@zag-js/combobox@1.41.2", "", { "dependencies": { "@zag-js/anatomy": "1.41.2", "@zag-js/collection": "1.41.2", "@zag-js/core": "1.41.2", "@zag-js/dismissable": "1.41.2", "@zag-js/dom-query": "1.41.2", "@zag-js/focus-visible": "1.41.2", "@zag-js/live-region": "1.41.2", "@zag-js/popper": "1.41.2", "@zag-js/types": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-V9jQteyQHs8ZNQx/FcA98P1NVZas/yjiW1V7s4L+h8MnRS3AK97+FAHAT83KCiZ34/vkpLF6ZEHI2zkcQpNXcg=="],
+
     "@zag-js/core": ["@zag-js/core@1.41.2", "", { "dependencies": { "@zag-js/dom-query": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-xXTN3zKwOtMI4+5dG2cG+T1B4WR3X9alXiYaPJKaGd4N2eYRj9JEPte3Hv9gtFm+RM0b9VIwksHEg25rqE4apw=="],
 
     "@zag-js/dialog": ["@zag-js/dialog@1.41.2", "", { "dependencies": { "@zag-js/anatomy": "1.41.2", "@zag-js/aria-hidden": "1.41.2", "@zag-js/core": "1.41.2", "@zag-js/dismissable": "1.41.2", "@zag-js/dom-query": "1.41.2", "@zag-js/focus-trap": "1.41.2", "@zag-js/remove-scroll": "1.41.2", "@zag-js/types": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-t1N72snpFGiKj7cg2PivPdsy+X1YdgXPv7bzovpqjMLy0kN+gYTPoV1Iy/hQA+g021dz9XGgXzkDuU45sJqsFA=="],
@@ -1080,6 +1085,8 @@
     "@zag-js/focus-visible": ["@zag-js/focus-visible@1.41.2", "", { "dependencies": { "@zag-js/dom-query": "1.41.2" } }, "sha512-oRjwtgafUdGVwLJUN6mKsnBQbez/CHYAPkPg1FxOnr5GFpEpr8oMTOZJ3wdPM2U1ynS9QnUUu/sXc3KQv/jX0Q=="],
 
     "@zag-js/interact-outside": ["@zag-js/interact-outside@1.41.2", "", { "dependencies": { "@zag-js/dom-query": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-dM4Fn9iyqQeqkCMRYZP+bAgWEPKRVQRqMmcPsN0OXBhhFKC31Em15LTIZXaOtVKAjH+iwx+UvSYFRiWwEjkOEA=="],
+
+    "@zag-js/live-region": ["@zag-js/live-region@1.41.2", "", {}, "sha512-7ubIW5AQt1wx9S/gFN+rU4TyvuFWJrL/DhnDWPNlH5g3luDVHSNeYGeeqf4d4tkcibtpYZa0pg9CbXxRxrfwVA=="],
 
     "@zag-js/menu": ["@zag-js/menu@1.41.2", "", { "dependencies": { "@zag-js/anatomy": "1.41.2", "@zag-js/core": "1.41.2", "@zag-js/dismissable": "1.41.2", "@zag-js/dom-query": "1.41.2", "@zag-js/focus-visible": "1.41.2", "@zag-js/popper": "1.41.2", "@zag-js/rect-utils": "1.41.2", "@zag-js/types": "1.41.2", "@zag-js/utils": "1.41.2" } }, "sha512-wwix8hcAUSi0scpWXCiDppfdZV01Za8nN0gqLt9GdhCiVSlr0rs9pK1ROgPKJTyc43UZfyFPqtTWVHvEHMM70w=="],
 
