@@ -103,7 +103,7 @@
     flex-direction: column;
     gap: var(--space-s);
     min-block-size: 0;
-    padding: var(--space-2xs) var(--space-l) var(--space-s);
+    padding: var(--space-s) var(--space-l) var(--space-l);
     overflow-y: auto;
   }
 
