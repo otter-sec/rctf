@@ -233,7 +233,11 @@
       onpointermove={handleMove}
       onpointerleave={handleLeave}
     >
-      <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
+      <!-- No data yet (skeleton): xMax collapses to startTime and every tick
+           would land on the same x, stacking the labels in the corner. -->
+      {#if renderSeries.length > 0}
+        <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
+      {/if}
 
       {#each renderSeries as series (series.id)}
         <g data-series-role={series.role}>
