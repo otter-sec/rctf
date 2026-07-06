@@ -3,7 +3,7 @@
   solve, bucket-aligned); Y is one lane per category. A category-coloured dot
   marks every solve; hover picks the nearest dot and reuses the score graph's
   solve tooltip. Hand-rolled SVG on the shared chart core, matching
-  profile-graph.svelte's viewport-sized-SVG + nearestPoint idiom.
+  graph.svelte's viewport-sized-SVG + nearestPoint idiom.
 -->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'

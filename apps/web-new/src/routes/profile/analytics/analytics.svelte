@@ -2,7 +2,7 @@
   Analytics column for the profile routes. Stacks the analytics chart sections:
   the score-over-time graph, then the four tail charts (points by category,
   solve timeline, solve cadence, difficulty profile). Chart inputs are derived
-  here from the shared props via the tested profile-analytics-data builders; the
+  here from the shared props via the tested analytics-data builders; the
   charts themselves are rendering-only. `challenges` is optional so a caller that
   lacks the board snapshot still renders — the category and difficulty charts
   fall back to their track-only/empty states.
