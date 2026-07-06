@@ -1,8 +1,10 @@
 <!--
   Per-challenge cumulative-score graph. Hand-rolled SVG on top of the chart core
-  (scale/ticks/path/nearest); no charting library. Renders the top-N series by
-  final score, optionally pinning the top 3 and self even when they fall outside
-  that window (dimmed when only pinned). Hover picks the nearest sample.
+  (scale/ticks/path/nearest); no charting library. Like /scores, it renders the
+  teams currently scrolled into view in the ranked list (falling back to the
+  top N before the first scroll-geometry pass), optionally pinning the top 3 and
+  self even when they fall outside the window (dimmed when only pinned). Hover
+  picks the nearest sample.
 -->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
@@ -11,16 +13,20 @@
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
+  import { getRankTier } from '../scores/scores-transforms'
   import GraphControls from './challenges-details-scores-graph-controls.svelte'
 
   interface GraphEntry {
     id: string
     name: string
+    /** Sorted ascending by time — the parent sorts once for graph + sparklines. */
     points: { time: number; score: number }[]
   }
 
   interface Props {
     graph: GraphEntry[]
+    /** Teams currently scrolled into view in the ranked list. */
+    visibleTeamIds: Set<string>
     selfId?: string | null
     startTime: number
     endTime: number
@@ -30,6 +36,7 @@
 
   let {
     graph,
+    visibleTeamIds,
     selfId = null,
     startTime,
     endTime,
@@ -44,68 +51,56 @@
   const PAD_LEFT = 8
   const TOP_N = 10
 
-  function seriesRole(isSelf: boolean, rank: number, id: string): string {
-    if (isSelf) return 'self'
-    if (rank === 1) return 'gold'
-    if (rank === 2) return 'silver'
-    if (rank === 3) return 'bronze'
-    if (rank > 0) return `r${((rank - 1) % 10) + 1}`
-    let hash = 0
-    for (const ch of id) hash += ch.charCodeAt(0)
-    return `r${(hash % 10) + 1}`
-  }
-
-  // Round the y-max up to a readable value (1/2/2.5/5 × 10^n) so the top of the
-  // plot has a little headroom instead of clipping the leader's final point.
-  function niceCeil(max: number): number {
-    if (max <= 0) return 1
-    const exp = Math.floor(Math.log10(max))
-    const base = 10 ** exp
-    const frac = max / base
-    const niceFrac = frac <= 1 ? 1 : frac <= 2 ? 2 : frac <= 2.5 ? 2.5 : frac <= 5 ? 5 : 10
-    return niceFrac * base
-  }
-
   let width = $state(0)
   let hover = $state<{ x: number; y: number } | null>(null)
 
   const ranked = $derived(
     graph
-      .map(entry => {
-        const points = [...entry.points].sort((a, b) => a.time - b.time)
-        const finalScore = points.at(-1)?.score ?? 0
-        return { id: entry.id, name: entry.name, points, finalScore }
-      })
+      .map(entry => ({ ...entry, finalScore: entry.points.at(-1)?.score ?? 0 }))
       .sort((a, b) => b.finalScore - a.finalScore || a.id.localeCompare(b.id))
       .map((entry, index) => ({ ...entry, rank: index + 1 }))
   )
 
   const rankedIds = $derived(new Set(ranked.map(entry => entry.id)))
-  const topIds = $derived(new Set(ranked.slice(0, TOP_N).map(entry => entry.id)))
+
+  // The live scroll window drives which lines are in focus; before the first
+  // geometry pass (empty set) fall back to the top N so the graph never
+  // starts blank.
+  const focusIds = $derived(
+    visibleTeamIds.size > 0
+      ? visibleTeamIds
+      : new Set(ranked.slice(0, TOP_N).map(entry => entry.id))
+  )
 
   const renderedIds = $derived.by(() => {
-    const ids = [...topIds]
+    const ids = [...focusIds]
     if (pinTop3) ids.push(...ranked.slice(0, 3).map(entry => entry.id))
     if (pinSelf && selfId && rankedIds.has(selfId)) ids.push(selfId)
     return new Set(ids)
   })
 
+  const rendered = $derived(ranked.filter(entry => renderedIds.has(entry.id)))
+
+  // Domains follow the rendered window, like /scores: scrolling deep into the
+  // pack rescales the plot to the teams on screen.
   const maxScore = $derived.by(() => {
     let max = 0
-    for (const entry of ranked) for (const point of entry.points) max = Math.max(max, point.score)
+    for (const entry of rendered) for (const point of entry.points) max = Math.max(max, point.score)
     return max
   })
 
   const maxTime = $derived.by(() => {
     let max = -Infinity
-    for (const entry of ranked) for (const point of entry.points) max = Math.max(max, point.time)
+    for (const entry of rendered) for (const point of entry.points) max = Math.max(max, point.time)
     return max
   })
 
   const xMax = $derived(
     Number.isFinite(maxTime) ? Math.max(maxTime, startTime) : Math.max(endTime, startTime)
   )
-  const yMax = $derived(niceCeil(maxScore))
+  // No y-axis labels are drawn, so the domain hugs the data: the leader's final
+  // point lands exactly at the top padding and the full plot height is used.
+  const yMax = $derived(maxScore > 0 ? maxScore : 1)
 
   const innerLeft = PAD_LEFT
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
@@ -128,16 +123,15 @@
 
   const renderSeries = $derived.by<RenderSeries[]>(() => {
     const out: RenderSeries[] = []
-    for (const entry of ranked) {
-      if (!renderedIds.has(entry.id)) continue
+    for (const entry of rendered) {
       const isSelf = entry.id === selfId
       out.push({
         id: entry.id,
         name: entry.name,
-        role: seriesRole(isSelf, entry.rank, entry.id),
+        role: getRankTier(isSelf, entry.rank, entry.id),
         rank: entry.rank,
         width: isSelf ? 3 : 2,
-        opacity: isSelf ? 1 : topIds.has(entry.id) ? 1 : 0.3,
+        opacity: isSelf ? 1 : focusIds.has(entry.id) ? 1 : 0.3,
         scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
         data: entry.points.map(p => ({ x: p.time, y: p.score })),
       })
@@ -215,17 +209,20 @@
         <g data-series-role={hoveredSeries.role}>
           <circle data-hover-dot cx={hoverPx.x} cy={hoverPx.y} r="3.5" fill="currentColor" />
         </g>
-        <ChartTooltip
-          x={hoverPx.x}
-          y={hoverPx.y}
-          chartWidth={width}
-          chartHeight={HEIGHT}
-          rows={tooltipRows}
-          {startTime}
-        />
       {/if}
     </svg>
   </div>
+
+  {#if hoverPx && hoveredSeries}
+    <ChartTooltip
+      x={hoverPx.x}
+      y={hoverPx.y}
+      chartWidth={width}
+      chartHeight={HEIGHT}
+      rows={tooltipRows}
+      {startTime}
+    />
+  {/if}
 
   <graph-controls-slot>
     <GraphControls bind:pinTop3 bind:pinSelf />

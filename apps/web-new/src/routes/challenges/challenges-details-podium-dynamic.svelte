@@ -24,6 +24,10 @@
   )
   const userQuery = useCurrentUser()
 
+  // Non-reactive read: true only when this mount actually starts behind the
+  // per-slot spinners, so a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = scoresQuery.isPending
+
   const currentUser = $derived(userQuery.data)
   const topScores = $derived(scoresQuery.data?.scores.slice(0, 4) ?? [])
   const myPosition = $derived(scoresQuery.data?.myPosition ?? null)
@@ -62,4 +66,4 @@
   })
 </script>
 
-<ChallengeDetailsPodiumGrid {slots} />
+<ChallengeDetailsPodiumGrid {slots} loading={scoresQuery.isPending} reveal={revealAfterLoading} />

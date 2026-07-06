@@ -1,9 +1,15 @@
+<script module lang="ts">
+  export interface SparklinePoint {
+    time: number
+    score: number
+  }
+</script>
+
 <script lang="ts">
   import { monotoneCubicPath, type Point } from '$lib/chart/path'
-  import type { GraphPoint } from './scores-transforms'
 
   interface Props {
-    data: GraphPoint[]
+    data: SparklinePoint[]
     id: string
     color: string
   }

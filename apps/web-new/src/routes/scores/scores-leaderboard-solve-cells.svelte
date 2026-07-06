@@ -1,4 +1,6 @@
 <script lang="ts">
+  import IconTriangleFilled from '$lib/icons/icon-triangle-filled.svelte'
+  import IconTriangleInvertedFilled from '$lib/icons/icon-triangle-inverted-filled.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import type { ScoresData } from './scores-data.svelte'
   import { BLOOD_PATHS, CHECK_PATH } from './scores-leaderboard-cell-icons'
@@ -116,7 +118,11 @@
       <dyn-points>
         <dyn-value>{cell.teamPoints.toLocaleString()} <span>pts</span></dyn-value>
         <dyn-delta data-trend={pointDeltaTrend(cell.pointDelta)}>
-          {#if cell.pointDelta > 0}&#9650;{:else if cell.pointDelta < 0}&#9660;{/if}
+          {#if cell.pointDelta > 0}
+            <IconTriangleFilled data-icon />
+          {:else if cell.pointDelta < 0}
+            <IconTriangleInvertedFilled data-icon />
+          {/if}
           {Math.abs(cell.pointDelta).toLocaleString()} pts
         </dyn-delta>
       </dyn-points>
@@ -337,6 +343,13 @@
     gap: 0.125rem;
     font-size: var(--step--2);
     font-variant-numeric: tabular-nums;
+
+    /* Same triangle sizing as the team-row and challenge point-delta chips. */
+    :global(svg[data-icon]) {
+      flex-shrink: 0;
+      inline-size: 0.625rem;
+      block-size: 0.625rem;
+    }
 
     &[data-trend='positive'] {
       color: var(--foreground-success);

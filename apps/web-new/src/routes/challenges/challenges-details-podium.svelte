@@ -26,6 +26,10 @@
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
+  // Non-reactive read: true only when this mount actually starts behind the
+  // per-slot spinners, so a warm-cache remount doesn't replay the reveal fade.
+  const revealAfterLoading = solvesQuery.isPending
+
   const currentUser = $derived(userQuery.data)
   const ctfStartTime = $derived(clientConfigQuery.data?.startTime ?? 0)
   const topSolves = $derived(solvesQuery.data?.solves.slice(0, 4) ?? [])
@@ -75,4 +79,4 @@
   })
 </script>
 
-<ChallengeDetailsPodiumGrid {slots} />
+<ChallengeDetailsPodiumGrid {slots} loading={solvesQuery.isPending} reveal={revealAfterLoading} />

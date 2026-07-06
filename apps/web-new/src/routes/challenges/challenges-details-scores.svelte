@@ -24,7 +24,9 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
+  import { getRankTier, getSparklineDataByTeam } from '../scores/scores-transforms'
   import ChallengeDetailsRow from './challenges-details-row.svelte'
+  import ScoreTrailing from './challenges-details-score-trailing.svelte'
   import ChallengeDetailsScoresGraph from './challenges-details-scores-graph.svelte'
   import ChallengeDetailsScoresSelf from './challenges-details-scores-self.svelte'
   import ChallengePointDelta from './challenges-point-delta.svelte'
@@ -62,8 +64,9 @@
   const allScores = $derived(scoresQuery.data?.pages.flatMap(page => page.scores) ?? [])
   const total = $derived(scoresQuery.data?.pages[0]?.total ?? 0)
 
-  // The graph series are duplicated across pages; keep the first sighting of each
-  // team id so the graph draws every team once.
+  // The graph series are duplicated across pages; keep the first sighting of
+  // each team id so the graph draws every team once. Points arrive newest-first
+  // and are sorted ascending once here, for the graph and sparklines alike.
   type GraphSeries = NonNullable<typeof scoresQuery.data>['pages'][number]['graph'][number]
   const graph = $derived.by(() => {
     const seen = new Set<string>()
@@ -72,7 +75,7 @@
       for (const entry of page.graph) {
         if (!seen.has(entry.id)) {
           seen.add(entry.id)
-          series.push(entry)
+          series.push({ ...entry, points: [...entry.points].sort((a, b) => a.time - b.time) })
         }
       }
     }
@@ -80,6 +83,9 @@
   })
 
   const rankDeltas = $derived(computeRankDeltas(allScores))
+
+  // Same 12h trailing window as the /scores leaderboard sparklines.
+  const sparklineByTeam = $derived(getSparklineDataByTeam(graph, null))
 
   const myPosition = $derived(selfQuery.data?.myPosition ?? null)
   const userScoreIndex = $derived(
@@ -107,6 +113,66 @@
     if (myPosition === null || !currentUser) return null
     if (userScoreIndex === -1) return 'bottom'
     return selfClip.edge
+  })
+
+  // The list and overlay elements, captured so the live graph window below can
+  // measure real row geometry (the row gap is a fluid token, so the stride is
+  // measured rather than assumed) and exclude rows hidden behind the pin.
+  let listNode = $state<HTMLElement | null>(null)
+  const captureList = captureElement<HTMLElement>(node => (listNode = node))
+  let overlayNode = $state<HTMLElement | null>(null)
+  const captureOverlay = captureElement<HTMLElement>(node => (overlayNode = node))
+
+  // Row stride and first-row midpoint are layout facts: they change on resize
+  // (the row gap is a fluid token) or content growth (page loads), never on
+  // scroll alone — so the offset reads key off those signals and stay out of
+  // the per-scroll path below.
+  const rowMetrics = $derived.by(() => {
+    if (geometry.clientWidth === 0 || geometry.scrollHeight === 0) return null
+    const row0 = listNode?.firstElementChild as HTMLElement | null | undefined
+    if (!row0) return null
+    const row1 = row0.nextElementSibling as HTMLElement | null
+    const stride = row1 ? row1.offsetTop - row0.offsetTop : row0.offsetHeight
+    if (stride <= 0) return null
+    return { mid0: row0.offsetTop + row0.offsetHeight / 2, stride }
+  })
+
+  // Live scroll window over the ranked rows, like /scores: a row counts as
+  // visible while its midpoint is inside the viewport band (minus the pinned
+  // overlay's edge). Identity-memoed so per-scroll-frame recomputes only
+  // propagate to the graph when the window actually changes.
+  let lastWindow = { first: -1, last: -1 }
+  const liveWindow = $derived.by(() => {
+    let first = -1
+    let last = -1
+    const loaded = allScores.length
+    if (rowMetrics && loaded > 0 && geometry.clientHeight > 0) {
+      const overlayHeight = pinnedEdge ? (overlayNode?.offsetHeight ?? 0) : 0
+      const bandTop = geometry.scrollTop + (pinnedEdge === 'top' ? overlayHeight : 0)
+      const bandBottom =
+        geometry.scrollTop + geometry.clientHeight - (pinnedEdge === 'bottom' ? overlayHeight : 0)
+      first = Math.max(0, Math.ceil((bandTop - rowMetrics.mid0) / rowMetrics.stride))
+      last = Math.min(loaded - 1, Math.ceil((bandBottom - rowMetrics.mid0) / rowMetrics.stride) - 1)
+      if (last < first) {
+        first = -1
+        last = -1
+      }
+    }
+    if (lastWindow.first !== first || lastWindow.last !== last) {
+      lastWindow = { first, last }
+    }
+    return lastWindow
+  })
+
+  const visibleTeamIds = $derived.by(() => {
+    const ids = new Set<string>()
+    if (liveWindow.first >= 0) {
+      for (let index = liveWindow.first; index <= liveWindow.last; index++) {
+        const score = allScores[index]
+        if (score) ids.add(score.userId)
+      }
+    }
+    return ids
   })
 
   // Fetch the next page as the sentinel nears the viewport.
@@ -145,12 +211,18 @@
     />
   {:else}
     <scores-graph data-reveal={revealAfterLoading || undefined}>
-      <ChallengeDetailsScoresGraph {graph} selfId={currentUser?.id ?? null} {startTime} {endTime} />
+      <ChallengeDetailsScoresGraph
+        {graph}
+        {visibleTeamIds}
+        selfId={currentUser?.id ?? null}
+        {startTime}
+        {endTime}
+      />
     </scores-graph>
 
     <scores-viewport data-reveal={revealAfterLoading || undefined}>
       <scores-scroll {@attach captureScroll} tabindex="-1">
-        <scores-list>
+        <scores-list {@attach captureList}>
           {#each allScores as score, index (score.userId)}
             {@const rank = index + 1}
             {@const isSelf = !!(currentUser && score.userId === currentUser.id)}
@@ -170,8 +242,13 @@
                 {#snippet rankAccessory()}
                   <ChallengePointDelta delta={rankDeltas.get(score.userId)} variant="rank" />
                 {/snippet}
-                <score-points>{score.points.toLocaleString()} pts</score-points>
-                <ChallengePointDelta delta={score.pointDelta} />
+                <ScoreTrailing
+                  points={score.points}
+                  delta={score.pointDelta}
+                  role={getRankTier(isSelf, rank, score.userId)}
+                  sparkline={sparklineByTeam.get(score.userId) ?? []}
+                  sparklineId={score.userId}
+                />
               </ChallengeDetailsRow>
             </row-slot>
           {/each}
@@ -185,12 +262,13 @@
       </scores-scroll>
 
       {#if pinnedEdge && myPosition !== null}
-        <self-overlay data-edge={pinnedEdge}>
+        <self-overlay data-edge={pinnedEdge} {@attach captureOverlay}>
           <ChallengeDetailsScoresSelf
             {challenge}
             rank={myPosition}
             rankDelta={selfRankDelta}
             {showDivision}
+            sparkline={(currentUser && sparklineByTeam.get(currentUser.id)) ?? []}
           />
         </self-overlay>
       {/if}
@@ -255,17 +333,6 @@
     display: block;
     content-visibility: auto;
     contain-intrinsic-size: auto 4rem;
-  }
-
-  score-points {
-    font-size: 1.125rem;
-    font-variant-numeric: tabular-nums;
-    color: var(--foreground-l1);
-    white-space: nowrap;
-
-    @media (width >= 40rem) {
-      font-size: 1.25rem;
-    }
   }
 
   scores-loading {

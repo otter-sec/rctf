@@ -3,12 +3,14 @@
   copy of this over the scroll container whenever the user's real row is off
   screen (or on a page that has not loaded yet), so their standing stays in view.
   Points and delta come from the challenge's own yourScore/yourPointDelta; the
-  rank and rank-movement chevron are supplied by the parent.
+  rank, rank-movement chevron, and sparkline series are supplied by the parent.
 -->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import type { SparklinePoint } from '$lib/chart/sparkline.svelte'
   import { useCurrentUser } from '$lib/query/user'
   import ChallengeDetailsRow from './challenges-details-row.svelte'
+  import ScoreTrailing from './challenges-details-score-trailing.svelte'
   import ChallengePointDelta from './challenges-point-delta.svelte'
   import { rankVariant } from './solve-times'
 
@@ -17,9 +19,10 @@
     rank: number
     rankDelta?: number
     showDivision: boolean
+    sparkline?: SparklinePoint[]
   }
 
-  let { challenge, rank, rankDelta, showDivision }: Props = $props()
+  let { challenge, rank, rankDelta, showDivision, sparkline = [] }: Props = $props()
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)
@@ -45,16 +48,14 @@
     {#snippet rankAccessory()}
       <ChallengePointDelta delta={rankDelta} variant="rank" />
     {/snippet}
-    <score-points>{points.toLocaleString()} pts</score-points>
-    <ChallengePointDelta delta={pointDelta} />
+    <!-- A distinct gradient id: the user's real list row may be mounted (just
+         clipped) at the same time, and its sparkline uses the bare id. -->
+    <ScoreTrailing
+      {points}
+      delta={pointDelta}
+      role="self"
+      {sparkline}
+      sparklineId="{user.id}-pinned"
+    />
   </ChallengeDetailsRow>
 {/if}
-
-<style>
-  score-points {
-    font-size: var(--step-1);
-    font-variant-numeric: tabular-nums;
-    color: var(--foreground-l1);
-    white-space: nowrap;
-  }
-</style>
