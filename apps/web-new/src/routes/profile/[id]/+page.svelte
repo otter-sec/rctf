@@ -135,8 +135,8 @@
         solves={user.solves}
         dynamicScores={user.dynamicScores}
         {graphData}
-        startTime={clientConfig.startTime}
-        endTime={clientConfig.endTime}
+        {clientConfig}
+        {challenges}
         splitDynamicScore={user.dynamicScores.length > 0}
       />
     </profile-panel>

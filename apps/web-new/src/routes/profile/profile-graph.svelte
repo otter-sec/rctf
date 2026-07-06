@@ -17,6 +17,7 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
   import type { ProfileDynamicScore, ProfileSolve } from './profile-analytics-data'
+  import { compactNumber } from './profile-chart-utils'
   import { buildProfileGraphData, scoreAt, type GraphSampleInput } from './profile-graph-data'
   import ProfileSolveTooltip from './profile-solve-tooltip.svelte'
 
@@ -147,14 +148,6 @@
   const ariaLabel = $derived(
     `Score over time with ${graph.solveDots.length} solve${graph.solveDots.length === 1 ? '' : 's'}`
   )
-
-  function compactNumber(value: number): string {
-    if (value >= 1000) {
-      const thousands = value / 1000
-      return `${Number.isInteger(thousands) ? thousands : thousands.toFixed(1)}k`
-    }
-    return `${value}`
-  }
 
   function handleMove(event: PointerEvent) {
     const rect = (event.currentTarget as SVGSVGElement).getBoundingClientRect()
