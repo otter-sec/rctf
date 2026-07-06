@@ -5,7 +5,7 @@ import {
   parsePreferences,
   savePreferences,
   type ChallengesPreferences,
-} from './challenges-preferences'
+} from './preferences'
 
 const STORAGE_KEY = 'rctf:challenges:preferences'
 

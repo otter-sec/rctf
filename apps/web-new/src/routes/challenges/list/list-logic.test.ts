@@ -6,7 +6,7 @@ import {
   filterChallenges,
   groupChallenges,
   resolveCategory,
-} from './challenges-list-logic'
+} from './list-logic'
 
 function makeChallenge(
   overrides: Partial<Challenge> & Pick<Challenge, 'id'>

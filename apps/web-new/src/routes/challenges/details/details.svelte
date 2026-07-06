@@ -20,13 +20,13 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
   import type { Component } from 'svelte'
-  import ChallengeDetailsHeader from './challenges-details-header.svelte'
-  import ChallengeDetailsOverview from './challenges-details-overview.svelte'
-  import ChallengeDetailsPodiumDynamic from './challenges-details-podium-dynamic.svelte'
-  import ChallengeDetailsPodium from './challenges-details-podium.svelte'
-  import ChallengeDetailsScores from './challenges-details-scores.svelte'
-  import ChallengeDetailsSolves from './challenges-details-solves.svelte'
-  import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
+  import ChallengeDetailsHeader from './details-header.svelte'
+  import ChallengeDetailsOverview from './overview.svelte'
+  import ChallengeDetailsPodiumDynamic from './podium-dynamic.svelte'
+  import ChallengeDetailsPodium from './podium.svelte'
+  import ChallengeDetailsScores from './scores.svelte'
+  import ChallengeDetailsSolves from './solves.svelte'
+  import ChallengeDetailsSubmit from './submit.svelte'
 
   interface Props {
     challenge: Challenge | null

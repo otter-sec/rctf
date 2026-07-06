@@ -23,9 +23,9 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
-  import ChallengeDetailsRow from './challenges-details-row.svelte'
-  import ChallengeDetailsSolvesSelf from './challenges-details-solves-self.svelte'
-  import { rankVariant, solveTimeLabels } from './solve-times'
+  import ChallengeDetailsRow from './details-row.svelte'
+  import ChallengeDetailsSolvesSelf from './solves-self.svelte'
+  import { rankVariant, solveTimeLabels } from '../model/solve-times'
 
   interface Props {
     challenge: Challenge

@@ -7,7 +7,7 @@
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import Chip from '$lib/ui/chip.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
-  import ChallengePointDelta from './challenges-point-delta.svelte'
+  import ChallengePointDelta from '../model/point-delta.svelte'
 
   interface Props {
     challenge: Challenge

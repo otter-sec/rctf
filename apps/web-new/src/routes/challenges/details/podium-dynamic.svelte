@@ -9,7 +9,7 @@
   import type { Challenge } from '@rctf/types'
   import { useChallengeScores } from '$lib/query/challenges'
   import { useCurrentUser } from '$lib/query/user'
-  import ChallengeDetailsPodiumGrid from './challenges-details-podium-grid.svelte'
+  import ChallengeDetailsPodiumGrid from './podium-grid.svelte'
   import { resolvePodiumSlots, type PodiumEntry, type PodiumSelf } from './podium-slots'
 
   interface Props {

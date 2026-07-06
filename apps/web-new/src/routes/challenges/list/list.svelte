@@ -12,16 +12,16 @@
   import Accordion from '$lib/ui/accordion.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
-  import ChallengesListHeader from './challenges-list-header.svelte'
-  import ChallengesListItem from './challenges-list-item.svelte'
+  import ChallengesListHeader from './list-header.svelte'
+  import ChallengesListItem from './list-item.svelte'
   import {
     computeStats,
     deriveAccordionValue,
     filterChallenges,
     groupChallenges,
     resolveCategory,
-  } from './challenges-list-logic'
-  import { loadPreferences, savePreferences } from './challenges-preferences'
+  } from './list-logic'
+  import { loadPreferences, savePreferences } from './preferences'
 
   interface Props {
     challenges: Challenge[]

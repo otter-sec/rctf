@@ -1,5 +1,5 @@
 import { getTimeOrdinal } from '@rctf/util'
-import type { RankVariant } from './solve-times'
+import type { RankVariant } from '../model/solve-times'
 
 // The podium prefers the self tint over the medal colour, unlike the ranked
 // rows (`rankVariant`) where medals win for the top three. Positions past the

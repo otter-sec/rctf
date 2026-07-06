@@ -14,9 +14,9 @@
   import Splitter from '$lib/ui/splitter.svelte'
   import { tick } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
-  import ChallengeDetails from './challenges-details.svelte'
-  import ChallengesList from './challenges-list.svelte'
-  import { getDeepLinkId, resolveClose, type CloseSource } from './drawer-history'
+  import ChallengeDetails from './details/details.svelte'
+  import ChallengesList from './list/list.svelte'
+  import { getDeepLinkId, resolveClose, type CloseSource } from './model/drawer-history'
 
   // Prop contract the list and detail panes are wired against; kept explicit so
   // the two render sites (desktop panes, mobile drawer) stay in sync.

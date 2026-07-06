@@ -8,7 +8,7 @@
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import IconCheck from '$lib/icons/icon-check.svelte'
-  import ChallengePointDelta from './challenges-point-delta.svelte'
+  import ChallengePointDelta from '../model/point-delta.svelte'
 
   type BloodTier = 'gold' | 'silver' | 'bronze'
 

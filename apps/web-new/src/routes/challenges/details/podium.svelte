@@ -11,9 +11,9 @@
   import { useChallengeSolvesSelf } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
-  import ChallengeDetailsPodiumGrid from './challenges-details-podium-grid.svelte'
+  import ChallengeDetailsPodiumGrid from './podium-grid.svelte'
   import { resolvePodiumSlots, type PodiumEntry, type PodiumSelf } from './podium-slots'
-  import { solveTimeLabels } from './solve-times'
+  import { solveTimeLabels } from '../model/solve-times'
 
   interface Props {
     challenge: Challenge

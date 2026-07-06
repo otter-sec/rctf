@@ -5,8 +5,8 @@
 -->
 <script lang="ts">
   import { useCurrentUser } from '$lib/query/user'
-  import ChallengeDetailsRow from './challenges-details-row.svelte'
-  import { rankVariant, solveTimeLabels } from './solve-times'
+  import ChallengeDetailsRow from './details-row.svelte'
+  import { rankVariant, solveTimeLabels } from '../model/solve-times'
 
   interface Props {
     rank: number

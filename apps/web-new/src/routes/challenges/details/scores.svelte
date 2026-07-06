@@ -24,14 +24,14 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
-  import { getRankTier, getSparklineDataByTeam } from '../scores/scores-transforms'
-  import ChallengeDetailsRow from './challenges-details-row.svelte'
-  import ScoreTrailing from './challenges-details-score-trailing.svelte'
-  import ChallengeDetailsScoresGraph from './challenges-details-scores-graph.svelte'
-  import ChallengeDetailsScoresSelf from './challenges-details-scores-self.svelte'
-  import ChallengePointDelta from './challenges-point-delta.svelte'
+  import { getRankTier, getSparklineDataByTeam } from '../../scores/scores-transforms'
+  import ChallengeDetailsRow from './details-row.svelte'
+  import ScoreTrailing from './score-trailing.svelte'
+  import ChallengeDetailsScoresGraph from './scores-graph.svelte'
+  import ChallengeDetailsScoresSelf from './scores-self.svelte'
+  import ChallengePointDelta from '../model/point-delta.svelte'
   import { computeRankDeltas } from './rank-delta'
-  import { rankVariant } from './solve-times'
+  import { rankVariant } from '../model/solve-times'
 
   interface Props {
     challenge: Challenge

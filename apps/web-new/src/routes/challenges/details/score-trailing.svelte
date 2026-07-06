@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
   import Sparkline, { type SparklinePoint } from '$lib/chart/sparkline.svelte'
-  import ChallengePointDelta from './challenges-point-delta.svelte'
+  import ChallengePointDelta from '../model/point-delta.svelte'
 
   interface Props {
     points: number

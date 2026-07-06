@@ -19,7 +19,7 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
-  import type { RankVariant } from './solve-times'
+  import type { RankVariant } from '../model/solve-times'
 
   interface Props {
     variant: RankVariant

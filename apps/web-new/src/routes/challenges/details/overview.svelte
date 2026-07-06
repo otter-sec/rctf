@@ -16,8 +16,8 @@
   import { downloadAll } from '$lib/utils/download'
   import { formatFileSize } from '$lib/utils/filesize'
   import { onDestroy } from 'svelte'
-  import ChallengeDetailsOverviewAdminbot from './challenges-details-overview-adminbot.svelte'
-  import ChallengeDetailsOverviewInstancer from './challenges-details-overview-instancer.svelte'
+  import ChallengeDetailsOverviewAdminbot from './overview-adminbot.svelte'
+  import ChallengeDetailsOverviewInstancer from './overview-instancer.svelte'
 
   interface Props {
     challenge: Challenge

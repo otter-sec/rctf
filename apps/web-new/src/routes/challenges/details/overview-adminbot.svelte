@@ -44,7 +44,7 @@
   import { parseAdminBotLogs, validateAdminBotInput } from '$lib/utils/admin-bot-logs'
   import { downloadTextFile } from '$lib/utils/download'
   import { formatLocalTime } from '$lib/utils/time'
-  import AdminBotLogViewer from './admin-bot-log-viewer.svelte'
+  import AdminBotLogViewer from './adminbot-log-viewer.svelte'
 
   interface Props {
     challengeId: string
