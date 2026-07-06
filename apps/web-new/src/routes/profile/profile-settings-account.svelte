@@ -44,6 +44,10 @@
   const invalidateUser = () => queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
 
   const profileForm = useApiForm(UpdateUserRouteV2, {
+    // countryCode binds into FlagPicker's nullable $bindable — it must exist
+    // as null before the seeding effect runs; binding undefined into a prop
+    // with a fallback is a Svelte runtime error (props_invalid_value).
+    defaults: { countryCode: null },
     onSuccess: () => {
       toast.success('Profile updated!')
       invalidateUser()
@@ -73,7 +77,7 @@
     profileForm.setData({
       name: user.name,
       division: user.division,
-      countryCode: user.countryCode,
+      countryCode: user.countryCode ?? null,
       statusText: user.statusText,
     })
     emailForm.setData({ email: user.email ?? '' })
