@@ -193,6 +193,7 @@
         "@zag-js/tooltip": "1.41.2",
         "dompurify": "3.4.3",
         "marked": "17.0.4",
+        "yaml": "2.9.0",
         "zod": "4.3.6",
       },
       "devDependencies": {

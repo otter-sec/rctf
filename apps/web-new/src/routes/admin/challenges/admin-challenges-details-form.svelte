@@ -1,13 +1,14 @@
 <!--
-  The six-tab editor form. Details and Scoring are fully built here; Files,
-  Instancer, Admin bot, and Solves render their U12/U14 placeholder panes. All
-  inputs are disabled in view mode (read-only at reduced opacity). Errors are
-  computed by the parent (pure `formErrors`) and passed down; each field reveals
-  its message only after it has been touched (blurred). The Details and Scoring
-  triggers carry an error dot whenever they hold an invalid field.
+  The six-tab editor form. Details and Scoring are built here; Files, Instancer,
+  Admin bot, and Solves delegate to their own pane components. All inputs are
+  disabled in view mode (read-only at reduced opacity). Errors are computed by
+  the parent (pure `formErrors`) and passed down; each field reveals its message
+  only after it has been touched (blurred). The Details and Scoring triggers
+  carry an error dot whenever they hold an invalid field, and the Instancer
+  trigger carries one whenever the instancer pane reports itself invalid.
 -->
 <script lang="ts">
-  import { ChallengeScoringKind, DynamicScoringTransport } from '@rctf/types'
+  import { ChallengeScoringKind, DynamicScoringTransport, type InstancerConfig } from '@rctf/types'
   import Markdown from '$lib/components/markdown.svelte'
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconCloudComputingFilled from '$lib/icons/icon-cloud-computing-filled.svelte'
@@ -28,7 +29,7 @@
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
   import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
-  import type { EditorForm, ScoringConfig } from './editor-state'
+  import type { AdminBotConfig, EditorForm, ScoringConfig } from './editor-state'
   import {
     detailsTabInvalid,
     inputToReleaseTime,
@@ -45,9 +46,12 @@
     totalSolves: number
     challengeId: string | null
     errors: FormErrors
+    instancerValid?: boolean
     onFieldChange: <K extends keyof EditorForm>(field: K, value: EditorForm[K]) => void
     onScoringChange: (scoring: ScoringConfig) => void
     onFilesChange: (files: EditorForm['files']) => void
+    onInstancerChange: (config: InstancerConfig | null) => void
+    onAdminBotChange: (config: AdminBotConfig) => void
     onShowPreview: () => void
   }
 
@@ -58,9 +62,12 @@
     totalSolves,
     challengeId,
     errors,
+    instancerValid = $bindable(true),
     onFieldChange,
     onScoringChange,
     onFilesChange,
+    onInstancerChange,
+    onAdminBotChange,
     onShowPreview,
   }: Props = $props()
 
@@ -111,7 +118,12 @@
       icon: IconFileFilled,
       count: form.files.length || undefined,
     },
-    { value: 'instancer', label: 'Instancer', icon: IconCloudComputingFilled },
+    {
+      value: 'instancer',
+      label: 'Instancer',
+      icon: IconCloudComputingFilled,
+      invalid: !instancerValid,
+    },
     { value: 'adminbot', label: 'Admin bot', icon: IconRobot },
     {
       value: 'solves',
@@ -466,9 +478,19 @@
         {:else if value === 'files'}
           <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
         {:else if value === 'instancer'}
-          <AdminChallengesDetailsInstancer />
+          <AdminChallengesDetailsInstancer
+            config={form.instancerConfig}
+            {challengeId}
+            {disabled}
+            bind:valid={instancerValid}
+            onChange={onInstancerChange}
+          />
         {:else if value === 'adminbot'}
-          <AdminChallengesDetailsAdminbot />
+          <AdminChallengesDetailsAdminbot
+            config={form.adminBotConfig}
+            {disabled}
+            onChange={onAdminBotChange}
+          />
         {:else if value === 'solves'}
           <AdminChallengesDetailsSolves {challengeId} {totalSolves} />
         {/if}

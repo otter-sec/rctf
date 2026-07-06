@@ -17,6 +17,7 @@
     GoodChallengeUpdateV2,
     Permissions,
     UpdateChallengeRouteV2,
+    type InstancerConfig,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
@@ -47,9 +48,12 @@
     save,
     saveError,
     saveSuccess,
+    updateAdminBot,
     updateFiles,
     updateForm,
+    updateInstancer,
     updateScoring,
+    type AdminBotConfig,
     type EditorForm,
     type EditorState,
     type ScoringConfig,
@@ -78,7 +82,11 @@
   const isDeleting = $derived(editor.mode === 'deleting')
 
   const errors = $derived(formErrors(editor.form))
-  const invalid = $derived(hasFormErrors(errors))
+  // The instancer pane reports its own validity (schema-form / YAML) up through
+  // this bindable; a disabled instancer resolves to valid. It gates Save on top
+  // of the pure form errors.
+  let instancerValid = $state(true)
+  const invalid = $derived(hasFormErrors(errors) || !instancerValid)
 
   const heading = $derived(
     editor.mode === 'creating' ? 'New Challenge' : editor.form.name || 'Untitled'
@@ -99,6 +107,14 @@
 
   function onFilesChange(files: EditorForm['files']) {
     onEditorChange(updateFiles(editor, files))
+  }
+
+  function onInstancerChange(config: InstancerConfig | null) {
+    onEditorChange(updateInstancer(editor, config))
+  }
+
+  function onAdminBotChange(config: AdminBotConfig) {
+    onEditorChange(updateAdminBot(editor, config))
   }
 
   async function handleSave() {
@@ -233,9 +249,12 @@
       {totalSolves}
       challengeId={editor.challenge?.id ?? null}
       {errors}
+      bind:instancerValid
       {onFieldChange}
       {onScoringChange}
       {onFilesChange}
+      {onInstancerChange}
+      {onAdminBotChange}
       onShowPreview={() => (showPreview = true)}
     />
   {/if}
