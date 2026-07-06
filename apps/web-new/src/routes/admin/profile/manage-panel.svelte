@@ -42,7 +42,9 @@
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import { buildLoginUrl } from '$lib/utils/auth'
+  import { copyText } from '$lib/utils/clipboard'
   import { hasPermissions } from '$lib/utils/permissions'
+  import { createConfirmState } from '../confirm-state.svelte'
   import ConfirmDialog from './confirm-dialog.svelte'
   import {
     buildUserUpdate,
@@ -59,13 +61,6 @@
 
   type DivisionRecord = Record<string, string>
   type ActionKind = 'token' | 'url' | 'ban' | 'delete'
-  type ConfirmRequest = {
-    title: string
-    message: string
-    confirmLabel: string
-    destructive: boolean
-    run: () => void
-  }
 
   const queryClient = useQueryClient()
   const currentUserQuery = useCurrentUser()
@@ -82,7 +77,7 @@
   let avatarLoading = $state(false)
   const busy = $derived(pendingAction !== null || savingProfile || avatarLoading)
 
-  let confirmRequest = $state<ConfirmRequest | null>(null)
+  const confirmState = createConfirmState()
 
   let form = $state<ManageForm>({
     name: '',
@@ -182,20 +177,11 @@
     return null
   }
 
-  async function copyToClipboard(value: string, message: string) {
-    try {
-      await navigator.clipboard.writeText(value)
-      toast.success(message)
-    } catch {
-      toast.error('Failed to copy to clipboard')
-    }
-  }
-
   async function copyToken() {
     pendingAction = 'token'
     try {
       const token = await mintToken()
-      if (token) await copyToClipboard(token, 'Login token copied to clipboard!')
+      if (token) await copyText(token, 'Login token copied to clipboard!')
     } finally {
       pendingAction = null
     }
@@ -205,7 +191,7 @@
     pendingAction = 'url'
     try {
       const token = await mintToken()
-      if (token) await copyToClipboard(buildLoginUrl(token), 'Login URL copied to clipboard!')
+      if (token) await copyText(buildLoginUrl(token), 'Login URL copied to clipboard!')
     } finally {
       pendingAction = null
     }
@@ -246,32 +232,26 @@
     goto(`/admin/submissions?team=${encodeURIComponent(userId)}`)
   }
 
-  function runConfirm() {
-    const request = confirmRequest
-    confirmRequest = null
-    request?.run()
-  }
-
   function requestCopyToken() {
-    confirmRequest = {
+    confirmState.request({
       title: 'Copy login token',
       message:
         'This token grants full, non-expiring access to the account. Anyone with it can log in as this team until the account is deleted.',
       confirmLabel: 'Copy token',
       destructive: false,
       run: copyToken,
-    }
+    })
   }
 
   function requestCopyLoginUrl() {
-    confirmRequest = {
+    confirmState.request({
       title: 'Copy login URL',
       message:
         'This link grants full, non-expiring access to the account. Anyone with it can log in as this team until the account is deleted.',
       confirmLabel: 'Copy URL',
       destructive: false,
       run: copyLoginUrl,
-    }
+    })
   }
 
   function requestBanToggle() {
@@ -279,24 +259,24 @@
       setBanned(false)
       return
     }
-    confirmRequest = {
+    confirmState.request({
       title: 'Ban team',
       message:
         'Banning removes the team from the leaderboard but keeps the account and its solve history.',
       confirmLabel: 'Ban team',
       destructive: true,
       run: () => setBanned(true),
-    }
+    })
   }
 
   function requestDelete() {
-    confirmRequest = {
+    confirmState.request({
       title: 'Delete team',
       message: 'This removes the team and its solves from the database. This cannot be undone.',
       confirmLabel: 'Delete team',
       destructive: true,
       run: deleteTeam,
-    }
+    })
   }
 </script>
 
@@ -434,15 +414,15 @@
 {/if}
 
 <ConfirmDialog
-  open={confirmRequest !== null}
+  open={confirmState.current !== null}
   onOpenChange={open => {
-    if (!open) confirmRequest = null
+    if (!open) confirmState.cancel()
   }}
-  title={confirmRequest?.title ?? ''}
-  message={confirmRequest?.message ?? ''}
-  confirmLabel={confirmRequest?.confirmLabel ?? 'Confirm'}
-  destructive={confirmRequest?.destructive ?? false}
-  onConfirm={runConfirm}
+  title={confirmState.current?.title ?? ''}
+  message={confirmState.current?.message ?? ''}
+  confirmLabel={confirmState.current?.confirmLabel ?? 'Confirm'}
+  destructive={confirmState.current?.destructive ?? false}
+  onConfirm={confirmState.confirm}
 />
 
 <style>

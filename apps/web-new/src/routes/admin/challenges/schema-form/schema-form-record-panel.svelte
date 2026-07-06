@@ -1,9 +1,9 @@
 <script lang="ts">
-  import IconX from '$lib/icons/icon-x.svelte'
   import Button from '$lib/ui/button.svelte'
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import SchemaFormField from './schema-form-field.svelte'
+  import SchemaFormPanelItem from './schema-form-panel-item.svelte'
   import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
   import type { FieldProps, JsonSchema } from './types'
@@ -101,18 +101,15 @@
       <panel-empty>No entries</panel-empty>
     {:else}
       {#each entries as [key] (key)}
-        <panel-item data-active={selectedKey === key || undefined}>
-          <button type="button" class="pick" onclick={() => (selectedKey = key)}>{key}</button>
-          <button
-            type="button"
-            class="remove"
-            aria-label="Remove {key}"
-            onclick={() => removeEntry(key)}
-            {disabled}
-          >
-            <IconX />
-          </button>
-        </panel-item>
+        <SchemaFormPanelItem
+          label={key}
+          active={selectedKey === key}
+          removeLabel="Remove {key}"
+          mono
+          {disabled}
+          onSelect={() => (selectedKey = key)}
+          onRemove={() => removeEntry(key)}
+        />
       {/each}
     {/if}
   {/snippet}
@@ -198,61 +195,6 @@
     padding: 0.375rem var(--space-2xs);
     color: var(--foreground-l4);
     font-size: var(--step--1);
-  }
-
-  panel-item {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    gap: var(--space-3xs);
-    border-radius: var(--radius-md);
-
-    &[data-active] {
-      background: var(--background-l4);
-    }
-
-    &:not([data-active]):hover {
-      background: var(--background-l3);
-    }
-  }
-
-  .pick {
-    flex: 1;
-    min-inline-size: 0;
-    overflow: hidden;
-    padding: 0.375rem var(--space-2xs);
-    color: var(--foreground-l4);
-    font-family: var(--font-mono);
-    text-align: start;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: pointer;
-
-    panel-item[data-active] & {
-      color: var(--foreground-l0);
-    }
-  }
-
-  .remove {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    padding: 0.25rem;
-    margin-inline-end: 0.25rem;
-    color: var(--foreground-l4);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-
-    &:hover {
-      color: var(--foreground-destructive);
-      background: var(--background-destructive);
-    }
-
-    :global(svg) {
-      inline-size: 0.75rem;
-      block-size: 0.75rem;
-    }
   }
 
   panel-add {

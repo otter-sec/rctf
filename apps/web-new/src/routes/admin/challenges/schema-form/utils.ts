@@ -56,7 +56,7 @@ export function getEffectiveSchema(schema: JsonSchema): JsonSchema {
 
 export function defaultValue(schema: JsonSchema): unknown {
   if (schema.default !== undefined) {
-    return JSON.parse(JSON.stringify(schema.default))
+    return structuredClone(schema.default)
   }
 
   const primaryType = getPrimaryType(schema)
@@ -186,9 +186,10 @@ export function resolveRefs(
 }
 
 /**
- * Immutable path setter. Deep-clones `value`, then walks `path`, creating
- * intermediate arrays when the next key is a numeric index and objects
- * otherwise. An empty path replaces the whole value.
+ * Immutable path setter with structural sharing. Clones only the containers
+ * along `path` — arrays when the next key is a numeric index, objects
+ * otherwise — and reuses references for untouched siblings. An empty path
+ * replaces the whole value.
  */
 export function setValueAtPath(
   value: unknown,
@@ -197,16 +198,24 @@ export function setValueAtPath(
 ): unknown {
   if (path.length === 0) return newValue
 
-  const result = JSON.parse(JSON.stringify(value ?? {}))
+  const cloneContainer = (node: unknown): Record<string, unknown> =>
+    (Array.isArray(node)
+      ? node.slice()
+      : { ...(node as Record<string, unknown>) }) as Record<string, unknown>
+
+  const rootIsContainer = typeof value === 'object' && value !== null
+  const result = rootIsContainer ? cloneContainer(value) : {}
   let current: Record<string, unknown> = result
 
   for (let i = 0; i < path.length - 1; i++) {
     const key = path[i]!
-    if (current[key] === undefined) {
-      const nextKey = path[i + 1]!
-      current[key] = /^\d+$/.test(nextKey) ? [] : {}
-    }
-    current = current[key] as Record<string, unknown>
+    const existing = current[key]
+    const child =
+      typeof existing === 'object' && existing !== null
+        ? cloneContainer(existing)
+        : ((/^\d+$/.test(path[i + 1]!) ? [] : {}) as Record<string, unknown>)
+    current[key] = child
+    current = child
   }
 
   const lastKey = path[path.length - 1]!

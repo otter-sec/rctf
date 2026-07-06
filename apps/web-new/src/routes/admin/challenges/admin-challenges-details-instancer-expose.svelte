@@ -8,11 +8,11 @@
 -->
 <script lang="ts">
   import { ExposeKind } from '@rctf/types'
-  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconX from '$lib/icons/icon-x.svelte'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
+  import FieldSelect from './field-select.svelte'
   import { addExpose, removeExpose, updateExpose, type ExposeConfig } from './instancer-config'
 
   interface Props {
@@ -67,22 +67,6 @@
   }
 </script>
 
-{#snippet fieldSelect(label: string, items: MenuItem[])}
-  {#if disabled}
-    <button type="button" data-field-trigger data-disabled disabled>
-      {label}<IconChevronDown />
-    </button>
-  {:else}
-    <Menu {label} {items}>
-      {#snippet trigger({ props })}
-        <button type="button" data-field-trigger {...props}>
-          {label}<IconChevronDown />
-        </button>
-      {/snippet}
-    </Menu>
-  {/if}
-{/snippet}
-
 <expose-editor>
   <expose-list>
     <expose-items>
@@ -132,7 +116,7 @@
       <field-grid>
         <form-field>
           <field-label>Protocol</field-label>
-          {@render fieldSelect(current.kind, protocolItems)}
+          <FieldSelect label={current.kind} items={protocolItems} {disabled} />
         </form-field>
 
         <form-field>
@@ -186,10 +170,11 @@
 
         <form-field>
           <field-label>Visibility</field-label>
-          {@render fieldSelect(
-            (current.shouldDisplay ?? true) ? 'Visible to players' : 'Hidden from players',
-            visibilityItems
-          )}
+          <FieldSelect
+            label={(current.shouldDisplay ?? true) ? 'Visible to players' : 'Hidden from players'}
+            items={visibilityItems}
+            {disabled}
+          />
         </form-field>
       </field-grid>
     {:else}
@@ -361,35 +346,5 @@
 
   :global(input[data-mono]) {
     font-family: var(--font-mono);
-  }
-
-  [data-field-trigger] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    inline-size: 100%;
-    block-size: 2.25rem;
-    padding-inline: var(--space-2xs);
-    color: var(--foreground-l0);
-    text-align: start;
-    cursor: pointer;
-    background: var(--background-l4);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -1px;
-    }
-
-    &[data-disabled] {
-      cursor: default;
-      opacity: 0.5;
-    }
-
-    :global(svg) {
-      flex-shrink: 0;
-      color: var(--foreground-l3);
-    }
   }
 </style>

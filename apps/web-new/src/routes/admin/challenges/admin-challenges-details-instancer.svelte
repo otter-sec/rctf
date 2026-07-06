@@ -11,19 +11,19 @@
 -->
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
-  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconCloudComputingFilled from '$lib/icons/icon-cloud-computing-filled.svelte'
   import { useInstancerSchema } from '$lib/query/admin'
   import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Input from '$lib/ui/input.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import * as yaml from 'yaml'
   import ChallengesDetailsOverviewInstancer from '../../challenges/challenges-details-overview-instancer.svelte'
   import AdminChallengesDetailsInstancerExpose from './admin-challenges-details-instancer-expose.svelte'
+  import FieldSelect from './field-select.svelte'
   import {
     defaultInstancerConfig,
     resolveInstancer,
@@ -152,22 +152,6 @@
   }
 </script>
 
-{#snippet fieldSelect(label: string, items: MenuItem[])}
-  {#if disabled}
-    <button type="button" data-field-trigger data-disabled disabled>
-      {label}<IconChevronDown />
-    </button>
-  {:else}
-    <Menu {label} {items}>
-      {#snippet trigger({ props })}
-        <button type="button" data-field-trigger {...props}>
-          {label}<IconChevronDown />
-        </button>
-      {/snippet}
-    </Menu>
-  {/if}
-{/snippet}
-
 <instancer-pane>
   {#if schemaQuery.isPending}
     <pane-loading><Spinner label="Loading instancer schema" /></pane-loading>
@@ -182,14 +166,18 @@
       <config-fields>
         <form-field>
           <field-label>Enable instancer</field-label>
-          {@render fieldSelect(config ? 'Enabled' : 'Disabled', enableItems)}
+          <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
         </form-field>
 
         {#if config}
           {#if hasMultiple}
             <form-field>
               <field-label>Instancer</field-label>
-              {@render fieldSelect(active?.name ?? 'Select instancer', instancerItems)}
+              <FieldSelect
+                label={active?.name ?? 'Select instancer'}
+                items={instancerItems}
+                {disabled}
+              />
             </form-field>
           {/if}
 
@@ -220,7 +208,11 @@
 
           <form-field>
             <field-label>Allow extending</field-label>
-            {@render fieldSelect((config.extendable ?? true) ? 'Enabled' : 'Disabled', extendItems)}
+            <FieldSelect
+              label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
+              items={extendItems}
+              {disabled}
+            />
           </form-field>
         {/if}
       </config-fields>
@@ -377,35 +369,5 @@
   :global(input[data-mono]),
   :global(textarea[data-mono]) {
     font-family: var(--font-mono);
-  }
-
-  [data-field-trigger] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    inline-size: 100%;
-    block-size: 2.25rem;
-    padding-inline: var(--space-2xs);
-    color: var(--foreground-l0);
-    text-align: start;
-    cursor: pointer;
-    background: var(--background-l4);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -1px;
-    }
-
-    &[data-disabled] {
-      cursor: default;
-      opacity: 0.5;
-    }
-
-    :global(svg) {
-      flex-shrink: 0;
-      color: var(--foreground-l3);
-    }
   }
 </style>

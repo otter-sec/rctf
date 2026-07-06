@@ -30,6 +30,7 @@ import {
 } from '$lib/filters/time'
 import { PAGE_SIZE, type ResultTone } from '$lib/filters/ui'
 import type { AdminSubmissionsQueryParams } from '$lib/query/keys'
+import { isRecord } from '$lib/utils/is-record'
 import type { SortOrder, SortState } from '../admin-table-logic'
 
 export type ChallengeOption = { id: string; name: string; category: string }
@@ -344,10 +345,6 @@ export function applyDeepLinkFilters(
   }
 
   return { team, challenge }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function formatDetailValue(value: unknown): string {

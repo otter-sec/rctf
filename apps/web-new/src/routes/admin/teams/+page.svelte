@@ -37,12 +37,15 @@
     useAdminUserVerifications,
   } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
   import { useCurrentUser } from '$lib/query/user'
   import { toast } from '$lib/toast'
   import Card from '$lib/ui/card.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { copyText } from '$lib/utils/clipboard'
   import { hasPermissions } from '$lib/utils/permissions'
   import type { SortState } from '../admin-table-logic'
+  import { createConfirmState } from '../confirm-state.svelte'
   import ConfirmDialog from '../profile/confirm-dialog.svelte'
   import { divisionFilterFamily, statusFilterFamily } from './teams-families'
   import {
@@ -60,13 +63,6 @@
 
   type TeamRef = { id: string; name: string }
   type BanRef = TeamRef & { banned: boolean }
-  type ConfirmRequest = {
-    title: string
-    message: string
-    confirmLabel: string
-    destructive: boolean
-    run: () => void
-  }
 
   const queryClient = useQueryClient()
   const configQuery = useClientConfig()
@@ -164,21 +160,10 @@
   let deletingId = $state<string | null>(null)
   let completingId = $state<string | null>(null)
   let resendingId = $state<string | null>(null)
-  let confirmRequest = $state<ConfirmRequest | null>(null)
-
-  function runConfirm() {
-    const request = confirmRequest
-    confirmRequest = null
-    request?.run()
-  }
+  const confirmState = createConfirmState()
 
   async function copyEmail(email: string) {
-    try {
-      await navigator.clipboard.writeText(email)
-      toast.success('Email copied.')
-    } catch {
-      toast.error('Failed to copy email.')
-    }
+    await copyText(email, 'Email copied.')
   }
 
   function manage(id: string) {
@@ -190,12 +175,7 @@
     try {
       const response = await apiRequest(CreateUserTokenRouteV2, { id: team.id })
       if (response.kind === GoodCreateUserTokenV2.kind) {
-        try {
-          await navigator.clipboard.writeText(response.data.token)
-          toast.success(`Login token copied for ${team.name}.`)
-        } catch {
-          toast.error('Failed to copy token.')
-        }
+        await copyText(response.data.token, `Login token copied for ${team.name}.`)
       } else {
         showApiError(response)
       }
@@ -205,14 +185,14 @@
   }
 
   function requestCopyToken(team: TeamRef) {
-    confirmRequest = {
+    confirmState.request({
       title: 'Copy login token',
       message:
         'This token grants full, non-expiring access to the account. Anyone with it can log in as this team until the account is deleted.',
       confirmLabel: 'Copy token',
       destructive: false,
       run: () => mintToken(team),
-    }
+    })
   }
 
   async function setBanned(team: TeamRef, banned: boolean) {
@@ -238,14 +218,14 @@
       setBanned(team, false)
       return
     }
-    confirmRequest = {
+    confirmState.request({
       title: 'Ban team',
       message:
         'Banning removes the team from the leaderboard but keeps the account and its solve history.',
       confirmLabel: 'Ban team',
       destructive: true,
       run: () => setBanned(team, true),
-    }
+    })
   }
 
   async function deleteTeam(team: TeamRef) {
@@ -264,13 +244,13 @@
   }
 
   function requestDelete(team: TeamRef) {
-    confirmRequest = {
+    confirmState.request({
       title: 'Delete team',
       message: 'This removes the team and its solves from the database. This cannot be undone.',
       confirmLabel: 'Delete team',
       destructive: true,
       run: () => deleteTeam(team),
-    }
+    })
   }
 
   async function verifyTeam(verification: TeamRef) {
@@ -298,7 +278,7 @@
       })
       if (response.kind === GoodAdminUserVerificationResendV2.kind) {
         toast.success(`Verification email resent to ${verification.name}.`)
-        invalidateAdminTeamQueries(queryClient)
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
       } else {
         showApiError(response)
       }
@@ -365,15 +345,15 @@
 </teams-page>
 
 <ConfirmDialog
-  open={confirmRequest !== null}
+  open={confirmState.current !== null}
   onOpenChange={(open: boolean) => {
-    if (!open) confirmRequest = null
+    if (!open) confirmState.cancel()
   }}
-  title={confirmRequest?.title ?? ''}
-  message={confirmRequest?.message ?? ''}
-  confirmLabel={confirmRequest?.confirmLabel ?? 'Confirm'}
-  destructive={confirmRequest?.destructive ?? false}
-  onConfirm={runConfirm}
+  title={confirmState.current?.title ?? ''}
+  message={confirmState.current?.message ?? ''}
+  confirmLabel={confirmState.current?.confirmLabel ?? 'Confirm'}
+  destructive={confirmState.current?.destructive ?? false}
+  onConfirm={confirmState.confirm}
 />
 
 <style>

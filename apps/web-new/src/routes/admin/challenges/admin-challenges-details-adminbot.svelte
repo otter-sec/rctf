@@ -7,15 +7,15 @@
   the editor-state `updateAdminBot` transition.
 -->
 <script lang="ts">
-  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconRobot from '$lib/icons/icon-robot.svelte'
   import { useAdminBotStatus } from '$lib/query/admin'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import type { AdminBotConfig } from './editor-state'
+  import FieldSelect from './field-select.svelte'
 
   interface Props {
     config: AdminBotConfig
@@ -58,19 +58,11 @@
     <Section title="Configuration">
       <form-field>
         <field-label>Enable admin bot</field-label>
-        {#if disabled}
-          <button type="button" data-field-trigger data-disabled disabled>
-            {config.enabled ? 'Enabled' : 'Disabled'}<IconChevronDown />
-          </button>
-        {:else}
-          <Menu label={config.enabled ? 'Enabled' : 'Disabled'} items={enableItems}>
-            {#snippet trigger({ props })}
-              <button type="button" data-field-trigger {...props}>
-                {config.enabled ? 'Enabled' : 'Disabled'}<IconChevronDown />
-              </button>
-            {/snippet}
-          </Menu>
-        {/if}
+        <FieldSelect
+          label={config.enabled ? 'Enabled' : 'Disabled'}
+          items={enableItems}
+          {disabled}
+        />
       </form-field>
     </Section>
 
@@ -140,35 +132,5 @@
 
   :global(textarea[data-mono]) {
     font-family: var(--font-mono);
-  }
-
-  [data-field-trigger] {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    inline-size: 100%;
-    block-size: 2.25rem;
-    padding-inline: var(--space-2xs);
-    color: var(--foreground-l0);
-    text-align: start;
-    cursor: pointer;
-    background: var(--background-l4);
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -1px;
-    }
-
-    &[data-disabled] {
-      cursor: default;
-      opacity: 0.5;
-    }
-
-    :global(svg) {
-      flex-shrink: 0;
-      color: var(--foreground-l3);
-    }
   }
 </style>

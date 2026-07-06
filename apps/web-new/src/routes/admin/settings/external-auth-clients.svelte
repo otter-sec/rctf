@@ -25,6 +25,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { copyText } from '$lib/utils/clipboard'
 
   type Client = {
     id: string
@@ -107,11 +108,6 @@
     }
   }
 
-  function copy(text: string, message: string) {
-    navigator.clipboard.writeText(text)
-    toast.success(message)
-  }
-
   const dateFormat = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
@@ -187,7 +183,7 @@
               <button
                 type="button"
                 data-copy
-                onclick={() => copy(client.id, 'Client ID copied.')}
+                onclick={() => copyText(client.id, 'Client ID copied.')}
                 title="Click to copy"
               >
                 <code>{client.id}</code>
@@ -224,7 +220,7 @@
     {#if secretReveal}
       <secret-row>
         <code>{secretReveal.secret}</code>
-        <Button variant="outline" onclick={() => copy(secretReveal!.secret, 'Secret copied.')}>
+        <Button variant="outline" onclick={() => copyText(secretReveal!.secret, 'Secret copied.')}>
           <IconCopy />
           Copy
         </Button>
