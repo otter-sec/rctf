@@ -1,12 +1,3 @@
-<!--
-  Files tab (R18). A drag-and-drop + click-to-browse upload zone and the list of
-  attached files. Upload posts the picked files to `/v2/admin/upload` (multipart)
-  with a local uploading flag; the returned `{name,url,size}[]` is appended to the
-  editor form via `onFilesChange` — the write lives in the form, not a query
-  cache, so there is nothing to invalidate. Removing a row edits the form only
-  (the server copy is left in place). Outside edit mode the zone and delete
-  buttons are hidden and an empty state stands in for a fileless challenge.
--->
 <script lang="ts">
   import { GoodFilesUploadV2, UploadFilesRouteV2 } from '@rctf/types'
   import { apiRequest, showApiError } from '$lib/api'
@@ -205,8 +196,6 @@
       background: var(--background-l4);
     }
 
-    /* The delete button stays hidden until the row is hovered or the button
-       itself takes focus, so keyboard users can still reach it. */
     &:not(:hover) :global(button:not(:focus-visible)) {
       opacity: 0;
     }

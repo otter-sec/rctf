@@ -1,12 +1,3 @@
-<!--
-  Analytics column for the profile routes. Stacks the analytics chart sections:
-  the score-over-time graph, then the four tail charts (points by category,
-  solve timeline, solve cadence, difficulty profile). Chart inputs are derived
-  here from the shared props via the tested analytics-data builders; the
-  charts themselves are rendering-only. `challenges` is optional so a caller that
-  lacks the board snapshot still renders — the category and difficulty charts
-  fall back to their track-only/empty states.
--->
 <script lang="ts">
   import type { ClientConfig } from '@rctf/types'
   import {
@@ -33,9 +24,6 @@
   type Props = {
     solves: ProfileSolve[]
     dynamicScores: ProfileDynamicScore[]
-    // null = the leaderboard graph probe failed (unranked team or offset
-    // mismatch): the score graph shows its empty state instead of drawing a
-    // line from the solve progression alone.
     graphData: GraphSampleInput | null
     clientConfig: ClientConfig
     challenges?: ChallengeInfo[] | null
@@ -124,8 +112,6 @@
     flex-direction: column;
   }
 
-  /* Old-app section chrome: a title over each chart, separated by hairlines
-     rather than boxed cards. */
   section {
     padding-block: var(--space-s);
     border-block-end: 1px solid color-mix(in srgb, var(--border) 50%, transparent);

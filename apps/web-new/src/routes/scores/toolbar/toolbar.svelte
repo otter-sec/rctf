@@ -55,9 +55,6 @@
     { value: 'solves', icon: IconSortAscendingNumbers, label: 'Difficulty' },
   ] as const
 
-  // Single tab stop with ArrowLeft/ArrowRight + Home/End moving focus among the
-  // view/sort buttons (R21) — the roving group is the icon-button controls, not
-  // the search input or division trigger, matching the old app's toolbar scope.
   const rovingFocus: Attachment<HTMLElement> = node => {
     const items = () => [...node.querySelectorAll<HTMLElement>('[data-roving]')]
 
@@ -83,7 +80,6 @@
     setTabStops(null)
     node.addEventListener('keydown', onKeydown)
     node.addEventListener('focusin', onFocusin)
-    // The sort group mounts/unmounts with the view mode; re-sync the tab stop.
     const observer = new MutationObserver(() => setTabStops(document.activeElement as HTMLElement))
     observer.observe(node, { childList: true, subtree: true })
 

@@ -11,8 +11,6 @@
     icon?: Component
     href?: string
     onSelect?: () => void
-    // When set, the item renders as a single-select radio option (aria-checked +
-    // a trailing check mark). Leave undefined for a plain action item.
     checked?: boolean
   }
 
@@ -26,7 +24,6 @@
   let { label, items, placement = 'bottom-start', trigger }: Props = $props()
 
   const id = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(menu.machine, () => ({
     id,
     'aria-label': label,
@@ -42,9 +39,6 @@
 
 {@render trigger({ props: triggerProps })}
 
-<!-- unlike dialog, the menu stays mounted while closed ([hidden] drives
-     visibility): focus lives on the content element via aria-activedescendant,
-     so it must exist before the open transition -->
 <Portal>
   <div {...api.getPositionerProps()}>
     <div {...api.getContentProps()}>
@@ -80,7 +74,6 @@
 
 <style>
   [data-part='content'] {
-    /* popper copies the content z-index into the positioner's --z-index */
     z-index: var(--layer-popover);
     display: flex;
     flex-direction: column;

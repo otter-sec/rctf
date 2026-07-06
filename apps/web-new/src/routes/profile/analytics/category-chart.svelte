@@ -1,12 +1,3 @@
-<!--
-  Points-by-category chart. One horizontal row per category: a grey track sized
-  to the category's total available points, over which per-challenge segments
-  stack (solved / dynamic-hatched / unsolved-muted) with thin separators, a
-  foreground track outline, and a category-coloured outline over the earned
-  width. A full-cleared category gets a green check + gradient wash. A single
-  delegated pointer handler on the SVG resolves the hovered segment's data-* key
-  into an HTML tooltip — no per-segment tooltip instances.
--->
 <script lang="ts">
   import ChartTip from '$lib/chart/chart-tip.svelte'
   import { createHoverTip } from '$lib/chart/hover-tip.svelte'

@@ -1,10 +1,3 @@
-// Pure decision logic for the admin settings form. Kept free of `$app/*` and
-// Svelte runes so it runs under `bun test`. The settings screen edits an
-// overrides-vs-defaults model: `GET /v2/admin/settings` returns `{overrides,
-// defaults}`; the operator edits per-group state and the save patch encodes
-// three outcomes per group — edited override (send the value), previously
-// overridden but reset (send `null`), or untouched (omit).
-
 export interface Sponsor {
   name: string
   icon: string
@@ -12,7 +5,6 @@ export interface Sponsor {
   url: string
 }
 
-// Payload form: `url` is optional (dropped when empty), matching the route body.
 export interface SponsorPayload {
   name: string
   icon: string
@@ -20,8 +12,6 @@ export interface SponsorPayload {
   url?: string
 }
 
-// The subset of `AdminSettings` the UI edits. Every field is optional; an
-// absent field means "unset" on both the overrides and defaults sides.
 export interface AdminSettingsShape {
   ctfName?: string
   faviconUrl?: string
@@ -34,10 +24,6 @@ export interface AdminSettingsShape {
   sponsors?: SponsorPayload[]
 }
 
-// Per-group editable state. `overridden` mirrors the old app's flag (this group
-// currently overrides the config default); `dirty` records whether the operator
-// has touched it since load, which distinguishes an active edit from an
-// untouched existing override.
 interface ScalarGroup {
   value: string
   overridden: boolean
@@ -81,8 +67,6 @@ export interface SettingsFormState {
   sponsors: SponsorsGroup
 }
 
-// Whether each group was overriding the config default at load time. Needed to
-// know when a now-un-overridden group must send `null` to clear the override.
 export interface OriginalOverrides {
   ctfName: boolean
   faviconUrl: boolean
@@ -93,7 +77,6 @@ export interface OriginalOverrides {
   sponsors: boolean
 }
 
-// The PUT body's `data` object. Omitted key = unchanged; `null` = clear override.
 export interface SettingsPatch {
   ctfName?: string | null
   faviconUrl?: string | null
@@ -108,12 +91,6 @@ export interface SettingsPatch {
 
 export type PatchKind = 'set' | 'clear' | 'omit'
 
-/**
- * The three-way decision for a single override group.
- *
- * @param group - The group's current `overridden`/`dirty` flags.
- * @param originalOverridden - Whether the group overrode the default at load.
- */
 export function decidePatch(
   group: { overridden: boolean; dirty: boolean },
   originalOverridden: boolean
@@ -123,12 +100,6 @@ export function decidePatch(
   return 'omit'
 }
 
-/**
- * Builds the settings PUT patch from the current form and the load-time
- * override snapshot. Edited overrides send their value, groups reset away from a
- * previous override send `null`, and untouched groups are omitted — so an
- * unchanged form yields `{}`.
- */
 export function buildPatch(
   state: SettingsFormState,
   original: OriginalOverrides
@@ -183,11 +154,6 @@ export function buildPatch(
   return patch
 }
 
-/**
- * Client-side timing validation, run only when the timing group is overridden.
- * Returns an error string to surface, or `null` when the pair is valid (or
- * validation does not apply).
- */
 export function validateTiming(
   start: number | null,
   end: number | null,
@@ -203,12 +169,10 @@ export function validateTiming(
   return null
 }
 
-/** A fresh, blank sponsor row. */
 export function emptySponsor(): Sponsor {
   return { name: '', icon: '', description: '', url: '' }
 }
 
-/** Normalizes a response sponsor (optional `url`) into the editable form. */
 export function toSponsor(sponsor: SponsorPayload): Sponsor {
   return {
     name: sponsor.name,
@@ -218,7 +182,6 @@ export function toSponsor(sponsor: SponsorPayload): Sponsor {
   }
 }
 
-/** Shapes an editable sponsor into its payload, dropping an empty `url`. */
 export function sponsorPayload(sponsor: Sponsor): SponsorPayload {
   const base = {
     name: sponsor.name,
@@ -228,7 +191,6 @@ export function sponsorPayload(sponsor: Sponsor): SponsorPayload {
   return sponsor.url ? { ...base, url: sponsor.url } : base
 }
 
-/** Keeps a selection index within `[0, length)`, clamping past the last row. */
 export function clampSelected(selected: number, length: number): number {
   if (length === 0) return 0
   return Math.min(selected, length - 1)
@@ -245,7 +207,6 @@ export type SponsorAction =
   | { type: 'select'; index: number }
   | { type: 'update'; index: number; field: keyof Sponsor; value: string }
 
-/** Master-detail reducer for the sponsors editor (add/remove/select/update). */
 export function sponsorsReducer(
   state: SponsorsState,
   action: SponsorAction
@@ -272,7 +233,6 @@ export function sponsorsReducer(
   }
 }
 
-/** Whether each group overrides its default, derived from the overrides object. */
 export function initialOverrides(
   overrides: AdminSettingsShape
 ): OriginalOverrides {
@@ -290,7 +250,6 @@ export function initialOverrides(
   }
 }
 
-/** Seeds editable form state from the override, falling back to the default. */
 export function initialFormState(
   overrides: AdminSettingsShape,
   defaults: AdminSettingsShape
@@ -340,10 +299,6 @@ export function initialFormState(
   }
 }
 
-/**
- * Formats a Unix ms timestamp as the `YYYY-MM-DDTHH:mm` value a
- * `datetime-local` input expects, in local time. Empty for a nullish input.
- */
 export function formatDatetimeLocal(
   timestamp: number | null | undefined
 ): string {
@@ -354,7 +309,6 @@ export function formatDatetimeLocal(
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
-/** Parses a `datetime-local` value into a Unix ms timestamp, or `null`. */
 export function parseDatetimeLocal(value: string): number | null {
   if (!value) return null
   const timestamp = new Date(value).getTime()

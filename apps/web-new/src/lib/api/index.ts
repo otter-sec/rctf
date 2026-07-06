@@ -216,7 +216,6 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
         cachedClientConfig
       )
       if (captchaCode) {
-        // v1 routes validate `recaptchaCode` in their body schema; v2+ use `captchaCode`
         const captchaField = route.path.startsWith('/v1/')
           ? 'recaptchaCode'
           : 'captchaCode'

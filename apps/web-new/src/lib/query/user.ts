@@ -31,8 +31,6 @@ export function useCurrentUser() {
   return createQuery(() => userSelfQueryOptions)
 }
 
-// Public team profile; served without auth per the API contract so the page
-// works logged-out.
 export function userByIdQueryOptions(id: string) {
   return queryOptions({
     queryKey: queryKeys.userById(id),
@@ -50,8 +48,6 @@ export function useUserById(id: () => string) {
   return createQuery(() => userByIdQueryOptions(id()))
 }
 
-// Team members is a V1-only route; the caller gates it on
-// `clientConfig.userMembers`, since deployments without it 404 the endpoint.
 export function membersQueryOptions(enabled: boolean) {
   return queryOptions({
     queryKey: queryKeys.members,

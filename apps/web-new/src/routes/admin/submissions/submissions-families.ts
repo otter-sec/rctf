@@ -1,9 +1,3 @@
-/**
- * The seven value-filter families for the submissions audit table, expressed as
- * `ValueFilterFamily` descriptors consumed by the shared filter bar, menu, chips
- * and mobile drawer. Challenge and Team are searchable (challenge client-side,
- * team server-side); the rest are static option sets.
- */
 import {
   SubmissionKind,
   SubmissionResult,

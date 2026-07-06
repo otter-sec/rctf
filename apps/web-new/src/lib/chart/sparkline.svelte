@@ -23,8 +23,6 @@
 
   const gradientId = $derived(`spark-${id}`)
 
-  // Anchor the window to the data's own extents, not Date.now(), so a stale
-  // series keeps its shape instead of collapsing against the left edge.
   const pathD = $derived.by(() => {
     if (data.length < 2) return ''
 
@@ -44,8 +42,6 @@
     const innerW = WIDTH - PAD_X * 2
     const innerH = HEIGHT - PAD_Y * 2
 
-    // A plateaued series has no vertical extent; center it instead of pinning
-    // it to the bottom edge.
     const points: Point[] = data.map(point => ({
       x: PAD_X + ((point.time - minT) / tRange) * innerW,
       y: sRange === 0 ? HEIGHT / 2 : PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
@@ -58,8 +54,6 @@
   <score-sparkline>
     <svg viewBox="0 0 {WIDTH} {HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <!-- userSpaceOnUse: a flat series has a zero-height bounding box, and
-             objectBoundingBox gradients on zero-area boxes render nothing. -->
         <linearGradient
           id={gradientId}
           gradientUnits="userSpaceOnUse"

@@ -1,11 +1,3 @@
-/**
- * Pure helpers for the admin teams table. The row model merges two heterogeneous
- * sources — server-paged registered teams and a separately-fetched pending
- * email-verification queue — into one client-sorted, client-filtered list. The
- * `unverified` status is a client-side pseudo-status: it never reaches the server
- * body (see {@link serverStatusValues}) and can short-circuit the registered
- * query entirely (see {@link registeredRowsMayMatch}).
- */
 import {
   AdminTeamSortBy,
   AdminTeamStatus,
@@ -37,7 +29,6 @@ export type PendingTeamRow = {
 }
 export type TeamRow = RegisteredTeamRow | PendingTeamRow
 
-/** Client-side pseudo-status gating the pending-verification data source. */
 export const UNVERIFIED = 'unverified' as const
 
 export type TeamStatusValue = AdminTeamStatus | typeof UNVERIFIED
@@ -62,7 +53,6 @@ export const TEAM_STATUS_VALUES: readonly TeamStatusValue[] = [
   UNVERIFIED,
 ]
 
-/** Registered-team status by precedence: admin over banned over active. */
 export function deriveTeamStatus(
   team: Pick<AdminTeam, 'perms' | 'banned'>
 ): AdminTeamStatus {
@@ -121,7 +111,6 @@ export function teamRowCreatedAt(row: TeamRow): number {
     : row.verification.createdAt
 }
 
-/** Registered rows show their creation time; pending rows show expiry. */
 export function rowDisplayTime(row: TeamRow): number {
   return row.kind === 'registered'
     ? new Date(row.team.createdAt).getTime()
@@ -157,11 +146,6 @@ function compareRows(a: TeamRow, b: TeamRow, sortBy: AdminTeamSortBy): number {
   }
 }
 
-/**
- * Sorts the merged rows by the active column. Pending rows carry a score/solve
- * count of -1 so they trail on those numeric sorts, and the name tiebreak stays
- * ascending regardless of direction so equal rows keep a stable readable order.
- */
 export function sortTeamRows(
   rows: readonly TeamRow[],
   sortBy: AdminTeamSortBy,
@@ -183,12 +167,6 @@ function registeredStatuses(
   )
 }
 
-/**
- * Whether the registered-team query can return any row under the status filter.
- * An include-list of only `unverified` matches no registered status, so the
- * server round-trip is skipped; an exclude-list matches unless it names every
- * registered status.
- */
 export function registeredRowsMayMatch(
   filter: MultiFilter<TeamStatusValue>
 ): boolean {
@@ -201,7 +179,6 @@ export function registeredRowsMayMatch(
   return Object.values(AdminTeamStatus).some(status => !excluded.has(status))
 }
 
-/** Drops the `unverified` pseudo-status before a status filter reaches the server. */
 export function serverStatusValues(values: string[]): string[] {
   return values.filter(value => value !== UNVERIFIED)
 }
@@ -225,11 +202,6 @@ function matchesDivision(
   return filter.mode === 'include' ? selected : !selected
 }
 
-/**
- * Client-side predicate for the locally-sourced pending rows, mirroring the
- * server's registered-team filtering: status (unverified in/out), division, and
- * the free-text search over name, email, division id/label, and "unverified".
- */
 export function pendingVerificationMatchesFilters(
   verification: PendingVerification,
   filters: TeamFilters,
@@ -263,7 +235,6 @@ export const SORT_DEFAULTS: Record<AdminTeamSortBy, TableSortOrder> = {
   [AdminTeamSortBy.CREATED_AT]: 'desc',
 }
 
-/** Builds the registered-team query params (server does search/sort/filter/page). */
 export function teamQueryParams(
   filters: TeamFilters,
   search: string,
@@ -294,10 +265,6 @@ export function teamQueryParams(
   return params
 }
 
-/**
- * Query fingerprint driving the shared table shell's scroll reset. Folds the
- * sort, both filter families, and the debounced search into one string.
- */
 export function teamFingerprint(
   sort: SortState<AdminTeamSortBy>,
   filters: TeamFilters,

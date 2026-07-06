@@ -1,8 +1,3 @@
-<!--
-  Select-style field trigger shared across the challenge editor panes. Renders a
-  static, non-interactive button when disabled, and a Menu-wrapped trigger button
-  otherwise. Both carry the [data-field-trigger] hook so the styling lives once.
--->
 <script lang="ts">
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'

@@ -24,8 +24,6 @@ export function getActiveSearch(value: string): string | undefined {
   return value.length >= MIN_SEARCH_LENGTH ? value : undefined
 }
 
-// Clone-and-set one param; falsy values (or defaults mapped to undefined by
-// the wrappers below) remove the param so defaults stay out of the URL.
 function withParam(url: URL, key: string, value: string | undefined): URL {
   const next = new URL(url)
   if (value) next.searchParams.set(key, value)
@@ -49,8 +47,6 @@ export function withScoresSortMode(url: URL, value: SortMode): URL {
   return withParam(url, 'sort', value === DEFAULT_SORT_MODE ? undefined : value)
 }
 
-// URL param wins; a saved preference applies only before the first in-session
-// interaction; otherwise the default. Covers AE3.
 export function resolveViewMode(
   urlParam: string | null,
   savedPref: ViewMode | undefined,

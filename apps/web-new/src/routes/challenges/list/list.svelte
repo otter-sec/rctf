@@ -1,10 +1,3 @@
-<!--
-  Master list for the challenges page: category accordion + toolbar. Owns the
-  session search text and the persisted hide-solved / collapsed-category
-  preferences. The accordion is controlled: its open set is computed from the
-  persisted collapsed set, with search (all open) and the deep-link target always
-  forced open transiently — those forced expansions are never written back.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
@@ -41,8 +34,6 @@
 
   const searching = $derived(searchQuery.trim().length > 0)
 
-  // Search always applies; hide-solved excludes solved rows except the deep-link
-  // target, which must render so the page can scroll it into view (KTD-5).
   const visibleChallenges = $derived.by(() => {
     const searched = filterChallenges(challenges, {
       query: searchQuery,
@@ -91,9 +82,6 @@
     savePreferences({ hideSolved, collapsedCategories })
   }
 
-  // Reconcile only the categories whose open state actually changed, so a
-  // search/deep-link forced-open category is never written into the collapsed
-  // set just because the user toggled a different one.
   function handleValueChange(open: string[]) {
     if (searching) return
     const openSet = new Set(open)
@@ -210,13 +198,10 @@
   challenges-list-group-header {
     position: sticky;
     inset-block-start: 0;
-    /* Above the rows' own z-index: 1 layers so nothing shows through. */
     z-index: 2;
     display: block;
     background: var(--background-l1);
 
-    /* 0.625rem start padding + 1rem icon + 0.625rem gap puts the name on the
-       2.25rem alignment rail. */
     button {
       display: flex;
       align-items: center;

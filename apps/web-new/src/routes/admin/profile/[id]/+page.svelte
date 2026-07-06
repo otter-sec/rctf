@@ -1,13 +1,3 @@
-<!--
-  Admin team profile (/admin/profile/[id]). Reuses the player profile shell and
-  its pieces (header, solves, analytics, score graph) and adds an admin "Manage"
-  column. The shell's desktop right column is keyed on the tab value 'settings'
-  (its internal slot name), so the Manage tab uses that value with a "Manage"
-  label — desktop shows the profile with Challenges|Analytics tabs on the left
-  and Manage pinned on the right; mobile shows Manage|Challenges|Analytics with
-  Manage as the default tab. The solves list gains Revoke + View submissions row
-  actions, each gated on the viewer's permissions.
--->
 <script lang="ts">
   import { DeleteChallengeSolveRouteV2, GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
@@ -58,7 +48,6 @@
   const canRevoke = $derived(hasPermissions(currentUserQuery.data, Permissions.challsSolveWrite))
   const canViewSubmissions = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
 
-  // The Manage tab reuses the shell's 'settings' desktop-column slot.
   const tabs = [
     { value: 'settings', label: 'Manage' },
     { value: 'challenges', label: 'Challenges' },

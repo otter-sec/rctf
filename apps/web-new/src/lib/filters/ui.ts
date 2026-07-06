@@ -1,10 +1,6 @@
 import type { CategoryColor, IconComponent } from '$lib/utils/categories'
 import type { MultiFilter } from './core'
 
-// The type-erased option carried by a `ValueFilterFamily`. Concrete families are
-// declared with `defineValueFilterFamily<T>` and narrow this back to `T` at the
-// call site; the descriptor stores the erased form so heterogeneous families can
-// live in a single array.
 export type ValueFilterOption = unknown
 
 export type ValueFilterId = string
@@ -17,9 +13,6 @@ export type TeamFilterOption = {
   avatarUrl: string | null
 }
 
-// A rich option row shares its category hue through `data-category-color`
-// (which remaps the generic --category-* tokens); `tone` picks which remapped
-// token a text segment reads, so the option component never hard-codes a colour.
 export type FilterOptionSegmentTone = 'category' | 'categoryMuted' | 'result'
 export type FilterOptionIconTone = 'category'
 
@@ -105,11 +98,6 @@ export const PAGE_SIZE = 100
 export const ROW_HEIGHT = 48
 export const ROOT_SEARCH_MATCH_LIMIT = 8
 
-/**
- * Erases a typed family's option generic so it can sit in a `ValueFilterFamily[]`
- * alongside families of other option shapes. The cast is sound because every
- * callback only ever receives options produced by the same family's `options()`.
- */
 export function defineValueFilterFamily<T extends ValueFilterOption>(
   family: TypedValueFilterFamily<T>
 ): ValueFilterFamily {

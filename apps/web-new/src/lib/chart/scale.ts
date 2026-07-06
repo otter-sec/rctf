@@ -1,21 +1,9 @@
-/**
- * Linear scales for the hand-rolled chart core. Pure and DOM-free so they can
- * be unit tested and reused by any consumer (per-challenge graph, scoreboard).
- */
-
 export type ScaleFn = (value: number) => number
 
 export interface ScaleOptions {
-  /** Clamp inputs to the domain so outputs never leave the range. */
   clamp?: boolean
 }
 
-/**
- * Builds a linear scale mapping `domain` onto `range`.
- *
- * A degenerate domain (min === max) would divide by zero, so it collapses to a
- * constant that returns the range start for every input instead of NaN.
- */
 export function createLinearScale(
   domain: [number, number],
   range: [number, number],
@@ -39,5 +27,4 @@ export function createLinearScale(
   }
 }
 
-/** Time scale over epoch milliseconds; identical maths to a linear scale. */
 export const createTimeScale = createLinearScale

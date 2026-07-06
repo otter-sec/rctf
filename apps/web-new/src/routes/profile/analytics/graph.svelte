@@ -1,10 +1,3 @@
-<!--
-  Profile score-over-time graph. Hand-rolled SVG on the shared chart core
-  (scale/ticks/path/nearest), composed like scores/graph/graph.svelte. Draws the total
-  score line plus, when dynamic scoring splits it, a thin static line and a
-  dashed dynamic line; a category-coloured dot per solve sits at its running
-  score. Hover picks the nearest sample or dot and shows the matching tooltip.
--->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
   import ChartTip from '$lib/chart/chart-tip.svelte'

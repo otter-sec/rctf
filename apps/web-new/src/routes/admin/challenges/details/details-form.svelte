@@ -1,12 +1,3 @@
-<!--
-  The six-tab editor form. Details and Scoring are built here; Files, Instancer,
-  Admin bot, and Solves delegate to their own pane components. All inputs are
-  disabled in view mode (read-only at reduced opacity). Errors are computed by
-  the parent (pure `formErrors`) and passed down; each field reveals its message
-  only after it has been touched (blurred). The Details and Scoring triggers
-  carry an error dot whenever they hold an invalid field, and the Instancer
-  trigger carries one whenever the instancer pane reports itself invalid.
--->
 <script lang="ts">
   import { ChallengeScoringKind, DynamicScoringTransport, type InstancerConfig } from '@rctf/types'
   import Markdown from '$lib/components/markdown.svelte'
@@ -82,8 +73,6 @@
   const kindLocked = $derived(scoringKindLocked(totalSolves))
 
   let tab = $state('details')
-  // The Input primitive isn't bindable to its element, so focus the name field
-  // by reaching for the underlying input through its wrapper on create.
   let nameFieldEl = $state<HTMLElement | null>(null)
 
   $effect(() => {
@@ -126,8 +115,6 @@
       invalid: !instancerValid,
     },
     { value: 'adminbot', label: 'Admin bot', icon: IconRobot },
-    // Dynamic challenges have no flag solves — their points arrive via the
-    // scoring webhook — so the Solves tab only exists for decay scoring.
     ...(isDynamic
       ? []
       : [
@@ -140,8 +127,6 @@
         ]),
   ])
 
-  // If the Solves tab disappears from under the active selection (a dynamic
-  // challenge is selected, or the kind switches), fall back to Details.
   $effect(() => {
     if (isDynamic && tab === 'solves') tab = 'details'
   })
@@ -347,8 +332,6 @@
                 {#if kindLocked}<field-hint>(locked: challenge has solves)</field-hint>{/if}
               </field-label>
               {#if kindLocked}
-                <!-- Locked, not disabled: keep the button pointer-reactive so the
-                     tooltip explains why. No onclick, so it is inert. -->
                 <Tooltip label="Delete all solves before changing the scoring kind.">
                   {#snippet children({ props })}
                     <button type="button" data-field-trigger data-disabled {...props}>
@@ -477,9 +460,6 @@
         {:else if value === 'files'}
           <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
         {:else if value === 'instancer'}
-          <!-- Keyed remount: the pane holds advanced-YAML editor state that must
-               not survive a selection change (a stale exitAdvanced would write one
-               challenge's YAML into another's config). -->
           {#key challengeId}
             <AdminChallengesDetailsInstancer
               config={form.instancerConfig}

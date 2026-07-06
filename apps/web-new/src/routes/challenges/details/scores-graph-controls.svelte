@@ -1,8 +1,3 @@
-<!--
-  Hover/focus-revealed toggles for the score graph. Both default on; state is
-  reflected via data-active (CSS renders it) and aria-pressed. Bindable so the
-  parent graph can share the pin preferences.
--->
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import IconMoodHappyFilled from '$lib/icons/icon-mood-happy-filled.svelte'

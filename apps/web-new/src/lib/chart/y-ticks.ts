@@ -1,19 +1,8 @@
-/**
- * Nice linear ticks for a value axis, anchored at zero. Pure and DOM-free so it
- * can be unit tested and shared by any consumer (the scoreboard y-axis). Picks a
- * 1/2/5×10ⁿ step so the labels read cleanly and the top tick gives the plot a
- * little headroom above the data max.
- */
-
 export interface LinearTicks {
-  /** The rounded-up axis maximum; feed this to the y scale's domain. */
   max: number
-  /** Tick values from 0 to `max` inclusive, evenly spaced by the nice step. */
   values: number[]
 }
 
-// Rounds a positive value to the nearest 1/2/5×10ⁿ. Rounding mode picks the
-// closest nice number; ceiling mode never returns something smaller.
 function niceNum(value: number, round: boolean): number {
   const exp = Math.floor(Math.log10(value))
   const base = 10 ** exp

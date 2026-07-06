@@ -1,12 +1,3 @@
-<!--
-  Shared four-slot podium grid for the flag and dynamic variants. Each slot is a
-  data-attribute-styled cell: `data-variant` (gold/silver/bronze/self/nth) drives
-  the fill and text colour, `data-kind` switches empty/placeholder slots to a
-  dashed muted treatment, and `data-min-cols` (from podiumMinColumns) sets the
-  container width at which the slot survives the collapse. Container queries drop
-  the grid from four columns to one, hiding the highest-ranked-last so the self
-  slot and top solvers stay on screen the longest.
--->
 <script lang="ts">
   import Avatar from '$lib/ui/avatar.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
@@ -14,9 +5,7 @@
 
   interface Props {
     slots: PodiumSlot[]
-    /** Renders a spinner in every slot while the backing query is pending. */
     loading?: boolean
-    /** Staggered per-slot fade-in; callers set it only on cold loads. */
     reveal?: boolean
   }
 
@@ -113,8 +102,6 @@
       --slot-bg: var(--background-self-l1);
     }
 
-    /* Empty, placeholder, and loading slots read as unfilled: dashed outline,
-       no fill. */
     &[data-kind='empty'],
     &[data-kind='placeholder'],
     &[data-kind='loading'] {
@@ -133,9 +120,6 @@
       color: var(--foreground-l4);
     }
 
-    /* Staggered reveal once the backing query lands; the global reveal rule
-       can't carry the per-slot delay, so it lives here (with its own
-       reduced-motion opt-out, since this rule out-specifies the global one). */
     &[data-reveal] {
       animation: reveal-fade-in 300ms ease backwards;
       animation-delay: var(--reveal-delay, 0ms);
@@ -190,8 +174,6 @@
     white-space: nowrap;
   }
 
-  /* Hidden by default; each breakpoint reveals the next tier of slots and widens
-     the grid to match. Slots stay display:flex when shown. */
   podium-slot[data-min-cols='2'],
   podium-slot[data-min-cols='3'],
   podium-slot[data-min-cols='4'] {

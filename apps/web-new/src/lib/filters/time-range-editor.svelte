@@ -8,10 +8,6 @@
     type TimeRangeMode,
   } from './time'
 
-  // The caller owns `filter` as `$state`; this editor mutates it in place and
-  // calls `onchange` after each edit so the host can recompute its query. The
-  // error line reads live from `resolveTimeRangeFilter` — the same resolver the
-  // query uses — so what the editor shows is exactly what the fetch would reject.
   type Props = {
     filter: TimeRangeFilter
     ctfStartTime: number | null

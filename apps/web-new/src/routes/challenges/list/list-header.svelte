@@ -1,9 +1,3 @@
-<!--
-  Challenge-list toolbar: earned/total stats, a plain (undebounced) controlled
-  search box, a persisted hide-solved toggle, and a collapse/expand-all toggle.
-  All state lives in the parent list; this component is pure presentation +
-  callbacks.
--->
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import IconEyeClosed from '$lib/icons/icon-eye-closed.svelte'
@@ -104,8 +98,6 @@
 </challenges-list-header>
 
 <style>
-  /* 2.25rem stats rail / 1.25rem controls rail mirror the detail pane's
-     alignment paddings. */
   challenges-list-header {
     display: flex;
     flex-shrink: 0;

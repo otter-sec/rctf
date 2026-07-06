@@ -74,12 +74,9 @@ describe('applyDeepLinkFilters', () => {
       challenge,
     })
 
-    // The admin edits the applied filters after the initial deep-link fired.
     filters.team.selected = []
     filters.challenge.mode = 'exclude'
 
-    // A refetch delivers the same resolved entities again; the latch suppresses
-    // any re-application, so the admin's edits stand.
     latch = applyDeepLinkFilters(filters, latch, { team, challenge })
 
     expect(latch).toEqual({ team: true, challenge: true })
@@ -90,7 +87,6 @@ describe('applyDeepLinkFilters', () => {
   test('latches each side independently as it resolves', () => {
     const filters = createSubmissionFilters()
 
-    // Challenge resolves from the admin challenges list first.
     let latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {
       challenge,
     })
@@ -98,7 +94,6 @@ describe('applyDeepLinkFilters', () => {
     expect(filters.team.selected).toEqual([])
     expect(filters.challenge.selected).toEqual([challenge])
 
-    // The team detail query settles a moment later.
     latch = applyDeepLinkFilters(filters, latch, { team })
     expect(latch).toEqual({ team: true, challenge: true })
     expect(filters.team.selected).toEqual([team])

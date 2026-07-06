@@ -22,10 +22,6 @@ interface AlertToken {
   content: string
 }
 
-// hydration placeholders carry a per-session secret so hand-written
-// data-alert/data-timer attributes in user markdown are stripped by the
-// sanitizer hook below — only extension-emitted placeholders may hydrate
-// (product requirement 07 §2)
 const nonce = crypto.randomUUID()
 const HYDRATION_ATTRS = [
   'data-alert',
@@ -34,7 +30,6 @@ const HYDRATION_ATTRS = [
   'data-timer',
 ]
 
-// escaping for a double-quoted attribute value (the data-content payload)
 const escapeAttribute = (text: string) =>
   text
     .replace(/&/g, '&amp;')
@@ -87,9 +82,6 @@ const timerInline: TokenizerAndRendererExtension = {
   renderer: () => timerPlaceholder,
 }
 
-// a standalone <timer /> line is a CommonMark html *block*, which inline
-// extensions never see, and marked extensions are single-level — hence this
-// block twin
 const timerBlock: TokenizerAndRendererExtension = {
   name: 'timerBlock',
   level: 'block',
@@ -101,10 +93,6 @@ const timerBlock: TokenizerAndRendererExtension = {
   renderer: () => `<p>${timerPlaceholder}</p>`,
 }
 
-// marked treats lines directly after closing block-level html as part of the
-// html block; force a blank line so following markdown still gets parsed.
-// fenced code is passed through untouched so the inserted blank line cannot
-// corrupt code content
 const FENCED_CODE =
   /(^|\n)(?:```|~~~)[^\n]*\n[\s\S]*?\n(?:```|~~~)[ \t]*(?=\n|$)/g
 const BLOCK_HTML_BOUNDARY =
@@ -124,12 +112,6 @@ const separateHtmlBlocks = (markdown: string): string => {
   return parts.join('')
 }
 
-// module-local instance so the hook below cannot leak to other dompurify
-// consumers, created lazily so importing this module without a DOM (bun
-// scripts, tests) does not throw on the `window` reference.
-// note: DOMPurify returns input UNSANITIZED where no DOM exists
-// (isSupported=false); safe here because the app is csr-only
-// (src/routes/+layout.ts: ssr = false)
 let purify: ReturnType<typeof DOMPurify> | undefined
 
 const getPurify = () => {
@@ -155,6 +137,4 @@ const marked = new Marked({
 export const parseMarkdown = (content: string): string =>
   marked.parse(content, { async: false })
 
-// alert bodies go through the identical pipeline (nested alerts/timers
-// included)
 export const parseAlertContent = parseMarkdown

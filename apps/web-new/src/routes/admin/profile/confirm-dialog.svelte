@@ -1,9 +1,3 @@
-<!--
-  Confirmation dialog for the admin team actions (mint token, mint login URL,
-  ban, delete, revoke solve). Presentational only: the parent owns `open` and the
-  per-action pending spinner, and runs the real work in `onConfirm`. Confirming
-  closes the dialog first, so the triggering button surfaces its own spinner.
--->
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import Button from '$lib/ui/button.svelte'

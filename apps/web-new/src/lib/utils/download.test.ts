@@ -5,7 +5,6 @@ const SPACING = 300
 
 type FakeTimer = { id: number; fn: () => void; at: number }
 
-// Deterministic timer/clock so the scheduler can be driven synchronously.
 function makeClock() {
   let seq = 0
   let now = 0

@@ -1,9 +1,3 @@
-<!--
-  Master list for the admin challenges page: header stats, a client-side search
-  box (name/category/author), a collapse/expand-all toggle, an optional "New
-  challenge" button (challsWrite only), and a category accordion. Search and
-  collapse state live here; an active search force-expands every group.
--->
 <script lang="ts">
   import { Permissions, type AdminChallenge } from '@rctf/types'
   import { mergeProps } from '@zag-js/svelte'
@@ -56,9 +50,6 @@
     searching ? 'Try a different search term' : 'Create your first challenge to get started'
   )
 
-  // Reconcile the collapsed set from the accordion's reported open set. Skipped
-  // while searching, since search forces every group open transiently and must
-  // never be written back into the persisted collapse state.
   function handleValueChange(open: string[]) {
     if (searching) return
     collapsed = categories.filter(category => !open.includes(category))
@@ -301,7 +292,6 @@
     }
   }
 
-  /* One control fills the row; two controls split it with a shared inner seam. */
   [data-slot='collapse'] {
     border-radius: 20px;
   }
@@ -314,8 +304,6 @@
     border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
   }
 
-  /* Wide layout joins the search pill: inner seams stay small, the trailing
-     control keeps the full pill end (matching the player list's group). */
   @container admin-challenges-list (width >= 24rem) {
     [data-slot='collapse'] {
       border-radius: var(--radius-sm) 20px 20px var(--radius-sm);

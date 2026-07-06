@@ -1,8 +1,3 @@
-<!--
-  The current user's solve rendered as a self-variant row. The solves tab pins a
-  copy of this over the scroll container whenever the user's real row is off
-  screen (or absent from the loaded pages), so their placement stays in view.
--->
 <script lang="ts">
   import { useCurrentUser } from '$lib/query/user'
   import ChallengeDetailsRow from './details-row.svelte'

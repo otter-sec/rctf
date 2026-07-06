@@ -18,9 +18,7 @@
     value?: string | null
     onValueChange?: (value: string | null) => void
     placeholder?: string
-    /** aria-label for the input when no Field label wraps it. */
     label?: string
-    /** Field-provided id so an external <label for> targets the input. */
     id?: string
     describedBy?: string
     emptyText?: string
@@ -41,8 +39,6 @@
     item,
   }: Props = $props()
 
-  // Filter only reacts to typed input (reason 'input-change'); opening resets it
-  // so the full list is always available regardless of the last selection label.
   let filterText = $state('')
   const filtered = $derived(
     filterText
@@ -59,7 +55,6 @@
   )
 
   const machineId = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(combobox.machine, () => ({
     id: machineId,
     ids: fieldId ? { input: fieldId } : undefined,
@@ -154,7 +149,6 @@
   }
 
   [data-part='content'] {
-    /* popper copies the content z-index into the positioner's --z-index */
     z-index: var(--layer-popover);
     display: flex;
     flex-direction: column;

@@ -187,9 +187,6 @@ export function getCategoryGroups(
   return groups
 }
 
-// Per-entry, not board-wide: only the virtualized rows actually rendered need
-// these lookups, so each row derives its own from the entry it already holds
-// instead of the data layer rebuilding maps for every loaded team per poll.
 export function getTeamSolveLookups(entry: TeamSolvesEntry): TeamSolveLookups {
   const solvedIds = new Set<string>()
   const solveTimes = new Map<string, number>()
@@ -308,13 +305,6 @@ export function mergeWithSelfGraph<T extends { id: string }>(
     : data
 }
 
-// Windows each team's series to the last 12h (anchored to the newest data
-// point, not Date.now()). Teams with real activity in the window keep their
-// raw windowed points (the sparkline stretches to their own time range, like
-// the old app). A team that would otherwise render nothing — idle across the
-// window — instead gets a flat synthesized line carrying its last known score,
-// so every team on the graph also has a sparkline. No point is fabricated
-// before a team's first-ever event.
 export function getSparklineDataByTeam(
   allGraphData: GraphSeries[],
   selfGraphData: GraphSeries | null | undefined

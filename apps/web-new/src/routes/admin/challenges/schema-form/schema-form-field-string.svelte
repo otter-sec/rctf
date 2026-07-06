@@ -61,7 +61,6 @@
     const target = event.currentTarget as HTMLInputElement | HTMLTextAreaElement
     const newValue = target.value
 
-    // For nullable fields, an empty string means null.
     const valueToSet = isNullable && newValue === '' ? null : newValue
 
     setError(validateValue(schema, valueToSet).error)

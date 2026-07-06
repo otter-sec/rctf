@@ -19,7 +19,6 @@ import {
   type ViewMode,
 } from '../leaderboard/url-params'
 
-// Exported so the toolbar (U10) shares the exact debounce window.
 export const SEARCH_DEBOUNCE_MS = 400
 
 export type ScoresUrlState = ReturnType<typeof createScoresRouteState>

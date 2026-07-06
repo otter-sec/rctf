@@ -1,20 +1,3 @@
-<!--
-  Multi-expand accordion. Consumers render each item's trigger and content from
-  the `header`/`content` snippets, spreading the provided `props` onto their own
-  markup (so they own the elements and can set data-* attributes for styling).
-
-  <Accordion bind:value {items}>
-    {#snippet header({ value, props, expanded })}
-      <button {...props} data-expanded={expanded || undefined}>{value}</button>
-    {/snippet}
-    {#snippet content({ value, props })}
-      <div {...props}>…body for {value}…</div>
-    {/snippet}
-  </Accordion>
-
-  The content element must stay mounted (Zag drives visibility via `hidden` from
-  `props`); never wrap the content snippet's element in an {#if}.
--->
 <script lang="ts">
   import * as accordion from '@zag-js/accordion'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
@@ -41,7 +24,6 @@
   }: Props = $props()
 
   const id = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(accordion.machine, () => ({
     id,
     multiple,

@@ -7,7 +7,6 @@
 </script>
 
 <span role="status" aria-label={label}>
-  <!-- path vendored from lucide loader-circle: https://lucide.dev/icons/loader-circle -->
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"

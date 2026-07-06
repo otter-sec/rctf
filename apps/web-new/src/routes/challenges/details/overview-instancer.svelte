@@ -1,12 +1,3 @@
-<!--
-  Instancer panel (challenge details / overview). Shown when a challenge sets
-  instancerLifetime. Instance status is a TanStack query keyed by challenge so
-  its adaptive poll (2s transitioning / 10s steady / off when stopped) survives
-  remounts; lifecycle calls (start/stop/extend/actions) go through apiRequest
-  with a local pending flag and eagerly refresh the query so the panel reacts
-  without waiting out the poll. An action that returns a flag is auto-submitted
-  and routed through onSolve, the same optimistic-solve path as the flag bar.
--->
 <script lang="ts">
   import {
     BadAlreadySolvedChallenge,
@@ -60,8 +51,6 @@
   const clientConfig = $derived(configQuery.data)
   const isArchived = $derived(clientConfig?.isArchived ?? false)
 
-  // Reactive login gate off the userSelf query (data is null when signed out,
-  // undefined while loading), consistent with the flag bar (KTD-7).
   const userQuery = useCurrentUser()
   const isAuthenticated = $derived(userQuery.data != null)
 
@@ -93,18 +82,12 @@
     return 'running'
   })
 
-  // Which lifecycle button is mid-request; drives its inline spinner. `pending`
-  // (any call in flight) disables the whole action row.
   let pendingAction = $state<string | null>(null)
   const pending = $derived(pendingAction !== null)
   const actionsDisabled = $derived(pending || status === InstanceStatus.STOPPING)
 
   const instanceKey = $derived(queryKeys.challengeInstance(challengeId))
 
-  // Countdown: the server's remaining time is the base (re-adopted on every
-  // query refresh), and the 1s ticker overrides it locally between polls so the
-  // bar keeps moving. Reassigning this writable $derived holds until the next
-  // refresh recomputes it.
   let timeLeft = $derived(instanceQuery.data?.timeLeftMilliseconds ?? null)
   $effect(() => {
     if (status !== InstanceStatus.RUNNING && status !== InstanceStatus.STARTING) {
@@ -344,7 +327,6 @@
     justify-content: center;
     gap: var(--space-s);
 
-    /* Stretch the call-to-action buttons across the empty-state column. */
     :global(a[data-variant]),
     :global(button[data-variant]) {
       inline-size: 100%;
@@ -459,7 +441,6 @@
     display: flex;
     gap: var(--space-2xs);
 
-    /* Share the row evenly across however many actions the challenge exposes. */
     :global(button[data-variant]) {
       flex: 1;
     }

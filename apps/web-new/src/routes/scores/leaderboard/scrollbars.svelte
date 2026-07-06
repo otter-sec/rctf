@@ -1,10 +1,3 @@
-<!--
-  Custom overlay scrollbars for the leaderboard scroll region. Native scrollbars
-  cannot be inset, and the design offsets them: the vertical track starts below
-  the sticky challenge header and the horizontal track starts after the sticky
-  team column (matching the old app's padded ScrollArea bars). Thumbs are
-  draggable and tracks page-jump on click.
--->
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
   import type { ScrollGeometry } from '$lib/components/scroll-geometry.svelte'
@@ -188,13 +181,11 @@
   @media (width >= 48rem) {
     scroll-track[data-axis='y'] {
       inset-block-start: var(--score-header-height);
-      /* Stop above the horizontal scrollbar's dedicated rail. */
       inset-block-end: 0.5rem;
     }
 
     scroll-track[data-axis='x'] {
       display: block;
-      /* + the cells' 0.25rem lead-in so the track starts flush with them. */
       inset-inline-start: calc(var(--score-team-column-width) + 0.25rem);
     }
   }

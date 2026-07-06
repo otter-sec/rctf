@@ -82,7 +82,6 @@ export function resolveValue(schema: JsonSchema, value: unknown): unknown {
   return value
 }
 
-/** Display label for a field: schema title, else the last path segment. */
 export function fieldLabel(
   schema: JsonSchema,
   path: string[],
@@ -126,7 +125,6 @@ export function renameRecordKey(
   return result
 }
 
-/** The record's per-entry value schema: `additionalProperties` when it is a schema, else string. */
 export function recordValueSchema(schema: JsonSchema): JsonSchema {
   return (
     typeof schema.additionalProperties === 'object'
@@ -135,7 +133,6 @@ export function recordValueSchema(schema: JsonSchema): JsonSchema {
   ) as JsonSchema
 }
 
-/** Adds `key` with the schema default; null when the key is blank or already present. */
 export function addRecordEntry(
   value: unknown,
   key: string,
@@ -146,7 +143,6 @@ export function addRecordEntry(
   return { ...record, [key]: defaultValue(valueSchema) }
 }
 
-/** Removes `key`, returning a new record. */
 export function removeRecordEntry(
   value: unknown,
   key: string
@@ -156,7 +152,6 @@ export function removeRecordEntry(
   return next
 }
 
-/** Renames `oldKey` preserving entry order; null when blank, unchanged, or colliding. */
 export function renameRecordEntry(
   value: unknown,
   oldKey: string,
@@ -176,16 +171,10 @@ export function parseNumber(str: string): number | undefined {
   return num
 }
 
-/** Merge `definitions` and `$defs` into one lookup ($defs wins on conflict). */
 export function collectDefs(schema: JsonSchema): Record<string, JsonSchema> {
   return { ...(schema.definitions ?? {}), ...(schema.$defs ?? {}) }
 }
 
-/**
- * Resolve `$ref` pointers into `#/$defs/*` or `#/definitions/*` recursively,
- * walking properties, items, additionalProperties, propertyNames, and every
- * anyOf/oneOf/allOf branch. Returns fresh objects; the input is not mutated.
- */
 export function resolveRefs(
   schema: JsonSchema,
   defs: Record<string, JsonSchema>
@@ -237,12 +226,6 @@ export function resolveRefs(
   return s
 }
 
-/**
- * Immutable path setter with structural sharing. Clones only the containers
- * along `path` — arrays when the next key is a numeric index, objects
- * otherwise — and reuses references for untouched siblings. An empty path
- * replaces the whole value.
- */
 export function setValueAtPath(
   value: unknown,
   path: string[],

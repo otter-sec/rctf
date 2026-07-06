@@ -54,7 +54,6 @@ describe('formErrors', () => {
   })
 
   test('dynamic drops the flag requirement and adds a secret requirement', () => {
-    // AE2: dynamic scoring never validates the flag, always validates the secret.
     expect(formErrors(dynamicForm({ flag: '' })).flag).toBeUndefined()
     const missingSecret = dynamicForm({
       scoring: {

@@ -11,9 +11,6 @@ import { formatRelativeHours } from '$lib/utils/time'
 export type ProfileSolve = PublicUserProfile['solves'][number]
 export type ProfileDynamicScore = PublicUserProfile['dynamicScores'][number]
 
-// Local, points-aware challenge shape. Structurally a subset of the scoreboard's
-// ChallengeInfo (src/routes/scores/model/transforms.ts); see KTD-6 note in the
-// Phase 4 plan — the two stat pipelines stay separate by design.
 export type ChallengeInfo = {
   id: string
   name: string
@@ -23,8 +20,6 @@ export type ChallengeInfo = {
   scoringKind?: 'decay' | 'dynamic'
 }
 
-// Shape of a single entry in the leaderboard-challenges query record. A subset
-// of the API response (sortWeight/firstSolvers are unused here).
 type LeaderboardChallengeEntry = {
   name: string
   category: string
@@ -229,8 +224,6 @@ export function buildCategoryStats({
 
   for (const solve of solves) {
     const stat = getOrCreateCategoryStat(stats, solve.category)
-    // When a solve points at a challenge missing from the current snapshot
-    // (deleted/hidden), count it toward the total too so the bar isn't >100%.
     if (challenges.length === 0 || !challengeIds.has(solve.id)) {
       stat.staticTotal += 1
       stat.pointsTotal += solve.points ?? 0
@@ -330,9 +323,6 @@ export function buildActivityDomain({
     msPerHour
   )
   const bucketSize = chooseCadenceBucketSize(duration)
-  // Always anchor the axis at the CTF start (t=0) and end at the latest solve
-  // (not the CTF end time), so a late finish is visible from the chart's extent
-  // rather than only from the axis ticks.
   const start = clientConfig.startTime
   const end = Math.max(
     start + bucketSize,

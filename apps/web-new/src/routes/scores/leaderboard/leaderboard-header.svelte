@@ -51,8 +51,6 @@
     return group.challenges.filter(isDynamicChallenge).length
   }
 
-  // Where the hovered column's stripe sits inside a grouped category block, so
-  // the column echo continues up through the shared points/footer band.
   function groupColumnHighlight(group: CategoryGroup): { x: number; width: number } | null {
     let x = 0
     for (const challenge of group.challenges) {
@@ -250,10 +248,6 @@
     gap: 0.25rem;
   }
 
-  /* Column echo continuation: a stripe over the block's points/footer band,
-     matching the 8% tint of the body cells below. Defaults cover the whole
-     block (single-challenge and category blocks); grouped blocks position it
-     over the hovered challenge's slot. */
   col-highlight {
     position: absolute;
     inset-block: 0;

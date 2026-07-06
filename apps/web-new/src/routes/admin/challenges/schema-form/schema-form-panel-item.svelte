@@ -1,8 +1,3 @@
-<!--
-  Sidebar row shared by the array and record panels: a pick button (with an
-  optional monospace variant for record keys) plus a remove button. Owns the
-  row styling so the two panels don't duplicate it.
--->
 <script lang="ts">
   import IconX from '$lib/icons/icon-x.svelte'
 

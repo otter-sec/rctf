@@ -1,11 +1,3 @@
-<!--
-  Admin submissions audit table (R27-R30, AE7). A read-only, server-sorted,
-  infinitely-paged stream over POST /v2/admin/submissions with seven value
-  filter families plus a time-range family, an expandable per-row detail row,
-  and deep-link pre-filters. No polling: data refetches only on filter, sort,
-  or pagination changes. Access is already gated by the admin +layout
-  (challsRead), which this read surface also accepts.
--->
 <script lang="ts">
   import { SubmissionSortBy } from '@rctf/types'
   import { page } from '$app/state'
@@ -68,17 +60,12 @@
     buildSubmissionsBody(filters, sort, ctfStartTime)
   )
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = submissionsQuery.isPending
   const submissions = $derived(
     (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
   )
   const showError = $derived(!!submissionsQuery.error && !submissionsQuery.data)
 
-  // Team options come from a server search (name/email) run once the query is at
-  // least two characters; the selected teams are always merged in so a chosen
-  // team stays visible even after the search box is cleared.
   const teamSearch = $derived(filters.team.search.trim())
   const teamSuggestionsQuery = useAdminUsersInfinite(
     () => ({ limit: 16, search: teamSearch.length >= 2 ? teamSearch : undefined }),
@@ -136,12 +123,6 @@
   const filterFor = (family: ValueFilterFamily): MultiFilter<unknown> =>
     filters[family.id as keyof SubmissionFilters] as MultiFilter<unknown>
 
-  // Deep-link: /admin/submissions?team=<id>&challenge=<id> pre-applies include
-  // filters once each side resolves (team via its admin detail query, challenge
-  // via the admin challenges list). The latch is plain control-flow state (not
-  // $state), like the shell's load-more latch: it records which sides have fired
-  // so a refetch never re-applies a filter the admin has since edited, and a
-  // non-reactive read keeps the write from re-triggering the effect.
   const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
   const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
   const deepLinkTeamQuery = useAdminUser(() => deepLinkTeamId)
@@ -254,8 +235,6 @@
 </submissions-page>
 
 <style>
-  /* The app shell only guarantees min-block-size: 100dvh, so bound the height
-     here — the table shell scrolls internally. */
   submissions-toolbar {
     display: flex;
     align-items: center;

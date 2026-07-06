@@ -1,11 +1,3 @@
-<!--
-  Exposed-ports editor for the instancer tab. A master-detail list: the sidebar
-  lists each port with an Add button and per-row remove; the detail panel edits
-  the selected port's protocol, host prefix, container name/port, display title,
-  and player visibility. All mutations run through the immutable helpers in
-  `instancer-config` and bubble the whole array up via `onChange` — the pane
-  keeps only the selected index locally.
--->
 <script lang="ts">
   import { ExposeKind } from '@rctf/types'
   import IconX from '$lib/icons/icon-x.svelte'

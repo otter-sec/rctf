@@ -7,8 +7,6 @@ import {
 
 export type GraphLinePoint = { time: number; score: number }
 
-// Structural subset of LeaderboardGraphEntry: the cumulative-score samples plus
-// the optional dynamic-scoring history the offset-hack graph returns.
 export type GraphSampleInput = {
   points: GraphLinePoint[]
   dynamicPoints?: GraphLinePoint[]
@@ -17,7 +15,6 @@ export type GraphSampleInput = {
 export type GraphSolveDot = {
   key: string
   time: number
-  /** Running score after this solve; the dot's y value. */
   score: number
   scoreBefore: number
   points: number | null
@@ -29,7 +26,6 @@ export type GraphSolveDot = {
 
 export type ProfileGraphInput = {
   graphData: GraphSampleInput
-  /** Must be pre-sorted chronologically, e.g. via `sortProfileSolves`. */
   solves: ProfileSolve[]
   dynamicScores: ProfileDynamicScore[]
   startTime: number
@@ -45,20 +41,16 @@ export type ProfileGraphData = {
   hasStaticLine: boolean
   hasDynamicLine: boolean
   solveDots: GraphSolveDot[]
-  /** null when there is nothing to plot (no samples and no solves). */
   xDomain: [number, number] | null
   yMax: number
 }
 
-// Single-sample series would collapse the x-domain to a point; pad it out to a
-// half-hour window so the line and its dot stay visible (ports the old graph).
 const DOMAIN_PADDING_MS = 30 * 60 * 1000
 
 function sortByTime(points: GraphLinePoint[]): GraphLinePoint[] {
   return [...points].sort((a, b) => a.time - b.time)
 }
 
-/** Step-function lookup: the score of the last sample at or before `time`. */
 export function scoreAt(time: number, points: GraphLinePoint[]): number {
   let score = 0
   for (const point of points) {
@@ -68,8 +60,6 @@ export function scoreAt(time: number, points: GraphLinePoint[]): number {
   return score
 }
 
-// Only returns a value when a sample lands exactly on `time`; used to recover a
-// solve's static score from the sampled static line without interpolation.
 function exactScoreAt(time: number, points: GraphLinePoint[]): number | null {
   for (const point of points) {
     if (point.time === time) return point.score
@@ -107,7 +97,6 @@ function staticScoreBefore(
   return scoreAt(time, staticLine)
 }
 
-/** `solves` must already be time-sorted (see `sortProfileSolves`); caller's contract. */
 function buildSolveDots(
   solves: ProfileSolve[],
   staticLine: GraphLinePoint[],
@@ -118,8 +107,6 @@ function buildSolveDots(
   return solves.map(solve => {
     const points = solve.awardedPoints ?? solve.points
     const category = getProfileCategoryDisplay(solve.category)
-    // With dynamic scoring the naive accumulator overshoots, so the static
-    // baseline is read from the sampled static line; otherwise just accumulate.
     const scoreBefore =
       splitDynamicScore && staticLine.length > 0
         ? staticScoreBefore(solve.createdAt, points, staticLine)
@@ -168,15 +155,6 @@ function scoreMax(points: GraphLinePoint[]): number {
   return max
 }
 
-/**
- * Derives the three line series, per-solve dots, and axis domains for the
- * profile score graph. Ports the old `profile-graph.svelte` derivations: total
- * from the graph samples, static as total minus the dynamic score at each time,
- * dynamic from the sampled history (or a flat current value), all split only
- * when `splitDynamicScore` is set and dynamic data exists.
- *
- * `input.solves` must already be time-sorted (see `ProfileGraphInput.solves`).
- */
 export function buildProfileGraphData(
   input: ProfileGraphInput
 ): ProfileGraphData {

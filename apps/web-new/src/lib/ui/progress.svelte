@@ -1,9 +1,3 @@
-<!--
-  Determinate linear progress bar. Zag fills the range to value/max (min is 0);
-  pass an optional `label`. Tune bar thickness with `--progress-height`.
-
-  <Progress value={solved} max={total} label="Solved" />
--->
 <script lang="ts">
   import * as progress from '@zag-js/progress'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
@@ -17,7 +11,6 @@
   let { value, max, label }: Props = $props()
 
   const id = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(progress.machine, () => ({ id, value, max }))
   const api = $derived(progress.connect(service, normalizeProps))
 </script>

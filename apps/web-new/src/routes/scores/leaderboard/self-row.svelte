@@ -1,13 +1,3 @@
-<!--
-  A pinned copy of the logged-in team's row, stuck to the top or bottom edge of
-  the leaderboard scroll region whenever their real row is off screen (or on a
-  page that has not loaded yet). It is a flex sibling of the virtual list: the
-  bottom variant flows after the list (margin-block-start: auto) and sticks to
-  the viewport bottom; the top variant flows before the list and cancels its own
-  layout space with a negative margin so the rows beneath stay put. It reuses
-  ScoresTeamRow + ScoresSolveCells with the same props a normal row gets, so the
-  delegated cell tooltips keep working.
--->
 <script lang="ts">
   import type { PinnedEdge } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
@@ -66,8 +56,6 @@
       padding-block-end: var(--score-row-gap);
     }
 
-    /* Card top-aligned in the 68px box (gap below, like a real row slot) so the
-       pinned copy overlays the real row exactly at the engagement edge. */
     &[data-edge='bottom'] {
       inset-block-end: 0;
       margin-block-start: auto;
@@ -75,9 +63,6 @@
     }
   }
 
-  /* Same two paint layers as the leaderboard rows: the element is opaque page
-     background so the sticky column fully occludes cells passing beneath its
-     rounded corners; ::before is the rounded card surface. */
   row-team {
     --rank-fg-l0: var(--foreground-self-l0);
     --rank-fg-l1: var(--foreground-self-l1);

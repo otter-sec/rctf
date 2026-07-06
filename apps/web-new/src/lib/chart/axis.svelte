@@ -1,8 +1,3 @@
-<!--
-  Bottom axis: a horizontal rule plus tick labels. Geometry (px) is computed by
-  the consumer and passed in; this component only renders SVG. Meant to live
-  inside a parent <svg>.
--->
 <script lang="ts">
   import type { ScaleFn } from '$lib/chart/scale'
   import type { Tick } from '$lib/chart/ticks'

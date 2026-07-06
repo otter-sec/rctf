@@ -1,12 +1,3 @@
-<!--
-  The admin teams table: a toolbar (debounced search + the generic filter bar)
-  pinned above a sortable header and the shared virtualized `AdminTable` body.
-  Rows merge registered teams and pending verifications; the header sorts by
-  `AdminTeamSortBy` (clicking the active column flips order, a new column adopts
-  its default). Cell tooltips (copy-email, UTC registration time, action labels)
-  are resolved by one delegated pointer listener reading `data-tip`; the shell's
-  `data-scrolling` pointer-events suppression keeps them from chasing scroll.
--->
 <script lang="ts">
   import { AdminTeamSortBy } from '@rctf/types'
   import type { MultiFilter } from '$lib/filters/core'
@@ -216,8 +207,6 @@
 {#snippet row(item: TeamRow, index: number)}
   {@const status = teamRowStatus(item)}
   {@const banned = item.kind === 'registered' && item.team.banned}
-  <!-- Pointer handlers only delegate hover-to-tooltip resolution; the row carries
-       no interactive semantics of its own. -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <teams-row
     data-even={index % 2 === 0 || undefined}
@@ -360,8 +349,6 @@
     }
   }
 
-  /* Header and rows share one column template so cells stay aligned; the shell's
-     min width (376px) forces horizontal scroll before columns collapse. */
   teams-head,
   teams-row {
     display: grid;
@@ -371,7 +358,6 @@
   }
 
   teams-head {
-    /* Fills the shell's fixed-height sticky header (the constant scroll margin). */
     block-size: 100%;
     border-block-end: 2px solid var(--border);
     background: var(--background-l2);

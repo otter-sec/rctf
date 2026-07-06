@@ -46,7 +46,6 @@ export type EditorMode =
   | 'confirmDelete'
   | 'deleting'
 
-/** The deferred SELECT/CREATE/CANCEL intent captured while in confirmDiscard. */
 export type PendingIntent =
   | { type: 'select'; challenge: AdminChallenge | null }
   | { type: 'create' }
@@ -58,9 +57,7 @@ export interface EditorState {
   form: EditorForm
   originalForm: EditorForm | null
   pending: PendingIntent | null
-  /** Captured on SAVE so async success handlers know if this was a create. */
   wasCreating: boolean
-  /** Id of the challenge whose detail last seeded the form; guards DETAIL_LOADED. */
   detailSeededId: string | null
 }
 
@@ -120,11 +117,6 @@ function adminBotConfigFromServer(
     : { enabled: false, code: '' }
 }
 
-/**
- * Canonical form seed. Both the list challenge and the detail response share
- * one schema, so a single field order keeps `JSON.stringify` dirty-compares
- * stable regardless of which side seeded `form` vs `originalForm`.
- */
 function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
   return {
     name: source.name,
@@ -231,8 +223,6 @@ export function detailLoaded(
   state: EditorState,
   detail: AdminChallengeDetail
 ): EditorState {
-  // A late detail response must never reseed over in-progress edits — the
-  // fetch can resolve after the admin pressed Edit and started typing.
   if (EDIT_MODES.has(state.mode) || state.detailSeededId === detail.id) {
     return state
   }

@@ -1,9 +1,5 @@
 import { ExposeKind, InstanceStatus } from '@rctf/types'
 
-/**
- * A single exposed endpoint as returned inside the instance-status response
- * (`GoodInstanceStatus.data.endpoints[]`). Mirrors `EndpointSchema`.
- */
 export type InstancerEndpoint = {
   kind: ExposeKind
   host: string
@@ -12,11 +8,6 @@ export type InstancerEndpoint = {
   text?: string
 }
 
-/**
- * A presentation-ready endpoint: the label to show, the formatted connection
- * string, an optional protocol tag (absent for RAW), and the exact text the
- * copy button writes to the clipboard.
- */
 export type FormattedEndpoint = {
   label: string
   value: string
@@ -24,8 +15,6 @@ export type FormattedEndpoint = {
   copyValue: string
 }
 
-// HTTP(S) URLs elide the default port but keep any non-standard one; TCP and
-// TCP+SSL render a ready-to-paste command; RAW trusts the server-provided text.
 function endpointValue(endpoint: InstancerEndpoint): string {
   const { kind, host, port, text } = endpoint
   if (kind === ExposeKind.HTTP) {
@@ -43,13 +32,6 @@ function endpointValue(endpoint: InstancerEndpoint): string {
   return text ?? ''
 }
 
-/**
- * Formats one instancer endpoint for display.
- *
- * @param endpoint - The raw endpoint entry from the instance-status response.
- * @param index - The endpoint's position within the list (0-based).
- * @param total - The number of endpoints, used to number untitled ones.
- */
 export function formatEndpoint(
   endpoint: InstancerEndpoint,
   index: number,
@@ -67,11 +49,6 @@ export function formatEndpoint(
   return { label, value, protocolTag, copyValue: value }
 }
 
-/**
- * Adaptive poll interval (ms) for the instance-status query, or `false` to stop
- * polling. Transitional states poll fast; steady states poll slowly; a stopped
- * or unknown instance is not polled at all.
- */
 export function instancePollInterval(
   status: InstanceStatus | undefined
 ): number | false {

@@ -7,8 +7,6 @@ export const ssr = false
 export const prerender = false
 export const csr = true
 
-// Module scope so load re-runs (invalidateAll) reuse the one client every
-// mounted query reads; safe because ssr = false means browser-only evaluation
 const queryClient = createQueryClient()
 
 export const load: LayoutLoad = async () => {

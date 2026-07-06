@@ -27,9 +27,6 @@
   const isNullable = $derived(checkNullable(schema))
   const displayValue = $derived(resolved !== undefined && resolved !== null ? String(resolved) : '')
 
-  // Writable derived: tracks the external display value, but user keystrokes
-  // (including invalid ones that don't propagate) override it until the value
-  // upstream changes.
   let inputValue = $derived(displayValue)
   let error = $state<string | null>(null)
 

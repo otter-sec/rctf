@@ -1,14 +1,3 @@
-<!--
-  Shared virtualized table shell for the admin data tables (teams, submissions):
-  a toolbar pinned above the scroll area, a sticky sortable column header inside
-  it, absolutely-positioned recycled rows, fingerprint-driven resets, and an
-  optional spliced detail row.
-
-  Like /scores, the virtualizer's scroll margin is a CONSTANT — the consumer
-  passes the exact rendered height of its header row. A measured margin (the
-  earlier ResizeObserver design) re-layouts every row whenever the header
-  reflows, which reads as the whole list bouncing.
--->
 <script lang="ts" generics="T">
   import { captureElement } from '$lib/attachments/capture-element'
   import Spinner from '$lib/ui/spinner.svelte'
@@ -26,22 +15,16 @@
   interface Props {
     rows: T[]
     rowHeight: number
-    /** Exact rendered height of the header snippet, in px — the scroll margin. */
     headerHeight: number
     overscan?: number
-    /** Changes whenever the query params change; resets scroll and collapses the detail row. */
     fingerprint: string
     hasNextPage: boolean
     isFetchingNextPage: boolean
     onLoadMore: () => void
-    /** Whether any filters are active, so the empty state can distinguish "no data" from "no matches". */
     filtered: boolean
-    /** The expanded row's id, two-way bound so the shell can collapse a row that leaves the set. */
     expandedId?: string | null
     expandable?: boolean
-    /** Required when `expandable`: extracts the stable id used to track the expanded row. */
     rowId?: (item: T) => string
-    /** Minimum content width; forces horizontal scroll on narrow viewports. */
     minTableWidth?: number
     toolbar: Snippet
     header: Snippet
@@ -75,8 +58,6 @@
   const expandedIndex = $derived(expandedId ? ids.indexOf(expandedId) : -1)
   const visibleCount = $derived(visibleRowCount(rows.length, expandedIndex))
 
-  // Collapse an expansion whose row has left the loaded set (filtered out or
-  // paged away) so the spliced detail row never points at a stale index.
   $effect(() => {
     if (!expandable) return
     const resolved = resolveExpansion(expandedId ?? null, ids)
@@ -92,9 +73,6 @@
     scrollMargin: headerHeight,
   }))
 
-  // Reset to the top and collapse any expansion when the query changes. Tracks
-  // only `fingerprint`; the scroll node is read untracked so a remount of the
-  // container never forces a scroll-to-top on unrelated re-renders.
   $effect(() => {
     void fingerprint
     expandedId = null
@@ -102,8 +80,6 @@
     if (node) node.scrollTop = 0
   })
 
-  // Fetch the next page as the virtual range nears the loaded end. The latch is
-  // plain control-flow state so it never re-triggers the effect.
   let latched = false
   $effect(() => {
     const last = virtual.virtualItems.at(-1)
@@ -139,9 +115,6 @@
           {@render emptyState?.(filtered)}
         </admin-empty>
       {:else}
-        <!-- Unkeyed so the virtualizer recycles row nodes across large scroll jumps. -->
-        <!-- getTotalSize() already excludes the scrollMargin; item.start includes
-             it, so only the row translate subtracts headerHeight. -->
         <admin-list style:block-size={`${virtual.totalSize}px`}>
           {#each virtual.virtualItems as item}
             <admin-row
@@ -192,9 +165,6 @@
     overflow: auto;
     outline: none;
     overscroll-behavior: none;
-    /* Recycled rows + a growing list are exactly what browser scroll anchoring
-       misreads: it picks an anchor node, the virtualizer moves it, the browser
-       compensates, and the view drifts on its own. Virtual scrollers opt out. */
     overflow-anchor: none;
   }
 
@@ -249,8 +219,6 @@
     font-size: 1.25rem;
   }
 
-  /* Suppress row tooltips while the list scrolls so they never chase streaming
-     rows; consumers read data-scrolling on the shell in their pointer handlers. */
   admin-table[data-scrolling] admin-row {
     pointer-events: none;
   }

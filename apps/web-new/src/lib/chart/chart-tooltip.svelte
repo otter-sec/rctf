@@ -1,9 +1,3 @@
-<!--
-  Hover tooltip for the multi-team score graphs: a shared relative + local time
-  header over one row per series (colour swatch, name, score). HTML overlay on
-  the shared ChartTip container — render it outside the <svg>, inside the
-  chart's relative root.
--->
 <script module lang="ts">
   export interface TooltipRow {
     role: string
@@ -17,7 +11,6 @@
   import ChartTip from '$lib/chart/chart-tip.svelte'
 
   interface Props {
-    /** Anchor point in px (the highlighted sample). */
     x: number
     y: number
     chartWidth: number

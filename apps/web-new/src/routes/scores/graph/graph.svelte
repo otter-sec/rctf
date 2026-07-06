@@ -1,12 +1,3 @@
-<!--
-  Windowed multi-line scoreboard graph. Hand-rolled SVG on top of the chart core
-  (scale/ticks/path/nearest/y-ticks); no charting library. Draws the currently
-  windowed teams' cumulative-score lines, dims top-3/self context lines, and
-  cross-highlights on external hover (a hovered row/sparkline highlights its
-  line; a hovered solve cell drops a crosshair on that team's line). The visible
-  team set is resolved and frozen upstream (KTD-7 / AE5); this component only
-  renders what it is handed.
--->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
   import ChartTooltip, { type TooltipRow } from '$lib/chart/chart-tooltip.svelte'
@@ -69,8 +60,6 @@
     points: { time: number; score: number }[]
   }
 
-  // Sorted once per data change; `windowed` recomputes on every visibility
-  // window change (scroll settle), which must not re-sort every series.
   const sortedSeries = $derived(
     graphData.map(entry => ({
       ...entry,
@@ -127,8 +116,6 @@
     data: { x: number; y: number }[]
   }
 
-  // Coordinate mapping depends only on data and scales; hover (which changes
-  // on every pointermove) must only re-run the cheap opacity/draw-order pass.
   const scaledSeries = $derived(
     windowed.map(entry => ({
       ...entry,
@@ -143,8 +130,6 @@
       const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
       return { ...entry, opacity: dimmed ? 0.15 : entry.isContext ? 0.3 : 1 }
     })
-    // Draw order: the hovered line on top, then self, then higher ranks last so
-    // the leaders sit above the pack.
     return out.sort((a, b) => {
       const ah = a.id === hoveredTeamId
       const bh = b.id === hoveredTeamId
@@ -154,9 +139,6 @@
     })
   })
 
-  // Hit-test against the pre-scaled pixel points (identity scales) so each
-  // pointermove is a plain distance scan, not a re-projection of every sample;
-  // the raw time/score comes back via the index-aligned `data` array.
   const nearest = $derived.by(() => {
     if (!hover || renderSeries.length === 0) return null
     const series: Series[] = renderSeries.map(s => ({ id: s.id, points: s.scaled }))
@@ -186,8 +168,6 @@
       : []
   )
 
-  // The solve crosshair pins to the hovered cell's team line: exact time match
-  // when the sample exists, otherwise the nearest sample in time.
   const solvePoint = $derived.by(() => {
     if (!solveHighlight) return null
     const series = renderSeries.find(s => s.id === solveHighlight.teamId)
@@ -233,8 +213,6 @@
       onpointermove={handleMove}
       onpointerleave={handleLeave}
     >
-      <!-- No data yet (skeleton): xMax collapses to startTime and every tick
-           would land on the same x, stacking the labels in the corner. -->
       {#if renderSeries.length > 0}
         <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
       {/if}

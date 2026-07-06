@@ -6,7 +6,6 @@ export const toaster = zagToast.createStore({
 })
 
 type ToastOptions = {
-  /** How long the toast stays visible, in milliseconds. */
   duration?: number
 }
 

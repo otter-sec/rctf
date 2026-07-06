@@ -18,7 +18,6 @@
   const queryClient = useQueryClient()
   let loading = $state(false)
 
-  // Omitting the `avatar` field removes the current avatar (API contract).
   async function submitAvatar(args: { avatar?: File }, successMessage: string): Promise<boolean> {
     loading = true
     try {

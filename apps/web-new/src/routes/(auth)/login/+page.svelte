@@ -43,8 +43,6 @@
     try {
       const response = await apiRequest(LoginRoute, { teamToken: token })
       if (response.kind === GoodLogin.kind) {
-        // replaceState so back-navigation doesn't land on /login?token= and
-        // re-trigger the auto-login
         handleLoginSuccess(response.data.authToken, true)
       } else {
         form.setData({ teamToken: token })
@@ -88,7 +86,6 @@
         form.setData({ teamToken: urlToken })
       }
     } catch {
-      // not a pasted URL — submit the value as-is
     }
     form.submit()
   }

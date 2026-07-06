@@ -46,9 +46,6 @@ describe('solveTimeLabels primary — rank > 1 (+delta from first blood)', () =>
 })
 
 describe('solveTimeLabels primary — missing first-blood anchor', () => {
-  // A later solver whose first-blood row lives on an unloaded page has no delta
-  // anchor. We fall back to the absolute duration from CTF start (no leading
-  // '+') rather than rendering a bare, meaningless '+'.
   test('rank > 1 with firstBloodTime 0 falls back to duration from start', () => {
     const { primary } = solveTimeLabels({
       createdAt: START + 1 * HOUR,
@@ -62,8 +59,6 @@ describe('solveTimeLabels primary — missing first-blood anchor', () => {
 })
 
 describe('solveTimeLabels secondary — local time shape (TZ-safe)', () => {
-  // formatLocalTime is timezone-dependent, so assert the 'MMM d, h:mm a' shape
-  // instead of a wall-clock value that would drift with the runner's TZ.
   const localTimeShape = /^[A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM)$/
 
   test('rank 1 secondary matches the local-time format', () => {

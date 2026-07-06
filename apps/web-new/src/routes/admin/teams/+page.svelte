@@ -1,15 +1,3 @@
-<!--
-  Admin teams (/admin/teams). Merges the server-paged registered-team list with
-  the client-filtered pending email-verification queue into one sortable table.
-  Requires usersWrite for the data (a hint card shows without it); the admin
-  layout already enforces challsRead. Search is debounced 400ms before it hits
-  the server param, the pending-row predicate, and the scroll-reset fingerprint.
-  The registered query is skipped entirely — its `enabled` gate and its rendered
-  set both drop out — when the status filter can match no registered status
-  (e.g. an include of only `unverified`). Mutations follow the app idiom:
-  apiRequest + a per-row pending id + explicit invalidation via
-  invalidateAdminTeamQueries (which also covers the verification queue).
--->
 <script lang="ts">
   import {
     AdminTeamSortBy,
@@ -122,8 +110,6 @@
   )
   const verificationsQuery = useAdminUserVerifications(() => canWrite)
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = usersQuery.isPending
 
   const registeredRows = $derived<TeamRow[]>(

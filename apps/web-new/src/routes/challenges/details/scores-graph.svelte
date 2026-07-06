@@ -1,11 +1,3 @@
-<!--
-  Per-challenge cumulative-score graph. Hand-rolled SVG on top of the chart core
-  (scale/ticks/path/nearest); no charting library. Like /scores, it renders the
-  teams currently scrolled into view in the ranked list (falling back to the
-  top N before the first scroll-geometry pass), optionally pinning the top 3 and
-  self even when they fall outside the window (dimmed when only pinned). Hover
-  picks the nearest sample.
--->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
   import ChartTooltip, { type TooltipRow } from '$lib/chart/chart-tooltip.svelte'
@@ -19,15 +11,12 @@
   interface GraphEntry {
     id: string
     name: string
-    /** Sorted ascending by time — the parent sorts once for graph + sparklines. */
     points: { time: number; score: number }[]
   }
 
   interface Props {
     graph: GraphEntry[]
-    /** Teams currently scrolled into view in the ranked list. */
     visibleTeamIds: Set<string>
-    /** Sparkline-hovered team; its line is highlighted and the rest dim. */
     hoveredTeamId?: string | null
     selfId?: string | null
     startTime: number
@@ -66,9 +55,6 @@
 
   const rankedIds = $derived(new Set(ranked.map(entry => entry.id)))
 
-  // The live scroll window drives which lines are in focus; before the first
-  // geometry pass (empty set) fall back to the top N so the graph never
-  // starts blank.
   const focusIds = $derived(
     visibleTeamIds.size > 0
       ? visibleTeamIds
@@ -84,8 +70,6 @@
 
   const rendered = $derived(ranked.filter(entry => renderedIds.has(entry.id)))
 
-  // Domains follow the rendered window, like /scores: scrolling deep into the
-  // pack rescales the plot to the teams on screen.
   const maxScore = $derived.by(() => {
     let max = 0
     for (const entry of rendered) for (const point of entry.points) max = Math.max(max, point.score)
@@ -101,8 +85,6 @@
   const xMax = $derived(
     Number.isFinite(maxTime) ? Math.max(maxTime, startTime) : Math.max(endTime, startTime)
   )
-  // No y-axis labels are drawn, so the domain hugs the data: the leader's final
-  // point lands exactly at the top padding and the full plot height is used.
   const yMax = $derived(maxScore > 0 ? maxScore : 1)
 
   const innerLeft = PAD_LEFT
@@ -128,7 +110,6 @@
     const out: RenderSeries[] = []
     for (const entry of rendered) {
       const isSelf = entry.id === selfId
-      // A sparkline hover dims every other line, like /scores' cross-highlight.
       const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !isSelf
       out.push({
         id: entry.id,
@@ -141,7 +122,6 @@
         data: entry.points.map(p => ({ x: p.time, y: p.score })),
       })
     }
-    // draw order: the hovered line on top, then self, then higher ranks
     return out.sort((a, b) => {
       const ah = a.id === hoveredTeamId
       const bh = b.id === hoveredTeamId

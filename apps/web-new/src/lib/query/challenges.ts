@@ -28,19 +28,8 @@ import { instancePollInterval } from '$lib/utils/instancer'
 
 const INFINITE_PAGE_SIZE = 100
 
-// A short window of recent solves is enough to render the podium (top three)
-// and read back the caller's own placement/time from the same response.
 const SELF_SOLVES_PARAMS = { limit: 10, offset: 0 }
 
-/**
- * Unions the caller's server-side solves with locally-tracked optimistic solves
- * into a single set of solved challenge IDs.
- *
- * @param selfSolves - The caller's solves from `/users/me`, or null/undefined
- *   before that query resolves.
- * @param localSolvedIds - Challenge IDs marked solved this session, before the
- *   server round-trip lands.
- */
 export function deriveSolvedIds(
   selfSolves: { id: string }[] | null | undefined,
   localSolvedIds: ReadonlySet<string>
@@ -52,12 +41,6 @@ export function deriveSolvedIds(
   return solvedIds
 }
 
-/**
- * Buckets the caller's first-blood placements into gold/silver/bronze sets of
- * challenge IDs from `bloodIndex` (0/1/2). Any other index is ignored.
- *
- * @param selfSolves - The caller's solves, or null/undefined before load.
- */
 export function deriveBloodIds(
   selfSolves: { id: string; bloodIndex: number | null }[] | null | undefined
 ): { gold: Set<string>; silver: Set<string>; bronze: Set<string> } {
@@ -76,14 +59,6 @@ export function deriveBloodIds(
   return { gold, silver, bronze }
 }
 
-/**
- * Computes the next page offset for an infinite solves/scores query, or
- * undefined once every row has been fetched.
- *
- * @param lastOffset - Offset the last page was fetched at.
- * @param lastPageCount - Number of rows the last page returned.
- * @param total - Total rows available for the challenge.
- */
 export function getNextOffset(
   lastOffset: number,
   lastPageCount: number,
@@ -230,7 +205,6 @@ export function challengeInstanceQueryOptions(
       throw new ApiError(response.kind, message)
     },
     enabled: enabled && !!id,
-    // Adaptive: fast while transitioning, slow while steady, off when stopped.
     refetchInterval: query => instancePollInterval(query.state.data?.status),
   })
 }
@@ -258,7 +232,6 @@ export function adminBotStatusQueryOptions(
       throw new ApiError(response.kind, response.message)
     },
     enabled: enabled && !!id,
-    // Poll while a job is in flight; a settled (or absent) job is not polled.
     refetchInterval: query => {
       const status = query.state.data?.status
       return status === AdminBotJobStatus.QUEUED ||
@@ -302,14 +275,6 @@ export function useAdminBotHistory(
   return createQuery(() => adminBotHistoryQueryOptions(id(), enabled()))
 }
 
-/**
- * Applies an optimistic solve, then reconciles caches once the server's
- * leaderboard worker has had time to catch up.
- *
- * @param queryClient - The active query client.
- * @param challengeId - The challenge that was just solved.
- * @param markSolved - Records the solve locally so the UI updates immediately.
- */
 export function invalidateAfterSolve(
   queryClient: QueryClient,
   challengeId: string,

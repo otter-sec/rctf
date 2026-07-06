@@ -1,12 +1,3 @@
-<!--
-  Editor pane: header (title/author/category pill), the view/edit/create action
-  buttons, the six-tab form, and the three editor dialogs. Owns the save/delete
-  plumbing — mutations run as `apiRequest` calls with the editor mode acting as
-  the in-flight pending state, followed by explicit cache invalidation. Every
-  state change is dispatched back through `onEditorChange` (a pure editor-state
-  reducer); this component never mutates the editor object directly. Create and
-  update share one endpoint (PUT with a client-generated UUID for create; AE10).
--->
 <script lang="ts">
   import {
     BadAdminBotConfig,
@@ -82,9 +73,6 @@
   const isDeleting = $derived(editor.mode === 'deleting')
 
   const errors = $derived(formErrors(editor.form))
-  // The instancer pane reports its own validity (schema-form / YAML) up through
-  // this bindable; a disabled instancer resolves to valid. It gates Save on top
-  // of the pure form errors.
   let instancerValid = $state(true)
   const invalid = $derived(hasFormErrors(errors) || !instancerValid)
 
@@ -122,8 +110,6 @@
       toast.error('You do not have permission to edit challenges')
       return
     }
-    // Freeze the pre-save snapshot: the async continuation must not read a
-    // later editor prop, or the success/error transition would compose wrong.
     const current = editor
     const wasCreating = current.mode === 'creating'
     const id = wasCreating ? crypto.randomUUID() : current.challenge!.id

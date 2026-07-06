@@ -1,14 +1,3 @@
-<!--
-  Instancer tab (R19, AE9). Availability comes from `useInstancerSchema` — a null
-  payload means no instancer provider is configured, so the pane shows an empty
-  state instead of an error. Enabling seeds a default config (deep-cloned provider
-  defaults) through `onChange`; disabling clears it to null. Provider config edits
-  route through the schema-driven SchemaForm, or a live-parsed YAML textarea in
-  advanced mode. The pane owns the enabled/advanced/YAML state and publishes its
-  contribution to the save gate through the bindable `valid` prop, resolved purely
-  by `resolveInstancerValidity`. Existing challenges also embed the player-facing
-  instancer panel for live instance management.
--->
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
   import IconCloudComputingFilled from '$lib/icons/icon-cloud-computing-filled.svelte'
@@ -47,8 +36,6 @@
 
   const schemaQuery = useInstancerSchema()
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = schemaQuery.isPending
   const schema = $derived(schemaQuery.data ?? null)
   const instancers = $derived(schema?.instancers ?? [])

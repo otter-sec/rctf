@@ -1,7 +1,3 @@
-/* Fade-in for content that replaces a loading spinner. Components snapshot
-   their initial pending state non-reactively and set data-reveal only when the
-   mount actually started behind a spinner, so warm-cache mounts render
-   instantly with no replayed animation. */
 [data-reveal] {
   animation: reveal-fade-in 300ms ease;
 }

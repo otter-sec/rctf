@@ -1,10 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  // A lightweight popover: @zag-js/popover is not installed, and the funnel and
-  // chip surfaces need rich content (search inputs, scrolling lists, drill-down)
-  // that the flat @zag-js/menu primitive cannot host. The panel anchors below its
-  // trigger, closes on outside pointerdown and Escape, and restores focus.
   type Props = {
     label: string
     align?: 'start' | 'end'

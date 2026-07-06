@@ -1,11 +1,3 @@
-<!--
-  Admin "Manage" column for /admin/profile/[id]. Requires usersWrite; without it
-  a hint replaces the controls. All writes follow the app idiom (apiRequest +
-  local pending state + explicit invalidation) rather than svelte-query
-  mutations. The token/login-URL actions are gated behind a confirmation dialog
-  because the minted value grants full, non-expiring account access (R25/R36
-  recorded deviation from the old app, which copied silently).
--->
 <script lang="ts">
   import type { ClientConfig } from '@rctf/types'
   import {
@@ -71,8 +63,6 @@
 
   const adminUser = $derived(adminUserQuery.data)
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = adminUserQuery.isPending
   const clientConfig = $derived<ClientConfig | undefined>(configQuery.data)
 
@@ -91,8 +81,6 @@
   })
   let seeded = $state(false)
 
-  // Seed the edit form once the admin detail resolves; later invalidations
-  // refresh `adminUser` for the dirty comparator without clobbering edits.
   $effect(() => {
     if (seeded || !adminUser) return
     form = {

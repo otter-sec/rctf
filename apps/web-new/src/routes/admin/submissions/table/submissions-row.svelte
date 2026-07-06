@@ -113,8 +113,6 @@
 </submission-row>
 
 <style>
-  /* Grid template MUST match table/submissions-header.svelte so columns align:
-     expander, time, challenge, team, ip, kind, result. */
   submission-row {
     display: grid;
     grid-template-columns: 2.75rem 16rem 14rem minmax(11rem, 1fr) 11rem 9rem 10rem;

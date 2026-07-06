@@ -34,7 +34,6 @@
           props: {
             type,
             content: body,
-            // connection bodies are rendered verbatim, never markdown-parsed
             parsedContent: type === 'connection' ? '' : parseAlertContent(body),
           },
         })

@@ -1,8 +1,3 @@
-<!--
-  Admin challenges route (R13, R14). Prefetched by +page.ts; this page shows a
-  spinner while the list settles and an error card on failure, then hands off to
-  the master-detail shell. Access is already gated by the admin +layout.
--->
 <script lang="ts">
   import { useAdminChallenges } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
@@ -18,8 +13,6 @@
   const isPending = $derived(challengesQuery.isPending)
   const error = $derived(challengesQuery.error)
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = challengesQuery.isPending
 </script>
 

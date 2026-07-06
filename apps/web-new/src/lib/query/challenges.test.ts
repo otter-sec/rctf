@@ -1,9 +1,5 @@
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
-// challenges.ts imports $lib/api, which pulls in the SvelteKit virtual module
-// $app/environment. bun test can't resolve that, so stub it before the module
-// is dynamically imported below. Static imports resolve before mock.module runs,
-// hence the dynamic import in beforeAll.
 mock.module('$app/environment', () => ({ browser: false }))
 
 let challenges!: typeof import('./challenges')
@@ -87,7 +83,6 @@ describe('deriveBloodIds', () => {
 })
 
 describe('getNextOffset', () => {
-  // [lastOffset, lastPageCount, total, expected]
   const cases: [number, number, number, number | undefined][] = [
     [0, 100, 250, 100],
     [100, 100, 250, 200],

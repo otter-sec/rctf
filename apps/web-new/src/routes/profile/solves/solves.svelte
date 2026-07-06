@@ -1,11 +1,3 @@
-<!--
-  Shared challenges/solves list for the profile routes. Merge, filter, sort,
-  grouping, and stats math live in profile-solves-logic.ts; this component wires
-  the toolbar, the category accordion (category mode) or a flat list (time/points
-  modes), blood/solved row styling via data-* attributes, and the R7 empty
-  states. Optional row actions (onRevoke/onViewSubmissions) render only when a
-  caller injects them; the profile routes pass none.
--->
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
@@ -441,8 +433,6 @@
       }
     }
 
-    /* When the collapse toggle is hidden (time/points modes) this button takes
-       the leading rounded edge instead. */
     &[data-slot='hide-solved'][data-flat] {
       border-radius: 20px var(--radius-sm) var(--radius-sm) 20px;
 

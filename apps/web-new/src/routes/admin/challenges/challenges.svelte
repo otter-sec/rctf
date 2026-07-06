@@ -1,10 +1,3 @@
-<!--
-  Admin challenges master-detail shell. Owns the editor state (a plain reducer
-  from editor-state.ts, reassigned on each transition) and picks the layout:
-  a resizable list|detail Splitter on desktop, a full-height list with a bottom
-  drawer for the detail on mobile. Selecting a challenge fetches its full detail
-  and feeds it back through detailLoaded (guarded once-per-id in the module).
--->
 <script lang="ts">
   import type { AdminChallenge } from '@rctf/types'
   import { useAdminChallenge, useAdminChallenges } from '$lib/query/admin'
@@ -41,10 +34,6 @@
     isCreating ? 'New challenge' : (editor.challenge?.name ?? 'Challenge details')
   )
 
-  // Drawer visibility is derived, not latched: it opens whenever mobile has an
-  // active selection/create, and closes automatically on desktop or once nothing
-  // is selected. A user dismissal (Esc/backdrop/close) sets `drawerDismissed`,
-  // which any fresh select/create clears so the next selection re-opens it.
   let drawerDismissed = $state(false)
   const drawerOpen = $derived(isMobile && (selectedId !== null || isCreating) && !drawerDismissed)
 

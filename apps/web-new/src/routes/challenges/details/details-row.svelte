@@ -1,13 +1,3 @@
-<!--
-  A single ranked row, shared by the solves tab (U8) and the scores tab (U11).
-
-  Styling axes are data attributes so CSS owns the look: `data-variant`
-  (gold/silver/bronze/self/nth) drives the rank colour, edge gradient and, for
-  self, the tint; `data-self` adds the self base tint at any rank. The country
-  tooltip mounts lazily — off-screen rows keep a plain <img> and only spin up a
-  Zag tooltip machine once the flag is hovered or focused — so a feed of
-  thousands of rows carries no live machines.
--->
 <script module lang="ts">
   import { ALL_REGIONS } from '@rctf/util'
 
@@ -59,7 +49,6 @@
   const countryName = $derived(countryCode ? (COUNTRY_NAMES.get(countryCode) ?? countryCode) : null)
   const showDivision = $derived(!!division && !!divisionPlace)
 
-  // Defer the tooltip machine until the flag is first hovered/focused.
   let tooltipReady = $state(false)
 </script>
 
@@ -144,7 +133,6 @@
       --avatar-size: 3rem;
     }
 
-    /* Base fill sits behind content; the medal/self gradient washes over it. */
     &::before {
       content: '';
       position: absolute;

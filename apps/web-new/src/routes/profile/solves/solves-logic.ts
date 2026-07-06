@@ -49,20 +49,9 @@ type BuildDisplayRowsInput = {
 
 type BuildDisplayRowsResult = {
   rows: DisplayRow[]
-  // Whether the board's unsolved challenges are merged in (vs. the solves-only
-  // fallback). Header totals only make sense in this mode; see R6.
   boardMerged: boolean
 }
 
-/**
- * Merges the board's challenges with the team's solves into display rows.
- *
- * When the board is available and unsolved rows are requested, every board
- * challenge renders (solved or not) and any solve whose challenge is missing
- * from the board (deleted/hidden) is appended from the solve data. Otherwise it
- * falls back to a solves-only list. Dynamic challenges show current dynamic
- * points and never count as solved.
- */
 export function buildDisplayRows({
   challenges,
   solves,
@@ -189,11 +178,6 @@ export function computeSolvesStats({
   }
 }
 
-/**
- * Picks the empty-state variant when no rows render: `no-matches` when the
- * search/hide-solved filters emptied a non-empty list, `no-data` when there was
- * never any data (no board and no solves).
- */
 export function selectEmptyState({
   totalRowCount,
   filteredRowCount,

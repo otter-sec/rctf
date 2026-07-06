@@ -28,8 +28,6 @@
   let linking = $state(false)
   let unlinking = $state(false)
 
-  // A CTFtime link is the account's second auth method, so it can only be
-  // dropped when an email exists to fall back on (AE3).
   const canDeleteCtftime = $derived(!!user.ctftimeId && !!user.email)
 
   function invalidateUser() {

@@ -15,8 +15,6 @@ import type { SVGAttributes } from 'svelte/elements'
 
 export type IconComponent = Component<SVGAttributes<SVGSVGElement>>
 
-// Each hue has a matching [data-category-color='<hue>'] block in color.css that
-// remaps the generic --category-* tokens; keep the two in sync.
 export type CategoryColor =
   | 'red'
   | 'orange'

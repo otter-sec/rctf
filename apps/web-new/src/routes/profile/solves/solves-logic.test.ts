@@ -218,7 +218,6 @@ describe('groupRowsByCategory', () => {
 
     const groups = groupRowsByCategory(rows)
     const order = groups.map(group => group.category)
-    // Canonical categories precede unknown ones; unknown sort alphabetically.
     expect(order.indexOf('pwn')).toBeLessThan(order.indexOf('alpha'))
     expect(order.indexOf('web')).toBeLessThan(order.indexOf('alpha'))
     expect(order.indexOf('alpha')).toBeLessThan(order.indexOf('zeta'))

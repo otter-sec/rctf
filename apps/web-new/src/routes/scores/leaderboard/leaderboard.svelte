@@ -45,9 +45,6 @@
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
 
-  // The header is a fixed 192px block on desktop and display:none on mobile, so
-  // the virtualizer's scroll margin is a constant per breakpoint — never a
-  // measurement. (A measured margin drifted across viewport resizes.)
   let isDesktop = $state(false)
   $effect(() => {
     const query = window.matchMedia('(width >= 48rem)')
@@ -66,10 +63,6 @@
     getItemKey: index => data.entries[index]?.id ?? index,
   }))
 
-  // The row surface spans the cells' lead-in gap (solve-cells padding-start,
-  // mirrored by header-bars' margin-start) plus the trailing diagonal-overflow
-  // region where rotated header labels overhang, so the cards end flush with
-  // the header at the scroll extent.
   const contentWidth = $derived(
     (urlState.viewMode === 'categories'
       ? getCategoryCellsInnerWidth(data.categoryGroups.length)
@@ -78,17 +71,11 @@
       SCORE_DIAGONAL_OVERFLOW_PX
   )
 
-  // One delegated pointer listener resolves the hovered cell's data-* into
-  // tooltip content, avoiding a tooltip instance per matrix cell. Suppressed
-  // while the virtualizer is scrolling so tooltips never chase streaming rows.
   let activeTooltip = $state<CellTooltip | null>(null)
   let tooltipX = $state(0)
   let tooltipY = $state(0)
   let tooltipPlace = $state<'top' | 'bottom'>('top')
 
-  // Native-tooltip timing: the first tooltip opens after a delay; while one is
-  // "warm" (recently shown), moving between cells opens instantly. Warmth
-  // cools down shortly after the pointer leaves all cells.
   const TOOLTIP_OPEN_DELAY_MS = 400
   const TOOLTIP_COOLDOWN_MS = 300
   let tooltipWarm = false
@@ -108,16 +95,9 @@
     clearTimeout(coolTimer)
   })
 
-  // Shared hover state read by the graph (R15). Hovering any row (or its
-  // sparkline) highlights that team's line; hovering a solved challenge cell
-  // additionally drops a crosshair on that team's line at the solve time. The
-  // same delegated listener resolves both from data-* on the hovered elements.
   let hoveredTeamId = $state<string | null>(null)
   let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
 
-  // Cross-highlight for the hovered matrix cell: its column echoes in every
-  // rendered row and its row card tints, making the team/challenge pair easy
-  // to scan. Unlike the tooltip these update instantly — no open delay.
   let hoveredColumnId = $state<string | null>(null)
   let hoveredRowId = $state<string | null>(null)
 
@@ -147,15 +127,7 @@
     const cell = target?.closest<HTMLElement>('[data-tooltip-cell]') ?? null
     const spark = target?.closest('spark-slot')
 
-    // Only a sparkline or a solve cell highlights the team's graph line —
-    // sweeping the pointer across whole rows must not flicker the graph. A
-    // sparkline (no tooltip) highlights immediately; a cell's highlight is
-    // applied inside show() so it lands together with the tooltip.
     const teamId = row?.dataset.teamId ?? null
-    // The cross-highlight sticks while the pointer crosses the 4px gaps
-    // between cells/rows (clearing there strobes it off/on with every cell
-    // change). It only clears on a genuinely non-matrix surface: the team
-    // card, the graph corner, or leaving the scroll region (pointerleave).
     const overMatrixGap = row ? !target?.closest('row-team') : !!target?.closest('challenge-header')
     if (cell) {
       hoveredColumnId = cell.dataset.col ?? null
@@ -200,8 +172,6 @@
           : null
     }
     cancelOpenTimer()
-    // Warmth only fast-tracks header tooltips; matrix cells always wait out
-    // the delay so sweeping across the board doesn't strobe tooltips.
     if (tooltipWarm && isHeader) {
       show()
       return
@@ -211,17 +181,6 @@
     openTimer = setTimeout(show, TOOLTIP_OPEN_DELAY_MS)
   }
 
-  // Windowed graph series (R12). The window is the rows actually visible in
-  // the scroll viewport — from scroll geometry, not the rendered virtual range
-  // (which includes overscan), and excluding the band occluded by the sticky
-  // header. getGraphVisibility caps it to a 15-team span and adds the
-  // top-3/self pins. The set tracks the scroll live (conscious deviation from
-  // the plan's freeze-on-scroll R14/AE5): per-frame cost is one window
-  // recompute plus re-projecting ~15 capped series, well within budget.
-  // Identity-stable across sub-row scroll deltas: the derived re-runs on every
-  // scroll event, but downstream (getGraphVisibility's Sets, the graph's
-  // re-projection) must only recompute when the window actually crosses a row
-  // boundary, so an unchanged window returns the previous object.
   let lastWindow = { minRank: 0, maxRank: 0 }
   const liveWindow = $derived.by(() => {
     let minRank = 0
@@ -230,9 +189,6 @@
     if (loaded > 0 && geometry.clientHeight > 0) {
       const bandTop = geometry.scrollTop + headerOffset
       const bandBottom = geometry.scrollTop + geometry.clientHeight
-      // A row counts as visible only while its midpoint is inside the band, so
-      // a sliver peeking out from behind the sticky header/graph (or clipped
-      // at the bottom edge) doesn't hold the row in the graph window.
       const rowMid = (index: number) =>
         headerOffset + index * SCORE_ROW_HEIGHT_FULL_PX + SCORE_ROW_HEIGHT_FULL_PX / 2
       const first = Math.max(0, Math.ceil((bandTop - rowMid(0)) / SCORE_ROW_HEIGHT_FULL_PX))
@@ -264,23 +220,13 @@
     })
   )
 
-  // Suppress the tooltip while the list is scrolling without discarding the
-  // hovered state, so it reappears on settle if the pointer is still over a cell.
   const displayedTooltip = $derived(virtual.isScrolling ? null : activeTooltip)
 
-  // A poll or filter refetch can reorder rows under a stationary pointer; the
-  // cached tooltip/highlight snapshot would then describe a row that moved.
-  // Clear on data change — the next pointermove re-resolves from the fresh DOM.
-  // untrack: clearTooltip reads `activeTooltip`; tracked, this effect would
-  // re-run on every show and wipe the tooltip the instant it appears.
   $effect(() => {
     void data.entries
     untrack(clearHover)
   })
 
-  // Fetch the next page as the virtual range nears the loaded end. The latch is
-  // plain control-flow state (not reactive) so it never re-triggers the effect;
-  // the effect re-runs on virtualItems / loaded-count / fetch-state changes.
   let latched = false
   $effect(() => {
     const last = virtual.virtualItems.at(-1)
@@ -300,19 +246,9 @@
     if (result.shouldFetch) void data.fetchNextPage()
   })
 
-  // Self-row pinning (R11). The clip comes from scroll geometry, edge-exact:
-  // the bottom pin engages the instant the real row's bottom edge crosses the
-  // viewport bottom (and the top pin when its top edge slides under the sticky
-  // header), so the pinned copy takes over exactly where the real row sits —
-  // a seamless handoff rather than a pop-in after the row fully exits.
   let scrollRoot = $state<HTMLElement | null>(null)
   const geometry = createScrollGeometry(() => scrollRoot)
 
-  // Edge fades (clipped-content hints). Orthogonal state: four scrollable
-  // directions as shell attributes, plus data-self-edge shifting the vertical
-  // bands past the opaque pinned row — no enumerated per-region variants. The
-  // vertical pair comes from the shared derivation; the horizontal pair is
-  // this scroll region's own (the matrix is the app's only x-scrolling list).
   const fades = deriveEdgeFades(geometry)
   const fadeLeft = $derived(geometry.scrollLeft > 1)
   const fadeRight = $derived(geometry.scrollLeft < geometry.scrollWidth - geometry.clientWidth - 1)
@@ -340,11 +276,6 @@
     })
   )
 
-  // The overlay's row model: the loaded entry when self is on a loaded page,
-  // otherwise a row synthesized from the current-user query so the pin still
-  // renders while self sits beyond the loaded pages (or the first page is still
-  // loading). The synthesized entry carries the user's own solves/dynamicScores,
-  // so the solve strip renders either way.
   const selfRow = $derived.by((): { entry: LeaderboardEntry; index: number } | null => {
     const user = data.currentUser
     if (!user) return null
@@ -430,8 +361,6 @@
     {@render graphPanel()}
   </mobile-graph>
 
-  <!-- The pointer handlers only delegate hover-to-tooltip resolution for the
-       matrix cells; the scroll region itself carries no interactive semantics. -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <scores-scroll
     {@attach virtual.scrollContainer}
@@ -474,8 +403,6 @@
         />
       {/if}
 
-      <!-- getTotalSize() already excludes the scrollMargin; item.start includes
-           it, so only the row translate subtracts headerOffset. -->
       <virtual-list style:block-size={`${virtual.totalSize}px`}>
         {#each virtual.virtualItems as item (item.key)}
           {@const entry = data.entries[item.index]}
@@ -560,9 +487,6 @@
     --score-fade-size: 1.5rem;
     --score-fade-inset-top: 0px;
     --score-fade-inset-bottom: 0px;
-    /* Where the scroll region starts/ends within the shell: below the mobile
-       graph on small screens, below the sticky header on desktop; the rail is
-       the horizontal-scrollbar band reserved by padding-block-end. */
     --score-fade-region-top: calc(var(--score-mobile-graph-height) + var(--space-3xs));
     --score-fade-rail: 0px;
     position: relative;
@@ -572,8 +496,6 @@
     inline-size: 100%;
     max-inline-size: 100%;
 
-    /* The pinned self-row is opaque, so the vertical fade bands simply start
-       or end past it instead of needing per-region fade variants. */
     &[data-self-edge='top'] {
       --score-fade-inset-top: var(--score-row-height-full);
     }
@@ -672,10 +594,6 @@
     contain: layout style paint;
   }
 
-  /* Two paint layers like the old app: the element itself is opaque page
-     background (a sticky column must fully occlude cells passing beneath its
-     rounded corners), ::before is the rounded card surface, ::after the rank
-     glow. */
   row-team {
     --rank-fg-l0: var(--foreground-l0);
     --rank-fg-l1: var(--foreground-l3);
@@ -704,8 +622,6 @@
       background: var(--background-l2);
     }
 
-    /* Row echo for the hovered solve cell's team card. Declared before the
-       self rule so the self tint wins on the current user's row. */
     &[data-hovered]::before {
       background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l2));
     }
@@ -750,15 +666,11 @@
 
   @media (width >= 48rem) {
     scores-shell {
-      /* Capped so mid-size viewports don't hand the team column dead space the
-         name/score never use. */
       --score-team-column-width: min(60vw - 4.5rem, 26rem);
       --score-fade-region-top: var(--score-header-height);
       --score-fade-rail: 0.5rem;
       inline-size: fit-content;
       margin-inline: auto;
-      /* Dedicated rail for the horizontal scrollbar: 0.375rem track + 0.125rem
-         gap below the scroll region, so it never overlays the bottom row. */
       padding-block-end: var(--score-fade-rail);
     }
 
@@ -882,9 +794,6 @@
       translate: -50% 0.625rem;
     }
 
-    /* Arrow: a rotated square sharing the tooltip's background, with the two
-       outward-facing edges borrowing its border. It overlaps the tooltip's own
-       border to open a notch into the bubble. */
     &::after {
       content: '';
       position: absolute;
@@ -940,8 +849,6 @@
       block-size: 0.875rem;
     }
 
-    /* Mirrors the matrix's cell-circle[data-solved]: hollow ring, translucent
-       success stroke (2px border at 1.25rem ≈ 3 viewBox units). */
     svg[data-icon='solved'] circle {
       fill: none;
       stroke: color-mix(in oklab, var(--foreground-success) 75%, transparent);
@@ -963,10 +870,6 @@
 
   @media (width >= 80rem) {
     scores-shell {
-      /* The sparkline (6rem), delta slot (2rem), and wider rank (+1.5rem)
-         mount at this breakpoint — the 36rem floor absorbs them so the team
-         name keeps roughly the same room as below 80rem instead of paying for
-         the new columns. */
       --score-team-column-width: clamp(36rem, 45vw - 4.5rem, 44rem);
     }
   }

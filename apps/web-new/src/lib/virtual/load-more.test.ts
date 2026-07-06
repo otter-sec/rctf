@@ -41,16 +41,13 @@ describe('evaluateLoadMore', () => {
     const fire = evaluateLoadMore(state)
     expect(fire.shouldFetch).toBe(true)
 
-    // Fetch is now in flight.
     state = { ...state, isFetching: true, latched: fire.latched }
     expect(evaluateLoadMore(state).shouldFetch).toBe(false)
 
-    // Fetch settles; the latch re-arms without immediately re-firing.
     state = { ...state, isFetching: false, latched: true }
     const settle = evaluateLoadMore(state)
     expect(settle).toEqual({ shouldFetch: false, latched: false })
 
-    // Still past the threshold on the next page → fires again.
     state = {
       ...state,
       loadedCount: 200,

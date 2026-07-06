@@ -1,11 +1,3 @@
-<!--
-  Flag-challenge podium. Data comes from the limit-10 self solves query, off
-  which we take the top four rows, the first-blood time and the caller's own
-  placement. The slot arrangement (top three, self-vs-placeholder fourth slot,
-  self-is-4th dedupe) lives in resolvePodiumSlots; this component only shapes the
-  variant-specific detail lines: a duration from CTF start for first blood, a
-  '+delta' from first blood for everyone below it.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { useChallengeSolvesSelf } from '$lib/query/challenges'
@@ -26,8 +18,6 @@
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
-  // Non-reactive read: true only when this mount actually starts behind the
-  // per-slot spinners, so a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = solvesQuery.isPending
 
   const currentUser = $derived(userQuery.data)

@@ -20,10 +20,6 @@
   import { formatTimeRangeSummary } from './time-summary'
   import { type TimeFilterFamily, type ValueFilterFamily } from './ui'
 
-  // Mounts above the table: the desktop funnel + chips at wide widths, a single
-  // "Filters" button opening the drawer below 48rem. The time family is optional
-  // — the teams table has no time column — so its menu/chip slots only render
-  // when a `timeFilter` is supplied.
   type Props = {
     families: readonly ValueFilterFamily[]
     filterFor: (family: ValueFilterFamily) => MultiFilter<unknown>
@@ -63,8 +59,6 @@
 
   let drawerOpen = $state(false)
 
-  // `families` is readonly for our own consumers, but the committed desktop
-  // components predate that and take a mutable array; the calls never mutate.
   const desktopFamilies = $derived(families as ValueFilterFamily[])
 </script>
 

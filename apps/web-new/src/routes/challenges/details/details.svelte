@@ -1,13 +1,3 @@
-<!--
-  Detail pane for the selected challenge. challenges.svelte remounts this per
-  challenge via {#key challenge.id}; the active tab is lifted to the parent so
-  it persists across switches.
-
-  Tab visibility: 'details' always; 'solves' for flag challenges; 'scores' for
-  dynamic (KotH) challenges. Panels stay mounted inside the Tabs primitive, but
-  each body is gated to the active tab so heavy tab content (solves/scores) only
-  mounts when opened. Footer slots (podium/submit) sit below the tab body.
--->
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
@@ -42,8 +32,6 @@
 
   const isDynamic = $derived(challenge?.scoringKind === ChallengeScoringKind.DYNAMIC)
 
-  // The count is challenge.solves for both extra tabs — a parity quirk from the
-  // old UI, where the scores tab labels the solve total rather than feed size.
   const tabItems = $derived.by((): TabItem[] => {
     if (!challenge) return []
     const items: TabItem[] = [{ value: 'details', label: 'Details', icon: IconFileInfoFilled }]
@@ -65,12 +53,8 @@
     return items
   })
 
-  // Fall back to 'details' whenever the lifted selection is not valid for this
-  // challenge (e.g. 'scores' persisted from a dynamic challenge onto a flag one).
   const activeTab = $derived(tabItems.some(item => item.value === tab) ? tab : 'details')
 
-  // The details tab owns its scroll region (solves/scores bring their own) so
-  // it can carry the same edge fades as the other tabs.
   let detailsScroll = $state<HTMLElement | null>(null)
   const captureDetailsScroll = captureElement<HTMLElement>(node => (detailsScroll = node))
   const detailsGeometry = createScrollGeometry(() => detailsScroll)
@@ -145,10 +129,6 @@
     flex-direction: column;
     min-block-size: 0;
 
-    /* Make the consumed Tabs primitive fill this region: keep the strip fixed and
-       let the active panel be the scroll container. data-scope guards matter:
-       bare [data-part] would also hit every other Zag component rendered inside
-       the panels (avatar/tooltip roots share the part names). */
     > :global([data-scope='tabs'][data-part='root']) {
       display: flex;
       flex: 1;

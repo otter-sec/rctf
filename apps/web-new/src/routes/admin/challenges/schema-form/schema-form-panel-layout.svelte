@@ -1,9 +1,3 @@
-<!--
-  Master-detail layout for arrays of objects and object-valued records. The
-  sidebar lists items, the footer holds the add control, and the content pane
-  renders the selected item. Collapses to a stacked layout below 28rem via a
-  container query.
--->
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
@@ -81,7 +75,6 @@
     }
 
     panel-side {
-      /* Keep the picker in view while a long entry form scrolls beneath it. */
       position: sticky;
       inset-block-start: 0;
       align-self: flex-start;

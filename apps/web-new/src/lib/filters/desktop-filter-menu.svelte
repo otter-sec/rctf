@@ -18,10 +18,6 @@
     type ValueFilterFamily,
   } from './ui'
 
-  // The funnel opens a drill-down panel rather than fly-out submenus (no popover
-  // machine is available, and a flat menu cannot host the searchable lists): an
-  // empty query lists families to drill into; a query surfaces matching families
-  // plus cross-family option matches with a breadcrumb path.
   type Props = {
     families: ValueFilterFamily[]
     hasFilters: boolean

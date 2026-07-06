@@ -16,8 +16,6 @@ import {
   type SponsorsState,
 } from './settings-model'
 
-// A clean baseline: every group present, nothing overridden, nothing dirty.
-// Tests flip individual groups to exercise the three-way patch decision.
 function cleanState(): SettingsFormState {
   return {
     ctfName: { value: '', overridden: false, dirty: false },

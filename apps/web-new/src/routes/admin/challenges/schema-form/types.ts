@@ -30,11 +30,6 @@ export interface JsonSchema {
   propertyNames?: JsonSchema
 }
 
-/**
- * Leaf fields report validation state up to the root by dotted path key. The
- * root keeps the map; a null error clears the entry. This replaces the old
- * Svelte-context registry with an explicit callback prop.
- */
 export type ErrorReporter = (pathKey: string, error: string | null) => void
 
 export interface FieldProps {

@@ -1,9 +1,3 @@
-/**
- * Monotone cubic (Fritsch-Carlson) interpolation to an SVG path string, ported
- * from d3-shape's `curveMonotoneX`. Guarantees no overshoot between samples so
- * cumulative-score lines never dip below or spike above their data points.
- */
-
 export interface Point {
   x: number
   y: number
@@ -17,9 +11,6 @@ function sign(x: number): number {
   return x < 0 ? -1 : 1
 }
 
-// Interior tangent: d3's slope3. The min-of-magnitudes clamp is what enforces
-// monotonicity; opposite-signed neighbours yield a zero tangent (a local
-// extremum) so the curve flattens instead of overshooting.
 function interiorTangent(
   s0: number,
   s1: number,
@@ -35,7 +26,6 @@ function interiorTangent(
   )
 }
 
-// Endpoint tangent: d3's slope2, refined against the adjacent interior tangent.
 function endpointTangent(
   secant: number,
   neighbourTangent: number,

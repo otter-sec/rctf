@@ -1,9 +1,3 @@
-<!--
-  A dashed crosshair with a filled dot marking one sample (a specific team's
-  solve), used to tie a hovered solve cell to its point on that team's line.
-  Colour comes from the inherited `color` (set data-series-role on an ancestor);
-  geometry is in pixel space. Meant to live inside a parent <svg>.
--->
 <script lang="ts">
   interface Props {
     x: number

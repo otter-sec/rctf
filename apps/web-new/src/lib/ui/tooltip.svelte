@@ -43,10 +43,6 @@
     border-radius: var(--radius-sm);
   }
 
-  /* The tip is a rotated square painted above the content: its background
-     opens a notch in the content's border, and only the two outward-facing
-     edges carry the matching 2px border (which pair depends on the side the
-     tooltip landed on). */
   [data-part='arrow'] {
     --arrow-size: 0.625rem;
     --arrow-background: var(--background-l2);

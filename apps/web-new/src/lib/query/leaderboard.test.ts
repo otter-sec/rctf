@@ -3,13 +3,8 @@ import { hashKey } from '@tanstack/svelte-query'
 import { queryKeys } from '$lib/query/keys'
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
-// leaderboard.ts imports $lib/api, which pulls in the SvelteKit virtual module
-// $app/environment. bun test can't resolve that, so stub it before the modules
-// are dynamically imported below.
 mock.module('$app/environment', () => ({ browser: false }))
 
-// The graph queryFn calls apiRequest; stub the whole client so tests can drive
-// its response without a network round-trip.
 let graphResponse: unknown = null
 mock.module('$lib/api', () => ({
   apiRequest: async () => graphResponse,
@@ -24,7 +19,6 @@ beforeAll(async () => {
 })
 
 describe('getNextOffset (with-graph pagination contract)', () => {
-  // [lastOffset, lastPageCount, total, expected]
   const cases: [number, number, number, number | undefined][] = [
     [0, 100, 250, 100],
     [200, 50, 250, undefined],
@@ -159,8 +153,6 @@ describe('selfUserGraphQueryOptions (offset-hack graph)', () => {
     data: { graph: [{ id }] },
   })
 
-  // queryFn is typed as `skipToken | QueryFunction`; narrow off the symbol
-  // before calling. The function ignores its context, so pass a placeholder.
   const runQueryFn = (
     globalPlace: number | null,
     userId: string | null,

@@ -1,27 +1,3 @@
-<!--
-  Shared layout shell for the own (/profile) and public (/profile/[id]) profile
-  routes. Owns the status card, the single-instance grid, the plain tablist, and
-  every panel wrapper so the two routes only supply data, titles, status copy,
-  and per-panel content.
-
-  Single-instance layout (fixes the old app's dual mobile/desktop render): every
-  section is rendered exactly once and a CSS grid + media query rearranges them.
-  Tab switching is driven by a local `activeTab` on a plain tablist rather than
-  lib/ui/tabs.svelte, because that primitive keeps all panels mounted and toggles
-  them with the `hidden` attribute from its own Zag machine — which cannot also
-  keep one panel permanently visible in the desktop right column without reaching
-  into its internals. Mobile shows one panel at a time; at >=64rem the panel named
-  by `desktopColumn` moves to an always-visible right column.
-
-  The two routes differ only in two parameters, both preserved here:
-  - `desktopColumn`: which tab becomes the always-visible desktop right column
-    (own: settings, public: analytics). The left column shows challenges by
-    default, or the active tab when a non-column tab is selected — so an own
-    profile with a stale `settings` selection still shows challenges on the left.
-  - `hideTablistOnDesktop`: public hides the whole tablist at >=64rem (both panels
-    stay visible); own keeps the tablist but hides only the settings trigger,
-    since settings is a third tab on mobile only.
--->
 <script lang="ts">
   import Spinner from '$lib/ui/spinner.svelte'
   import { untrack, type Snippet } from 'svelte'
@@ -48,11 +24,8 @@
     unavailable,
   }: Props = $props()
 
-  // `tabs` is a fixed per-route array, so the first tab is a stable default.
   let activeTab = $state(untrack(() => tabs[0]?.value ?? ''))
 
-  // Non-reactive read: true only when this visit actually starts behind the
-  // spinner, so a warm-cache revisit doesn't replay the reveal fade.
   const revealAfterLoading = untrack(() => status) === 'loading'
 </script>
 
@@ -71,9 +44,6 @@
     data-hide-tablist={hideTablistOnDesktop || undefined}
     data-reveal={revealAfterLoading || undefined}
   >
-    <!-- Paint layers: the rounded-top card surfaces behind each column (old
-         app's bg-l1 + rounded-t-3xl panes). Grid items paint in DOM order, so
-         these sit under the content without z-index. -->
     <column-surface data-main></column-surface>
     <column-surface data-aside></column-surface>
 
@@ -137,7 +107,6 @@
     overflow: hidden;
   }
 
-  /* The card surface behind the whole column: rounded top, flush bottom. */
   column-surface {
     display: block;
     background: var(--background-l1);
@@ -148,7 +117,6 @@
     grid-area: 1 / 1 / -1 / 2;
   }
 
-  /* The aside card exists only in the desktop two-column layout. */
   column-surface[data-aside] {
     display: none;
   }
@@ -181,7 +149,6 @@
     }
   }
 
-  /* All panels occupy the same cell; only the active one shows (mobile). */
   profile-panel {
     grid-area: content;
     display: none;
@@ -218,7 +185,6 @@
       column-gap: var(--space-m);
     }
 
-    /* Two cards: one behind each column, page background in the gap. */
     column-surface[data-main] {
       grid-area: 1 / 1 / -1 / 2;
     }
@@ -228,14 +194,11 @@
       grid-area: 1 / 2 / -1 / 3;
     }
 
-    /* The aside panel starts at the card's rounded top edge. */
     profile-page[data-desktop-column='settings'] profile-panel[data-tab='settings'],
     profile-page[data-desktop-column='analytics'] profile-panel[data-tab='analytics'] {
       padding-block-start: var(--space-m);
     }
 
-    /* Public hides the whole tablist; own keeps it and hides only the settings
-       trigger (settings is a third tab on mobile only). */
     profile-page[data-hide-tablist] profile-tabbar {
       display: none;
     }
@@ -244,7 +207,6 @@
       display: none;
     }
 
-    /* The desktop-column panel is always visible in its own right column. */
     profile-page[data-desktop-column='settings'] profile-panel[data-tab='settings'],
     profile-page[data-desktop-column='analytics'] profile-panel[data-tab='analytics'] {
       grid-area: aside;
@@ -252,14 +214,11 @@
       flex-direction: column;
     }
 
-    /* Challenges always fills the left content column by default. */
     profile-page profile-panel[data-tab='challenges'] {
       display: flex;
       flex-direction: column;
     }
 
-    /* When settings is the desktop column, analytics is a left-column tab that
-       replaces challenges only while it is the active selection. */
     profile-page[data-desktop-column='settings'] profile-panel[data-tab='analytics'] {
       display: none;
     }

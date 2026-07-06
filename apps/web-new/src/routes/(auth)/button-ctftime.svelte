@@ -31,8 +31,6 @@
 
     const width = 600
     const height = 500
-    // browser zoom shrinks reported innerWidth; compensate so the popup keeps
-    // its intended physical size and centering
     const systemZoom = window.innerWidth / window.screen.availWidth
     const left = (window.innerWidth - width) / 2 / systemZoom + window.screenLeft
     const top = (window.innerHeight - height) / 2 / systemZoom + window.screenTop

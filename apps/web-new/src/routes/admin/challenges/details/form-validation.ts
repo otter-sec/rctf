@@ -2,7 +2,6 @@ import { ChallengeScoringKind, UpdateChallengeRouteV2 } from '@rctf/types'
 import type { InlineArgs } from '$lib/api'
 import type { EditorForm } from '../model/editor-state'
 
-/** Per-field validation messages, keyed by the form field they belong to. */
 export interface FormErrors {
   name?: string
   category?: string
@@ -12,14 +11,6 @@ export interface FormErrors {
   secret?: string
 }
 
-/**
- * Computes every validation error for the current form. The flag is required
- * only for non-dynamic scoring; the webhook secret is required only for dynamic
- * scoring (AE2). Callers show a message once its field is touched, but the set
- * itself is always current.
- *
- * @param form - The in-progress editor form.
- */
 export function formErrors(form: EditorForm): FormErrors {
   const errors: FormErrors = {}
   if (form.name.trim() === '') errors.name = 'Name is required'
@@ -38,12 +29,10 @@ export function formErrors(form: EditorForm): FormErrors {
   return errors
 }
 
-/** Whether any field on the form is currently invalid. */
 export function hasFormErrors(errors: FormErrors): boolean {
   return Object.keys(errors).length > 0
 }
 
-/** Whether the Details tab holds an invalid field (drives its error badge). */
 export function detailsTabInvalid(errors: FormErrors): boolean {
   return Boolean(
     errors.name ||
@@ -54,27 +43,14 @@ export function detailsTabInvalid(errors: FormErrors): boolean {
   )
 }
 
-/** Whether the Scoring tab holds an invalid field (drives its error badge). */
 export function scoringTabInvalid(errors: FormErrors): boolean {
   return Boolean(errors.secret)
 }
 
-/**
- * The scoring kind is locked once a challenge has solves: changing it would
- * strand the existing solves under an incompatible scoring model.
- *
- * @param totalSolves - Solve count from the player challenges list.
- */
 export function scoringKindLocked(totalSolves: number): boolean {
   return totalSolves > 0
 }
 
-/**
- * Formats a Unix ms timestamp as a `datetime-local` value in local time, or an
- * empty string when unset. Seconds are dropped to match the input's precision.
- *
- * @param ts - Release time as a Unix ms timestamp, or null when unset.
- */
 export function releaseTimeToInput(ts: number | null): string {
   if (ts === null) return ''
   const d = new Date(ts)
@@ -82,26 +58,12 @@ export function releaseTimeToInput(ts: number | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/**
- * Parses a `datetime-local` value (local time) back into a Unix ms timestamp,
- * or null when empty or unparseable.
- *
- * @param value - The raw `datetime-local` input value.
- */
 export function inputToReleaseTime(value: string): number | null {
   if (value === '') return null
   const ts = new Date(value).getTime()
   return Number.isNaN(ts) ? null : ts
 }
 
-/**
- * Builds the `PUT /v2/admin/challs/:id` payload from the form. Dynamic scoring
- * forces an empty flag, a disabled admin bot serializes to null, and a zero
- * sort weight collapses to undefined so the server keeps its default ordering.
- *
- * @param form - The form to serialize.
- * @param id - The challenge id (client-generated UUID when creating; AE10).
- */
 export function buildSavePayload(
   form: EditorForm,
   id: string

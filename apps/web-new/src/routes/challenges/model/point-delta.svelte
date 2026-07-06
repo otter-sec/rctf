@@ -1,10 +1,3 @@
-<!--
-  Dynamic point/rank movement chip. Shows the signed change from the latest
-  scoring tick as a triangle (up = gained, down = lost) plus the magnitude, with
-  colour keyed off the trend. The 'points' variant reads 'N pts' with a 'last
-  update' caption; the compact 'rank' variant is a chevron for the rank column
-  and collapses to nothing when the entry did not move.
--->
 <script lang="ts">
   import IconTriangleFilled from '$lib/icons/icon-triangle-filled.svelte'
   import IconTriangleInvertedFilled from '$lib/icons/icon-triangle-inverted-filled.svelte'

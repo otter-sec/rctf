@@ -1,12 +1,3 @@
-// Serialized multi-file downloading. Each file is fetched by pointing a fresh
-// hidden, download-sandboxed iframe at its URL, spaced apart so browsers treat
-// the batch as one user-driven action instead of a popup storm. No fetch, no
-// `target=_blank`, no reliance on the `download` attribute (which cross-origin
-// responses ignore).
-//
-// The scheduling/cancellation logic is a pure, injectable scheduler so it can be
-// tested without a DOM; `downloadAll` is the thin browser wrapper around it.
-
 export type DownloadFile = { name: string; url: string }
 
 export type DownloadRunCallbacks = {
@@ -39,8 +30,6 @@ export function createDownloadScheduler(
   const spacing = deps.spacingMs ?? DEFAULT_SPACING_MS
   const pending = new Set<number>()
   let busy = false
-  // Bumped on every run/cancel; a superseded queue's timers and late iframe
-  // error reports check it and become no-ops.
   let generation = 0
 
   function cancel(): void {
@@ -92,27 +81,13 @@ function navigateViaIframe(file: DownloadFile, reportError: () => void): void {
   iframe.hidden = true
   iframe.setAttribute('aria-hidden', 'true')
   iframe.tabIndex = -1
-  // Only `allow-downloads`: the frame can trigger the download but cannot run
-  // scripts, read cookies, or navigate the top window.
   iframe.setAttribute('sandbox', 'allow-downloads')
-  // Best-effort only. A cross-origin download response is opaque, so `error`
-  // almost never fires; most failures cannot be observed from here.
   iframe.addEventListener('error', reportError)
   document.body.appendChild(iframe)
   iframe.src = file.url
-  // Keep the frame long enough for a slow download to start, then reap it.
   window.setTimeout(() => iframe.remove(), IFRAME_GRACE_MS)
 }
 
-/**
- * Trigger a client-side download of in-memory text as a file, via a temporary
- * object URL and a synthetic anchor click. For content the app already holds
- * (job logs, a bot script), not a remote URL — use `downloadAll` for those.
- *
- * @param fileName - The name to save the file as.
- * @param contents - The file body.
- * @param mimeType - The blob MIME type.
- */
 export function downloadTextFile(
   fileName: string,
   contents: string,
@@ -128,14 +103,6 @@ export function downloadTextFile(
 
 let domScheduler: DownloadScheduler | null = null
 
-/**
- * Download every file in sequence via hidden download-sandboxed iframes.
- *
- * Reuses a single module-level scheduler so a second call supersedes the first,
- * cancelling any files it had not yet started.
- *
- * @returns A cancel function that drops the remaining queue.
- */
 export function downloadAll(
   files: readonly DownloadFile[],
   callbacks: DownloadRunCallbacks = {}

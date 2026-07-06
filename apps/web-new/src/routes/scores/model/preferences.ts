@@ -11,8 +11,6 @@ export interface ScoresPreferences {
   showSelfContext: boolean
 }
 
-// Fields validate independently: a corrupt value for one field never discards a
-// valid sibling. Consumers apply their own defaults for absent fields.
 export function parseScoresPreferences(
   value: unknown
 ): Partial<ScoresPreferences> {

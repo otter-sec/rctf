@@ -1,7 +1,3 @@
-<!--
-  Division picker used by both the player account settings and the admin
-  manage panel: a Menu with a full-width trigger showing the selected label.
--->
 <script lang="ts">
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'

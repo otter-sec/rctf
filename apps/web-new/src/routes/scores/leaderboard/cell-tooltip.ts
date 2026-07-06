@@ -7,7 +7,6 @@ export type TooltipIcon =
 export interface TooltipLine {
   text: string
   trend?: 'positive' | 'negative' | 'neutral'
-  // Rendered after `text`, followed by `iconLabel` (e.g. "50 pts ·" [icon] "Solved")
   icon?: TooltipIcon
   iconLabel?: string
 }
@@ -18,12 +17,8 @@ export interface CellTooltip {
   lines: TooltipLine[]
 }
 
-// The delegated listener hands us the hovered element's `dataset`; keeping this
-// resolver pure (dataset in, content out) lets it be unit-tested without a DOM.
 export type CellDataset = Partial<Record<string, string>>
 
-// The data-kind contract shared with scores-solve-cells and scores-header:
-// attribute writers and this resolver must agree on the same literal set.
 export const CELL_KIND = {
   challenge: 'challenge',
   category: 'category',
@@ -35,8 +30,6 @@ export type CellKind = (typeof CELL_KIND)[keyof typeof CELL_KIND]
 
 const BLOOD_LABELS = ['First blood', 'Second blood', 'Third blood'] as const
 
-// `startTime` (CTF start) anchors solve times as "+3h 24m" offsets, matching
-// the graph axis and tooltips.
 export function resolveCellTooltip(
   dataset: CellDataset,
   startTime: number

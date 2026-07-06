@@ -1,10 +1,3 @@
-/**
- * Live scroll geometry for a scroll region — one scroll listener plus one
- * ResizeObserver shared by every consumer (self-row pinning, graph windows,
- * custom scrollbars, and edge fades). Per-event, because coarser signals (like
- * a virtualizer's mirrored offset, which only updates when the rendered range
- * shifts) are too coarse for edge-exact UI.
- */
 export interface ScrollGeometry {
   readonly scrollTop: number
   readonly scrollLeft: number
@@ -37,8 +30,6 @@ export function createScrollGeometry(
     }
     update()
     node.addEventListener('scroll', update, { passive: true })
-    // Observing the first child too catches content growth (the virtual list
-    // appending a page) that changes scrollHeight without resizing the node.
     const observer = new ResizeObserver(update)
     observer.observe(node)
     if (node.firstElementChild) observer.observe(node.firstElementChild)
@@ -75,7 +66,6 @@ export interface EdgeFades {
   readonly bottom: boolean
 }
 
-/** Whether rows are clipped past each vertical edge (1px slack absorbs rounding). */
 export function deriveEdgeFades(geometry: ScrollGeometry): EdgeFades {
   const top = $derived(geometry.scrollTop > 1)
   const bottom = $derived(
@@ -91,15 +81,6 @@ export function deriveEdgeFades(geometry: ScrollGeometry): EdgeFades {
   }
 }
 
-/**
- * Edge-exact clip of a tracked row (the current user's), derived from live
- * scroll geometry: 'top' the instant the row's top slides past the viewport
- * top, 'bottom' the instant its bottom crosses the viewport bottom. Derived
- * per scroll event — not an IntersectionObserver, whose threshold crossings
- * wait for full exit and can be skipped entirely by fast scrolls (momentum,
- * scrollbar drags), leaving a stale edge. Offsets are content coordinates —
- * unaffected by scroll.
- */
 export function deriveSelfRowClip(
   geometry: ScrollGeometry,
   getNode: () => HTMLElement | null

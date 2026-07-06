@@ -1,10 +1,3 @@
-<!--
-  External-auth (OAuth-style) client manager. Not part of the settings patch:
-  create/delete hit the API directly with local pending state and explicit cache
-  invalidation. Only mounted when the viewer has `usersWrite`. Creating a client
-  returns a one-time secret revealed in a dialog; deleting confirms first, noting
-  that already-issued tokens remain valid.
--->
 <script lang="ts">
   import {
     CreateExternalAuthClientRouteV2,
@@ -39,8 +32,6 @@
   const clientsQuery = useAdminExternalAuthClients()
   const clients = $derived(clientsQuery.data ?? [])
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = clientsQuery.isPending
 
   let creating = $state(false)
@@ -76,7 +67,6 @@
       })
       if (response.kind === GoodAdminExternalAuthClientCreate.kind) {
         const { secret, ...client } = response.data
-        // Optimistic insert so the row appears before the refetch settles.
         queryClient.setQueryData(
           queryKeys.adminExternalAuthClients,
           (old: Client[] | undefined) => [...(old ?? []), client]

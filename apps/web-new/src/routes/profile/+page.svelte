@@ -1,10 +1,3 @@
-<!--
-  Own profile route (/profile). Auth-gated: wires the shared header, the
-  challenges/solves list, the analytics column, and the settings sections into
-  the shared ProfileShell. Settings is the always-visible desktop right column
-  and a third tab on mobile; a stale settings selection still shows challenges on
-  the left at >=64rem.
--->
 <script lang="ts">
   import { useClientConfig } from '$lib/query/config'
   import { useLeaderboardChallenges, useSelfUserGraph } from '$lib/query/leaderboard'

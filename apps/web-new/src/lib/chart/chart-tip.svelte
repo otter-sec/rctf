@@ -1,26 +1,15 @@
-<!--
-  Positioned HTML tooltip shared by every chart. Overlays the chart's relative
-  root at the pointer's last hit position, flipping past the chart's horizontal
-  midpoint and clamping into the chart bounds — the box measures itself, so
-  content drives the size (it stays hidden for the first frame until measured).
-  An optional relative + local time header covers the shared pattern of the
-  time-series tooltips; callers own the rest of the content via `children`.
--->
 <script lang="ts">
   import { clampBoxPosition } from '$lib/chart/tooltip-position'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
   import type { Snippet } from 'svelte'
 
   interface Props {
-    /** Anchor point in px, relative to the chart root. */
     x: number
     y: number
     chartWidth: number
     chartHeight: number
-    /** When set, renders the relative + local time header. */
     time?: number
     startTime?: number
-    /** Widens the tooltip for content that can run long (e.g. category names). */
     wide?: boolean
     categoryColor?: string
     children: Snippet

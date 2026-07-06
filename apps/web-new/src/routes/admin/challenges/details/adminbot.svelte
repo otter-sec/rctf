@@ -1,11 +1,3 @@
-<!--
-  Admin bot tab (R19, AE9). Availability comes from `useAdminBotStatus` — a null
-  payload means the admin bot is not configured on the backend, so the pane shows
-  an empty state. Enabling reveals a monospace code editor for the bot script,
-  labelled with the backend's configured language (default "typescript"). Both the
-  enabled flag and the code route up through `onChange`, which the parent maps onto
-  the editor-state `updateAdminBot` transition.
--->
 <script lang="ts">
   import IconRobot from '$lib/icons/icon-robot.svelte'
   import { useAdminBotStatus } from '$lib/query/admin'
@@ -27,8 +19,6 @@
 
   const statusQuery = useAdminBotStatus()
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = statusQuery.isPending
   const status = $derived(statusQuery.data ?? null)
   const language = $derived(status?.configLanguage ?? 'typescript')

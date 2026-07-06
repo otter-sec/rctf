@@ -1,10 +1,3 @@
-<!--
-  Admin shell (/admin/*). Permission-gated in place: no redirect. While the
-  current-user and client-config queries settle we show a spinner; once resolved
-  we render one of three outcomes from decideAdminGate — a login card when logged
-  out, an access-denied card when the account lacks challsRead, or the child
-  route. Every admin route requires challsRead, so the gate lives at the layout.
--->
 <script lang="ts">
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'

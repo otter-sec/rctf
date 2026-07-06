@@ -1,11 +1,5 @@
-// Admin-bot job logs arrive as JSONL: one JSON object per line, emitted by the
-// admin-bot worker's OutputHandler ({ time, level, prefix, line, extra }). This
-// module turns that text into render-ready entries and validates the per-input
-// regex rules a challenge declares — both pure so the panel stays presentational.
-
 export type AdminBotLogLevel = 'info' | 'warn' | 'error' | 'fatal'
 
-/** One parsed admin-bot log line, normalized to always carry every field. */
 export type AdminBotLogEntry = {
   time: number
   level: AdminBotLogLevel
@@ -41,16 +35,6 @@ function toEntry(parsed: Record<string, unknown>): AdminBotLogEntry {
   }
 }
 
-/**
- * Parses admin-bot JSONL into normalized entries.
- *
- * Blank lines are ignored; a line that is not valid JSON, or is JSON but not an
- * object, is skipped (mirroring the old client). A line that parses to an object
- * is kept, with any missing or wrongly-typed field filled with a safe default so
- * the viewer never has to guard against holes.
- *
- * @param jsonl - Raw newline-delimited job logs.
- */
 export function parseAdminBotLogs(jsonl: string): AdminBotLogEntry[] {
   const entries: AdminBotLogEntry[] = []
   for (const raw of jsonl.split('\n')) {
@@ -70,17 +54,6 @@ export function parseAdminBotLogs(jsonl: string): AdminBotLogEntry[] {
   return entries
 }
 
-/**
- * Validates one admin-bot input value against its server-declared regex rule.
- *
- * A blank value fails as required. An otherwise non-empty value must match
- * `new RegExp(rule.pattern, rule.flags)`. If the server sends a pattern the
- * RegExp constructor rejects, validation is skipped and the value is accepted,
- * matching the old client — the server revalidates on submit regardless.
- *
- * @param value - The current input value.
- * @param rule - The regex rule ({ pattern, flags? }) for this input.
- */
 export function validateAdminBotInput(
   value: string,
   rule: { pattern: string; flags?: string }

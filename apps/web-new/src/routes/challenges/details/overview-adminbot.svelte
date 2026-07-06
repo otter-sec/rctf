@@ -1,13 +1,3 @@
-<!--
-  Admin-bot panel (challenge details / overview). Shown when a challenge sets
-  adminBotInputs. The current job is a TanStack query keyed by challenge so its
-  3s poll (while queued/running, off otherwise) survives remounts; each status
-  update refreshes the job history alongside it. Submitting a job is a direct
-  apiRequest with local per-input $state (the inputs are a dynamic record, not a
-  fixed form), optimistically seeding a QUEUED job then refetching for the real
-  queue position. History log fetches are lazy and imperative, guarded by a
-  request token so a slow response for a since-switched job is discarded.
--->
 <script lang="ts">
   import {
     AdminBotJobStatus,
@@ -56,8 +46,6 @@
   const configQuery = useClientConfig()
   const clientConfig = $derived(configQuery.data)
 
-  // Login-only gate off the userSelf query (null when signed out): the admin bot
-  // stays usable in archived/ended CTFs, unlike the flag bar (KTD-6).
   const userQuery = useCurrentUser()
   const isAuthenticated = $derived(userQuery.data != null)
 
@@ -79,7 +67,6 @@
   )
   const logEntries = $derived(job?.logs ? parseAdminBotLogs(job.logs) : [])
 
-  // History excludes the current job (the status query owns that one).
   const history = $derived((historyQuery.data ?? []).filter(entry => entry.id !== job?.id))
 
   const inputNames = $derived(Object.keys(inputs))
@@ -95,13 +82,9 @@
   let openHistoryLogsJobId = $state<string | null>(null)
   let historyLogs = $state<string | null>(null)
   let historyLogsLoading = $state(false)
-  // Bumped on every history-log request; a slow response whose token no longer
-  // matches (the user switched jobs meanwhile) is discarded.
   let historyLogsRequestId = 0
   const historyLogEntries = $derived(historyLogs ? parseAdminBotLogs(historyLogs) : [])
 
-  // Mirror the old client: keep history fresh alongside the status poll by
-  // invalidating it whenever the status query produces a new result.
   const statusUpdatedAt = $derived(statusQuery.dataUpdatedAt)
   $effect(() => {
     void statusUpdatedAt
@@ -150,7 +133,6 @@
         toast.success('Admin bot job submitted!')
         errors = {}
         logsOpen = false
-        // Optimistic QUEUED job, then refetch to get the real queue position.
         queryClient.setQueryData(statusKey, {
           id: res.data.jobId,
           status: AdminBotJobStatus.QUEUED,
@@ -172,7 +154,6 @@
   async function downloadConfig() {
     const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
     if (res.kind === GoodAdminBotConfig.kind) {
-      // Extension arrives dot-prefixed (e.g. '.ts'), so no separator is added.
       downloadTextFile(`bot${res.data.fileExtension}`, res.data.sourceCode, 'text/plain')
     } else {
       showApiError(res)
@@ -194,7 +175,6 @@
       id: challengeId,
       jobId,
     })
-    // A newer click switched the selected job while this was in flight.
     if (requestId !== historyLogsRequestId) return
     if (res.kind === GoodAdminBotJobLogs.kind) {
       historyLogs = res.data.logs

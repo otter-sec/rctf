@@ -1,9 +1,3 @@
-<!--
-  A single admin challenge row. Selection is expressed through data-selected so
-  CSS owns the ring and edge fade. Category colours are inherited from the
-  enclosing group (its data-category-color remaps the generic --category-* tokens).
-  Status icons flag hidden / dynamic-scoring / instancer / admin-bot challenges.
--->
 <script lang="ts">
   import { ChallengeScoringKind, type AdminChallenge } from '@rctf/types'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'

@@ -1,9 +1,3 @@
-<!--
-  Solve cadence histogram. Vertical bars over the adaptive activity buckets from
-  buildCadenceData; one delegated pointer handler on the SVG resolves the hovered
-  bar's data-index into an HTML tooltip showing the solve count and the bucket's
-  relative time range. Hand-rolled SVG on the shared chart core.
--->
 <script lang="ts">
   import ChartTip from '$lib/chart/chart-tip.svelte'
   import { createHoverTip } from '$lib/chart/hover-tip.svelte'

@@ -89,8 +89,6 @@
 </profile-header>
 
 <style>
-  /* The custom element is the size container; the inner layout element is what
-     the query restyles — an element cannot match a query against itself. */
   profile-header {
     container-type: inline-size;
     display: block;

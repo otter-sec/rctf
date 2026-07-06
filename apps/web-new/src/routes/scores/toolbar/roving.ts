@@ -1,9 +1,3 @@
-/**
- * Resolves the next focus index for a horizontal roving-focus `role="toolbar"`
- * group. ArrowLeft/ArrowRight wrap around the ends; Home/End jump to the edges.
- * Returns `null` for keys the toolbar does not handle (or an empty group) so the
- * caller can leave the event untouched.
- */
 export function moveRovingIndex(
   current: number,
   length: number,

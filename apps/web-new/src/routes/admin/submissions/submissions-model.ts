@@ -1,9 +1,3 @@
-/**
- * Pure state and shaping for the admin submissions audit table (R27-R30, AE7).
- * Everything here is DOM-free so it can be unit-tested apart from the Svelte
- * table shell: filter state, the query body serializer, the detail-pill
- * derivation, result tones, and the deep-link latch reducer.
- */
 import {
   SubmissionKind,
   SubmissionResult,
@@ -71,8 +65,6 @@ export type Submission = {
   createdAt: string
 }
 
-// A pill in the expanded detail row. `wide` widens the error pill, whose value
-// is the longest of the admin-bot fields.
 export type DetailEntry = { label: string; value: string; wide?: boolean }
 
 export const KIND_OPTIONS = [
@@ -93,8 +85,6 @@ export const TEAM_STATUS_OPTIONS = [
   SubmissionTeamStatus.NOT_BANNED,
 ] as const
 
-// createdAt sorts newest-first by default; every other column starts ascending,
-// matching the teams table's toggle behaviour.
 export const SUBMISSION_SORT_DEFAULTS: Record<SubmissionSortBy, SortOrder> = {
   [SubmissionSortBy.CREATED_AT]: 'desc',
   [SubmissionSortBy.CHALLENGE]: 'asc',
@@ -160,10 +150,6 @@ export function submissionFilterFingerprint(
   ].join('|')
 }
 
-/**
- * Composed fingerprint that changes on any filter or sort change. The shell
- * keys its scroll-reset and expansion-collapse effects off this string.
- */
 export function submissionQueryFingerprint(
   filters: SubmissionFilters,
   sort: SubmissionSort
@@ -171,12 +157,6 @@ export function submissionQueryFingerprint(
   return `${sort.by}:${sort.order}:${submissionFilterFingerprint(filters)}`
 }
 
-/**
- * Serializes the active filters and sort into the POST body for
- * `/v2/admin/submissions`. Include/exclude filters emit `{include|exclude:[…]}`;
- * an invalid time range emits no `createdAfter`/`createdBefore` (the editor
- * surfaces the error instead of silently querying a bad range).
- */
 export function buildSubmissionsBody(
   filters: SubmissionFilters,
   sort: SubmissionSort,
@@ -243,11 +223,6 @@ export function teamStatusLabel(status: string): string {
   }
 }
 
-/**
- * Result tone for all seven outcomes: correct and queued read as success,
- * already-solved and active-job as a cautionary warning, and every failure
- * (incorrect, invalid input, bad instancer) as danger.
- */
 export function resultTone(result: string): ResultTone {
   switch (result) {
     case SubmissionResult.CORRECT:
@@ -261,12 +236,6 @@ export function resultTone(result: string): ResultTone {
   }
 }
 
-/**
- * Pills shown in the expanded detail row. A flag submission carries only its
- * submitted flag; an admin-bot job carries its config revision, related job id,
- * each supplied input, an error, and an instance count — each omitted when the
- * corresponding field is absent.
- */
 export function detailEntries(submission: Submission): DetailEntry[] {
   const details = isRecord(submission.details) ? submission.details : {}
 
@@ -299,8 +268,6 @@ export function detailEntries(submission: Submission): DetailEntry[] {
   return entries
 }
 
-// Blank and the placeholder 'unknown' aren't routable IPs, so their badge is
-// inert rather than linking to the external lookup.
 export function isRealIp(ip: string): boolean {
   return ip.trim() !== '' && ip !== 'unknown'
 }
@@ -315,17 +282,6 @@ export function createDeepLinkLatch(): DeepLinkLatch {
   return { team: false, challenge: false }
 }
 
-/**
- * Applies a deep-linked team and/or challenge as include filters exactly once
- * each — as each referenced entity resolves. The latch records which sides have
- * fired so a later refetch of the resolved entity never re-overwrites a filter
- * the admin has since edited.
- *
- * @param filters - Filter state, mutated in place when a side first resolves.
- * @param latch - Which sides have already been applied.
- * @param resolved - The resolved team/challenge (undefined until they load).
- * @returns The next latch state to store.
- */
 export function applyDeepLinkFilters(
   filters: SubmissionFilters,
   latch: DeepLinkLatch,

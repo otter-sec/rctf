@@ -1,12 +1,6 @@
 import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
 import { resolveTimeRangeFilter, type TimeRangeFilter } from './time'
 
-/**
- * Human-readable label for a time-range chip: `X to Y` when both endpoints are
- * set, `After X` / `Before Y` for a single bound, and `Invalid time range` when
- * the filter cannot resolve. Absolute endpoints render as local times; relative
- * endpoints render as CTF offsets (`T+2h`).
- */
 export function formatTimeRangeSummary(
   filter: TimeRangeFilter,
   ctfStartTime: number | null | undefined
@@ -29,7 +23,6 @@ export function formatTimeRangeSummary(
   return ''
 }
 
-// A resolved filter has no error, so a non-empty absolute value already parsed.
 function absoluteEndpoint(value: string): string {
   if (!value.trim()) return ''
   return formatLocalTime(new Date(value).getTime())

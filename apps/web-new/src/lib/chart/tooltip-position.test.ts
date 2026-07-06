@@ -47,7 +47,6 @@ describe('clampBoxPosition', () => {
   })
 
   test('matches the chart-tooltip formula for a right-side placement', () => {
-    // Mirrors src/lib/chart/chart-tooltip.svelte's pre-extraction boxX/boxY.
     const anchor = { x: 120, y: 80 }
     const ttBox = { width: 184, height: 64 }
     const ttChart = { width: 320, height: 180 }
@@ -67,7 +66,6 @@ describe('clampBoxPosition', () => {
   })
 
   test('matches the profile-solve-tooltip formula for a left-flip placement', () => {
-    // Mirrors src/routes/profile/analytics/solve-tooltip.svelte's pre-extraction boxX/boxY.
     const anchor = { x: 300, y: 40 }
     const ttBox = { width: 220, height: 92 }
     const ttChart = { width: 400, height: 100 }

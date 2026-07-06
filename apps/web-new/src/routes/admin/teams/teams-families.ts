@@ -1,9 +1,3 @@
-/**
- * The teams table's two filter families, expressed against the shared
- * `ValueFilterFamily` descriptor so the committed filter menu, chips, and mobile
- * drawer render them generically. Status is a static dot+label family; Division
- * is driven by the deployment's configured divisions.
- */
 import { AdminTeamStatus } from '@rctf/types'
 import {
   clearFilter,
@@ -25,9 +19,6 @@ import {
   type TeamStatusValue,
 } from './teams-model'
 
-// The generic option renderer only carries success/warning/danger dots, so the
-// accent-toned Admin status falls back to a neutral dot in the filter menu; the
-// table's own Status cell paints the full four-tone (incl. accent) dot+label.
 function statusResultTone(status: TeamStatusValue): ResultTone | undefined {
   switch (status) {
     case AdminTeamStatus.ACTIVE:

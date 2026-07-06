@@ -85,8 +85,6 @@
     })
   )
 
-  // Category-grouped challenge cells share one faint background stripe per
-  // group (the old app's per-category rects); ungrouped modes stripe per cell.
   const challengeCellGroups = $derived.by((): { key: string; cells: ChallengeCell[] }[] | null => {
     if (viewMode === 'categories' || sortMode !== 'categories') return null
     const groups: { key: string; cells: ChallengeCell[] }[] = []
@@ -223,8 +221,6 @@
     contain-intrinsic-size: auto 100% auto var(--score-row-height);
   }
 
-  /* Alternating stripes differentiate adjacent categories (grouped mode) or
-     adjacent cells (ungrouped modes). */
   cell-group {
     display: flex;
     gap: 4px;
@@ -246,16 +242,10 @@
       background: color-mix(in oklab, var(--foreground-l0) 4%, transparent);
     }
 
-    /* Column echo: every cell sharing the hovered cell's column lights one
-       tone above the stripe, so the eye can trace up to the header label.
-       [data-tooltip-cell] ties this selector's specificity with the stripe
-       rule; source order lets it win. */
     &[data-tooltip-cell][data-col-hover] {
       background: color-mix(in oklab, var(--foreground-l0) 8%, transparent);
     }
 
-    /* One tone above the column echo so the hovered cell itself still reads
-       inside a lit column. */
     &[data-tooltip-cell]:hover {
       background: color-mix(in oklab, var(--foreground-l0) 12%, transparent);
     }
@@ -347,7 +337,6 @@
     font-size: var(--step--2);
     font-variant-numeric: tabular-nums;
 
-    /* Same triangle sizing as the team-row and challenge point-delta chips. */
     :global(svg[data-icon]) {
       flex-shrink: 0;
       inline-size: 0.625rem;

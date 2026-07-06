@@ -15,7 +15,6 @@ const endpoint = (
 })
 
 describe('formatEndpoint value + protocol tag', () => {
-  // [kind, port, expected value, expected protocol tag]
   const cases: [ExposeKind, number, string, string | undefined][] = [
     [ExposeKind.HTTP, 8080, 'http://chall.rctf.io:8080', 'http'],
     [ExposeKind.HTTP, 80, 'http://chall.rctf.io', 'http'],
@@ -82,7 +81,6 @@ describe('formatEndpoint label', () => {
 })
 
 describe('instancePollInterval', () => {
-  // [status, expected interval]
   const cases: [InstanceStatus | undefined, number | false][] = [
     [InstanceStatus.STARTING, 2000],
     [InstanceStatus.STOPPING, 2000],

@@ -47,11 +47,6 @@ export type LeaderboardParams = {
   division?: string
 }
 
-/**
- * Flattens infinite `with-graph` pages into a single board, concatenating the
- * per-page `leaderboard` and `graph` arrays in page order so rows and series
- * stay aligned. `total` comes from the most recent page.
- */
 export function mergeLeaderboardPages<L, G>(
   pages: { total: number; leaderboard: L[]; graph: G[] }[]
 ): { total: number; leaderboard: L[]; graph: G[] } {
@@ -62,10 +57,6 @@ export function mergeLeaderboardPages<L, G>(
   }
 }
 
-/**
- * Removes sanity-category challenges from the leaderboard-challenges metadata,
- * preserving the insertion order of the remaining entries.
- */
 export function excludeSanityChallenges<T extends { category: string }>(
   challenges: Record<string, T>
 ): Record<string, T> {
@@ -141,11 +132,6 @@ export function useLeaderboard(params: () => LeaderboardParams) {
   return createQuery(() => leaderboardQueryOptions(params()))
 }
 
-/**
- * Caching policy for the offset-hack graph query. Own-profile usage polls every
- * 30s; public-profile usage drops the poll and lets the entry go stale over five
- * minutes, since another team's rank is effectively static for a page view.
- */
 export type GraphCachingPolicy = {
   refetchInterval: number | false
   staleTime?: number
@@ -158,9 +144,6 @@ export const PUBLIC_GRAPH_CACHING: GraphCachingPolicy = {
   staleTime: 5 * 60 * 1000,
 }
 
-// offset = globalPlace - 1 until the API grows a per-team graph endpoint; the
-// entry is validated against our own id in case the place shifted between
-// /users/me and this request
 export function selfUserGraphQueryOptions(
   globalPlace: number | null,
   userId: string | null,

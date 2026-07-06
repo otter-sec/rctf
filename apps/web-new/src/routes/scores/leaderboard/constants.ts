@@ -1,6 +1,6 @@
 export const PAGE_SIZE = 15
-export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12 // 12 hours
-export const DELTA_WINDOW = 60 * 60 * 1000 * 2 // 2 hours
+export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12
+export const DELTA_WINDOW = 60 * 60 * 1000 * 2
 
 export const MEDAL_COLORS = [
   'var(--foreground-gold-l0)',

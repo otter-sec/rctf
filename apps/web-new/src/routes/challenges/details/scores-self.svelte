@@ -1,10 +1,3 @@
-<!--
-  The current user's score rendered as a self-variant row. The scores tab pins a
-  copy of this over the scroll container whenever the user's real row is off
-  screen (or on a page that has not loaded yet), so their standing stays in view.
-  Points and delta come from the challenge's own yourScore/yourPointDelta; the
-  rank, rank-movement chevron, and sparkline series are supplied by the parent.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import type { SparklinePoint } from '$lib/chart/sparkline.svelte'
@@ -48,8 +41,6 @@
     {#snippet rankAccessory()}
       <ChallengePointDelta delta={rankDelta} variant="rank" />
     {/snippet}
-    <!-- A distinct gradient id: the user's real list row may be mounted (just
-         clipped) at the same time, and its sparkline uses the bare id. -->
     <ScoreTrailing
       {points}
       delta={pointDelta}

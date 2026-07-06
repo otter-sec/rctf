@@ -1,9 +1,3 @@
-<!--
-  A single challenge row. Solve/blood/selected state is expressed purely through
-  data-* attributes so CSS owns the edge gradients, indicator icon, and ring.
-  Category colours are inherited from the enclosing group (its data-category-color
-  remaps the generic --category-* tokens).
--->
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'

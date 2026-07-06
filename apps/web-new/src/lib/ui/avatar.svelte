@@ -40,8 +40,6 @@
     object-fit: cover;
   }
 
-  /* Zag hides the fallback with the `hidden` attribute once the image loads;
-     an unconditional `display: flex` would override it and squeeze the image. */
   [data-part='fallback'][hidden] {
     display: none;
   }

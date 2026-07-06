@@ -1,9 +1,3 @@
-<!--
-  Details tab body: the markdown description, an optional files box (with
-  serialized "Download all" for multi-file challenges), and the instancer /
-  admin-bot boxes when the challenge configures them. Files/instancer/admin-bot
-  share a container-query grid that collapses to one column on narrow panes.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import Markdown from '$lib/components/markdown.svelte'
@@ -100,8 +94,6 @@
 </overview-content>
 
 <style>
-  /* 1.25rem inline + the sections' 1rem content padding = the 2.25rem text
-     rail shared with the details header. */
   overview-content {
     container-type: inline-size;
     display: flex;
@@ -119,7 +111,6 @@
       grid-template-columns: 1fr 1fr;
     }
 
-    /* A box left alone on its own row stretches to the full width. */
     > :global(:last-child:nth-child(odd)) {
       grid-column: 1 / -1;
     }

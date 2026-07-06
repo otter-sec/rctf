@@ -1,13 +1,3 @@
-<!--
-  Tab strip with a body per tab. All panels stay mounted; Zag toggles them via
-  the `hidden` attribute (no {#if}), so tab state survives switching.
-
-  <Tabs bind:value tabs={[{ value: 'a', label: 'A', count: 3 }, …]}>
-    {#snippet content({ value })}
-      …body for {value}…
-    {/snippet}
-  </Tabs>
--->
 <script lang="ts">
   import { normalizeProps, useMachine } from '@zag-js/svelte'
   import * as tabs from '@zag-js/tabs'
@@ -18,8 +8,6 @@
     label: string
     count?: number
     icon?: Component
-    // Renders an error dot on the trigger (data-invalid). Distinct from count:
-    // it flags a panel whose fields need attention, not a quantity.
     invalid?: boolean
   }
 
@@ -33,7 +21,6 @@
   let { value = $bindable(null), onValueChange, tabs: items, content }: Props = $props()
 
   const id = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(tabs.machine, () => ({
     id,
     value,

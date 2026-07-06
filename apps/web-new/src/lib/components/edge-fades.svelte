@@ -1,11 +1,3 @@
-<!--
-  Vertical edge fades for a paged list with a pinned self overlay. Explicit
-  overlay elements (not the scrollFade mask): the pinned overlay sits on top of
-  the scroll element, so a mask fade would vanish beneath it — these shift past
-  the overlay via `selfEdge` and wash the rows sliding beneath it instead. The
-  wrapper is display: contents, so the fades position against the caller's
-  relative viewport.
--->
 <script lang="ts">
   type Props = {
     top: boolean
@@ -25,8 +17,6 @@
   edge-fades {
     display: contents;
 
-    /* The pinned overlay's block-size at each edge: a 4rem details row plus
-       the overlay's paddings (the top pin adds a 1rem breathing gap). */
     --fade-inset-top: 0px;
     --fade-inset-bottom: 0px;
 

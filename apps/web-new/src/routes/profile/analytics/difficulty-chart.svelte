@@ -1,9 +1,3 @@
-<!--
-  Difficulty profile. Horizontal bars over the fixed solve-count bins from
-  buildDifficultyData: a grey track = challenges available in the bin, a filled
-  bar = the user's solves in it. One delegated pointer handler resolves the
-  hovered row into an HTML tooltip (`x/y challenges` + points earned).
--->
 <script lang="ts">
   import ChartTip from '$lib/chart/chart-tip.svelte'
   import { createHoverTip } from '$lib/chart/hover-tip.svelte'

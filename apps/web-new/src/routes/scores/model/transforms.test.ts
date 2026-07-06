@@ -83,7 +83,6 @@ describe('getChallengesByCategory — sanity exclusion + ordering', () => {
   })
 
   test('orders by scoreboard category then points desc', () => {
-    // pwn (order 1) precedes web (order 6); within web, higher points first.
     const ids = getChallengesByCategory(challenges).map(c => c.id)
     expect(ids).toEqual(['p1', 'w2', 'w1'])
   })
@@ -306,8 +305,6 @@ describe('mergeWithSelfGraph', () => {
 })
 
 describe('getSparklineDataByTeam — window anchored to newest data point', () => {
-  // Timestamps are far below Date.now(); anchoring to the max data point (not
-  // wall-clock) is what keeps any point inside the 12h window.
   const MAX = 100_000_000
   const allGraphData = [
     {
@@ -323,11 +320,7 @@ describe('getSparklineDataByTeam — window anchored to newest data point', () =
 
   test('teams with in-window activity keep their raw windowed points', () => {
     const map = getSparklineDataByTeam(allGraphData, null)
-    // window start = MAX - 12h = 56_800_000; only the two recent points
-    // survive, with no synthesized endpoints (the sparkline stretches to the
-    // team's own activity range).
     expect(map.get('a')!.map(p => p.time)).toEqual([60_000_000, 99_000_000])
-    // A single point exactly at the window end has no history to draw.
     expect(map.get('b')!).toHaveLength(1)
   })
 
@@ -369,7 +362,6 @@ describe('getSparklineDataByTeam — window anchored to newest data point', () =
 })
 
 describe('getRankDeltaByTeam — 2h re-rank from graph data', () => {
-  // Current: C=500, A=300, B=250. Past (2h before newest): C=500, B=200, A=50.
   const allGraphData = [
     {
       id: 'a',
@@ -438,17 +430,13 @@ describe('getGraphVisibility', () => {
 
   test('caps the viewport window at PAGE_SIZE and pins top-3 + self when outside', () => {
     const { visibleTeamIds, contextTeamIds } = getGraphVisibility(baseConfig())
-    // Window ranks 5..19 (15 = PAGE_SIZE rows, maxRank clamped down).
     const windowIds = Array.from({ length: PAGE_SIZE }, (_, i) => `t${i + 5}`)
     for (const id of windowIds) expect(visibleTeamIds.has(id)).toBe(true)
-    // A team past the window that is neither top-3 nor self stays hidden.
     expect(visibleTeamIds.has('t21')).toBe(false)
-    // top-3 pinned into visible + context.
     for (const id of ['t1', 't2', 't3']) {
       expect(visibleTeamIds.has(id)).toBe(true)
       expect(contextTeamIds.has(id)).toBe(true)
     }
-    // self (rank 20, outside the window) is added to visible.
     expect(visibleTeamIds.has('t20')).toBe(true)
     expect(visibleTeamIds.size).toBe(PAGE_SIZE + 3 + 1)
   })
@@ -459,7 +447,6 @@ describe('getGraphVisibility', () => {
       currentUserId: 't2',
     })
     expect(visibleTeamIds.has('t2')).toBe(true)
-    // window (15) + top-3 (3); self is already in top-3 so no extra entry.
     expect(visibleTeamIds.size).toBe(PAGE_SIZE + 3)
   })
 

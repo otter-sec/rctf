@@ -1,8 +1,3 @@
-<!--
-  Hover/focus-revealed pin toggles for the scoreboard graph. State lives in the
-  route's URL/preferences layer, so these are value + callback props (not
-  bindable); the component only reflects state via data-active and aria-pressed.
--->
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import IconMoodHappyFilled from '$lib/icons/icon-mood-happy-filled.svelte'

@@ -1,8 +1,3 @@
-<!--
-  Trailing cell shared by the scores-tab list rows and the pinned self row:
-  the points value with its delta chip, plus the team's 12h sparkline in its
-  series colour.
--->
 <script lang="ts">
   import Sparkline, { type SparklinePoint } from '$lib/chart/sparkline.svelte'
   import ChallengePointDelta from '../model/point-delta.svelte'
@@ -10,10 +5,8 @@
   interface Props {
     points: number
     delta: number | undefined
-    /** Series colour role, matching the team's graph line. */
     role: string
     sparkline: SparklinePoint[]
-    /** Also the SVG gradient id — must be unique per rendered sparkline. */
     sparklineId: string
   }
 
@@ -54,8 +47,6 @@
     }
   }
 
-  /* The sparkline inherits its series colour from data-series-role (the same
-     ramp the graph lines use) and, like /scores, only shows on wider rows. */
   spark-slot {
     display: none;
 

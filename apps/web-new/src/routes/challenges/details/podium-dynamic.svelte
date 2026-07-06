@@ -1,10 +1,3 @@
-<!--
-  Dynamic (KotH) podium. Data comes from the limit-4 scores query, which also
-  carries the caller's own rank (myPosition). Slot arrangement is shared with the
-  flag variant via resolvePodiumSlots; only the detail lines differ: every slot
-  reads 'N pts', the self fallback uses the challenge's own yourScore, and the
-  empty placeholder reads 'No score'.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { useChallengeScores } from '$lib/query/challenges'
@@ -24,8 +17,6 @@
   )
   const userQuery = useCurrentUser()
 
-  // Non-reactive read: true only when this mount actually starts behind the
-  // per-slot spinners, so a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = scoresQuery.isPending
 
   const currentUser = $derived(userQuery.data)

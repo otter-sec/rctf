@@ -25,9 +25,6 @@
     showSelfContext: () => urlState.showSelfContext,
   })
 
-  // Non-reactive read: true only when this visit actually starts behind the
-  // spinner. A revisit with warm cache mounts the board directly and should
-  // not replay the reveal fade.
   const revealAfterLoading = data.isLoading
 </script>
 
@@ -44,8 +41,6 @@
     <ScoresToolbar {data} {urlState} {divisions} />
 
     {#if data.isLoading}
-      <!-- Everything (rows, cells, graph) loads behind one spinner — the old
-           app's behavior; no progressively-filling skeleton. -->
       <scores-leaderboard-slot>
         <Spinner />
       </scores-leaderboard-slot>
@@ -79,9 +74,6 @@
     flex: 1;
     flex-direction: column;
     min-block-size: 0;
-    /* Hard-cap the page to the viewport so the leaderboard's inner scroll
-       region is bounded; the app shell only sets min-block-size: 100dvh, so
-       flex:1 alone would let the tall virtual list grow the page instead. */
     block-size: calc(100dvh - var(--header-height));
     max-block-size: calc(100dvh - var(--header-height));
     overflow: hidden;

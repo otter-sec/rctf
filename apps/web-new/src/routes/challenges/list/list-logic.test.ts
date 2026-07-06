@@ -194,8 +194,6 @@ describe('filterChallenges', () => {
       hideSolved: true,
       solvedIds: new Set(['2']),
     })
-    // 'o' matches Web Warmup (author bob), Crypto Chaos (name/author carol);
-    // Web Warmup is solved and excluded.
     expect(result.map(challenge => challenge.id)).toEqual(['3'])
   })
 })

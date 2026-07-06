@@ -1,6 +1,5 @@
 import type { Member } from '@rctf/types'
 
-/** Client-side email shape check, mirroring the old app's members validation. */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function isValidEmail(email: string): boolean {
@@ -12,12 +11,6 @@ export type MemberChange =
   | { kind: 'remove'; id: string }
   | { kind: 'none' }
 
-/**
- * Turn a tag-input change into a single membership mutation. An added email
- * (present in `next` but not `current`) wins over a removal, matching the old
- * component; a removal maps the dropped email back to its membership id — the
- * members API deletes by id, not email.
- */
 export function diffMemberChange(
   currentEmails: string[],
   nextEmails: string[],

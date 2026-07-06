@@ -19,7 +19,6 @@ const googleHandler: AnalyticsHandler = {
 
     const dataLayer = window.dataLayer ?? []
     window.dataLayer = dataLayer
-    // gtag requires the live arguments object, not an array
     window.gtag = function () {
       dataLayer.push(arguments)
     }

@@ -1,12 +1,3 @@
-<!--
-  Per-row action buttons for the teams table. Registered non-admin rows expose
-  Manage / Copy token / Ban-Unban / Delete; admin accounts collapse to a static
-  "Admin account" badge (they cannot be managed from here — the API rejects it);
-  pending rows expose Resend / Verify. Each button carries a `data-tip` label
-  that the table's delegated tooltip resolves, and shows a spinner while its own
-  mutation is in flight. All actions require usersWrite; Manage also needs
-  challsRead.
--->
 <script lang="ts">
   import IconAward from '$lib/icons/icon-award-filled.svelte'
   import IconCheck from '$lib/icons/icon-check.svelte'

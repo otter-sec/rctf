@@ -17,8 +17,6 @@
     () => user?.id ?? null
   )
 
-  // window anchored to the newest data point, not Date.now(), so stale data
-  // keeps its shape instead of sliding off the left edge
   const points = $derived.by(() => {
     const all = graphQuery.data?.points ?? []
     if (all.length === 0) return []

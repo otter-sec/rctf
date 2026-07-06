@@ -10,9 +10,6 @@
   import FilterPopover from './filter-popover.svelte'
   import type { ValueFilterFamily, ValueFilterOption } from './ui'
 
-  // Renders one chip per active value family, iterating generically over the
-  // descriptors (no per-family snippets). Time is a separate concern (U5); its
-  // chip slots in through `timeChip`.
   type Props = {
     families: ValueFilterFamily[]
     filterFor: (family: ValueFilterFamily) => MultiFilter<unknown>

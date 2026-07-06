@@ -20,7 +20,6 @@
 
 <style>
   [data-part='group'] {
-    /* Zag inlines z-index: 2147483647; keep the app layer scale authoritative */
     z-index: var(--layer-toast) !important;
   }
 </style>

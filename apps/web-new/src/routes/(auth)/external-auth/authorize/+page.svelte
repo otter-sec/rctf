@@ -49,8 +49,6 @@
         loadError = 'This integration is not recognized.'
         return
       }
-      // bytes-exact match: the backend would also reject, but failing fast in
-      // the UI avoids issuing a code that won't redirect anywhere useful
       if (response.data.redirectUri !== redirectUri) {
         loadError = 'The redirect URI does not match what was registered for this integration.'
         return

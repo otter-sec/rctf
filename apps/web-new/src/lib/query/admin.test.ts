@@ -1,7 +1,3 @@
-// admin.ts imports $lib/api, which pulls in the SvelteKit virtual module
-// $app/environment. bun test can't resolve that, so stub it before the module
-// is dynamically imported below. Static imports resolve before mock.module runs,
-// hence the dynamic import in beforeAll.
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
 mock.module('$app/environment', () => ({ browser: false }))
@@ -13,15 +9,11 @@ beforeAll(async () => {
 })
 
 describe('nextPageOffset', () => {
-  // A filtered submissions sequence: 250 rows fetched 100 at a time, then a
-  // short final page. Offset advances by the page's own length until every row
-  // has been read, at which point paging stops.
   const page = (offset: number, count: number, total: number) => ({
     lastPage: { offset, total },
     items: Array.from({ length: count }, (_, index) => index),
   })
 
-  // [offset, count, total, expected]
   const cases: [number, number, number, number | undefined][] = [
     [0, 100, 250, 100],
     [100, 100, 250, 200],

@@ -1,9 +1,3 @@
-<!--
-  Collapsible JSONL log viewer for a single admin-bot job. Each line shows a
-  24-hour timestamp, a level letter (colored via data-level), the [prefix] and
-  message; lines carrying `extra` expand to a key-value block. Owns its own
-  expansion state, so it resets when the parent unmounts it (switching jobs).
--->
 <script lang="ts">
   import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
   import IconDownload from '$lib/icons/icon-download.svelte'

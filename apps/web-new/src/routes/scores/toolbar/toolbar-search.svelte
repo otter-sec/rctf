@@ -16,7 +16,6 @@
   let inputEl = $state<HTMLInputElement | null>(null)
   const captureInput = captureElement<HTMLInputElement>(node => (inputEl = node))
 
-  // Ctrl/Cmd+F focuses the team search instead of the browser find (R18).
   function handleWindowKeydown(event: KeyboardEvent) {
     if (event.altKey || !(event.ctrlKey || event.metaKey)) return
     if (event.key.toLowerCase() !== 'f') return

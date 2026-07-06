@@ -8,8 +8,6 @@ import {
   type SortState,
 } from './admin-table-logic'
 
-// Per-column default orders shared by the sort matrix below: score/solves/
-// createdAt open descending (largest/newest first), everything else ascending.
 const DEFAULTS = {
   team: 'asc',
   createdAt: 'desc',
@@ -39,8 +37,6 @@ describe('nextSort', () => {
   })
 
   test('clicking a new column adopts that column default, ignoring the prior order', () => {
-    // Prior order was ascending on `team`; switching to `score` must not carry
-    // it over — `score` opens on its own default (descending).
     expect(
       nextSort(sort({ by: 'team', order: 'asc' }), 'score', DEFAULTS)
     ).toEqual({
@@ -64,7 +60,6 @@ describe('expansion row math', () => {
   })
 
   test('isDetailRowIndex marks only the slot right after the expanded row', () => {
-    // Row 3 expanded: virtual index 4 is its detail row; 3 and 5 are not.
     expect(isDetailRowIndex(3, 3)).toBe(false)
     expect(isDetailRowIndex(4, 3)).toBe(true)
     expect(isDetailRowIndex(5, 3)).toBe(false)
@@ -76,10 +71,9 @@ describe('expansion row math', () => {
   })
 
   test('rowIndexForVirtualRow shifts rows after the detail row back by one', () => {
-    // Expanded at data index 3 → virtual layout [0,1,2,3,detail,4,5,...].
-    expect(rowIndexForVirtualRow(2, 3)).toBe(2) // before the expanded row
-    expect(rowIndexForVirtualRow(3, 3)).toBe(3) // the expanded row itself
-    expect(rowIndexForVirtualRow(5, 3)).toBe(4) // first row after the detail
+    expect(rowIndexForVirtualRow(2, 3)).toBe(2)
+    expect(rowIndexForVirtualRow(3, 3)).toBe(3)
+    expect(rowIndexForVirtualRow(5, 3)).toBe(4)
     expect(rowIndexForVirtualRow(6, 3)).toBe(5)
   })
 

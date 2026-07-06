@@ -1,8 +1,3 @@
-/**
- * Shared confirm-dialog state for admin destructive/sensitive actions. A caller
- * stages a request (title/message/labels plus a `run` callback); confirming
- * closes the dialog before invoking `run`, and cancelling drops the request.
- */
 export type ConfirmRequest = {
   title: string
   message: string

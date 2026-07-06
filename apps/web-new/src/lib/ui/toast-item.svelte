@@ -10,7 +10,6 @@
 
   let { actor, parent, index }: Props = $props()
 
-  // Zag thunk rule: actor/index change across renders and must reach the machine
   const service = useMachine(toast.machine, () => ({
     ...actor,
     parent,

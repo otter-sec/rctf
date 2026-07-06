@@ -18,24 +18,18 @@
   import ChallengesList from './list/list.svelte'
   import { getDeepLinkId, resolveClose, type CloseSource } from './model/drawer-history'
 
-  // Prop contract the list and detail panes are wired against; kept explicit so
-  // the two render sites (desktop panes, mobile drawer) stay in sync.
   type ChallengeListProps = {
     challenges: Challenge[]
     solvedIds: ReadonlySet<string>
     bloodIds: { gold: Set<string>; silver: Set<string>; bronze: Set<string> }
     selectedId: string | null
     onSelect: (challenge: Challenge) => void
-    // U5: force-expand this challenge's category and bypass hide-solved for its
-    // row so a deep link always reveals the target. Null once nothing is pending.
     deepLinkTarget: string | null
   }
   type ChallengeDetailProps = {
     challenge: Challenge | null
     isSolved: boolean
     onSolve: (challengeId: string) => void
-    // Lifted above the per-challenge remount so the active tab survives
-    // switching challenges.
     tab: string
     onTabChange: (tab: string) => void
   }
@@ -59,9 +53,6 @@
   let detailsTab = $state('details')
   let deepLinkTarget = $state<string | null>(null)
   let innerWidth = $state(0)
-  // Router readiness gates shallow routing (pushState throws before the first
-  // navigation settles). pendingDrawerId defers a cold deep-link's mobile drawer
-  // open until afterNavigate fires.
   let routerReady = $state(false)
   let pendingDrawerId = $state<string | null>(null)
 
@@ -83,9 +74,6 @@
     return `${url.pathname}${url.search}`
   }
 
-  // Mobile open pushes a history entry (page.state.challengeDrawer) so Back
-  // dismisses the drawer; the URL carries the param because state is lost on
-  // reload. The param must live on the pushed entry, not page.state alone.
   function openDrawer(id: string) {
     pushState(challengeUrl(id), { challengeDrawer: true })
   }
@@ -94,17 +82,13 @@
     if (resolveClose(source, page.state.challengeDrawer === true) === 'history-back') {
       history.back()
     }
-    // 'close-direct': the entry is already gone (Back) or was never pushed, so
-    // page.state reactivity closes the drawer with nothing more to do.
   }
 
   function handleSelect(challenge: Challenge) {
     selectedId = challenge.id
     if (!isMobile) {
-      // Desktop selection is history-silent so Back never walks selections.
       replaceState(challengeUrl(challenge.id), { ...page.state })
     } else if (page.state.challengeDrawer === true) {
-      // Drawer already open: swap the challenge without stacking a new entry.
       replaceState(challengeUrl(challenge.id), { challengeDrawer: true })
     } else {
       openDrawer(challenge.id)
@@ -112,8 +96,6 @@
   }
 
   function handleDrawerOpenChange(open: boolean) {
-    // Opening is driven by us via pushState; only react to user-initiated closes
-    // (Esc, backdrop, close button all surface here identically).
     if (!open) closeDrawer('backdrop')
   }
 
@@ -121,10 +103,6 @@
     invalidateAfterSolve(queryClient, challengeId, id => localSolvedIds.add(id))
   }
 
-  // Deep-link latch: once, after challenges load and the form factor is known,
-  // restore the ?challenge= selection, open the drawer on mobile, and scroll to
-  // the row. The row mounts a frame or two after the data lands (accordion
-  // content renders behind the machine), so retry briefly instead of once.
   function scrollToRow(id: string, attempts = 60) {
     const el = document.getElementById(`chall-${id}`)
     if (el) {
@@ -148,11 +126,6 @@
     latched = true
   })
 
-  // Shallow routing (pushState) throws until SvelteKit's router has finished its
-  // first navigation, which on a cold deep-link load happens after the initial
-  // latch effect. afterNavigate fires once the router is ready; open the mobile
-  // deep-link drawer then. Runtime selections happen well after this, so they
-  // push directly.
   afterNavigate(() => {
     routerReady = true
     if (pendingDrawerId && isMobile && page.state.challengeDrawer !== true) {
@@ -162,19 +135,14 @@
     }
   })
 
-  // Keep the drawer/selection consistent across the desktop/mobile boundary,
-  // mirroring the old wasMobile latch but routing through history.
   let wasMobile = $state(false)
   $effect(() => {
     const mobile = isMobile
     if (wasMobile === mobile) return
     wasMobile = mobile
     if (!mobile) {
-      // mobile → desktop: drop the drawer entry, keep the selection for the pane.
       if (page.state.challengeDrawer === true) closeDrawer('resize-to-desktop')
     } else if (routerReady && selectedId && page.state.challengeDrawer !== true) {
-      // desktop → mobile with a selection: re-open the drawer. Before the router
-      // is ready the cold-load latch owns the initial mobile open (pendingDrawerId).
       openDrawer(selectedId)
     }
   })
@@ -206,7 +174,6 @@
 
 {#snippet detailPane(props: ChallengeDetailProps)}
   <challenges-detail-slot>
-    <!-- Remount per challenge so form/sub-query state resets on switch. -->
     {#key props.challenge?.id}
       <ChallengeDetails {...props} />
     {/key}
@@ -247,8 +214,6 @@
 {/if}
 
 <style>
-  /* Lock the page to the space under the header; the list and details panes
-     own their scrolling. */
   challenges-page {
     display: flex;
     block-size: calc(100dvh - var(--header-height));
@@ -258,8 +223,6 @@
     &[data-form='mobile'] {
       flex-direction: column;
 
-      /* Full-width under the header on mobile — a rounded top-right corner
-         against the straight header edge reads as a glitch. */
       pane-surface[data-side='list'] {
         flex: 1;
         min-block-size: 0;
@@ -307,8 +270,6 @@
     overflow: auto;
   }
 
-  /* Portaled drawer content escapes this subtree, so size it via a global knob
-     scoped to the drawer presentation. Only the challenges drawer uses it. */
   :global([data-presentation='drawer']) {
     --dialog-drawer-max-size: 85dvh;
   }

@@ -112,7 +112,6 @@ describe('buildProfileGraphData line splitting', () => {
 
     expect(data.dynamicLine).toEqual([])
     expect(data.hasDynamicLine).toBe(false)
-    // staticLine mirrors total (dynamic is zero everywhere) but adds no info.
     expect(data.staticLine).toEqual([
       { time: 100, score: 500 },
       { time: 200, score: 800 },
@@ -187,7 +186,6 @@ describe('buildProfileGraphData solve dots', () => {
       })
     )
 
-    // Static line at t=200 is 500; before = 500 - 50, after = 500.
     expect(data.solveDots[0]).toMatchObject({ scoreBefore: 450, score: 500 })
   })
 

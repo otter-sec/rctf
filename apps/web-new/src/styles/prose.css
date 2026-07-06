@@ -18,8 +18,6 @@ prose-content {
     margin-block-end: 0;
   }
 
-  /* Card-like blocks (alerts, connection blocks) keep a little breathing room
-     against the container edge, unlike plain text blocks. */
   > [data-alert]:last-child {
     margin-block-end: 0.5rem;
   }

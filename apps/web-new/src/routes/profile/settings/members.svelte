@@ -28,7 +28,6 @@
   const members = $derived(membersQuery.data ?? [])
   const memberEmails = $derived(members.map(member => member.email))
 
-  // A rejected add remounts the tag input to clear the pending entry.
   let tagInputKey = $state(0)
   let deleting = $state<string | null>(null)
 

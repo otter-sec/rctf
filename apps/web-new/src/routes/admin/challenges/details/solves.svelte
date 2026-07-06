@@ -1,13 +1,3 @@
-<!--
-  Solves tab (R20). The public challenge-solves feed rendered as a plain paged
-  list (KTD-9) — the same idiom as the player solves tab, minus the pinned
-  self-row: every loaded row stays mounted under `content-visibility: auto` and an
-  IntersectionObserver sentinel pulls the next page. Each row carries a Revoke
-  action (only with `challsSolveWrite`); confirming it deletes the solve via
-  `/v2/admin/challs/:id/solves/:userId`, then invalidates the solves, player
-  challenges, and leaderboard caches. The per-row spinner tracks the in-flight
-  revoke by user id.
--->
 <script lang="ts">
   import { DeleteChallengeSolveRouteV2, GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
@@ -46,8 +36,6 @@
     () => totalSolves
   )
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = solvesQuery.isPending
 
   const canRevoke = $derived(hasPermissions(userQuery.data, Permissions.challsSolveWrite))
@@ -60,8 +48,6 @@
   const allSolves = $derived(solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
-  // The scroll container, captured so the edge fades and load-more observer can
-  // read it.
   let scrollRoot = $state<HTMLElement | null>(null)
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
   const geometry = createScrollGeometry(() => scrollRoot)
@@ -248,9 +234,6 @@
     padding: 1rem 1.25rem;
   }
 
-  /* Intrinsic estimate matches the real 4rem row height so never-rendered slots
-     do not shift positions as rows paint or skip (the 4px gap is the flex gap,
-     outside the slot). */
   row-slot {
     display: block;
     content-visibility: auto;

@@ -1,9 +1,3 @@
-<!--
-  The three editor dialogs: unsaved-changes confirm (AE1), description preview,
-  and delete confirm. Each is driven by an `open` boolean derived from the
-  editor mode; dismissing via Esc/backdrop routes through the same "cancel" path
-  as the explicit buttons so the state machine never desyncs from the UI.
--->
 <script lang="ts">
   import Markdown from '$lib/components/markdown.svelte'
   import IconTrashFilled from '$lib/icons/icon-trash-filled.svelte'

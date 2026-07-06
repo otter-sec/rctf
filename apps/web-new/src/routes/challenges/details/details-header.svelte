@@ -1,8 +1,3 @@
-<!--
-  Detail header: name + author, the category chip (its own data-category-color
-  remaps the generic --category-* tokens), any extra tags, and — for scored
-  challenges — the points and solve count on the trailing edge.
--->
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import Chip from '$lib/ui/chip.svelte'
@@ -54,8 +49,6 @@
 </details-header>
 
 <style>
-  /* Fixed 2.25rem inline padding is the detail pane's alignment rail: the tab
-     strip (1.25rem) + section padding (1rem) lines body text up with this. */
   details-header {
     display: flex;
     align-items: flex-start;

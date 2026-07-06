@@ -1,12 +1,3 @@
-<!--
-  Scores tab — dynamic (KotH) challenges. A cumulative-score graph sits above a
-  plain paged ranked list (KTD-3), no virtualizer: every loaded row is in the DOM
-  but marked `content-visibility: auto`, so off-screen rows skip paint and layout.
-  An IntersectionObserver sentinel drives load-more; a second observer tracks the
-  user's own row so a pinned copy can be shown whenever it scrolls out of view (or
-  lives on a page that has not loaded yet). Each row carries a rank-movement
-  chevron plus 'N pts' and the point-delta chip on the trailing edge.
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
@@ -42,15 +33,11 @@
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
   const scoresQuery = useChallengeScoresInfinite(() => challenge.id)
-  // A limit-1 read carries the caller's own rank so a solver on an unloaded page
-  // can still be pinned, without pulling their whole page.
   const selfQuery = useChallengeScores(
     () => challenge.id,
     () => ({ limit: 1, offset: 0 })
   )
 
-  // Non-reactive read: true only when this mount actually starts behind the
-  // spinner, so a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = scoresQuery.isPending
 
   const currentUser = $derived(userQuery.data)
@@ -64,9 +51,6 @@
   const allScores = $derived(scoresQuery.data?.pages.flatMap(page => page.scores) ?? [])
   const total = $derived(scoresQuery.data?.pages[0]?.total ?? 0)
 
-  // The graph series are duplicated across pages; keep the first sighting of
-  // each team id so the graph draws every team once. Points arrive newest-first
-  // and are sorted ascending once here, for the graph and sparklines alike.
   type GraphSeries = NonNullable<typeof scoresQuery.data>['pages'][number]['graph'][number]
   const graph = $derived.by(() => {
     const seen = new Set<string>()
@@ -84,7 +68,6 @@
 
   const rankDeltas = $derived(computeRankDeltas(allScores))
 
-  // Same 12h trailing window as the /scores leaderboard sparklines.
   const sparklineByTeam = $derived(getSparklineDataByTeam(graph, null))
 
   const myPosition = $derived(selfQuery.data?.myPosition ?? null)
@@ -93,17 +76,12 @@
   )
   const selfRankDelta = $derived(currentUser ? rankDeltas.get(currentUser.id) : undefined)
 
-  // The scroll container, captured by an attachment so scroll geometry and the
-  // load-more observer below can use it.
   let scrollRoot = $state<HTMLElement | null>(null)
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   const geometry = createScrollGeometry(() => scrollRoot)
   const fades = deriveEdgeFades(geometry)
 
-  // Hovering a row's sparkline highlights that team's line in the graph
-  // (matching /scores' cross-highlight); any other surface clears it. One
-  // delegated listener on the viewport covers the list and the pinned overlay.
   let hoveredTeamId = $state<string | null>(null)
 
   function handleSparkHover(event: PointerEvent) {
@@ -117,32 +95,21 @@
     hoveredTeamId = null
   }
 
-  // The current user's real row, captured so the shared clip can read its
-  // layout position.
   let selfRowNode = $state<HTMLElement | null>(null)
   const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
   const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
 
-  // Which edge to pin the self overlay to, decided by the self-position query —
-  // not geometry alone, so a scorer on an unloaded page still gets pinned.
   const pinnedEdge = $derived.by((): 'top' | 'bottom' | null => {
     if (myPosition === null || !currentUser) return null
     if (userScoreIndex === -1) return 'bottom'
     return selfClip.edge
   })
 
-  // The list and overlay elements, captured so the live graph window below can
-  // measure real row geometry (the row gap is a fluid token, so the stride is
-  // measured rather than assumed) and exclude rows hidden behind the pin.
   let listNode = $state<HTMLElement | null>(null)
   const captureList = captureElement<HTMLElement>(node => (listNode = node))
   let overlayNode = $state<HTMLElement | null>(null)
   const captureOverlay = captureElement<HTMLElement>(node => (overlayNode = node))
 
-  // Row stride and first-row midpoint are layout facts: they change on resize
-  // (the row gap is a fluid token) or content growth (page loads), never on
-  // scroll alone — so the offset reads key off those signals and stay out of
-  // the per-scroll path below.
   const rowMetrics = $derived.by(() => {
     if (geometry.clientWidth === 0 || geometry.scrollHeight === 0) return null
     const row0 = listNode?.firstElementChild as HTMLElement | null | undefined
@@ -153,10 +120,6 @@
     return { mid0: row0.offsetTop + row0.offsetHeight / 2, stride }
   })
 
-  // Live scroll window over the ranked rows, like /scores: a row counts as
-  // visible while its midpoint is inside the viewport band (minus the pinned
-  // overlay's edge). Identity-memoed so per-scroll-frame recomputes only
-  // propagate to the graph when the window actually changes.
   let lastWindow = { first: -1, last: -1 }
   const liveWindow = $derived.by(() => {
     let first = -1
@@ -191,7 +154,6 @@
     return ids
   })
 
-  // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {
     const root = scrollRoot
     if (!root) return
@@ -237,8 +199,6 @@
       />
     </scores-graph>
 
-    <!-- The pointer handlers only delegate sparkline hover to the graph
-         highlight; the viewport itself carries no interactive semantics. -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <scores-viewport
       data-reveal={revealAfterLoading || undefined}
@@ -353,10 +313,6 @@
     padding: 0.75rem 1.25rem 1rem;
   }
 
-  /* The intrinsic estimate must equal the real slot height (a 4rem row; the
-     4px row gap is the list's flex gap, outside the slot). An overestimate
-     makes never-rendered slots taller than rendered ones, so positions shift
-     as slots render/skip and scroll anchoring visibly nudges the list. */
   row-slot {
     display: block;
     content-visibility: auto;
@@ -377,9 +333,6 @@
     block-size: 1px;
   }
 
-  /* Pinned copy of the user's row, held over the top or bottom edge of the
-     scroll viewport. Transparent to pointer events so scrolling and hovering the
-     rows underneath still work, except the profile link stays clickable. */
   self-overlay {
     position: absolute;
     inset-inline: 0;
@@ -388,9 +341,6 @@
     pointer-events: none;
     background: var(--background-l2);
 
-    /* The top pin keeps a 1rem breathing gap (matching the list's block
-       padding) instead of sitting flush against the viewport edge; the gap is
-       part of the overlay's opaque surface so rows scroll beneath it. */
     &[data-edge='top'] {
       inset-block-start: 0;
       padding-block-start: 1rem;

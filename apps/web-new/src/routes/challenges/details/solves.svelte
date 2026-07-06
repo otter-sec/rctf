@@ -1,10 +1,3 @@
-<!--
-  Solves tab — a plain paged list (KTD-3), no virtualizer. Every loaded row is in
-  the DOM but marked `content-visibility: auto`, so off-screen rows skip paint and
-  layout. An IntersectionObserver sentinel drives load-more; a second observer
-  tracks the current user's own row so a pinned copy can be shown whenever it
-  scrolls out of view (or lives on a page that has not loaded yet).
--->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
@@ -41,8 +34,6 @@
   )
   const selfQuery = useChallengeSolvesSelf(() => challenge.id)
 
-  // Non-reactive read: true only when this mount actually starts behind the
-  // spinner, so a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = solvesQuery.isPending
 
   const currentUser = $derived(userQuery.data)
@@ -65,24 +56,16 @@
     currentUser ? allSolves.findIndex(solve => solve.userId === currentUser.id) : -1
   )
 
-  // The scroll container, captured by an attachment so scroll geometry and the
-  // load-more observer below can use it.
   let scrollRoot = $state<HTMLElement | null>(null)
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   const geometry = createScrollGeometry(() => scrollRoot)
   const fades = deriveEdgeFades(geometry)
 
-  // The current user's real row, captured so the shared clip can read its
-  // layout position.
   let selfRowNode = $state<HTMLElement | null>(null)
   const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
   const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
 
-  // Which edge to pin the self overlay to, decided by the self-position query —
-  // not geometry alone, so a solver on an unloaded page still gets pinned.
-  // The plain paged list keeps every loaded row mounted, so a null
-  // `selfRowEdge` always means the real row is on screen (`visible`).
   const pinnedEdge = $derived(
     resolvePinnedEdge({
       hasSelf: !!currentUserSolve && mySolvePosition !== null,
@@ -93,7 +76,6 @@
     })
   )
 
-  // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {
     const root = scrollRoot
     if (!root) return
@@ -224,10 +206,6 @@
     padding: 1rem 1.25rem;
   }
 
-  /* The intrinsic estimate must equal the real slot height (a 4rem row; the
-     4px row gap is the list's flex gap, outside the slot). An overestimate
-     makes never-rendered slots taller than rendered ones, so positions shift
-     as slots render/skip and scroll anchoring visibly nudges the list. */
   row-slot {
     display: block;
     content-visibility: auto;
@@ -248,9 +226,6 @@
     block-size: 1px;
   }
 
-  /* Pinned copy of the user's row, held over the top or bottom edge of the
-     scroll viewport. Transparent to pointer events so scrolling and hovering the
-     rows underneath still work, except the profile link stays clickable. */
   self-overlay {
     position: absolute;
     inset-inline: 0;
@@ -259,9 +234,6 @@
     pointer-events: none;
     background: var(--background-l2);
 
-    /* The top pin keeps a 1rem breathing gap (matching the list's block
-       padding) instead of sitting flush against the viewport edge; the gap is
-       part of the overlay's opaque surface so rows scroll beneath it. */
     &[data-edge='top'] {
       inset-block-start: 0;
       padding-block-start: 1rem;

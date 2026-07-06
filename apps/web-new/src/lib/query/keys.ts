@@ -5,9 +5,6 @@ import type {
   RouteQuery,
 } from '@rctf/types'
 
-// Infinite-list params carry `limit` plus the filters, but not `offset` — the
-// offset is the page cursor, so keeping it out of the key keeps every page of a
-// filter under a single cache entry.
 export type AdminUsersQueryParams = Pick<
   RouteQuery<typeof FilterAdminUsersRouteV2>,
   'limit' | 'search' | 'sortBy' | 'sortOrder'

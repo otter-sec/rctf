@@ -49,8 +49,6 @@ function checkUnsupportedKeywords(schema: JsonSchema): void {
   }
 }
 
-// NOTE(es3n1n): We can't use ajv because it's doing unsafe-eval:
-//  * https://github.com/ajv-validator/ajv/issues/406
 export function validateValue(
   schema: JsonSchema,
   value: unknown
@@ -120,7 +118,6 @@ export function validateValue(
           }
         }
       } catch {
-        // Invalid regex pattern in schema, skip validation
       }
     }
   }

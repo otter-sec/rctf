@@ -1,16 +1,8 @@
-<!--
-  Solve hover card shared by the profile score graph and solve timeline: solve
-  time header, category icon + `cat / name`, and the `before + points = after`
-  arithmetic below a separator. HTML overlay on the shared ChartTip container —
-  render it outside the <svg>, inside the chart's relative root. Category
-  tokens come from `categoryColor` on the container.
--->
 <script lang="ts">
   import ChartTip from '$lib/chart/chart-tip.svelte'
   import type { CategoryColor, CategoryConfig } from '$lib/utils/categories'
 
   interface Props {
-    /** Anchor point in px (the hovered dot). */
     x: number
     y: number
     chartWidth: number

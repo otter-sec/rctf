@@ -1,10 +1,3 @@
-<!--
-  Flag submission bar. Renders one rung of the submit ladder (resolveSubmitState,
-  first match wins): archived / ended / login / solved / form. The ended rung is
-  driven by a client clock ticked every second, and auth is reactive off the
-  userSelf query rather than localStorage (KTD-7). A correct or already-solved
-  flag calls onSolve so the parent can flip the optimistic solved state.
--->
 <script lang="ts">
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute, type Challenge } from '@rctf/types'
   import { showApiError } from '$lib/api'
@@ -34,13 +27,8 @@
   const isArchived = $derived(clientConfig?.isArchived ?? false)
   const flagPlaceholder = $derived(clientConfig?.flagFormatPlaceholder ?? 'flag{...}')
 
-  // Before the config loads there is no end time; Infinity keeps `now > endTime`
-  // false so the bar never reads "ended", matching the old app's
-  // `clientConfig ? now > endTime : false`.
   const endTime = $derived(clientConfig?.endTime ?? Number.POSITIVE_INFINITY)
 
-  // KTD-7 deviation: auth is reactive off the userSelf query (data is null when
-  // signed out, undefined while loading) instead of a synchronous token read.
   const userQuery = useCurrentUser()
   const isAuthenticated = $derived(userQuery.data != null)
 
@@ -50,8 +38,6 @@
     resolveSubmitState({ isArchived, endTime, now, isAuthenticated, isSolved })
   )
 
-  // Canonical 1s ticker; the interval is torn down once the ladder reaches a
-  // terminal rung so an ended/archived CTF stops ticking (cf. navigation-countdown).
   $effect(() => {
     if (submitState === 'archived' || submitState === 'ended') return
     const interval = setInterval(() => (now = Date.now()), 1000)
@@ -74,8 +60,6 @@
     },
   })
 
-  // SubmitFlagRoute carries the challenge id as a path param; keep it on the form
-  // payload so submit() targets the selected challenge.
   $effect(() => {
     form.data.id = challenge.id
   })
@@ -148,7 +132,6 @@
     display: block;
     --submit-block-size: 3rem;
 
-    /* Stretch the login button to the bar width and height. */
     :global(a[data-variant]) {
       gap: 0.5rem;
       inline-size: 100%;
@@ -167,7 +150,6 @@
     gap: 0.5rem;
     block-size: var(--submit-block-size);
 
-    /* The flag input fills the row and reads as a terminal field. */
     :global(input[data-flag-input]) {
       flex: 1;
       min-inline-size: 0;

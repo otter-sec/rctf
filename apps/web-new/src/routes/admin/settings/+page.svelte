@@ -1,12 +1,3 @@
-<!--
-  Admin settings (R31-R34). A single scrollable form over the overrides-vs-
-  defaults model with a sticky bottom save bar. Each group tracks whether it
-  overrides the config default; editing marks it, "Reset to default" reverts and
-  clears the flag, and Save sends a patch that omits untouched groups, sends
-  edited values, and sends `null` to clear a group reset away from a previous
-  override (see settings-model.ts). External-auth clients live in their own
-  component and are managed directly, outside this patch.
--->
 <script lang="ts">
   import {
     GoodAdminSettingsUpdate,
@@ -55,8 +46,6 @@
   const configQuery = useClientConfig()
   const settingsQuery = useAdminSettings()
 
-  // Non-reactive read: true only when this mount starts behind the spinner, so
-  // a warm-cache remount doesn't replay the reveal fade.
   const revealAfterLoading = settingsQuery.isPending
 
   const user = $derived(userQuery.data)
@@ -82,9 +71,6 @@
     { key: 'dark' as const, label: 'Dark mode', fallback: wordmarkDark },
   ]
 
-  // Seed once from the loaded settings; a successful save commits a new baseline
-  // in place (commitBaseline) rather than re-seeding, so refetches never clobber
-  // in-progress edits.
   $effect(() => {
     const data = settingsQuery.data
     if (!data || initialized) return

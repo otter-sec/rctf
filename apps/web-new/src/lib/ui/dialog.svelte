@@ -11,7 +11,6 @@
     titleHidden?: boolean
     description?: string
     presentation?: 'center' | 'sheet' | 'drawer'
-    /** Remove the content shell's own gap/padding; the consumer owns spacing. */
     flush?: boolean
     children: Snippet<[{ closeProps: Record<string, unknown> }]>
     trigger?: Snippet<[{ props: Record<string, unknown> }]>
@@ -30,17 +29,13 @@
   }: Props = $props()
 
   const id = $props.id()
-  // Zag thunk rule: controlled props passed as a plain object silently freeze
   const service = useMachine(dialog.machine, () => ({
     id,
     open,
     onOpenChange(details: { open: boolean }) {
       if (onOpenChange) {
-        // Controlled: the consumer owns `open` (e.g. drives it from page.state).
-        // Self-mutating here would fight that control and flash the dialog.
         onOpenChange(details.open)
       } else {
-        // Uncontrolled / bind:open: manage our own visibility.
         open = details.open
       }
     },
@@ -130,8 +125,6 @@
     }
   }
 
-  /* Full-bleed: the close trigger must land exactly where the header trigger
-     sits, which only holds when the sheet spans the whole viewport. */
   [data-presentation='sheet'] {
     justify-content: flex-start;
 

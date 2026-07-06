@@ -1,15 +1,3 @@
-<!--
-  Public profile route (/profile/[id]). Renders another team's profile with no
-  auth gate via the shared ProfileShell: the header, the read-only
-  challenges/solves list, and the analytics column (score-over-time graph). The
-  graph reuses the own-profile offset-hack query with the public caching policy
-  (no poll, 5-min staleTime); it draws the solve progression when the
-  leaderboard-offset probe resolves and falls back to ProfileGraph's "No score
-  graph data." empty state otherwise (unranked or stale-rank teams — R15/AE4).
-
-  Analytics is the always-visible desktop right column; the tablist is a
-  mobile-only affordance and is hidden entirely at >=64rem.
--->
 <script lang="ts">
   import { page } from '$app/state'
   import { useClientConfig } from '$lib/query/config'

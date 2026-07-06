@@ -14,9 +14,6 @@
 
   let { schema, value, onChange, valid = $bindable(true), disabled = false }: Props = $props()
 
-  // Runes error registry, owned by the root: leaf fields report (pathKey, error)
-  // up through `reportError`; a null error clears the entry. Replaces the old
-  // Svelte-context registry.
   const errors = new SvelteMap<string, string>()
 
   function reportError(pathKey: string, error: string | null) {

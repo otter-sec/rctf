@@ -1,11 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { resolvePinnedEdge, type PinnedEdgeInput } from './pinned-self-row'
 
-// The reducer decides which edge (if any) a copy of the current user's row
-// pins to. Position derivations (self index within the loaded list, the clip
-// state of the real row) are computed by each route and passed in; the reducer
-// only maps them to `top` / `bottom` / null.
-
 function input(overrides: Partial<PinnedEdgeInput> = {}): PinnedEdgeInput {
   return {
     hasSelf: true,
@@ -18,8 +13,6 @@ function input(overrides: Partial<PinnedEdgeInput> = {}): PinnedEdgeInput {
 
 describe('resolvePinnedEdge — AE1 coverage', () => {
   test('self on an unloaded later page pins to the bottom edge', () => {
-    // Ranked beyond the loaded pages: no real row exists, so `selfIndex` is
-    // null. The board always loads from rank 1 down, so self sits below it.
     expect(resolvePinnedEdge(input({ selfIndex: null }))).toBe('bottom')
   })
 
@@ -48,8 +41,6 @@ describe('resolvePinnedEdge — AE1 coverage', () => {
   })
 
   test('first page still loading with a known self pins to the bottom edge', () => {
-    // Nothing loaded yet (selfIndex null) but the user is known: the old app
-    // shows the pinned row during loading so placement stays in view.
     expect(
       resolvePinnedEdge(input({ selfIndex: null, viewportClip: null }))
     ).toBe('bottom')
@@ -64,16 +55,12 @@ describe('resolvePinnedEdge — precedence and unobserved rows', () => {
   })
 
   test('a loaded self whose row is unmounted falls back to the bottom edge', () => {
-    // The virtual row scrolled out of the DOM and the observer reset, so there
-    // is no clip signal; the reducer keeps a stable edge rather than flicker.
     expect(
       resolvePinnedEdge(input({ selfIndex: 12, viewportClip: null }))
     ).toBe('bottom')
   })
 
   test('challenges mapping: unloaded self ignores a stale visible clip', () => {
-    // When self is not in the loaded list the route passes selfIndex null; a
-    // leftover `visible` clip must not unpin it.
     expect(
       resolvePinnedEdge(input({ selfIndex: null, viewportClip: 'visible' }))
     ).toBe('bottom')

@@ -5,14 +5,10 @@ import type {
   ResponseData,
 } from '@rctf/types'
 
-/** The `/v2/admin/instancer/schema` payload: available instancers + defaults. */
 export type InstancerSchemaData = ResponseData<typeof GoodInstancerSchema>
-/** One registered instancer with its config schema, defaults, and capabilities. */
 export type InstancerSchemaEntry = InstancerSchemaData['instancers'][number]
-/** A single exposed-port entry within an instancer config. */
 export type ExposeConfig = NonNullable<InstancerConfig['expose']>[number]
 
-/** Inputs to {@link resolveInstancerValidity}, mirroring the pane's live state. */
 export interface InstancerValidityInput {
   config: InstancerConfig | null
   advancedMode: boolean
@@ -22,13 +18,6 @@ export interface InstancerValidityInput {
 
 const DEFAULT_TIMEOUT_MS = 120000
 
-/**
- * Picks the instancer to edit: the requested name when it is registered,
- * otherwise the deployment default, otherwise the first entry.
- *
- * @param schema - The instancer schema payload, or null when unavailable.
- * @param name - The currently selected instancer name, if any.
- */
 export function resolveInstancer(
   schema: InstancerSchemaData | null,
   name: string | undefined
@@ -41,7 +30,6 @@ export function resolveInstancer(
   return list.find(entry => entry.name === schema?.defaultInstancer) ?? list[0]
 }
 
-/** The default exposed-port entry seeded for a freshly enabled instancer. */
 export function defaultExpose(): ExposeConfig {
   return {
     kind: ExposeKind.HTTPS,
@@ -52,13 +40,6 @@ export function defaultExpose(): ExposeConfig {
   }
 }
 
-/**
- * Seeds a fresh instancer config from the schema payload: the default (or first)
- * instancer, a deep clone of its provider defaults, one default expose, and a
- * two-minute lifetime.
- *
- * @param schema - The instancer schema payload, or null when unavailable.
- */
 export function defaultInstancerConfig(
   schema: InstancerSchemaData | null
 ): InstancerConfig {
@@ -72,10 +53,6 @@ export function defaultInstancerConfig(
   }
 }
 
-/**
- * Whether two provider schemas differ. Switching instancers resets the provider
- * config to the target's defaults only when its schema is not identical.
- */
 export function schemasDiffer(
   a: Record<string, unknown> | undefined,
   b: Record<string, unknown> | undefined
@@ -83,22 +60,18 @@ export function schemasDiffer(
   return JSON.stringify(a) !== JSON.stringify(b)
 }
 
-/** Converts a lifetime in milliseconds to whole seconds for the timeout input. */
 export function timeoutToSeconds(milliseconds: number): number {
   return Math.round(milliseconds / 1000)
 }
 
-/** Converts a timeout in seconds back to the milliseconds stored in the config. */
 export function secondsToTimeout(seconds: number): number {
   return seconds * 1000
 }
 
-/** Appends a default exposed-port entry, returning a new array. */
 export function addExpose(list: readonly ExposeConfig[]): ExposeConfig[] {
   return [...list, defaultExpose()]
 }
 
-/** Removes the exposed-port entry at `index`, returning a new array. */
 export function removeExpose(
   list: readonly ExposeConfig[],
   index: number
@@ -106,7 +79,6 @@ export function removeExpose(
   return list.filter((_, i) => i !== index)
 }
 
-/** Patches the exposed-port entry at `index`, returning a new array. */
 export function updateExpose(
   list: readonly ExposeConfig[],
   index: number,
@@ -115,13 +87,6 @@ export function updateExpose(
   return list.map((entry, i) => (i === index ? { ...entry, ...patch } : entry))
 }
 
-/**
- * Resolves the instancer tab's contribution to the save gate: a disabled
- * instancer never blocks saving, advanced mode blocks on a YAML parse error,
- * and form mode blocks on schema-form validation.
- *
- * @param input - The pane's live config, mode, and validation state.
- */
 export function resolveInstancerValidity(
   input: InstancerValidityInput
 ): boolean {

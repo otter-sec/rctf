@@ -11,11 +11,6 @@
   import { formatTimeRangeSummary } from './time-summary'
   import { valueFilterSummary, type ValueFilterFamily } from './ui'
 
-  // A drill-down drawer that replaces the desktop funnel + chips on small
-  // screens: a flat popover with nested lists is unusable by touch, so each
-  // family (and time) gets its own full-width page reached from a root list.
-  // Value toggles flow through `FilterOption`'s own reactive mutations; the
-  // paths that mutate directly (mode, clear, time) fire `onChanged`.
   type Props = {
     open: boolean
     families: readonly ValueFilterFamily[]
@@ -47,8 +42,6 @@
       (!!timeFilter && hasTimeRangeFilter(timeFilter))
   )
 
-  // Controlled so we can reset the drill state on close (backdrop, Escape, or
-  // the close button) — the next open always starts at the root list.
   function setOpen(next: boolean) {
     open = next
     if (!next) activeId = null
@@ -170,8 +163,6 @@
 </Dialog>
 
 <style>
-  /* The Dialog content is content-sized up to this cap; without it a drawer with
-     few filters would still span 85dvh. Scoped to drawers hosting this shell. */
   :global([data-presentation='drawer']:has(filter-drawer-shell)) {
     --dialog-drawer-max-size: min(38rem, 85dvh);
   }

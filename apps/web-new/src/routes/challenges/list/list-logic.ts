@@ -26,20 +26,10 @@ export interface ChallengeStats {
   totalCount: number
 }
 
-/**
- * Normalises a raw category string to its canonical key, folding aliases
- * (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) and casing.
- * Unknown categories pass through lowercased.
- */
 export function resolveCategory(raw: string): string {
   return getCategoryKeyOrAlias(raw)
 }
 
-/**
- * Buckets challenges by their canonical category, orders the groups by the fixed
- * priority list (unknown categories alphabetically last), and sorts each group's
- * challenges by solve count descending with a name tiebreak.
- */
 export function groupChallenges(challenges: Challenge[]): CategoryGroup[] {
   const groups = new Map<string, Challenge[]>()
   for (const challenge of challenges) {
@@ -60,10 +50,6 @@ export function groupChallenges(challenges: Challenge[]): CategoryGroup[] {
   return result
 }
 
-/**
- * Filters challenges by a case-insensitive substring across name, category, and
- * author, and (when `hideSolved` is set) drops the caller's solved challenges.
- */
 export function filterChallenges(
   challenges: Challenge[],
   { query, hideSolved, solvedIds }: FilterOptions
@@ -84,11 +70,6 @@ export function filterChallenges(
   })
 }
 
-/**
- * Computes the controlled accordion open-set. The persisted collapsed set is the
- * baseline; an active search forces every category open, and a deep-link target
- * is always forced open. Both are transient and never written back to prefs.
- */
 export function deriveAccordionValue({
   allCategories,
   collapsedCategories,
@@ -104,10 +85,6 @@ export function deriveAccordionValue({
   )
 }
 
-/**
- * Aggregates points and solve counts over the full (unfiltered) challenge set;
- * `points` is trusted non-null per the v2 schema.
- */
 export function computeStats(
   challenges: Challenge[],
   solvedIds: ReadonlySet<string>

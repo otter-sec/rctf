@@ -1,13 +1,3 @@
-/**
- * Delegated pointer-hover state shared by the profile bar/segment charts. One
- * `pointermove` listener on the chart's `<svg>` resolves the hovered element
- * via `event.target.closest('[hitAttribute]')`, reads `keyAttribute` off its
- * dataset as the active key, and records the pointer position (relative to
- * the SVG) for the floating tooltip. `keyAttribute` is the dataset property
- * name (camelCase), e.g. `'index'` for `data-index` or `'segKey'` for
- * `data-seg-key`.
- */
-
 interface TipPosition {
   x: number
   y: number

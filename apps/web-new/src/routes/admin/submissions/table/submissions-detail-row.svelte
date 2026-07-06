@@ -40,7 +40,6 @@
     align-items: center;
     gap: var(--space-2xs);
     padding-inline: var(--space-2xs) var(--space-2xs);
-    /* Left-align pills under the challenge column, past the expander gutter. */
     padding-inline-start: 3.25rem;
     background: var(--background-l3);
   }

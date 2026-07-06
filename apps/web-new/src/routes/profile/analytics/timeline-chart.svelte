@@ -1,10 +1,3 @@
-<!--
-  Solve timeline dot plot. X is time over the activity domain (CTF start → last
-  solve, bucket-aligned); Y is one lane per category. A category-coloured dot
-  marks every solve; hover picks the nearest dot and reuses the score graph's
-  solve tooltip. Hand-rolled SVG on the shared chart core, matching
-  graph.svelte's viewport-sized-SVG + nearestPoint idiom.
--->
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
   import { nearestPoint, type Series } from '$lib/chart/nearest'
