@@ -8,6 +8,7 @@
   import IconMoodHappyFilled from '$lib/icons/icon-mood-happy-filled.svelte'
   import IconPinFilled from '$lib/icons/icon-pin-filled.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
+  import type { Component } from 'svelte'
 
   interface Props {
     showTop3Context: boolean
@@ -19,34 +20,25 @@
   let { showTop3Context, showSelfContext, onToggleTop3, onToggleSelf }: Props = $props()
 </script>
 
-<graph-controls>
-  <Tooltip label="Pin top 3 to graph">
+{#snippet pinToggle(label: string, Icon: Component, active: boolean, onclick: () => void)}
+  <Tooltip {label}>
     {#snippet children({ props })}
       <button
-        {...mergeProps(props, { onclick: onToggleTop3 })}
+        {...mergeProps(props, { onclick })}
         type="button"
-        aria-label="Pin top 3 to graph"
-        aria-pressed={showTop3Context}
-        data-active={showTop3Context ? '' : undefined}
+        aria-label={label}
+        aria-pressed={active}
+        data-active={active ? '' : undefined}
       >
-        <IconPinFilled />
+        <Icon />
       </button>
     {/snippet}
   </Tooltip>
+{/snippet}
 
-  <Tooltip label="Pin self to graph">
-    {#snippet children({ props })}
-      <button
-        {...mergeProps(props, { onclick: onToggleSelf })}
-        type="button"
-        aria-label="Pin self to graph"
-        aria-pressed={showSelfContext}
-        data-active={showSelfContext ? '' : undefined}
-      >
-        <IconMoodHappyFilled />
-      </button>
-    {/snippet}
-  </Tooltip>
+<graph-controls>
+  {@render pinToggle('Pin top 3 to graph', IconPinFilled, showTop3Context, onToggleTop3)}
+  {@render pinToggle('Pin self to graph', IconMoodHappyFilled, showSelfContext, onToggleSelf)}
 </graph-controls>
 
 <style>

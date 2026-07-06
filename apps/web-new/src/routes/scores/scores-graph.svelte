@@ -127,18 +127,22 @@
     data: { x: number; y: number }[]
   }
 
+  // Coordinate mapping depends only on data and scales; hover (which changes
+  // on every pointermove) must only re-run the cheap opacity/draw-order pass.
+  const scaledSeries = $derived(
+    windowed.map(entry => ({
+      ...entry,
+      width: entry.isSelf ? 3 : 2,
+      scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
+      data: entry.points.map(p => ({ x: p.time, y: p.score })),
+    }))
+  )
+
   const renderSeries = $derived.by<RenderSeries[]>(() => {
-    const out: RenderSeries[] = []
-    for (const entry of windowed) {
+    const out = scaledSeries.map(entry => {
       const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
-      out.push({
-        ...entry,
-        width: entry.isSelf ? 3 : 2,
-        opacity: dimmed ? 0.15 : entry.isContext ? 0.3 : 1,
-        scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
-        data: entry.points.map(p => ({ x: p.time, y: p.score })),
-      })
-    }
+      return { ...entry, opacity: dimmed ? 0.15 : entry.isContext ? 0.3 : 1 }
+    })
     // Draw order: the hovered line on top, then self, then higher ranks last so
     // the leaders sit above the pack.
     return out.sort((a, b) => {
@@ -150,26 +154,33 @@
     })
   })
 
+  // Hit-test against the pre-scaled pixel points (identity scales) so each
+  // pointermove is a plain distance scan, not a re-projection of every sample;
+  // the raw time/score comes back via the index-aligned `data` array.
   const nearest = $derived.by(() => {
     if (!hover || renderSeries.length === 0) return null
-    const series: Series[] = renderSeries.map(s => ({ id: s.id, points: s.data }))
-    return nearestPoint(series, hover.x, hover.y, xScale, yScale)
+    const series: Series[] = renderSeries.map(s => ({ id: s.id, points: s.scaled }))
+    return nearestPoint(
+      series,
+      hover.x,
+      hover.y,
+      px => px,
+      px => px
+    )
   })
 
   const hoveredSeries = $derived(
     nearest ? (renderSeries.find(s => s.id === nearest.seriesId) ?? null) : null
   )
-  const hoverPx = $derived(
-    nearest ? { x: xScale(nearest.point.x), y: yScale(nearest.point.y) } : null
-  )
+  const hoverPx = $derived(nearest ? nearest.point : null)
   const tooltipRows = $derived<TooltipRow[]>(
     nearest && hoveredSeries
       ? [
           {
             role: hoveredSeries.role,
             name: hoveredSeries.name,
-            score: nearest.point.y,
-            time: nearest.point.x,
+            score: hoveredSeries.data[nearest.index]?.y ?? 0,
+            time: hoveredSeries.data[nearest.index]?.x ?? 0,
           },
         ]
       : []

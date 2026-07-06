@@ -24,33 +24,29 @@ export function getActiveSearch(value: string): string | undefined {
   return value.length >= MIN_SEARCH_LENGTH ? value : undefined
 }
 
-export function withScoresSearch(url: URL, value: string): URL {
+// Clone-and-set one param; falsy values (or defaults mapped to undefined by
+// the wrappers below) remove the param so defaults stay out of the URL.
+function withParam(url: URL, key: string, value: string | undefined): URL {
   const next = new URL(url)
-  const search = getActiveSearch(value)
-  if (search) next.searchParams.set('search', search)
-  else next.searchParams.delete('search')
+  if (value) next.searchParams.set(key, value)
+  else next.searchParams.delete(key)
   return next
+}
+
+export function withScoresSearch(url: URL, value: string): URL {
+  return withParam(url, 'search', getActiveSearch(value))
 }
 
 export function withScoresDivision(url: URL, value: string | undefined): URL {
-  const next = new URL(url)
-  if (value) next.searchParams.set('division', value)
-  else next.searchParams.delete('division')
-  return next
+  return withParam(url, 'division', value)
 }
 
 export function withScoresViewMode(url: URL, value: ViewMode): URL {
-  const next = new URL(url)
-  if (value === DEFAULT_VIEW_MODE) next.searchParams.delete('view')
-  else next.searchParams.set('view', value)
-  return next
+  return withParam(url, 'view', value === DEFAULT_VIEW_MODE ? undefined : value)
 }
 
 export function withScoresSortMode(url: URL, value: SortMode): URL {
-  const next = new URL(url)
-  if (value === DEFAULT_SORT_MODE) next.searchParams.delete('sort')
-  else next.searchParams.set('sort', value)
-  return next
+  return withParam(url, 'sort', value === DEFAULT_SORT_MODE ? undefined : value)
 }
 
 // URL param wins; a saved preference applies only before the first in-session

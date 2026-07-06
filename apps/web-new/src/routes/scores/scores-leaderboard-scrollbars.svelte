@@ -30,23 +30,28 @@
 
   const MIN_THUMB = 24
 
-  $effect(() => {
-    const node = trackY
-    if (!node) return
-    const observer = new ResizeObserver(() => (trackHeight = node.offsetHeight))
-    observer.observe(node)
-    trackHeight = node.offsetHeight
-    return () => observer.disconnect()
-  })
+  function observeTrackSize(
+    getNode: () => HTMLElement | null,
+    measure: (node: HTMLElement) => void
+  ) {
+    $effect(() => {
+      const node = getNode()
+      if (!node) return
+      const observer = new ResizeObserver(() => measure(node))
+      observer.observe(node)
+      measure(node)
+      return () => observer.disconnect()
+    })
+  }
 
-  $effect(() => {
-    const node = trackX
-    if (!node) return
-    const observer = new ResizeObserver(() => (trackWidth = node.offsetWidth))
-    observer.observe(node)
-    trackWidth = node.offsetWidth
-    return () => observer.disconnect()
-  })
+  observeTrackSize(
+    () => trackY,
+    node => (trackHeight = node.offsetHeight)
+  )
+  observeTrackSize(
+    () => trackX,
+    node => (trackWidth = node.offsetWidth)
+  )
 
   const maxScrollY = $derived(Math.max(0, scrollHeight - clientHeight))
   const maxScrollX = $derived(Math.max(0, scrollWidth - clientWidth))
