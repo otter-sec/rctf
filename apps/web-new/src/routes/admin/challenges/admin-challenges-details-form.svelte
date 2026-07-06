@@ -21,7 +21,7 @@
   import { useClientConfig } from '$lib/query/config'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
-  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
+  import { type MenuItem } from '$lib/ui/menu.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
@@ -30,6 +30,7 @@
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
   import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
   import type { AdminBotConfig, EditorForm, ScoringConfig } from './editor-state'
+  import FieldSelect from './field-select.svelte'
   import {
     detailsTabInvalid,
     inputToReleaseTime,
@@ -213,22 +214,6 @@
   ])
 </script>
 
-{#snippet menuSelect(current: string, items: MenuItem[])}
-  {#if disabled}
-    <button type="button" data-field-trigger data-disabled disabled>
-      {current}<IconChevronDown />
-    </button>
-  {:else}
-    <Menu label={current} {items}>
-      {#snippet trigger({ props })}
-        <button type="button" data-field-trigger {...props}>
-          {current}<IconChevronDown />
-        </button>
-      {/snippet}
-    </Menu>
-  {/if}
-{/snippet}
-
 <challenge-form>
   <form-tabs>
     <Tabs bind:value={tab} tabs={tabItems}>
@@ -360,7 +345,7 @@
                   {/snippet}
                 </Tooltip>
               {:else}
-                {@render menuSelect(kindLabel, kindItems)}
+                <FieldSelect label={kindLabel} items={kindItems} {disabled} />
               {/if}
             </form-field>
 
@@ -435,19 +420,21 @@
               </form-field>
               <form-field>
                 <field-label>Tiebreak eligibility</field-label>
-                {@render menuSelect(
-                  form.tiebreakEligible ? 'Eligible' : 'Ineligible',
-                  tiebreakItems
-                )}
+                <FieldSelect
+                  label={form.tiebreakEligible ? 'Eligible' : 'Ineligible'}
+                  items={tiebreakItems}
+                  {disabled}
+                />
               </form-field>
             </field-grid>
 
             <form-field>
               <field-label>Visibility</field-label>
-              {@render menuSelect(
-                form.hidden ? 'Hidden from players' : 'Visible to players',
-                visibilityItems
-              )}
+              <FieldSelect
+                label={form.hidden ? 'Hidden from players' : 'Visible to players'}
+                items={visibilityItems}
+                {disabled}
+              />
             </form-field>
 
             <form-field>
@@ -478,13 +465,18 @@
         {:else if value === 'files'}
           <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
         {:else if value === 'instancer'}
-          <AdminChallengesDetailsInstancer
-            config={form.instancerConfig}
-            {challengeId}
-            {disabled}
-            bind:valid={instancerValid}
-            onChange={onInstancerChange}
-          />
+          <!-- Keyed remount: the pane holds advanced-YAML editor state that must
+               not survive a selection change (a stale exitAdvanced would write one
+               challenge's YAML into another's config). -->
+          {#key challengeId}
+            <AdminChallengesDetailsInstancer
+              config={form.instancerConfig}
+              {challengeId}
+              {disabled}
+              bind:valid={instancerValid}
+              onChange={onInstancerChange}
+            />
+          {/key}
         {:else if value === 'adminbot'}
           <AdminChallengesDetailsAdminbot
             config={form.adminBotConfig}

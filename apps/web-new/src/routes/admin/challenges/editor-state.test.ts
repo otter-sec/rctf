@@ -176,6 +176,21 @@ describe('detailLoaded per-id guard', () => {
     expect(state.detailSeededId).toBe('b')
   })
 
+  test('a late detail response never reseeds while editing or creating', () => {
+    let state = select(createEditorState(), makeChallenge({ id: 'a' }))
+    state = updateForm(edit(state), 'name', 'typed')
+    state = detailLoaded(state, detail({ id: 'a', description: 'late' }))
+    expect(state.form.name).toBe('typed')
+    expect(state.form.description).toBe('')
+    expect(state.detailSeededId).toBeNull()
+
+    let creating = create(createEditorState())
+    creating = updateForm(creating, 'name', 'new one')
+    creating = detailLoaded(creating, detail({ id: 'b', description: 'late' }))
+    expect(creating.form.name).toBe('new one')
+    expect(creating.form.description).toBe('')
+  })
+
   test('does not re-seed for the same id after local edits', () => {
     let state = select(createEditorState(), makeChallenge({ id: 'a' }))
     state = detailLoaded(state, detail({ id: 'a', description: 'full' }))

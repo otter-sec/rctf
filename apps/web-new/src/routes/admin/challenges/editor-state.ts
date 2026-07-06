@@ -231,7 +231,9 @@ export function detailLoaded(
   state: EditorState,
   detail: AdminChallengeDetail
 ): EditorState {
-  if (state.detailSeededId === detail.id) {
+  // A late detail response must never reseed over in-progress edits — the
+  // fetch can resolve after the admin pressed Edit and started typing.
+  if (EDIT_MODES.has(state.mode) || state.detailSeededId === detail.id) {
     return state
   }
   const form = seedForm(detail)
