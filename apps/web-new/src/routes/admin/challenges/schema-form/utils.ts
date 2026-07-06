@@ -103,16 +103,6 @@ export function getItemLabel(
   return `${fallbackLabel} ${index + 1}`
 }
 
-export const NULL_SENTINEL = '__null__'
-
-export function fromNullSentinel(v: unknown): unknown {
-  return v === NULL_SENTINEL ? null : v
-}
-
-export function toNullSentinel(v: unknown): string {
-  return v === null ? NULL_SENTINEL : String(v ?? '')
-}
-
 export function renameRecordKey(
   obj: Record<string, unknown>,
   oldKey: string,

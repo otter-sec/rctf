@@ -7,11 +7,8 @@
   import {
     isNullable as checkNullable,
     fieldLabel,
-    fromNullSentinel,
     getEffectiveSchema,
-    NULL_SENTINEL,
     resolveValue,
-    toNullSentinel,
   } from './utils'
   import { validateValue } from './validate'
 
@@ -40,10 +37,14 @@
   const isNullable = $derived(checkNullable(schema))
   const displayValue = $derived(String(resolveValue(effectiveSchema, value) ?? ''))
 
-  const options = $derived([
-    ...(isNullable ? [{ value: NULL_SENTINEL, label: 'None' }] : []),
-    ...(enumValues ?? []).map(option => ({ value: String(option), label: String(option) })),
+  const choices = $derived([
+    ...(isNullable ? [{ value: null as unknown, label: 'None' }] : []),
+    ...(enumValues ?? []).map(option => ({ value: option, label: String(option) })),
   ])
+  const options = $derived(
+    choices.map((choice, index) => ({ value: String(index), label: choice.label }))
+  )
+  const selected = $derived(String(choices.findIndex(choice => choice.value === value)))
 
   let error = $state<string | null>(null)
 
@@ -68,7 +69,8 @@
   }
 
   function set(next: string) {
-    onChange(path, fromNullSentinel(next))
+    const choice = choices[Number(next)]
+    if (choice) onChange(path, choice.value)
   }
 </script>
 
@@ -81,7 +83,7 @@
     {#if enumValues}
       <SchemaFormSelect
         {options}
-        value={toNullSentinel(value)}
+        value={selected}
         onValueChange={set}
         label={label || 'Select'}
         placeholder={isNullable ? 'None' : 'Select...'}

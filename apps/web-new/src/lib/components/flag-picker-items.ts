@@ -1,6 +1,6 @@
 import { ALL_REGIONS } from '@rctf/util'
 
-export const NO_COUNTRY_VALUE = '__none__'
+export const NO_COUNTRY_VALUE = 'none'
 
 export type RegionItem = {
   value: string
