@@ -47,6 +47,7 @@
     save,
     saveError,
     saveSuccess,
+    updateFiles,
     updateForm,
     updateScoring,
     type EditorForm,
@@ -94,6 +95,10 @@
 
   function onScoringChange(scoring: ScoringConfig) {
     onEditorChange(updateScoring(editor, scoring))
+  }
+
+  function onFilesChange(files: EditorForm['files']) {
+    onEditorChange(updateFiles(editor, files))
   }
 
   async function handleSave() {
@@ -226,9 +231,11 @@
       {disabled}
       autofocusName={editor.mode === 'creating'}
       {totalSolves}
+      challengeId={editor.challenge?.id ?? null}
       {errors}
       {onFieldChange}
       {onScoringChange}
+      {onFilesChange}
       onShowPreview={() => (showPreview = true)}
     />
   {/if}

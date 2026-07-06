@@ -43,9 +43,11 @@
     disabled: boolean
     autofocusName: boolean
     totalSolves: number
+    challengeId: string | null
     errors: FormErrors
     onFieldChange: <K extends keyof EditorForm>(field: K, value: EditorForm[K]) => void
     onScoringChange: (scoring: ScoringConfig) => void
+    onFilesChange: (files: EditorForm['files']) => void
     onShowPreview: () => void
   }
 
@@ -54,9 +56,11 @@
     disabled,
     autofocusName,
     totalSolves,
+    challengeId,
     errors,
     onFieldChange,
     onScoringChange,
+    onFilesChange,
     onShowPreview,
   }: Props = $props()
 
@@ -460,13 +464,13 @@
             </form-field>
           </form-scroll>
         {:else if value === 'files'}
-          <AdminChallengesDetailsAttachments />
+          <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
         {:else if value === 'instancer'}
           <AdminChallengesDetailsInstancer />
         {:else if value === 'adminbot'}
           <AdminChallengesDetailsAdminbot />
         {:else if value === 'solves'}
-          <AdminChallengesDetailsSolves />
+          <AdminChallengesDetailsSolves {challengeId} {totalSolves} />
         {/if}
       {/snippet}
     </Tabs>
