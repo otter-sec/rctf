@@ -40,11 +40,27 @@ export function withScoresDivision(url: URL, value: string | undefined): URL {
 }
 
 export function withScoresViewMode(url: URL, value: ViewMode): URL {
-  return withParam(url, 'view', value === DEFAULT_VIEW_MODE ? undefined : value)
+  const next = withParam(
+    url,
+    'view',
+    value === DEFAULT_VIEW_MODE ? undefined : value
+  )
+  next.searchParams.delete('challenge')
+  return next
 }
 
 export function withScoresSortMode(url: URL, value: SortMode): URL {
-  return withParam(url, 'sort', value === DEFAULT_SORT_MODE ? undefined : value)
+  const next = withParam(
+    url,
+    'sort',
+    value === DEFAULT_SORT_MODE ? undefined : value
+  )
+  next.searchParams.delete('challenge')
+  return next
+}
+
+export function withScoresChallenge(url: URL, value: string | null): URL {
+  return withParam(url, 'challenge', value ?? undefined)
 }
 
 export function resolveViewMode(

@@ -6,18 +6,19 @@ import {
   useSelfUserGraph,
 } from '$lib/query/leaderboard'
 import { useCurrentUser } from '$lib/query/user'
+import type { SortMode } from '../leaderboard/url-params'
 import {
   getBloodIndex,
   getCategoryGroups,
   getCategoryStatsForSolves,
   getChallengesByCategory,
   getChallengesBySolves,
+  getFocusedEntries,
   getRankDeltaByTeam,
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
 } from './transforms'
-import type { SortMode } from '../leaderboard/url-params'
 
 export type ScoresData = ReturnType<typeof createScoresData>
 
@@ -25,6 +26,7 @@ interface ScoresDataConfig {
   division: () => string | undefined
   search: () => string | undefined
   sortMode: () => SortMode
+  focusedChallengeId: () => string | null
   showTop3Context: () => boolean
   showSelfContext: () => boolean
 }
@@ -40,12 +42,15 @@ export function createScoresData(config: ScoresDataConfig) {
   const merged = $derived(
     mergeLeaderboardPages(leaderboardQuery.data?.pages ?? [])
   )
-  const entries = $derived(merged.leaderboard)
+  const rawEntries = $derived(merged.leaderboard)
   const allGraphData = $derived(merged.graph)
   const total = $derived(merged.total)
   const currentUser = $derived(userQuery.data)
   const currentUserId = $derived(currentUser?.id ?? null)
   const challengesData = $derived(challengesQuery.data ?? {})
+  const entries = $derived(
+    getFocusedEntries(rawEntries, config.focusedChallengeId(), challengesData)
+  )
 
   const selfGraphQuery = useSelfUserGraph(
     () =>
@@ -64,7 +69,7 @@ export function createScoresData(config: ScoresDataConfig) {
   )
   const categoryGroups = $derived(getCategoryGroups(challengesByCategory))
 
-  const teamColorMap = $derived(getTeamColorMap(entries, currentUser))
+  const teamColorMap = $derived(getTeamColorMap(rawEntries, currentUser))
   const teamRanks = $derived(getTeamRanks(entries))
   const sparklineDataByTeam = $derived(
     getSparklineDataByTeam(allGraphData, selfGraphQuery.data)
@@ -80,6 +85,20 @@ export function createScoresData(config: ScoresDataConfig) {
     leaderboardQuery.isFetching && leaderboardQuery.isPlaceholderData
   )
   const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
+
+  // FIXME(es3n1n): Challenge focus can only know which teams solved a challenge
+  // once every leaderboard page is loaded, so we chain-fetch the whole board
+  // while a focus is active. Tracked by the filed API ask for a server-side
+  // solver filter (GET /leaderboard?solvedChallenge=<id>).
+  $effect(() => {
+    if (
+      config.focusedChallengeId() &&
+      leaderboardQuery.hasNextPage &&
+      !leaderboardQuery.isFetchingNextPage
+    ) {
+      void leaderboardQuery.fetchNextPage()
+    }
+  })
 
   return {
     get entries() {

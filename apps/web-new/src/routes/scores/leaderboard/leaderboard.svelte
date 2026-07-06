@@ -6,26 +6,8 @@
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
   import { untrack } from 'svelte'
-  import {
-    SCORE_DIAGONAL_OVERFLOW_PX,
-    SCORE_HEADER_HEIGHT_PX,
-    SCORE_ROW_GAP_PX,
-    SCORE_ROW_HEIGHT_FULL_PX,
-    SCORE_VIRTUAL_OVERSCAN,
-  } from './constants'
-  import type { ScoresData } from '../model/data.svelte'
   import ScoresGraph from '../graph/graph.svelte'
-  import { BLOOD_PATHS } from './cell-icons'
-  import {
-    CELL_KIND,
-    resolveCellTooltip,
-    type CellTooltip,
-  } from './cell-tooltip'
-  import ScoresHeader from './leaderboard-header.svelte'
-  import ScoresScrollbars from './scrollbars.svelte'
-  import ScoresSelfRow from './self-row.svelte'
-  import ScoresSolveCells from './solve-cells.svelte'
-  import ScoresTeamRow from './team-row.svelte'
+  import type { ScoresData } from '../model/data.svelte'
   import {
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
@@ -33,6 +15,20 @@
     getRankVariant,
   } from '../model/transforms'
   import type { ScoresUrlState } from '../model/url-state.svelte'
+  import { BLOOD_PATHS } from './cell-icons'
+  import { CELL_KIND, resolveCellTooltip, type CellTooltip } from './cell-tooltip'
+  import {
+    SCORE_DIAGONAL_OVERFLOW_PX,
+    SCORE_HEADER_HEIGHT_PX,
+    SCORE_ROW_GAP_PX,
+    SCORE_ROW_HEIGHT_FULL_PX,
+    SCORE_VIRTUAL_OVERSCAN,
+  } from './constants'
+  import ScoresHeader from './leaderboard-header.svelte'
+  import ScoresScrollbars from './scrollbars.svelte'
+  import ScoresSelfRow from './self-row.svelte'
+  import ScoresSolveCells from './solve-cells.svelte'
+  import ScoresTeamRow from './team-row.svelte'
 
   interface Props {
     data: ScoresData
@@ -44,6 +40,12 @@
   let { data, urlState, divisions, startTime }: Props = $props()
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
+
+  function focusChallenge(id: string) {
+    const wasFocused = urlState.focusedChallengeId === id
+    urlState.setFocusedChallenge(wasFocused ? null : id)
+    if (!wasFocused && scrollRoot) scrollRoot.scrollTop = 0
+  }
 
   let isDesktop = $state(false)
   $effect(() => {
@@ -322,6 +324,7 @@
       {entry}
       viewMode={urlState.viewMode}
       sortMode={urlState.sortMode}
+      focusedChallengeId={urlState.focusedChallengeId}
       {hoveredColumnId}
     />
   </row-content>
@@ -383,6 +386,8 @@
               sortMode={urlState.sortMode}
               categoryGroups={data.categoryGroups}
               challenges={data.challenges}
+              focusedChallengeId={urlState.focusedChallengeId}
+              onFocus={focusChallenge}
               {hoveredColumnId}
             />
           {/if}
@@ -397,6 +402,7 @@
           edge="top"
           viewMode={urlState.viewMode}
           sortMode={urlState.sortMode}
+          focusedChallengeId={urlState.focusedChallengeId}
           {divisions}
           {showDivision}
           {hoveredColumnId}
@@ -428,6 +434,7 @@
           edge="bottom"
           viewMode={urlState.viewMode}
           sortMode={urlState.sortMode}
+          focusedChallengeId={urlState.focusedChallengeId}
           {divisions}
           {showDivision}
           {hoveredColumnId}
@@ -512,6 +519,25 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 150ms ease;
+
+    &[data-edge='top'] {
+      inset-block-start: calc(var(--score-fade-region-top) + var(--score-fade-inset-top));
+      inset-inline: 0;
+      block-size: var(--score-fade-size);
+      background: linear-gradient(to bottom, var(--background-l0), transparent);
+    }
+
+    &[data-edge='bottom'] {
+      inset-block-end: calc(var(--score-fade-rail) + var(--score-fade-inset-bottom));
+      inset-inline: 0;
+      block-size: var(--score-fade-size);
+      background: linear-gradient(to top, var(--background-l0), transparent);
+    }
+
+    &[data-edge='left'],
+    &[data-edge='right'] {
+      display: none;
+    }
   }
 
   scores-shell[data-fade-top] edge-fade[data-edge='top'],
@@ -519,25 +545,6 @@
   scores-shell[data-fade-left] edge-fade[data-edge='left'],
   scores-shell[data-fade-right] edge-fade[data-edge='right'] {
     opacity: 1;
-  }
-
-  edge-fade[data-edge='top'] {
-    inset-block-start: calc(var(--score-fade-region-top) + var(--score-fade-inset-top));
-    inset-inline: 0;
-    block-size: var(--score-fade-size);
-    background: linear-gradient(to bottom, var(--background-l0), transparent);
-  }
-
-  edge-fade[data-edge='bottom'] {
-    inset-block-end: calc(var(--score-fade-rail) + var(--score-fade-inset-bottom));
-    inset-inline: 0;
-    block-size: var(--score-fade-size);
-    background: linear-gradient(to top, var(--background-l0), transparent);
-  }
-
-  edge-fade[data-edge='left'],
-  edge-fade[data-edge='right'] {
-    display: none;
   }
 
   mobile-graph {

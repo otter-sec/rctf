@@ -145,6 +145,10 @@
       inset-block-end: 0;
       inset-inline-end: 0;
       inline-size: 0.5rem;
+
+      scroll-thumb {
+        inline-size: 100%;
+      }
     }
 
     &[data-axis='x'] {
@@ -153,6 +157,10 @@
       inset-inline-end: 0;
       inset-block-end: 0;
       block-size: 0.375rem;
+
+      scroll-thumb {
+        block-size: 100%;
+      }
     }
   }
 
@@ -168,14 +176,6 @@
     &:active {
       background: var(--background-l5);
     }
-  }
-
-  scroll-track[data-axis='y'] scroll-thumb {
-    inline-size: 100%;
-  }
-
-  scroll-track[data-axis='x'] scroll-thumb {
-    block-size: 100%;
   }
 
   @media (width >= 48rem) {

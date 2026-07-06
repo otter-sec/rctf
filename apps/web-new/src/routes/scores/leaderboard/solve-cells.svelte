@@ -3,8 +3,6 @@
   import IconTriangleInvertedFilled from '$lib/icons/icon-triangle-inverted-filled.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import type { ScoresData } from '../model/data.svelte'
-  import { BLOOD_PATHS, CHECK_PATH } from './cell-icons'
-  import { CELL_KIND, pointDeltaTrend } from './cell-tooltip'
   import {
     getChallengeCellWidth,
     getTeamSolveLookups,
@@ -12,6 +10,8 @@
     type CategoryGroup,
     type ChallengeInfo,
   } from '../model/transforms'
+  import { BLOOD_PATHS, CHECK_PATH } from './cell-icons'
+  import { CELL_KIND, pointDeltaTrend } from './cell-tooltip'
   import type { SortMode, ViewMode } from './url-params'
 
   interface Props {
@@ -19,10 +19,11 @@
     entry: LeaderboardEntry
     viewMode: ViewMode
     sortMode: SortMode
+    focusedChallengeId: string | null
     hoveredColumnId: string | null
   }
 
-  let { data, entry, viewMode, sortMode, hoveredColumnId }: Props = $props()
+  let { data, entry, viewMode, sortMode, focusedChallengeId, hoveredColumnId }: Props = $props()
 
   const RING_RADIUS = 8.75
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
@@ -101,12 +102,14 @@
 </script>
 
 {#snippet challengeCell(cell: ChallengeCell)}
+  {@const dimmed = focusedChallengeId !== null && focusedChallengeId !== cell.id}
   {#if cell.dynamic}
     <solve-cell
       data-tooltip-cell
       data-kind={CELL_KIND.challenge}
       data-col={cell.id}
       data-col-hover={hoveredColumnId === cell.id || undefined}
+      data-dimmed={dimmed || undefined}
       data-dynamic
       data-name={cell.name}
       data-points={cell.points}
@@ -133,6 +136,7 @@
       data-kind={CELL_KIND.challenge}
       data-col={cell.id}
       data-col-hover={hoveredColumnId === cell.id || undefined}
+      data-dimmed={dimmed || undefined}
       data-name={cell.name}
       data-points={cell.points}
       data-state={cell.solved ? 'solved' : 'unsolved'}
@@ -248,6 +252,10 @@
 
     &[data-tooltip-cell]:hover {
       background: color-mix(in oklab, var(--foreground-l0) 12%, transparent);
+    }
+
+    &[data-dimmed] {
+      opacity: 0.25;
     }
   }
 

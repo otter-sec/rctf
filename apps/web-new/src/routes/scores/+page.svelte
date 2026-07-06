@@ -1,14 +1,16 @@
 <script lang="ts">
   import CtfNotStarted from '$lib/components/ctf-not-started.svelte'
+  import IconFlag from '$lib/icons/icon-flag-filled.svelte'
   import IconSearch from '$lib/icons/icon-search.svelte'
   import IconTrophy from '$lib/icons/icon-trophy-filled.svelte'
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import { createScoresData } from './model/data.svelte'
   import ScoresLeaderboard from './leaderboard/leaderboard.svelte'
-  import ScoresToolbar from './toolbar/toolbar.svelte'
+  import { createScoresData } from './model/data.svelte'
+  import { isDynamicChallenge } from './model/transforms'
   import { createScoresRouteState } from './model/url-state.svelte'
+  import ScoresToolbar from './toolbar/toolbar.svelte'
 
   const configQuery = useClientConfig()
   const ctfName = $derived(configQuery.data?.ctfName)
@@ -21,11 +23,26 @@
     division: () => urlState.division,
     search: () => urlState.search,
     sortMode: () => urlState.sortMode,
+    focusedChallengeId: () => urlState.focusedChallengeId,
     showTop3Context: () => urlState.showTop3Context,
     showSelfContext: () => urlState.showSelfContext,
   })
 
   const revealAfterLoading = data.isLoading
+
+  const focusFetching = $derived(
+    !!urlState.focusedChallengeId &&
+      data.entries.length === 0 &&
+      (data.hasNextPage || data.isFetchingNextPage)
+  )
+
+  $effect(() => {
+    const id = urlState.focusedChallengeId
+    const challenge = id ? data.challengesData[id] : null
+    if (challenge && isDynamicChallenge(challenge)) {
+      urlState.setFocusedChallenge(null)
+    }
+  })
 </script>
 
 <svelte:head>
@@ -40,7 +57,7 @@
   <scores-page>
     <ScoresToolbar {data} {urlState} {divisions} />
 
-    {#if data.isLoading}
+    {#if data.isLoading || focusFetching}
       <scores-leaderboard-slot>
         <Spinner />
       </scores-leaderboard-slot>
@@ -50,7 +67,13 @@
       </scores-frame>
     {:else}
       <scores-leaderboard-slot>
-        {#if urlState.search}
+        {#if urlState.focusedChallengeId}
+          <EmptyState
+            icon={IconFlag}
+            title="No solves"
+            subtitle="No matching teams have solved this challenge."
+          />
+        {:else if urlState.search}
           <EmptyState
             icon={IconSearch}
             title="No teams found"

@@ -5,8 +5,10 @@
   import IconSortDescendingShapesFilled from '$lib/icons/icon-sort-descending-shapes-filled.svelte'
   import IconTableFilled from '$lib/icons/icon-table-filled.svelte'
   import IconUsersGroup from '$lib/icons/icon-users-group.svelte'
+  import IconX from '$lib/icons/icon-x.svelte'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
+  import { getCategoryConfig } from '$lib/utils/categories'
   import { createRovingFocus } from '$lib/utils/roving'
   import type { Component } from 'svelte'
   import type { ScoresData } from '../model/data.svelte'
@@ -20,6 +22,14 @@
   }
 
   let { data, urlState, divisions }: Props = $props()
+
+  const focusedChallenge = $derived.by(() => {
+    const id = urlState.focusedChallengeId
+    const challenge = id ? data.challengesData[id] : null
+    if (!id || !challenge) return null
+    const config = getCategoryConfig(challenge.category)
+    return { id, name: challenge.name, color: config.color, icon: config.icon }
+  })
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
   const divisionLabel = $derived(
@@ -103,6 +113,24 @@
   </score-controls>
 
   <score-actions>
+    {#if focusedChallenge}
+      <filter-chip data-category-color={focusedChallenge.color}>
+        <span data-label>Filtering by</span>
+        <a href="/challenges?challenge={focusedChallenge.id}">
+          <focusedChallenge.icon aria-hidden="true" />
+          <span>{focusedChallenge.name}</span>
+        </a>
+        <button
+          type="button"
+          data-clear
+          aria-label="Clear challenge filter"
+          onclick={() => urlState.setFocusedChallenge(null)}
+        >
+          <IconX aria-hidden="true" />
+        </button>
+      </filter-chip>
+    {/if}
+
     <team-count>
       <IconUsersGroup aria-hidden="true" />
       {data.entries.length.toLocaleString()} / {data.total.toLocaleString()}
@@ -152,6 +180,33 @@
     display: none;
     align-items: center;
     gap: 1rem;
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      block-size: 2.25rem;
+      padding-inline: 0.75rem;
+      color: var(--foreground-l3);
+      background: transparent;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+
+      :global(svg) {
+        font-size: 1rem;
+      }
+
+      &:hover,
+      &[data-active] {
+        color: var(--foreground-l1);
+        background: var(--background-l3);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+    }
   }
 
   control-group {
@@ -168,33 +223,6 @@
   button-row {
     display: flex;
     gap: 0.125rem;
-  }
-
-  score-controls button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    block-size: 2.25rem;
-    padding-inline: 0.75rem;
-    color: var(--foreground-l3);
-    background: transparent;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-
-    :global(svg) {
-      font-size: 1rem;
-    }
-
-    &:hover,
-    &[data-active] {
-      color: var(--foreground-l1);
-      background: var(--background-l3);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
   }
 
   score-actions {
@@ -224,6 +252,78 @@
 
     :global(svg) {
       font-size: 1rem;
+    }
+  }
+
+  filter-chip {
+    display: none;
+    align-items: center;
+    gap: 0.375rem;
+    block-size: 2.25rem;
+    padding-inline: 0.75rem;
+    background: var(--background-l2);
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+
+    > span[data-label] {
+      color: var(--foreground-l3);
+      font-size: var(--step--1);
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-inline-size: 0;
+      color: var(--category-foreground-l1);
+      font-size: var(--step--1);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in oklab, currentColor 50%, transparent);
+      text-underline-offset: 2px;
+      transition: text-decoration-color 150ms ease;
+
+      &:hover {
+        text-decoration-color: currentColor;
+      }
+
+      span {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      :global(svg) {
+        flex-shrink: 0;
+        font-size: 1rem;
+      }
+    }
+
+    button[data-clear] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      margin-inline-end: -0.375rem;
+      color: var(--foreground-l3);
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 150ms ease;
+
+      :global(svg) {
+        font-size: 0.875rem;
+      }
+
+      &:hover {
+        color: var(--foreground-l1);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
     }
   }
 
@@ -272,6 +372,10 @@
     }
 
     score-controls {
+      display: flex;
+    }
+
+    filter-chip {
       display: flex;
     }
 

@@ -2,15 +2,12 @@ import { goto } from '$app/navigation'
 import { page as pageState } from '$app/state'
 import { onDestroy } from 'svelte'
 import {
-  loadScoresPreferences,
-  saveScoresPreferences,
-} from './preferences'
-import {
   getActiveSearch,
   MIN_SEARCH_LENGTH,
   resolveSortMode,
   resolveViewMode,
   SCORES_GOTO_OPTIONS,
+  withScoresChallenge,
   withScoresDivision,
   withScoresSearch,
   withScoresSortMode,
@@ -18,6 +15,7 @@ import {
   type SortMode,
   type ViewMode,
 } from '../leaderboard/url-params'
+import { loadScoresPreferences, saveScoresPreferences } from './preferences'
 
 export const SEARCH_DEBOUNCE_MS = 400
 
@@ -59,6 +57,10 @@ export function createScoresRouteState() {
 
   const division = $derived(
     pageState.url.searchParams.get('division') ?? undefined
+  )
+
+  const focusedChallengeId = $derived(
+    pageState.url.searchParams.get('challenge') ?? null
   )
 
   function clearSearchTimer() {
@@ -116,6 +118,11 @@ export function createScoresRouteState() {
     navigateTo(withScoresSortMode(getCurrentUrlWithSearch(), value))
   }
 
+  function setFocusedChallenge(id: string | null) {
+    clearSearchTimer()
+    navigateTo(withScoresChallenge(getCurrentUrlWithSearch(), id))
+  }
+
   function setShowTop3Context(value: boolean) {
     saveScoresPreferences({ showTop3Context: value })
     showTop3Context = value
@@ -136,6 +143,9 @@ export function createScoresRouteState() {
     get division() {
       return division
     },
+    get focusedChallengeId() {
+      return focusedChallengeId
+    },
     get searchInput() {
       return searchInput
     },
@@ -154,5 +164,6 @@ export function createScoresRouteState() {
     setSortMode,
     setShowTop3Context,
     setShowSelfContext,
+    setFocusedChallenge,
   }
 }

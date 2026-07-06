@@ -4,8 +4,8 @@
   import Avatar from '$lib/ui/avatar.svelte'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { ScoresData } from '../model/data.svelte'
-  import ScoresDelta from './team-row-delta.svelte'
   import { getVisibleSolveCount } from '../model/transforms'
+  import ScoresDelta from './team-row-delta.svelte'
 
   interface Props {
     data: ScoresData

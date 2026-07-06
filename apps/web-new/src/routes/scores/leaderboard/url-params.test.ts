@@ -5,6 +5,7 @@ import {
   getActiveSearch,
   resolveSortMode,
   resolveViewMode,
+  withScoresChallenge,
   withScoresDivision,
   withScoresSearch,
   withScoresSortMode,
@@ -107,6 +108,42 @@ describe('withScoresSortMode', () => {
     const set = withScoresSortMode(url(), 'solves')
     const cleared = withScoresSortMode(set, 'categories')
     expect(cleared.searchParams.has('sort')).toBe(false)
+  })
+
+  test('drops an active challenge focus when the sort changes', () => {
+    const next = withScoresSortMode(url('?challenge=baby-rev'), 'solves')
+    expect(next.searchParams.has('challenge')).toBe(false)
+  })
+})
+
+describe('withScoresChallenge', () => {
+  test('sets the param for a challenge id', () => {
+    expect(
+      withScoresChallenge(url(), 'baby-rev').searchParams.get('challenge')
+    ).toBe('baby-rev')
+  })
+
+  test('clears the param for null', () => {
+    const next = withScoresChallenge(url('?challenge=baby-rev'), null)
+    expect(next.searchParams.has('challenge')).toBe(false)
+  })
+
+  test('round-trips a challenge id through parse and serialize', () => {
+    const set = withScoresChallenge(url(), 'baby-rev')
+    expect(set.searchParams.get('challenge')).toBe('baby-rev')
+    const cleared = withScoresChallenge(set, null)
+    expect(cleared.searchParams.has('challenge')).toBe(false)
+  })
+
+  test('does not mutate the input url', () => {
+    const input = url('?challenge=baby-rev')
+    withScoresChallenge(input, 'other')
+    expect(input.searchParams.get('challenge')).toBe('baby-rev')
+  })
+
+  test('view changes drop an active challenge focus', () => {
+    const next = withScoresViewMode(url('?challenge=baby-rev'), 'categories')
+    expect(next.searchParams.has('challenge')).toBe(false)
   })
 })
 

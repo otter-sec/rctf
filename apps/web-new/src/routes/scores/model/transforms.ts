@@ -116,6 +116,28 @@ export function isDynamicChallenge(challenge: ScoringKind): boolean {
   return challenge.scoringKind === 'dynamic'
 }
 
+export function getFocusedEntries<
+  T extends { solves: { id: string; solveTime: number }[] },
+>(
+  entries: T[],
+  focusedChallengeId: string | null,
+  challengesData: Record<string, ScoringKind>
+): T[] {
+  if (!focusedChallengeId) return entries
+  if (isDynamicChallenge(challengesData[focusedChallengeId] ?? DECAY_CHALLENGE))
+    return entries
+
+  const matched: { entry: T; solveTime: number }[] = []
+  for (const entry of entries) {
+    const solve = entry.solves.find(s => s.id === focusedChallengeId)
+    if (solve) matched.push({ entry, solveTime: solve.solveTime })
+  }
+  matched.sort((a, b) => a.solveTime - b.solveTime)
+  return matched.map(m => m.entry)
+}
+
+const DECAY_CHALLENGE: ScoringKind = { scoringKind: 'decay' }
+
 export function getChallengeCellWidth(challenge: ScoringKind): number {
   return isDynamicChallenge(challenge)
     ? SCORE_DYNAMIC_CELL_WIDTH_PX

@@ -13,6 +13,7 @@
     edge: PinnedEdge
     viewMode: ViewMode
     sortMode: SortMode
+    focusedChallengeId: string | null
     divisions: Record<string, string>
     showDivision: boolean
     hoveredColumnId: string | null
@@ -25,6 +26,7 @@
     edge,
     viewMode,
     sortMode,
+    focusedChallengeId,
     divisions,
     showDivision,
     hoveredColumnId,
@@ -36,7 +38,7 @@
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
   <row-content data-current>
-    <ScoresSolveCells {data} {entry} {viewMode} {sortMode} {hoveredColumnId} />
+    <ScoresSolveCells {data} {entry} {viewMode} {sortMode} {focusedChallengeId} {hoveredColumnId} />
   </row-content>
 </self-row>
 
@@ -60,6 +62,12 @@
       inset-block-end: 0;
       margin-block-start: auto;
       padding-block-end: var(--score-row-gap);
+    }
+
+    @media (width >= 48rem) {
+      &[data-edge='top'] {
+        inset-block-start: var(--score-header-height);
+      }
     }
   }
 
@@ -86,18 +94,8 @@
       background: var(--background-self-l0);
       border-radius: var(--radius-lg);
     }
-  }
 
-  row-content {
-    display: none;
-  }
-
-  @media (width >= 48rem) {
-    self-row[data-edge='top'] {
-      inset-block-start: var(--score-header-height);
-    }
-
-    row-team {
+    @media (width >= 48rem) {
       position: sticky;
       inset-inline-start: 0;
       z-index: 10;
@@ -107,8 +105,12 @@
         border-end-end-radius: 0;
       }
     }
+  }
 
-    row-content {
+  row-content {
+    display: none;
+
+    @media (width >= 48rem) {
       display: block;
       flex-shrink: 0;
       inline-size: var(--score-content-width);

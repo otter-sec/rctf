@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { SCORE_CELL_WIDTH_PX, SCORE_ROW_GAP_PX } from './constants'
-  import { CELL_KIND } from './cell-tooltip'
+  import IconX from '$lib/icons/icon-x.svelte'
   import {
     getChallengeCellsInnerWidth,
     getChallengeCellWidth,
@@ -8,6 +7,8 @@
     type CategoryGroup,
     type ChallengeInfo,
   } from '../model/transforms'
+  import { CELL_KIND } from './cell-tooltip'
+  import { SCORE_CELL_WIDTH_PX, SCORE_ROW_GAP_PX } from './constants'
   import type { SortMode, ViewMode } from './url-params'
 
   interface Props {
@@ -15,10 +16,27 @@
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
+    focusedChallengeId: string | null
+    onFocus: (id: string) => void
     hoveredColumnId: string | null
   }
 
-  let { viewMode, sortMode, categoryGroups, challenges, hoveredColumnId }: Props = $props()
+  let {
+    viewMode,
+    sortMode,
+    categoryGroups,
+    challenges,
+    focusedChallengeId,
+    onFocus,
+    hoveredColumnId,
+  }: Props = $props()
+
+  function groupHasFocused(group: CategoryGroup): boolean {
+    return (
+      focusedChallengeId !== null &&
+      group.challenges.some(challenge => challenge.id === focusedChallengeId)
+    )
+  }
 
   type HeaderItem =
     | { type: 'category'; group: CategoryGroup }
@@ -64,8 +82,14 @@
 
 {#snippet nameLabel(item: HeaderItem, width: number, stackIndex: number)}
   {@const isCategory = item.type === 'category'}
+  {@const challenge = item.type === 'challenge' ? item.challenge : null}
+  {@const dynamic = challenge ? isDynamicChallenge(challenge) : false}
+  {@const canFocus = challenge !== null && !dynamic}
+  {@const isFocused = challenge !== null && focusedChallengeId === challenge.id}
+  {@const isDimmed = challenge !== null && focusedChallengeId !== null && !isFocused}
   <header-name-slot
     data-category-color={isCategory ? item.group.config.color : item.challenge.config.color}
+    data-dimmed={isDimmed || undefined}
     style:--slot-width={`${width}px`}
     style:z-index={stackIndex}
     data-tooltip-cell
@@ -75,11 +99,26 @@
     data-points={isCategory ? fixedCategoryPoints(item.group) : item.challenge.points}
     data-count={isCategory ? item.group.challenges.length : undefined}
     data-dynamic-count={isCategory ? dynamicCount(item.group) || undefined : undefined}
-    data-dynamic={!isCategory && isDynamicChallenge(item.challenge) ? '' : undefined}
+    data-dynamic={dynamic ? '' : undefined}
   >
-    <span data-name data-category={isCategory || undefined}>
-      {isCategory ? item.group.config.name : item.challenge.name}
-    </span>
+    {#if canFocus && challenge}
+      <button
+        data-name
+        data-focused={isFocused || undefined}
+        type="button"
+        aria-pressed={isFocused}
+        onclick={() => onFocus(challenge.id)}
+      >
+        <span data-label>{challenge.name}</span>
+        {#if isFocused}
+          <IconX data-focus-icon aria-hidden="true" />
+        {/if}
+      </button>
+    {:else}
+      <span data-name data-category={isCategory || undefined}>
+        {isCategory ? item.group.config.name : item.challenge.name}
+      </span>
+    {/if}
   </header-name-slot>
 {/snippet}
 
@@ -137,8 +176,10 @@
     {:else if sortMode === 'categories'}
       {#each categoryGroups as group (group.category)}
         {@const highlight = groupColumnHighlight(group)}
+        {@const groupDimmed = focusedChallengeId !== null && !groupHasFocused(group)}
         <category-block
           data-category-color={group.config.color}
+          data-dimmed={groupDimmed || undefined}
           style:--block-width={`${getChallengeCellsInnerWidth(group.challenges)}px`}
         >
           {#if highlight}
@@ -149,7 +190,12 @@
           {/if}
           <category-points data-challenge>
             {#each group.challenges as challenge (challenge.id)}
-              <challenge-point style:--point-width={`${getChallengeCellWidth(challenge)}px`}>
+              {@const cellDimmed =
+                !groupDimmed && focusedChallengeId !== null && focusedChallengeId !== challenge.id}
+              <challenge-point
+                data-dimmed={cellDimmed || undefined}
+                style:--point-width={`${getChallengeCellWidth(challenge)}px`}
+              >
                 {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
               </challenge-point>
             {/each}
@@ -162,8 +208,10 @@
       {/each}
     {:else}
       {#each challenges as challenge (challenge.id)}
+        {@const blockDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id}
         <category-block
           data-category-color={challenge.config.color}
+          data-dimmed={blockDimmed || undefined}
           style:--block-width={`${getChallengeCellWidth(challenge)}px`}
         >
           {#if hoveredColumnId === challenge.id}
@@ -203,26 +251,74 @@
     inline-size: var(--slot-width);
     block-size: var(--score-name-row-height);
     overflow: visible;
+
+    &[data-dimmed] {
+      opacity: 0.25;
+    }
   }
 
-  span[data-name] {
+  span[data-name],
+  button[data-name] {
     position: absolute;
     inset-block-end: 0;
     inset-inline-start: 50%;
     max-inline-size: 9.5rem;
-    overflow: hidden;
     color: var(--category-foreground-l1);
     font-size: var(--step-0);
     line-height: 1;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    text-transform: none;
     transform-origin: bottom left;
     rotate: -45deg;
   }
 
-  span[data-name][data-category] {
-    text-transform: capitalize;
+  span[data-name] {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-transform: none;
+
+    &[data-category] {
+      text-transform: capitalize;
+    }
+  }
+
+  button[data-name] {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: translate 150ms ease;
+
+    span[data-label] {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    &:hover {
+      translate: 1.5px -1.5px;
+      text-decoration: underline;
+
+      :global(svg[data-focus-icon]) {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+      border-radius: var(--radius-xs);
+    }
+
+    :global(svg[data-focus-icon]) {
+      flex-shrink: 0;
+      inline-size: 1rem;
+      block-size: 1rem;
+      opacity: 0.5;
+      transition: opacity 150ms ease;
+    }
   }
 
   header-bars {
@@ -275,6 +371,14 @@
       background: var(--background-l0);
       border-radius: inherit;
     }
+
+    &[data-dimmed] {
+      opacity: 0.25;
+    }
+  }
+
+  challenge-point[data-dimmed] {
+    opacity: 0.25;
   }
 
   category-points {

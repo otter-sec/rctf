@@ -20,6 +20,7 @@ import {
   getChallengesByCategory,
   getChallengesBySolves,
   getEmptyGraphVisibility,
+  getFocusedEntries,
   getGraphVisibility,
   getRankColorForPosition,
   getRankDeltaByTeam,
@@ -474,6 +475,57 @@ describe('getRankVariant', () => {
 
   test('podium wins over the self accent', () => {
     expect(getRankVariant(1, true)).toBe('first')
+  })
+})
+
+describe('getFocusedEntries — challenge focus filter (blood order)', () => {
+  const entries = [
+    {
+      id: 'rank1',
+      globalPlace: 1,
+      solves: [
+        { id: 'baby-rev', solveTime: 300 },
+        { id: 'crypto', solveTime: 50 },
+      ],
+    },
+    { id: 'rank2', globalPlace: 2, solves: [{ id: 'crypto', solveTime: 80 }] },
+    {
+      id: 'rank3',
+      globalPlace: 3,
+      solves: [{ id: 'baby-rev', solveTime: 100 }],
+    },
+    {
+      id: 'rank4',
+      globalPlace: 4,
+      solves: [{ id: 'baby-rev', solveTime: 200 }],
+    },
+  ]
+  const challengesData = {
+    'baby-rev': { scoringKind: 'decay' as const },
+    crypto: { scoringKind: 'decay' as const },
+    flappy: { scoringKind: 'dynamic' as const },
+  }
+
+  test('returns all entries when no challenge is focused', () => {
+    expect(getFocusedEntries(entries, null, challengesData)).toBe(entries)
+  })
+
+  test('keeps only solvers, ordered by ascending solve time (blood order)', () => {
+    const focused = getFocusedEntries(entries, 'baby-rev', challengesData)
+    expect(focused.map(e => e.id)).toEqual(['rank3', 'rank4', 'rank1'])
+  })
+
+  test('preserves each solver original global place while focused', () => {
+    const focused = getFocusedEntries(entries, 'baby-rev', challengesData)
+    expect(focused.map(e => e.globalPlace)).toEqual([3, 4, 1])
+  })
+
+  test('a dynamic-scoring challenge focus leaves the board unfiltered', () => {
+    expect(getFocusedEntries(entries, 'flappy', challengesData)).toBe(entries)
+  })
+
+  test('an unknown challenge id filters to its (empty) solver set', () => {
+    expect(getFocusedEntries(entries, 'ghost', challengesData)).toEqual([])
   })
 })
 
