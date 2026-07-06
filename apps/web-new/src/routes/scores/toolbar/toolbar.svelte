@@ -1,6 +1,7 @@
 <script lang="ts">
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconLayoutListFilled from '$lib/icons/icon-layout-list-filled.svelte'
+  import IconPhotoFilled from '$lib/icons/icon-photo-filled.svelte'
   import IconSortAscendingNumbers from '$lib/icons/icon-sort-ascending-numbers.svelte'
   import IconSortDescendingShapesFilled from '$lib/icons/icon-sort-descending-shapes-filled.svelte'
   import IconTableFilled from '$lib/icons/icon-table-filled.svelte'
@@ -19,9 +20,10 @@
     data: ScoresData
     urlState: ScoresUrlState
     divisions: Record<string, string>
+    onScreenshot: () => void
   }
 
-  let { data, urlState, divisions }: Props = $props()
+  let { data, urlState, divisions, onScreenshot }: Props = $props()
 
   const focusedChallenge = $derived.by(() => {
     const id = urlState.focusedChallengeId
@@ -144,6 +146,22 @@
         onclear={() => urlState.setSearchInput('')}
       />
     </search-slot>
+
+    {#if data.entries.length > 0}
+      <Tooltip label="Export screenshot">
+        {#snippet children({ props })}
+          <button
+            {...props}
+            type="button"
+            data-screenshot
+            aria-label="Export screenshot"
+            onclick={onScreenshot}
+          >
+            <IconPhotoFilled aria-hidden="true" />
+          </button>
+        {/snippet}
+      </Tooltip>
+    {/if}
 
     {#if showDivision}
       <Menu label="Filter by division" items={divisionItems} placement="bottom-end">
@@ -324,6 +342,34 @@
         outline: 2px solid var(--ring);
         outline-offset: 2px;
       }
+    }
+  }
+
+  button[data-screenshot] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    block-size: 2.25rem;
+    inline-size: 2.25rem;
+    color: var(--foreground-l3);
+    background: var(--background-l2);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+
+    :global(svg) {
+      font-size: 1rem;
+    }
+
+    &:hover,
+    &[data-state='open'] {
+      color: var(--foreground-l1);
+      background: var(--background-l3);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
     }
   }
 

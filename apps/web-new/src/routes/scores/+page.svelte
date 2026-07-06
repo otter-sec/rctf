@@ -8,8 +8,10 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import ScoresLeaderboard from './leaderboard/leaderboard.svelte'
   import { createScoresData } from './model/data.svelte'
-  import { isDynamicChallenge } from './model/transforms'
+  import { getVisibleSolveCount, isDynamicChallenge } from './model/transforms'
   import { createScoresRouteState } from './model/url-state.svelte'
+  import type { ScreenshotTeam } from './screenshot/options'
+  import ScoresScreenshotModal from './screenshot/screenshot-modal.svelte'
   import ScoresToolbar from './toolbar/toolbar.svelte'
 
   const configQuery = useClientConfig()
@@ -29,6 +31,61 @@
   })
 
   const revealAfterLoading = data.isLoading
+
+  const endTime = $derived(configQuery.data?.endTime ?? null)
+
+  let screenshotOpen = $state(false)
+
+  function toScreenshotTeam(entry: (typeof data.entries)[number], index: number): ScreenshotTeam {
+    return {
+      id: entry.id,
+      rank: entry.globalPlace ?? index + 1,
+      name: entry.name,
+      avatarUrl: entry.avatarUrl,
+      countryCode: entry.countryCode,
+      statusText: entry.statusText,
+      score: entry.score,
+      solveCount: getVisibleSolveCount(entry.solves, data.challengesData),
+      isCurrentUser: entry.id === data.currentUserId,
+      sparklineData: data.sparklineDataByTeam.get(entry.id) ?? [],
+      color: data.teamColorMap.get(entry.id) ?? 'var(--foreground-l3)',
+    }
+  }
+
+  const screenshotTeams = $derived(data.entries.map(toScreenshotTeam))
+
+  const screenshotSelfTeam = $derived.by((): ScreenshotTeam | null => {
+    const user = data.currentUser
+    if (!user) return null
+    const listed = screenshotTeams.find(team => team.id === user.id)
+    if (listed) return listed
+    if (user.globalPlace === null) return null
+    return {
+      id: user.id,
+      rank: user.globalPlace,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      countryCode: user.countryCode,
+      statusText: user.statusText,
+      score: user.score,
+      solveCount: getVisibleSolveCount(user.solves, data.challengesData),
+      isCurrentUser: true,
+      sparklineData: data.sparklineDataByTeam.get(user.id) ?? [],
+      color: data.teamColorMap.get(user.id) ?? 'var(--foreground-self-l0)',
+    }
+  })
+
+  const screenshotSolvesByTeam = $derived.by(() => {
+    const map = new Map<string, Set<string>>()
+    for (const entry of data.entries) {
+      map.set(entry.id, new Set(entry.solves.map(solve => solve.id)))
+    }
+    const user = data.currentUser
+    if (user && !map.has(user.id)) {
+      map.set(user.id, new Set(user.solves.map(solve => solve.id)))
+    }
+    return map
+  })
 
   const focusFetching = $derived(
     !!urlState.focusedChallengeId &&
@@ -55,7 +112,7 @@
   <CtfNotStarted />
 {:else}
   <scores-page>
-    <ScoresToolbar {data} {urlState} {divisions} />
+    <ScoresToolbar {data} {urlState} {divisions} onScreenshot={() => (screenshotOpen = true)} />
 
     {#if data.isLoading || focusFetching}
       <scores-leaderboard-slot>
@@ -87,6 +144,21 @@
           />
         {/if}
       </scores-leaderboard-slot>
+    {/if}
+
+    {#if screenshotOpen}
+      <ScoresScreenshotModal
+        open={screenshotOpen}
+        onOpenChange={open => (screenshotOpen = open)}
+        teams={screenshotTeams}
+        selfTeam={screenshotSelfTeam}
+        graphData={data.graphData}
+        categoryGroups={data.categoryGroups}
+        solvesByTeam={screenshotSolvesByTeam}
+        ctfName={ctfName ?? ''}
+        {startTime}
+        {endTime}
+      />
     {/if}
   </scores-page>
 {/if}
