@@ -67,7 +67,7 @@ describe('clampBoxPosition', () => {
   })
 
   test('matches the profile-solve-tooltip formula for a left-flip placement', () => {
-    // Mirrors src/routes/profile/profile-solve-tooltip.svelte's pre-extraction boxX/boxY.
+    // Mirrors src/routes/profile/analytics/solve-tooltip.svelte's pre-extraction boxX/boxY.
     const anchor = { x: 300, y: 40 }
     const ttBox = { width: 220, height: 92 }
     const ttChart = { width: 400, height: 100 }

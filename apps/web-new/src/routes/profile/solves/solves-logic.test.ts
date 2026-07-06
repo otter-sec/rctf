@@ -3,7 +3,7 @@ import type {
   ChallengeInfo,
   ProfileDynamicScore,
   ProfileSolve,
-} from './profile-analytics-data'
+} from '../analytics/analytics-data'
 import {
   buildDisplayRows,
   computeSolvesStats,
@@ -13,7 +13,7 @@ import {
   selectEmptyState,
   sortRowsByMode,
   type DisplayRow,
-} from './profile-solves-logic'
+} from './solves-logic'
 
 function solve(
   overrides: Partial<ProfileSolve> & { id: string }

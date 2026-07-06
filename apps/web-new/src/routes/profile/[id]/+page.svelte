@@ -21,12 +21,12 @@
   import { useUserById } from '$lib/query/user'
   import Button from '$lib/ui/button.svelte'
   import Card from '$lib/ui/card.svelte'
-  import { toChallengeInfos } from '../profile-analytics-data'
-  import ProfileAnalytics from '../profile-analytics.svelte'
-  import type { GraphSampleInput } from '../profile-graph-data'
+  import { toChallengeInfos } from '../analytics/analytics-data'
+  import ProfileAnalytics from '../analytics/analytics.svelte'
+  import type { GraphSampleInput } from '../analytics/graph-data'
   import ProfileHeader from '../profile-header.svelte'
-  import ProfileShell from '../profile-shell.svelte'
-  import ProfileSolves from '../profile-solves.svelte'
+  import ProfileShell from '../shell.svelte'
+  import ProfileSolves from '../solves/solves.svelte'
 
   const userId = $derived(page.params.id ?? '')
   const userQuery = useUserById(() => userId)

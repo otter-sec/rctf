@@ -12,8 +12,8 @@
   import { ctfRelativeTicks } from '$lib/chart/ticks'
   import IconFlagFilled from '$lib/icons/icon-flag-filled.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import type { ActivityDomain, TimelineDatum } from './profile-analytics-data'
-  import ProfileSolveTooltip from './profile-solve-tooltip.svelte'
+  import type { ActivityDomain, TimelineDatum } from './analytics-data'
+  import ProfileSolveTooltip from './solve-tooltip.svelte'
 
   interface Props {
     data: TimelineDatum[]

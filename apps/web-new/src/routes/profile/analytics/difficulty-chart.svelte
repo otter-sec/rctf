@@ -9,8 +9,8 @@
   import { createHoverTip } from '$lib/chart/hover-tip.svelte'
   import { createLinearScale } from '$lib/chart/scale'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
-  import { maxChartValue, type DifficultyDatum } from './profile-analytics-data'
-  import { compactNumber } from './profile-chart-utils'
+  import { maxChartValue, type DifficultyDatum } from './analytics-data'
+  import { compactNumber } from './chart-utils'
 
   interface Props {
     data: DifficultyDatum[]

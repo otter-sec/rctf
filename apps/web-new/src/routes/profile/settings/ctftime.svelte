@@ -14,7 +14,7 @@
   import Button from '$lib/ui/button.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import ButtonCtftime from '../(auth)/button-ctftime.svelte'
+  import ButtonCtftime from '../../(auth)/button-ctftime.svelte'
 
   type Props = {
     user: UserProfile

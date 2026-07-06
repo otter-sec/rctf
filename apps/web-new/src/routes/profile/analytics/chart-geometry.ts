@@ -5,7 +5,7 @@
  * separator sits against a muted (unsolved) segment.
  */
 
-import type { CategoryBarSegment } from './profile-analytics-data'
+import type { CategoryBarSegment } from './analytics-data'
 
 /**
  * The point-space end of the earned region: the largest `end` across the

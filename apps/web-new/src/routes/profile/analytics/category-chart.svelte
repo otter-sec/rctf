@@ -18,9 +18,9 @@
     maxChartValue,
     type CategoryBarDatum,
     type CategoryBarSegment,
-  } from './profile-analytics-data'
-  import { earnedSegmentEnd, separatorIsNeutral } from './profile-chart-geometry'
-  import { compactNumber } from './profile-chart-utils'
+  } from './analytics-data'
+  import { earnedSegmentEnd, separatorIsNeutral } from './chart-geometry'
+  import { compactNumber } from './chart-utils'
 
   interface Props {
     data: CategoryBarDatum[]

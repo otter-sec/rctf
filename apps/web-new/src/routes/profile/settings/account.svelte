@@ -31,7 +31,7 @@
     isEmailDirty,
     isEmailValid,
     isProfileDirty,
-  } from './profile-settings-logic'
+  } from './settings-logic'
 
   type Props = {
     user: UserProfile

@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import type { ProfileSolve } from './profile-analytics-data'
+import type { ProfileSolve } from './analytics-data'
 import {
   buildProfileGraphData,
   type GraphSampleInput,
   type ProfileGraphInput,
-} from './profile-graph-data'
+} from './graph-data'
 
 const START = 1000
 const END = 1_000_000_000

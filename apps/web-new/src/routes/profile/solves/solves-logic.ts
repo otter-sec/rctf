@@ -4,7 +4,7 @@ import {
   type ChallengeInfo,
   type ProfileDynamicScore,
   type ProfileSolve,
-} from './profile-analytics-data'
+} from '../analytics/analytics-data'
 
 export type SortMode = 'category' | 'time' | 'points'
 

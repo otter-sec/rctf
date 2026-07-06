@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import type { CategoryBarSegment } from './profile-analytics-data'
-import { earnedSegmentEnd, separatorIsNeutral } from './profile-chart-geometry'
+import type { CategoryBarSegment } from './analytics-data'
+import { earnedSegmentEnd, separatorIsNeutral } from './chart-geometry'
 
 function segment(part: Partial<CategoryBarSegment>): CategoryBarSegment {
   return { key: 'k', label: 'l', value: 0, start: 0, end: 0, ...part }

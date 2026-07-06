@@ -28,7 +28,7 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
-  import type { ChallengeInfo, ProfileDynamicScore, ProfileSolve } from './profile-analytics-data'
+  import type { ChallengeInfo, ProfileDynamicScore, ProfileSolve } from '../analytics/analytics-data'
   import {
     buildDisplayRows,
     computeSolvesStats,
@@ -40,7 +40,7 @@
     sortRowsByMode,
     type DisplayRow,
     type SortMode,
-  } from './profile-solves-logic'
+  } from './solves-logic'
 
   type BloodTier = 'gold' | 'silver' | 'bronze'
 

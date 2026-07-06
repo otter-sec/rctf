@@ -3,7 +3,7 @@ import {
   getProfileCategoryDisplay,
   type ProfileDynamicScore,
   type ProfileSolve,
-} from './profile-analytics-data'
+} from './analytics-data'
 
 export type GraphLinePoint = { time: number; score: number }
 

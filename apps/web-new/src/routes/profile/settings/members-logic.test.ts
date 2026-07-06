@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   diffMemberChange,
   isValidEmail,
-} from './profile-settings-members-logic'
+} from './members-logic'
 
 const members: Member[] = [
   { id: 'member-1', userid: 'user-1', email: 'a@osec.io' },

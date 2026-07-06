@@ -12,7 +12,7 @@ export type ProfileSolve = PublicUserProfile['solves'][number]
 export type ProfileDynamicScore = PublicUserProfile['dynamicScores'][number]
 
 // Local, points-aware challenge shape. Structurally a subset of the scoreboard's
-// ChallengeInfo (src/routes/scores/scores-transforms.ts); see KTD-6 note in the
+// ChallengeInfo (src/routes/scores/model/transforms.ts); see KTD-6 note in the
 // Phase 4 plan — the two stat pipelines stay separate by design.
 export type ChallengeInfo = {
   id: string

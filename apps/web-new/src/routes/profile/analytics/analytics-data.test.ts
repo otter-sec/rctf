@@ -15,7 +15,7 @@ import {
   type ChallengeInfo,
   type ProfileDynamicScore,
   type ProfileSolve,
-} from './profile-analytics-data'
+} from './analytics-data'
 
 const msPerMinute = 60 * 1000
 const msPerHour = 60 * msPerMinute

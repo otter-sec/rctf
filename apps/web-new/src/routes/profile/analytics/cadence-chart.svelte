@@ -10,8 +10,8 @@
   import { createLinearScale } from '$lib/chart/scale'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import { formatRelativeHoursMinutes } from '$lib/utils/time'
-  import { maxChartValue, type CadenceDatum } from './profile-analytics-data'
-  import { compactNumber } from './profile-chart-utils'
+  import { maxChartValue, type CadenceDatum } from './analytics-data'
+  import { compactNumber } from './chart-utils'
 
   interface Props {
     data: CadenceDatum[]

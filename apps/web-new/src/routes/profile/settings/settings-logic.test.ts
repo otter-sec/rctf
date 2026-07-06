@@ -9,7 +9,7 @@ import {
   isEmailValid,
   isProfileDirty,
   type ProfileCurrentUser,
-} from './profile-settings-logic'
+} from './settings-logic'
 
 const user: ProfileCurrentUser = {
   name: 'otter-sec',

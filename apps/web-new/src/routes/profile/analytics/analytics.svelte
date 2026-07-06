@@ -22,13 +22,13 @@
     type ChallengeInfo,
     type ProfileDynamicScore,
     type ProfileSolve,
-  } from './profile-analytics-data'
-  import ProfileCadenceChart from './profile-cadence-chart.svelte'
-  import ProfileCategoryChart from './profile-category-chart.svelte'
-  import ProfileDifficultyChart from './profile-difficulty-chart.svelte'
-  import type { GraphSampleInput } from './profile-graph-data'
-  import ProfileGraph from './profile-graph.svelte'
-  import ProfileTimelineChart from './profile-timeline-chart.svelte'
+  } from './analytics-data'
+  import ProfileCadenceChart from './cadence-chart.svelte'
+  import ProfileCategoryChart from './category-chart.svelte'
+  import ProfileDifficultyChart from './difficulty-chart.svelte'
+  import type { GraphSampleInput } from './graph-data'
+  import ProfileGraph from './graph.svelte'
+  import ProfileTimelineChart from './timeline-chart.svelte'
 
   type Props = {
     solves: ProfileSolve[]

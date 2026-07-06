@@ -1,6 +1,6 @@
 <!--
   Profile score-over-time graph. Hand-rolled SVG on the shared chart core
-  (scale/ticks/path/nearest), composed like scores-graph.svelte. Draws the total
+  (scale/ticks/path/nearest), composed like scores/graph/graph.svelte. Draws the total
   score line plus, when dynamic scoring splits it, a thin static line and a
   dashed dynamic line; a category-coloured dot per solve sits at its running
   score. Hover picks the nearest sample or dot and shows the matching tooltip.
@@ -16,10 +16,10 @@
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import type { ProfileDynamicScore, ProfileSolve } from './profile-analytics-data'
-  import { compactNumber } from './profile-chart-utils'
-  import { buildProfileGraphData, scoreAt, type GraphSampleInput } from './profile-graph-data'
-  import ProfileSolveTooltip from './profile-solve-tooltip.svelte'
+  import type { ProfileDynamicScore, ProfileSolve } from './analytics-data'
+  import { compactNumber } from './chart-utils'
+  import { buildProfileGraphData, scoreAt, type GraphSampleInput } from './graph-data'
+  import ProfileSolveTooltip from './solve-tooltip.svelte'
 
   interface Props {
     graphData: GraphSampleInput

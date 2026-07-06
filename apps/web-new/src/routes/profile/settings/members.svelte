@@ -14,7 +14,7 @@
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
-  import { diffMemberChange, isValidEmail } from './profile-settings-members-logic'
+  import { diffMemberChange, isValidEmail } from './members-logic'
 
   type Props = {
     clientConfig: ClientConfig
