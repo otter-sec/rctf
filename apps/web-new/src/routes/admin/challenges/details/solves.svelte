@@ -27,9 +27,9 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import { hasPermissions } from '$lib/utils/permissions'
   import type { Attachment } from 'svelte/attachments'
-  import ChallengeDetailsRow from '../../challenges/details/details-row.svelte'
-  import { rankVariant, solveTimeLabels } from '../../challenges/model/solve-times'
-  import ConfirmDialog from '../profile/confirm-dialog.svelte'
+  import ChallengeDetailsRow from '../../../challenges/details/details-row.svelte'
+  import { rankVariant, solveTimeLabels } from '../../../challenges/model/solve-times'
+  import ConfirmDialog from '../../profile/confirm-dialog.svelte'
 
   interface Props {
     challengeId: string | null

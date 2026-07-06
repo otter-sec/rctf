@@ -10,9 +10,9 @@
   import { useAdminChallenge, useAdminChallenges } from '$lib/query/admin'
   import Dialog from '$lib/ui/dialog.svelte'
   import Splitter from '$lib/ui/splitter.svelte'
-  import AdminChallengesDetails from './admin-challenges-details.svelte'
-  import AdminChallengesList from './admin-challenges-list.svelte'
-  import { create, createEditorState, detailLoaded, select, type EditorState } from './editor-state'
+  import AdminChallengesDetails from './details/details.svelte'
+  import AdminChallengesList from './list/list.svelte'
+  import { create, createEditorState, detailLoaded, select, type EditorState } from './editor/editor-state'
 
   const DESKTOP_MIN_WIDTH = 768
   const WIDE_MIN_WIDTH = 1280

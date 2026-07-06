@@ -21,8 +21,8 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import * as yaml from 'yaml'
-  import ChallengesDetailsOverviewInstancer from '../../challenges/details/overview-instancer.svelte'
-  import AdminChallengesDetailsInstancerExpose from './admin-challenges-details-instancer-expose.svelte'
+  import ChallengesDetailsOverviewInstancer from '../../../challenges/details/overview-instancer.svelte'
+  import AdminChallengesDetailsInstancerExpose from './instancer-expose.svelte'
   import FieldSelect from './field-select.svelte'
   import {
     defaultInstancerConfig,
@@ -33,7 +33,7 @@
     timeoutToSeconds,
     type ExposeConfig,
   } from './instancer-config'
-  import { SchemaForm, type JsonSchema } from './schema-form'
+  import { SchemaForm, type JsonSchema } from '../schema-form'
 
   interface Props {
     config: InstancerConfig | null

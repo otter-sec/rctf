@@ -25,11 +25,11 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
-  import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
-  import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
-  import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
-  import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
-  import type { AdminBotConfig, EditorForm, ScoringConfig } from './editor-state'
+  import AdminChallengesDetailsAdminbot from './adminbot.svelte'
+  import AdminChallengesDetailsAttachments from './attachments.svelte'
+  import AdminChallengesDetailsInstancer from './instancer.svelte'
+  import AdminChallengesDetailsSolves from './solves.svelte'
+  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../editor/editor-state'
   import FieldSelect from './field-select.svelte'
   import {
     detailsTabInvalid,

@@ -1,6 +1,6 @@
 import { ChallengeScoringKind, DynamicScoringTransport } from '@rctf/types'
 import { describe, expect, test } from 'bun:test'
-import { defaultForm, type EditorForm } from './editor-state'
+import { defaultForm, type EditorForm } from '../editor/editor-state'
 import {
   buildSavePayload,
   detailsTabInvalid,

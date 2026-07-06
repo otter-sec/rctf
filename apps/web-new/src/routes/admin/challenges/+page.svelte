@@ -8,7 +8,7 @@
   import { useClientConfig } from '$lib/query/config'
   import Card from '$lib/ui/card.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import AdminChallenges from './admin-challenges.svelte'
+  import AdminChallenges from './challenges.svelte'
 
   const configQuery = useClientConfig()
   const ctfName = $derived(configQuery.data?.ctfName)

@@ -18,7 +18,7 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
   import { hasPermissions } from '$lib/utils/permissions'
-  import AdminChallengesListItem from './admin-challenges-list-item.svelte'
+  import AdminChallengesListItem from './list-item.svelte'
   import { accordionValue, filterChallenges, groupChallenges } from './list-logic'
 
   interface Props {
