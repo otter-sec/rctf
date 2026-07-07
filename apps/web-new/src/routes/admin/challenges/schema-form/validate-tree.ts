@@ -10,8 +10,6 @@ import {
 } from './utils'
 import { validateValue } from './validate'
 
-export type { FindingSeverity, PathStatus } from './types'
-
 export interface ValidationFinding {
   severity: FindingSeverity
   message: string
@@ -71,6 +69,10 @@ function addTypeMismatch(
   })
 }
 
+// owningPath must always be a path that deriveTree (tree.ts) creates a node for on the
+// same (schema, value): it advances exactly where buildNode does — at classifyHeavy-positive
+// properties and at entries/items of heavy collections. Drift keys findings to ids the
+// rendered tree does not contain; the invariant test in validate-tree.test.ts pins this.
 function walk(
   schema: JsonSchema,
   value: unknown,

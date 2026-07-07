@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { encodeNodeId } from './tree'
+import { deriveTree, encodeNodeId, type TreeNode } from './tree'
 import type { JsonSchema } from './types'
 import {
   pathStatuses,
@@ -389,5 +389,73 @@ describe('pathStatuses: severity aggregation', () => {
     expect(statuses.get(webId)).toBe('invalid')
     expect(statuses.get(servicesId)).toBe('invalid')
     expect(statuses.get(rootId)).toBe('invalid')
+  })
+})
+
+describe('validateTree: array/object type-mismatch guards', () => {
+  it('flags a scalar where an array is expected', () => {
+    const config = validConfig()
+    config.services.web!.dns = 'not-a-list'
+    const findings = validateTree(dockerSchema, config)
+    const finding = allFindings(findings).find(
+      f => f.message === 'Must be an array'
+    )
+    expect(finding?.fieldPath).toEqual(['services', 'web', 'dns'])
+    expect(
+      findings.get(webId)?.some(f => f.message === 'Must be an array')
+    ).toBe(true)
+  })
+
+  it('flags a scalar where an object is expected', () => {
+    const config = validConfig()
+    config.services.web!.healthcheck = 'yes'
+    const findings = validateTree(dockerSchema, config)
+    const finding = allFindings(findings).find(
+      f => f.message === 'Must be an object'
+    )
+    expect(finding?.fieldPath).toEqual(['services', 'web', 'healthcheck'])
+    expect(
+      findings.get(webId)?.some(f => f.message === 'Must be an object')
+    ).toBe(true)
+  })
+})
+
+describe('pathStatuses: ancestor upgrade ordering', () => {
+  it('upgrades incomplete-marked ancestors when a later finding is invalid', () => {
+    const config = validConfig()
+    // Insertion order puts the incomplete entry first so its ancestor chain is
+    // marked before the invalid propagation must overwrite and keep climbing.
+    config.services = { fresh: { image: '' }, ...config.services }
+    config.services.web!.restart = 'bogus'
+    const statuses = pathStatuses(validateTree(dockerSchema, config))
+    expect(statuses.get(encodeNodeId(['services', 'fresh']))).toBe('incomplete')
+    expect(statuses.get(encodeNodeId(['services', 'web']))).toBe('invalid')
+    expect(statuses.get(servicesId)).toBe('invalid')
+    expect(statuses.get(rootId)).toBe('invalid')
+  })
+})
+
+describe('validateTree: owning-node attribution invariant', () => {
+  it('keys every finding to a node deriveTree creates for the same inputs', () => {
+    const config = validConfig()
+    config.services = { fresh: { image: '' }, ...config.services }
+    config.services.web!.restart = 'bogus'
+    config.services.web!.dns = ['1.1.1.1', 'not-an-ip']
+    config.services.web!.sysctls = { 'net.core.somaxconn': 'NaN' }
+    config.services.db!.ulimits = { nofile: { soft: 'low', hard: 2048 } }
+    config.volumes.data!.driver = 7 as unknown as string
+
+    const nodeIds = new Set<string>()
+    const visit = (node: TreeNode) => {
+      nodeIds.add(node.id)
+      for (const child of node.children) visit(child)
+    }
+    visit(deriveTree(dockerSchema, config))
+
+    const findings = validateTree(dockerSchema, config)
+    expect(findings.size).toBeGreaterThan(0)
+    for (const owningId of findings.keys()) {
+      expect(nodeIds.has(owningId)).toBe(true)
+    }
   })
 })

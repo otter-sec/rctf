@@ -313,18 +313,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
-
-    &[hidden] {
-      display: none;
-    }
   }
 
   form-editor {
     display: block;
-
-    &[hidden] {
-      display: none;
-    }
   }
 
   provider-toolbar {

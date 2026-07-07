@@ -36,8 +36,10 @@
   let listEl = $state<HTMLElement | null>(null)
 
   function add() {
-    onChange(path, [...items, defaultValue(itemSchema)])
-    onAdded([...path, String(items.length)])
+    // Capture before onChange: `items` re-derives synchronously after the parent updates
+    const next = [...items, defaultValue(itemSchema)]
+    onChange(path, next)
+    onAdded([...path, String(next.length - 1)])
   }
 
   function remove(index: number) {

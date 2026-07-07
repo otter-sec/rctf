@@ -2,14 +2,16 @@
   import SchemaFormArrayList from './schema-form-array-list.svelte'
   import SchemaFormArrayTags from './schema-form-array-tags.svelte'
   import type { FieldProps, JsonSchema } from './types'
-  import { arrayItemSchema, isTypeOneOf } from './utils'
+  import { arrayItemSchema, getEffectiveSchema, getPrimaryType, isTypeOneOf } from './utils'
 
   interface Props extends FieldProps {}
 
   let { schema, value, path, onChange, onSelect, disabled = false }: Props = $props()
 
   const itemSchema = $derived(arrayItemSchema(schema))
-  const isPrimitive = $derived(isTypeOneOf(itemSchema.type, ['string', 'number', 'integer']))
+  const isPrimitive = $derived(
+    isTypeOneOf(getPrimaryType(getEffectiveSchema(itemSchema)), ['string', 'number', 'integer'])
+  )
 </script>
 
 {#if isPrimitive}
