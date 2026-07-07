@@ -209,7 +209,78 @@ export async function discoverAndFetch(options: {
   }
   console.log('  Done fetching challenge solves')
 
-  console.log('[Phase 7] Writing static auth mock...')
+  console.log('[Phase 7] Fetching dynamic challenge scores...')
+  if (challsResult.ok) {
+    type ScoreEntry = { userId: string; userAvatarUrl: string | null }
+    type ScoreGraphEntry = {
+      id: string
+      points: { time: number; score: number }[]
+    }
+
+    const challsResponse = challsResult.data as {
+      data: { id: string; scoringKind?: string }[]
+    }
+    const dynamicChalls = challsResponse.data.filter(
+      chall => chall.scoringKind === 'dynamic'
+    )
+    console.log(`  Found ${dynamicChalls.length} dynamic challenges`)
+
+    await Promise.all(
+      dynamicChalls.map(async chall => {
+        const allScores: ScoreEntry[] = []
+        const graphById = new Map<string, ScoreGraphEntry>()
+        let offset = 0
+        const limit = 100
+
+        while (true) {
+          const params = new URLSearchParams({
+            limit: String(limit),
+            offset: String(offset),
+          })
+          const result = await fetcher.fetchJson(
+            `/api/v2/challs/${chall.id}/scores?${params}`
+          )
+          if (!result.ok) {
+            break
+          }
+
+          const response = result.data as {
+            data: {
+              total: number
+              scores: ScoreEntry[]
+              graph: ScoreGraphEntry[]
+            }
+          }
+
+          for (const score of response.data.scores) {
+            allScores.push(score)
+            collectUrl(score.userAvatarUrl, uploadUrls)
+          }
+          for (const g of response.data.graph) {
+            if (!graphById.has(g.id)) {
+              graphById.set(g.id, g)
+            }
+          }
+
+          if (
+            response.data.scores.length < limit ||
+            offset + limit >= response.data.total
+          ) {
+            break
+          }
+          offset += limit
+        }
+
+        await writeDump(outputDir, `v2/challs/${chall.id}/scores.json`, {
+          scores: allScores,
+          graph: [...graphById.values()],
+        })
+      })
+    )
+  }
+  console.log('  Done fetching dynamic challenge scores')
+
+  console.log('[Phase 8] Writing static auth mock...')
   await writeApiResponse(outputDir, '/api/v2/users/me', {
     kind: 'badToken',
     message: 'The token provided is invalid.',

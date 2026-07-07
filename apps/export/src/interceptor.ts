@@ -140,6 +140,27 @@ export function generateInterceptorScript(): string {
     });
   }
 
+  function handleChallScores(challId, params) {
+    return loadJson('/api-data/v2/challs/' + challId + '/scores.json').then(function(dump) {
+      if (!dump) {
+        return jsonResponse({ kind: 'badEndpoint', message: 'Not available in archive.', data: null }, 404);
+      }
+
+      const limit = parseInt(params.get('limit') || '100', 10);
+      const offset = parseInt(params.get('offset') || '0', 10);
+      const sliced = dump.scores.slice(offset, offset + limit);
+      const ids = {};
+      sliced.forEach(function(s) { ids[s.userId] = true; });
+      const graph = dump.graph.filter(function(g) { return ids[g.id]; });
+
+      return jsonResponse({
+        kind: 'goodChallengeScoresV2',
+        message: 'The challenge scores have been retrieved.',
+        data: { total: dump.scores.length, myPosition: null, scores: sliced, graph: graph }
+      });
+    });
+  }
+
   window.fetch = function(input, init) {
     const url = new URL(
       typeof input === 'string' ? input : input instanceof Request ? input.url : input.href,
@@ -177,6 +198,11 @@ export function generateInterceptorScript(): string {
     const solvesMatch = url.pathname.match(/^\\/api\\/v2\\/challs\\/([^\\/]+)\\/solves$/);
     if (solvesMatch) {
       return handleChallSolves(solvesMatch[1], params);
+    }
+
+    const scoresMatch = url.pathname.match(/^\\/api\\/v2\\/challs\\/([^\\/]+)\\/scores$/);
+    if (scoresMatch) {
+      return handleChallScores(scoresMatch[1], params);
     }
 
     const staticPath = toStaticPath(url.pathname);
