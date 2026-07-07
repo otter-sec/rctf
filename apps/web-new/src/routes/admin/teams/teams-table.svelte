@@ -439,6 +439,11 @@
     &[data-banned] {
       opacity: 0.7;
     }
+
+    &:has(a:focus-visible) {
+      outline: 2px solid var(--ring);
+      outline-offset: -2px;
+    }
   }
 
   cell {
@@ -473,6 +478,10 @@
 
     a:hover {
       text-decoration: underline;
+    }
+
+    a:focus-visible {
+      outline: none;
     }
   }
 

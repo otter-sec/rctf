@@ -91,7 +91,7 @@
   }
 
   function defaultHint(overridden: boolean, value: string | undefined): string | undefined {
-    return overridden ? `Default: ${value || '—'}` : undefined
+    return overridden ? `Config default: ${value || 'unset'}` : undefined
   }
 
   function resetGeneral() {
@@ -341,10 +341,17 @@
         {@render groupHeader('Timing', settingsForm.timing.overridden, resetTiming)}
         <group-body>
           <timing-grid>
-            <Field label="CTF start (local time)">
-              {#snippet children({ id })}
+            <Field
+              label="CTF start (local time)"
+              description={defaultHint(
+                settingsForm.timing.overridden,
+                formatDatetimeLocal(settingsDefaults.startTime)
+              )}
+            >
+              {#snippet children({ id, describedBy })}
                 <Input
                   {id}
+                  aria-describedby={describedBy}
                   type="datetime-local"
                   value={formatDatetimeLocal(settingsForm.timing.startTime)}
                   onchange={e => {
@@ -354,10 +361,17 @@
                 />
               {/snippet}
             </Field>
-            <Field label="CTF end (local time)">
-              {#snippet children({ id })}
+            <Field
+              label="CTF end (local time)"
+              description={defaultHint(
+                settingsForm.timing.overridden,
+                formatDatetimeLocal(settingsDefaults.endTime)
+              )}
+            >
+              {#snippet children({ id, describedBy })}
                 <Input
                   {id}
+                  aria-describedby={describedBy}
                   type="datetime-local"
                   value={formatDatetimeLocal(settingsForm.timing.endTime)}
                   onchange={e => {
@@ -456,7 +470,7 @@
       <settings-group>
         {@render groupHeader('Open Graph', settingsForm.meta.overridden, resetMeta)}
         <group-body>
-          <Field label="Description">
+          <Field label="OG Description">
             {#snippet children({ id })}
               <Input
                 {id}
@@ -469,7 +483,7 @@
               />
             {/snippet}
           </Field>
-          <Field label="Image URL">
+          <Field label="OG Image URL">
             {#snippet children({ id })}
               <Input
                 {id}
@@ -487,35 +501,37 @@
 
       <settings-group>
         {@render groupHeader('Sponsors', settingsForm.sponsors.overridden, resetSponsors)}
-        <group-body>
+        <group-body data-flush>
           <sponsors-editor>
             <sponsor-list>
-              {#if settingsForm.sponsors.list.length === 0}
-                <sponsor-empty>No sponsors</sponsor-empty>
-              {:else}
-                {#each settingsForm.sponsors.list as sponsor, i (i)}
-                  <sponsor-item data-active={sponsorSelected === i ? '' : undefined}>
-                    <button
-                      type="button"
-                      data-select
-                      onclick={() => dispatchSponsors({ type: 'select', index: i })}
-                    >
-                      {sponsor.name || `Sponsor ${i + 1}`}
-                    </button>
-                    <button
-                      type="button"
-                      data-remove
-                      aria-label="Remove sponsor"
-                      onclick={() => dispatchSponsors({ type: 'remove', index: i })}
-                    >
-                      <IconX />
-                    </button>
-                  </sponsor-item>
-                {/each}
-              {/if}
-              <Button size="sm" variant="outline" onclick={() => dispatchSponsors({ type: 'add' })}>
-                Add sponsor
-              </Button>
+              <sponsor-items>
+                {#if settingsForm.sponsors.list.length === 0}
+                  <sponsor-empty>No sponsors</sponsor-empty>
+                {:else}
+                  {#each settingsForm.sponsors.list as sponsor, i (i)}
+                    <sponsor-item data-active={sponsorSelected === i ? '' : undefined}>
+                      <button
+                        type="button"
+                        data-select
+                        onclick={() => dispatchSponsors({ type: 'select', index: i })}
+                      >
+                        {sponsor.name || `Sponsor ${i + 1}`}
+                      </button>
+                      <button
+                        type="button"
+                        data-remove
+                        aria-label="Remove sponsor"
+                        onclick={() => dispatchSponsors({ type: 'remove', index: i })}
+                      >
+                        <IconX />
+                      </button>
+                    </sponsor-item>
+                  {/each}
+                {/if}
+              </sponsor-items>
+              <sponsor-footer>
+                <Button size="sm" onclick={() => dispatchSponsors({ type: 'add' })}>Add</Button>
+              </sponsor-footer>
             </sponsor-list>
             <sponsor-detail>
               {#if selectedSponsor}
@@ -647,12 +663,13 @@
   settings-form {
     display: flex;
     flex-direction: column;
-    gap: var(--space-m);
+    gap: var(--space-s);
   }
 
   settings-group {
     display: block;
     overflow: clip;
+    background: var(--background-l1);
     border: 2px solid var(--border);
     border-radius: var(--radius-lg);
   }
@@ -662,8 +679,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-s);
-    min-block-size: 2.75rem;
-    padding: var(--space-3xs) var(--space-s);
+    padding: 0.375rem var(--space-s);
     background: var(--background-l3);
   }
 
@@ -671,7 +687,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
-    color: var(--foreground-l2);
+    color: var(--foreground-l3);
   }
 
   overridden-badge {
@@ -698,11 +714,15 @@
   group-body {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
+    gap: 0.75rem;
     padding: var(--space-s);
 
     &[data-flush] {
       padding: 0;
+    }
+
+    &[data-flush] :global([data-part='list']) {
+      padding: 0.75rem var(--space-s) 0;
     }
   }
 
@@ -766,6 +786,7 @@
 
   tab-body {
     display: block;
+    min-block-size: 8rem;
     padding: var(--space-s);
   }
 
@@ -777,7 +798,7 @@
   sponsors-editor {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
+    min-block-size: 12rem;
 
     @media (min-width: 40rem) {
       flex-direction: row;
@@ -787,11 +808,40 @@
   sponsor-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3xs);
     flex-shrink: 0;
+    border-block-end: 2px solid var(--border);
 
     @media (min-width: 40rem) {
-      inline-size: 12rem;
+      inline-size: 11rem;
+      border-block-end: none;
+      border-inline-end: 2px solid var(--border);
+    }
+  }
+
+  sponsor-items {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    padding: var(--space-2xs);
+    overflow: hidden;
+
+    @media (min-width: 40rem) {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 2px;
+    }
+  }
+
+  sponsor-footer {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-2xs);
+    border-block-start: 2px solid var(--border);
+
+    :global(button) {
+      inline-size: 100%;
     }
   }
 
@@ -799,17 +849,30 @@
     display: flex;
     align-items: center;
     gap: var(--space-3xs);
+    max-inline-size: 100%;
     border-radius: var(--radius-md);
+    color: var(--foreground-l4);
+
+    &:hover {
+      background: var(--background-l3);
+      color: var(--foreground-l0);
+    }
 
     &[data-active] {
       background: var(--background-l4);
+      color: var(--foreground-l0);
+    }
+
+    @media (min-width: 40rem) {
+      inline-size: 100%;
     }
 
     button[data-select] {
       overflow: hidden;
       flex: 1;
-      padding: var(--space-3xs) var(--space-2xs);
-      color: var(--foreground-l2);
+      padding: 0.375rem var(--space-2xs);
+      color: inherit;
+      font-size: var(--step--1);
       white-space: nowrap;
       text-align: start;
       text-overflow: ellipsis;
@@ -818,39 +881,62 @@
       cursor: pointer;
     }
 
-    &[data-active] button[data-select] {
-      color: var(--foreground-l0);
-    }
-
     button[data-remove] {
       display: flex;
       flex-shrink: 0;
-      padding: var(--space-3xs);
-      color: var(--foreground-l4);
+      margin-inline-end: var(--space-3xs);
+      padding: 0.125rem;
+      color: inherit;
       background: none;
       border: none;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      opacity: 0;
+
+      :global(svg) {
+        inline-size: 0.75rem;
+        block-size: 0.75rem;
+      }
 
       &:hover {
         color: var(--foreground-destructive);
+        background: var(--background-destructive);
       }
+
+      &:focus-visible {
+        opacity: 1;
+      }
+    }
+
+    &:hover button[data-remove],
+    &[data-active] button[data-remove] {
+      opacity: 1;
     }
   }
 
   sponsor-empty,
   sponsor-placeholder {
     display: block;
-    padding: var(--space-2xs);
+    padding: 0.375rem var(--space-2xs);
     font-size: var(--step--1);
     color: var(--foreground-l4);
+  }
+
+  sponsor-placeholder {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    block-size: 100%;
   }
 
   sponsor-detail {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
+    gap: 0.75rem;
     min-inline-size: 0;
     flex: 1;
+    padding: var(--space-s);
   }
 
   save-bar {

@@ -62,6 +62,7 @@
     value: value ? [value] : [],
     placeholder,
     disabled,
+    openOnClick: true,
     positioning: { placement: 'bottom-start' as const, sameWidth: true },
     onOpenChange(details: { open: boolean }) {
       if (details.open) filterText = ''

@@ -50,7 +50,12 @@
     {#if showsScore}
       <item-score>
         <span data-part="points">
-          <strong>{displayPoints.toLocaleString()}</strong> pts
+          {#if isDynamic && displayPoints === 0}
+            <strong>Dynamic</strong>
+            <span data-part="unscored">(0 pts)</span>
+          {:else}
+            <strong>{displayPoints.toLocaleString()}</strong> pts
+          {/if}
         </span>
         {#if isDynamic}
           <ChallengePointDelta delta={challenge.yourPointDelta ?? 0} />
@@ -190,6 +195,12 @@
       color: var(--category-foreground-l0);
       font-weight: var(--font-weight-normal);
     }
+  }
+
+  [data-part='unscored'] {
+    color: var(--category-foreground-l1);
+    font-size: var(--step-0);
+    opacity: 0.6;
   }
 
   [data-part='solves'] {

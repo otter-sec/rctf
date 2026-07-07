@@ -20,6 +20,7 @@
   import AdminChallengesDetailsAdminbot from './adminbot.svelte'
   import AdminChallengesDetailsAttachments from './attachments.svelte'
   import FieldSelect from './field-select.svelte'
+  import FormScroll from './form-scroll.svelte'
   import {
     detailsTabInvalid,
     inputToReleaseTime,
@@ -216,7 +217,7 @@
     <Tabs bind:value={tab} tabs={tabItems}>
       {#snippet content({ value })}
         {#if value === 'details'}
-          <form-scroll data-mode={disabled ? 'view' : 'edit'}>
+          <FormScroll {disabled}>
             <field-grid>
               <form-field
                 bind:this={nameFieldEl}
@@ -323,9 +324,9 @@
               />
               {#if touched.flag && errors.flag}<field-error>{errors.flag}</field-error>{/if}
             </form-field>
-          </form-scroll>
+          </FormScroll>
         {:else if value === 'scoring'}
-          <form-scroll data-mode={disabled ? 'view' : 'edit'}>
+          <FormScroll {disabled}>
             <form-field>
               <field-label>
                 Scoring kind
@@ -456,7 +457,7 @@
                   onFieldChange('releaseTime', inputToReleaseTime(e.currentTarget.value))}
               />
             </form-field>
-          </form-scroll>
+          </FormScroll>
         {:else if value === 'files'}
           <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
         {:else if value === 'instancer'}
@@ -492,6 +493,7 @@
   }
 
   form-tabs {
+    container: challenge-tabs / inline-size;
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -519,17 +521,23 @@
     }
   }
 
-  form-scroll {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: var(--space-s);
-    min-block-size: 0;
-    padding: var(--space-s) var(--space-l) var(--space-l);
-    overflow-y: auto;
+  @container challenge-tabs (width < 46rem) {
+    form-tabs :global([data-scope='tabs'][data-part='list']) {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3xs);
+      padding: var(--space-2xs) var(--space-s) var(--space-s);
+      overflow-x: visible;
+    }
 
-    &[data-mode='view'] {
-      opacity: 0.6;
+    form-tabs :global([data-scope='tabs'][data-part='trigger']) {
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: var(--background-l2);
+    }
+
+    form-tabs :global([data-scope='tabs'][data-part='trigger'][data-selected]) {
+      background: var(--background-l3);
     }
   }
 
@@ -564,8 +572,9 @@
 
   field-label {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3xs);
+    gap: 0 var(--space-3xs);
     font-size: var(--step--1);
     color: var(--foreground-l2);
   }

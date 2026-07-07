@@ -599,6 +599,12 @@
     block-size: var(--score-row-height-full);
     translate: 0 var(--row-y);
     contain: layout style paint;
+
+    &:has(:global(a:focus-visible)) {
+      outline: 2px solid var(--ring);
+      outline-offset: -2px;
+      border-radius: var(--radius-lg);
+    }
   }
 
   row-team {

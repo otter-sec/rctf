@@ -12,7 +12,7 @@
   let { items, selectedLabel, describedBy, disabled = false }: Props = $props()
 </script>
 
-<Menu label="Select division" {items} placement="bottom-start">
+<Menu label="Select division" {items} placement="bottom-start" sameWidth>
   {#snippet trigger({ props })}
     <button {...props} type="button" aria-describedby={describedBy} {disabled}>
       <span>{selectedLabel}</span>

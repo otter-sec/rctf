@@ -33,7 +33,7 @@
   )
 </script>
 
-<Menu {label} {items}>
+<Menu {label} {items} sameWidth>
   {#snippet trigger({ props })}
     <button type="button" {disabled} data-placeholder={current ? undefined : ''} {...props}>
       <span>{current?.label ?? placeholder}</span>

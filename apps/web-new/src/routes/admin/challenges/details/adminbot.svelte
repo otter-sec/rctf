@@ -126,8 +126,9 @@
 
   field-label {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-3xs);
+    gap: 0 var(--space-3xs);
     font-size: var(--step--1);
     color: var(--foreground-l2);
   }

@@ -243,6 +243,10 @@
       {onAdminBotChange}
       onShowPreview={() => (showPreview = true)}
     />
+
+    {#if isEditMode || canWrite}
+      <details-footer>{@render actionButtons()}</details-footer>
+    {/if}
   {/if}
 </admin-challenges-details>
 
@@ -262,6 +266,7 @@
 
 <style>
   admin-challenges-details {
+    container: challenge-details / inline-size;
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -334,5 +339,25 @@
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
+  }
+
+  details-footer {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2xs);
+    padding: var(--space-s) var(--space-l);
+    background: var(--background-l2);
+  }
+
+  @container challenge-details (width < 46rem) {
+    header-actions {
+      display: none;
+    }
+
+    details-footer {
+      display: flex;
+    }
   }
 </style>

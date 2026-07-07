@@ -64,7 +64,7 @@
 </script>
 
 {#snippet selectTrigger(label: string, ariaLabel: string, items: MenuItem[])}
-  <Menu label={ariaLabel} {items} placement="bottom-start">
+  <Menu label={ariaLabel} {items} placement="bottom-start" sameWidth>
     {#snippet trigger({ props })}
       <button {...props} type="button" data-select>
         <span>{label}</span>

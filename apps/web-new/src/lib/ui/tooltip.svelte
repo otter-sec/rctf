@@ -6,13 +6,14 @@
 
   type Props = {
     label: string
+    disabled?: boolean
     children: Snippet<[{ props: Record<string, unknown> }]>
   }
 
-  let { label, children }: Props = $props()
+  let { label, disabled = false, children }: Props = $props()
 
   const id = $props.id()
-  const service = useMachine(tooltip.machine, { id, openDelay: 300 })
+  const service = useMachine(tooltip.machine, () => ({ id, openDelay: 300, disabled }))
   const api = $derived(tooltip.connect(service, normalizeProps))
 
   const triggerProps = $derived(api.getTriggerProps() as Record<string, unknown>)

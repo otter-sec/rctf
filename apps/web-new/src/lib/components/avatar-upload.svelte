@@ -106,7 +106,9 @@
   </avatar-upload>
 
   {#if children}
-    {@render children()}
+    <upload-footnote>
+      {@render children()}
+    </upload-footnote>
   {/if}
 </Section>
 
@@ -140,5 +142,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
+  }
+
+  upload-footnote {
+    display: block;
+    margin-block-start: var(--space-s);
   }
 </style>

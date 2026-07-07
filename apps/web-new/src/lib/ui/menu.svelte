@@ -18,16 +18,17 @@
     label: string
     items: MenuItem[]
     placement?: 'bottom-start' | 'bottom-end'
+    sameWidth?: boolean
     trigger: Snippet<[{ props: Record<string, unknown> }]>
   }
 
-  let { label, items, placement = 'bottom-start', trigger }: Props = $props()
+  let { label, items, placement = 'bottom-start', sameWidth = false, trigger }: Props = $props()
 
   const id = $props.id()
   const service = useMachine(menu.machine, () => ({
     id,
     'aria-label': label,
-    positioning: { placement },
+    positioning: { placement, sameWidth },
     onSelect({ value }: { value: string }) {
       items.find(item => item.value === value)?.onSelect?.()
     },
@@ -41,7 +42,7 @@
 
 <Portal>
   <div {...api.getPositionerProps()}>
-    <div {...api.getContentProps()}>
+    <div {...api.getContentProps()} data-same-width={sameWidth || undefined}>
       {#each items as item (item.value)}
         {@const Icon = item.icon}
         {#if item.href}
@@ -82,6 +83,10 @@
     background: var(--background-l1);
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
+
+    &[data-same-width] {
+      min-inline-size: 0;
+    }
 
     &:focus-visible {
       outline: none;

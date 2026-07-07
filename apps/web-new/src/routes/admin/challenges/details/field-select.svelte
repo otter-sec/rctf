@@ -16,7 +16,7 @@
     {label}<IconChevronDown />
   </button>
 {:else}
-  <Menu {label} {items}>
+  <Menu {label} {items} sameWidth>
     {#snippet trigger({ props })}
       <button type="button" data-field-trigger {...props}>
         {label}<IconChevronDown />

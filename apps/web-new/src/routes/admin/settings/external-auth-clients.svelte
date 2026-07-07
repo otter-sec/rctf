@@ -245,6 +245,7 @@
   settings-group {
     display: block;
     overflow: clip;
+    background: var(--background-l1);
     border: 2px solid var(--border);
     border-radius: var(--radius-lg);
   }
@@ -254,19 +255,18 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-s);
-    min-block-size: 2.75rem;
-    padding: var(--space-3xs) var(--space-s);
+    padding: 0.375rem var(--space-s);
     background: var(--background-l3);
   }
 
   group-title {
-    color: var(--foreground-l2);
+    color: var(--foreground-l3);
   }
 
   group-body {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
+    gap: 0.75rem;
     padding: var(--space-s);
   }
 

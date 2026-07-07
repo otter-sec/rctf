@@ -134,7 +134,8 @@
       background: var(--background-l3);
     }
 
-    &:focus-visible {
+    &:focus-visible,
+    &:has(a:focus-visible) {
       outline: 2px solid var(--ring);
       outline-offset: -2px;
     }
@@ -196,6 +197,10 @@
       &:hover {
         text-decoration: underline;
       }
+    }
+
+    a:focus-visible {
+      outline: none;
     }
   }
 

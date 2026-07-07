@@ -8,7 +8,7 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import ScoresLeaderboard from './leaderboard/leaderboard.svelte'
   import { createScoresData } from './model/data.svelte'
-  import { getVisibleSolveCount, isDynamicChallenge } from './model/transforms'
+  import { getVisibleSolveCount } from './model/transforms'
   import { createScoresRouteState } from './model/url-state.svelte'
   import type { ScreenshotTeam } from './screenshot/options'
   import ScoresScreenshotModal from './screenshot/screenshot-modal.svelte'
@@ -92,14 +92,6 @@
       data.entries.length === 0 &&
       (data.hasNextPage || data.isFetchingNextPage)
   )
-
-  $effect(() => {
-    const id = urlState.focusedChallengeId
-    const challenge = id ? data.challengesData[id] : null
-    if (challenge && isDynamicChallenge(challenge)) {
-      urlState.setFocusedChallenge(null)
-    }
-  })
 </script>
 
 <svelte:head>

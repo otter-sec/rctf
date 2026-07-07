@@ -52,6 +52,12 @@
     background: var(--background-l0);
     contain: layout style;
 
+    &:has(:global(a:focus-visible)) {
+      outline: 2px solid var(--ring);
+      outline-offset: -2px;
+      border-radius: var(--radius-lg);
+    }
+
     &[data-edge='top'] {
       inset-block-start: 0;
       margin-block-end: calc(-1 * var(--score-row-height-full));

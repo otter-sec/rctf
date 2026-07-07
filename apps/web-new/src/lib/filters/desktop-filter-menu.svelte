@@ -89,10 +89,10 @@
   {/if}
 {/snippet}
 
-<Tooltip label="Add filter">
-  {#snippet children({ props: tip })}
-    <FilterPopover label="Add filter" width="20rem">
-      {#snippet trigger({ props })}
+<FilterPopover label="Add filter" width="20rem">
+  {#snippet trigger({ props, open })}
+    <Tooltip label="Add filter" disabled={open}>
+      {#snippet children({ props: tip })}
         <button
           {...tip}
           {...props}
@@ -103,51 +103,51 @@
           <IconFilter aria-hidden="true" />
         </button>
       {/snippet}
-
-      {#snippet panel({ close })}
-        <funnel-panel {@attach () => reset()}>
-          {#if active === 'time'}
-            {@render drillHeader()}
-            {@render timeMenu?.({ close })}
-          {:else if active}
-            {@render drillHeader()}
-            <FilterOptionList family={active} searchable={!!active.search} />
-          {:else}
-            <FilterSearchInput
-              value={query}
-              placeholder="Search filters..."
-              onInput={value => (query = value)}
-            />
-            <funnel-body>
-              {#if searching}
-                {#each familyMatches as family (family.id)}
-                  {@render familyRow(family)}
-                {/each}
-                {#if timeMatches}
-                  {@render timeRow()}
-                {/if}
-                {#each optionMatches as match (rootFilterOptionKey(match))}
-                  <FilterOption family={match.family} option={match.option} showPath />
-                {/each}
-                {#if isSearchingTeams}
-                  <funnel-status><Spinner />Searching teams...</funnel-status>
-                {/if}
-                {#if !hasMatches && !isSearchingTeams}
-                  <funnel-status data-empty>No filters found</funnel-status>
-                {/if}
-              {:else}
-                {#each families as family (family.id)}
-                  {@render familyRow(family)}
-                {/each}
-                {@render timeRow()}
-              {/if}
-            </funnel-body>
-          {/if}
-        </funnel-panel>
-      {/snippet}
-    </FilterPopover>
+    </Tooltip>
   {/snippet}
-</Tooltip>
+
+  {#snippet panel({ close })}
+    <funnel-panel {@attach () => reset()}>
+      {#if active === 'time'}
+        {@render drillHeader()}
+        {@render timeMenu?.({ close })}
+      {:else if active}
+        {@render drillHeader()}
+        <FilterOptionList family={active} searchable={!!active.search} />
+      {:else}
+        <FilterSearchInput
+          value={query}
+          placeholder="Search filters..."
+          onInput={value => (query = value)}
+        />
+        <funnel-body>
+          {#if searching}
+            {#each familyMatches as family (family.id)}
+              {@render familyRow(family)}
+            {/each}
+            {#if timeMatches}
+              {@render timeRow()}
+            {/if}
+            {#each optionMatches as match (rootFilterOptionKey(match))}
+              <FilterOption family={match.family} option={match.option} showPath />
+            {/each}
+            {#if isSearchingTeams}
+              <funnel-status><Spinner />Searching teams...</funnel-status>
+            {/if}
+            {#if !hasMatches && !isSearchingTeams}
+              <funnel-status data-empty>No filters found</funnel-status>
+            {/if}
+          {:else}
+            {#each families as family (family.id)}
+              {@render familyRow(family)}
+            {/each}
+            {@render timeRow()}
+          {/if}
+        </funnel-body>
+      {/if}
+    </funnel-panel>
+  {/snippet}
+</FilterPopover>
 
 <style>
   button[aria-label='Add filter'] {

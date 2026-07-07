@@ -117,15 +117,27 @@ export function isDynamicChallenge(challenge: ScoringKind): boolean {
 }
 
 export function getFocusedEntries<
-  T extends { solves: { id: string; solveTime: number }[] },
+  T extends {
+    solves: { id: string; solveTime: number }[]
+    dynamicScores: { id: string; points: number }[]
+  },
 >(
   entries: T[],
   focusedChallengeId: string | null,
   challengesData: Record<string, ScoringKind>
 ): T[] {
   if (!focusedChallengeId) return entries
-  if (isDynamicChallenge(challengesData[focusedChallengeId] ?? DECAY_CHALLENGE))
-    return entries
+  if (
+    isDynamicChallenge(challengesData[focusedChallengeId] ?? DECAY_CHALLENGE)
+  ) {
+    const matched: { entry: T; points: number }[] = []
+    for (const entry of entries) {
+      const score = entry.dynamicScores.find(s => s.id === focusedChallengeId)
+      if (score) matched.push({ entry, points: score.points })
+    }
+    matched.sort((a, b) => b.points - a.points)
+    return matched.map(m => m.entry)
+  }
 
   const matched: { entry: T; solveTime: number }[] = []
   for (const entry of entries) {

@@ -153,6 +153,10 @@
       &:hover {
         text-decoration: underline;
       }
+
+      &:focus-visible {
+        outline: none;
+      }
     }
   }
 

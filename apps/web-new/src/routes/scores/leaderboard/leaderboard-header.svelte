@@ -84,7 +84,7 @@
   {@const isCategory = item.type === 'category'}
   {@const challenge = item.type === 'challenge' ? item.challenge : null}
   {@const dynamic = challenge ? isDynamicChallenge(challenge) : false}
-  {@const canFocus = challenge !== null && !dynamic}
+  {@const canFocus = challenge !== null}
   {@const isFocused = challenge !== null && focusedChallengeId === challenge.id}
   {@const isDimmed = challenge !== null && focusedChallengeId !== null && !isFocused}
   <header-name-slot
