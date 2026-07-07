@@ -72,6 +72,7 @@
   const filteredRows = $derived(filterRows(displayResult.rows, { search: searchQuery, hideSolved }))
   const sortedRows = $derived(sortRowsByMode(filteredRows, sortMode))
   const groups = $derived(groupRowsByCategory(filteredRows))
+  const rowsByCategory = $derived(new Map(groups.map(group => [group.category, group.rows])))
   const categoryNames = $derived(groups.map(group => group.category))
   const stats = $derived(
     computeSolvesStats({
@@ -222,7 +223,7 @@
       <Accordion items={categoryNames} bind:value={openCategories}>
         {#snippet header({ value, props, expanded })}
           {@const config = getCategoryConfig(value)}
-          {@const entries = groups.find(group => group.category === value)?.rows ?? []}
+          {@const entries = rowsByCategory.get(value) ?? []}
           {@const staticEntries = entries.filter(entry => !entry.isDynamic)}
           {@const solvedCount = staticEntries.filter(entry => entry.isSolved).length}
           <solves-group-header data-category-color={config.color}>
@@ -243,7 +244,7 @@
 
         {#snippet content({ value, props })}
           {@const config = getCategoryConfig(value)}
-          {@const entries = groups.find(group => group.category === value)?.rows ?? []}
+          {@const entries = rowsByCategory.get(value) ?? []}
           <solves-group-body data-category-color={config.color} {...props}>
             <ul>
               {#each entries as entry (entry.id)}

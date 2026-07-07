@@ -30,8 +30,7 @@ export function ctfRelativeTicks(
   const step = span / (count - 1)
   const ticks: Tick[] = []
   for (let i = 0; i < count; i++) {
-    const value =
-      i === 0 ? startMs : i === count - 1 ? endMs : startMs + step * i
+    const value = i === count - 1 ? endMs : startMs + step * i
     ticks.push({ value, label: format(value, startMs) })
   }
   return ticks
