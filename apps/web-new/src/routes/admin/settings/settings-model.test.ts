@@ -2,12 +2,15 @@ import { describe, expect, it } from 'bun:test'
 import {
   buildPatch,
   clampSelected,
+  clearDirty,
   decidePatch,
   emptySponsor,
   formatDatetimeLocal,
   initialFormState,
   initialOverrides,
   parseDatetimeLocal,
+  resetGroup,
+  snapshotOverrides,
   sponsorPayload,
   sponsorsReducer,
   validateTiming,
@@ -332,6 +335,156 @@ describe('initialOverrides', () => {
       meta: false,
       sponsors: false,
     })
+  })
+})
+
+describe('reset builders', () => {
+  const defaults = {
+    ctfName: 'rCTF',
+    faviconUrl: '/fav.ico',
+    startTime: 1000,
+    endTime: 2000,
+    homeContent: '# Welcome',
+    logoLightUrl: '/light.png',
+    logoDarkUrl: '/dark.png',
+    meta: { description: 'A CTF.', imageUrl: '/og.png' },
+    sponsors: [
+      { name: 'osec', icon: '/osec.png', description: 'Research.' },
+      {
+        name: 'acme',
+        icon: '/acme.png',
+        description: 'Widgets.',
+        url: 'https://acme.example',
+      },
+    ],
+  }
+
+  it('resets each group to defaults, un-overridden and dirty', () => {
+    expect(resetGroup(defaults, 'ctfName')).toEqual({
+      value: 'rCTF',
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'ctfName')).toEqual({
+      value: '',
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup(defaults, 'faviconUrl')).toEqual({
+      value: '/fav.ico',
+      overridden: false,
+      dirty: true,
+    })
+  })
+
+  it('resets timing to defaults, falling back to null', () => {
+    expect(resetGroup(defaults, 'timing')).toEqual({
+      startTime: 1000,
+      endTime: 2000,
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'timing')).toEqual({
+      startTime: null,
+      endTime: null,
+      overridden: false,
+      dirty: true,
+    })
+  })
+
+  it('resets logos to defaults, falling back to empty strings', () => {
+    expect(resetGroup(defaults, 'logo')).toEqual({
+      light: '/light.png',
+      dark: '/dark.png',
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'logo')).toEqual({
+      light: '',
+      dark: '',
+      overridden: false,
+      dirty: true,
+    })
+  })
+
+  it('resets home content to the default, falling back to empty', () => {
+    expect(resetGroup(defaults, 'homeContent')).toEqual({
+      value: '# Welcome',
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'homeContent')).toEqual({
+      value: '',
+      overridden: false,
+      dirty: true,
+    })
+  })
+
+  it('resets meta to defaults, falling back to empty strings', () => {
+    expect(resetGroup(defaults, 'meta')).toEqual({
+      description: 'A CTF.',
+      imageUrl: '/og.png',
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'meta')).toEqual({
+      description: '',
+      imageUrl: '',
+      overridden: false,
+      dirty: true,
+    })
+  })
+
+  it('resets sponsors from the default list, mapping missing urls to empty', () => {
+    expect(resetGroup(defaults, 'sponsors')).toEqual({
+      list: [
+        { name: 'osec', icon: '/osec.png', description: 'Research.', url: '' },
+        {
+          name: 'acme',
+          icon: '/acme.png',
+          description: 'Widgets.',
+          url: 'https://acme.example',
+        },
+      ],
+      overridden: false,
+      dirty: true,
+    })
+    expect(resetGroup({}, 'sponsors')).toEqual({
+      list: [],
+      overridden: false,
+      dirty: true,
+    })
+  })
+})
+
+describe('snapshotOverrides', () => {
+  it('reflects each group override flag independently', () => {
+    const groupKeys = Object.keys(cleanState()) as (keyof SettingsFormState)[]
+    for (const key of groupKeys) {
+      const state = cleanState()
+      state[key].overridden = true
+      expect(snapshotOverrides(state)).toEqual({
+        ...cleanOriginal(),
+        [key]: true,
+      })
+    }
+  })
+
+  it('covers every form group', () => {
+    const snapshot = snapshotOverrides(cleanState())
+    expect(Object.keys(snapshot).toSorted()).toEqual(
+      Object.keys(cleanState()).toSorted()
+    )
+  })
+})
+
+describe('clearDirty', () => {
+  it('clears the dirty bit on every form group', () => {
+    const state = cleanState()
+    const groupKeys = Object.keys(state) as (keyof SettingsFormState)[]
+    for (const key of groupKeys) state[key].dirty = true
+    clearDirty(state)
+    for (const key of groupKeys) expect(state[key].dirty).toBe(false)
   })
 })
 

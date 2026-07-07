@@ -30,10 +30,13 @@
   import ExternalAuthClients from './external-auth-clients.svelte'
   import {
     buildPatch,
+    clearDirty,
     formatDatetimeLocal,
     initialFormState,
     initialOverrides,
     parseDatetimeLocal,
+    resetGroup,
+    snapshotOverrides,
     sponsorsReducer,
     validateTiming,
     type OriginalOverrides,
@@ -96,57 +99,33 @@
 
   function resetGeneral() {
     if (!form || !defaults) return
-    form.ctfName = { value: defaults.ctfName ?? '', overridden: false, dirty: true }
-    form.faviconUrl = { value: defaults.faviconUrl ?? '', overridden: false, dirty: true }
+    form.ctfName = resetGroup(defaults, 'ctfName')
+    form.faviconUrl = resetGroup(defaults, 'faviconUrl')
   }
 
   function resetTiming() {
     if (!form || !defaults) return
-    form.timing = {
-      startTime: defaults.startTime ?? null,
-      endTime: defaults.endTime ?? null,
-      overridden: false,
-      dirty: true,
-    }
+    form.timing = resetGroup(defaults, 'timing')
   }
 
   function resetLogo() {
     if (!form || !defaults) return
-    form.logo = {
-      light: defaults.logoLightUrl ?? '',
-      dark: defaults.logoDarkUrl ?? '',
-      overridden: false,
-      dirty: true,
-    }
+    form.logo = resetGroup(defaults, 'logo')
   }
 
   function resetHome() {
     if (!form || !defaults) return
-    form.homeContent = { value: defaults.homeContent ?? '', overridden: false, dirty: true }
+    form.homeContent = resetGroup(defaults, 'homeContent')
   }
 
   function resetMeta() {
     if (!form || !defaults) return
-    form.meta = {
-      description: defaults.meta?.description ?? '',
-      imageUrl: defaults.meta?.imageUrl ?? '',
-      overridden: false,
-      dirty: true,
-    }
+    form.meta = resetGroup(defaults, 'meta')
   }
 
   function resetSponsors() {
     if (!form || !defaults) return
-    form.sponsors = {
-      list: (defaults.sponsors ?? []).map(s => ({
-        name: s.name,
-        icon: s.icon,
-        description: s.description,
-        url: s.url ?? '',
-      })),
-      overridden: false,
-      dirty: true,
-    }
+    form.sponsors = resetGroup(defaults, 'sponsors')
     sponsorSelected = 0
   }
 
@@ -207,26 +186,8 @@
 
   function commitBaseline() {
     if (!form) return
-    original = {
-      ctfName: form.ctfName.overridden,
-      faviconUrl: form.faviconUrl.overridden,
-      timing: form.timing.overridden,
-      logo: form.logo.overridden,
-      homeContent: form.homeContent.overridden,
-      meta: form.meta.overridden,
-      sponsors: form.sponsors.overridden,
-    }
-    for (const group of [
-      form.ctfName,
-      form.faviconUrl,
-      form.timing,
-      form.logo,
-      form.homeContent,
-      form.meta,
-      form.sponsors,
-    ]) {
-      group.dirty = false
-    }
+    original = snapshotOverrides(form)
+    clearDirty(form)
   }
 
   async function save() {

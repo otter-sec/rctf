@@ -299,6 +299,37 @@ export function initialFormState(
   }
 }
 
+export function resetGroup<K extends keyof SettingsFormState>(
+  defaults: AdminSettingsShape,
+  key: K
+): SettingsFormState[K] {
+  return { ...initialFormState({}, defaults)[key], dirty: true }
+}
+
+const settingsGroupKeys = [
+  'ctfName',
+  'faviconUrl',
+  'timing',
+  'logo',
+  'homeContent',
+  'meta',
+  'sponsors',
+] as const satisfies readonly (keyof SettingsFormState)[]
+
+export function snapshotOverrides(form: SettingsFormState): OriginalOverrides {
+  const snapshot = {} as OriginalOverrides
+  for (const key of settingsGroupKeys) {
+    snapshot[key] = form[key].overridden
+  }
+  return snapshot
+}
+
+export function clearDirty(form: SettingsFormState): void {
+  for (const key of settingsGroupKeys) {
+    form[key].dirty = false
+  }
+}
+
 export function formatDatetimeLocal(
   timestamp: number | null | undefined
 ): string {
