@@ -197,16 +197,4 @@
   [data-incomplete] tree-row-status {
     color: var(--foreground-l3);
   }
-
-  [data-visually-hidden] {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    clip-path: inset(50%);
-    border: 0;
-  }
 </style>

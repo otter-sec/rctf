@@ -1,6 +1,7 @@
 import { classifyHeavy, decodeNodeId, encodeNodeId } from './tree'
-import type { JsonSchema } from './types'
+import type { FindingSeverity, JsonSchema, PathStatus } from './types'
 import {
+  arrayItemSchema,
   getEffectiveSchema,
   getPrimaryType,
   isNullable,
@@ -9,15 +10,13 @@ import {
 } from './utils'
 import { validateValue } from './validate'
 
-export type FindingSeverity = 'missing' | 'invalid'
+export type { FindingSeverity, PathStatus } from './types'
 
 export interface ValidationFinding {
   severity: FindingSeverity
   message: string
   fieldPath: string[]
 }
-
-export type PathStatus = 'invalid' | 'incomplete'
 
 type Findings = Map<string, ValidationFinding[]>
 
@@ -30,16 +29,16 @@ export function validateTree(schema: JsonSchema, value: unknown): Findings {
 export function pathStatuses(findings: Findings): Map<string, PathStatus> {
   const statuses = new Map<string, PathStatus>()
   for (const [nodeId, nodeFindings] of findings) {
-    if (nodeFindings.length === 0) continue
     const status: PathStatus = nodeFindings.some(f => f.severity === 'invalid')
       ? 'invalid'
       : 'incomplete'
     const path = decodeNodeId(nodeId)
     for (let length = path.length; length >= 0; length--) {
       const id = encodeNodeId(path.slice(0, length))
-      if (status === 'invalid' || !statuses.has(id)) {
-        statuses.set(id, status)
-      }
+      const existing = statuses.get(id)
+      // Ancestors of an already-marked id are at least as marked; stop early.
+      if (existing === 'invalid' || existing === status) break
+      statuses.set(id, status)
     }
   }
   return statuses
@@ -140,7 +139,7 @@ function walkArray(
     addTypeMismatch(findings, owningPath, fieldPath, 'array')
     return
   }
-  const itemSchema = effective.items ?? ({ type: 'string' } as JsonSchema)
+  const itemSchema = arrayItemSchema(effective)
   const heavy = classifyHeavy(effective) === 'array'
   value.forEach((item, index) => {
     const itemPath = [...fieldPath, String(index)]

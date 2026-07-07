@@ -54,6 +54,26 @@ export function getEffectiveSchema(schema: JsonSchema): JsonSchema {
   return schema
 }
 
+export function arrayItemSchema(schema: JsonSchema): JsonSchema {
+  return schema.items ?? { type: 'string' }
+}
+
+export function collectionSummary(
+  schema: JsonSchema,
+  value: unknown
+): string | null {
+  if (isRecordSchema(schema)) {
+    const count =
+      value && typeof value === 'object' ? Object.keys(value).length : 0
+    return count === 1 ? '1 entry' : `${count} entries`
+  }
+  if (getPrimaryType(schema) === 'array') {
+    const count = Array.isArray(value) ? value.length : 0
+    return count === 1 ? '1 item' : `${count} items`
+  }
+  return null
+}
+
 export function defaultValue(schema: JsonSchema): unknown {
   if (schema.default !== undefined) {
     return structuredClone(schema.default)
@@ -179,7 +199,7 @@ export function schemaAtPath(
     } else if (primary === 'object' && effective.additionalProperties) {
       current = recordValueSchema(effective)
     } else if (primary === 'array') {
-      current = effective.items ?? ({ type: 'string' } as JsonSchema)
+      current = arrayItemSchema(effective)
     } else {
       return null
     }

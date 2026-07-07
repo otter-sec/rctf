@@ -1,8 +1,7 @@
 <script lang="ts">
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
-  import { getContext } from 'svelte'
-  import { SCHEMA_FORM_ERRORS_KEY, type FieldProps, type SchemaFormErrorsContext } from './types'
+  import { getSchemaFormErrors, type FieldProps } from './types'
   import { fieldLabel } from './utils'
 
   interface Props extends FieldProps {
@@ -19,7 +18,7 @@
     required = false,
   }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)

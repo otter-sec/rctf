@@ -2,24 +2,18 @@
   import Checkbox from '$lib/ui/checkbox.svelte'
   import Field from '$lib/ui/field.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
-  import { getContext } from 'svelte'
-  import {
-    SCHEMA_FORM_ERRORS_KEY,
-    type FieldProps,
-    type JsonSchema,
-    type SchemaFormErrorsContext,
-  } from './types'
-  import { fieldLabel } from './utils'
+  import { getSchemaFormErrors, type FieldProps, type JsonSchema } from './types'
+  import { arrayItemSchema, fieldLabel } from './utils'
   import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const items = $derived((value ?? []) as unknown[])
-  const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
+  const itemSchema = $derived(arrayItemSchema(schema))
   const label = $derived(fieldLabel(schema, path, 'Items'))
   const description = $derived(schema.description)
   const isNumeric = $derived(itemSchema.type === 'number' || itemSchema.type === 'integer')

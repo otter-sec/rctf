@@ -3,7 +3,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import TreeView, { type TreeViewNode } from '$lib/ui/tree-view.svelte'
-  import { setContext, tick, untrack } from 'svelte'
+  import { setContext, tick } from 'svelte'
   import SchemaFormArrayList from './schema-form-array-list.svelte'
   import SchemaFormObject from './schema-form-object.svelte'
   import SchemaFormRecordList from './schema-form-record-list.svelte'
@@ -13,6 +13,7 @@
     deriveTree,
     encodeNodeId,
     nearestSurvivingPath,
+    pathStartsWith,
     remapPathForArrayRemoval,
     remapPathForRename,
     type TreeNode,
@@ -89,31 +90,27 @@
   })
   let expanded = $derived.by(() => {
     void schema
-    return untrack(() => [tree.id])
+    return [encodeNodeId([])]
   })
 
-  const nodeIds = $derived.by(() => {
-    const ids = new Set<string>()
+  const nodeMap = $derived.by(() => {
+    const map = new Map<string, TreeNode>()
     const visit = (node: TreeNode) => {
-      ids.add(node.id)
+      map.set(node.id, node)
       for (const child of node.children) visit(child)
     }
     visit(tree)
-    return ids
+    return map
   })
 
   // Falls back to the nearest surviving tree node when the selected path stops resolving
   const selectedId = $derived.by(() => {
-    if (nodeIds.has(selected)) return selected
+    if (nodeMap.has(selected)) return selected
     let path = nearestSurvivingPath(decodeNodeId(selected), resolvedSchema, value)
-    while (path.length > 0 && !nodeIds.has(encodeNodeId(path))) {
+    while (path.length > 0 && !nodeMap.has(encodeNodeId(path))) {
       path = path.slice(0, -1)
     }
     return encodeNodeId(path)
-  })
-
-  $effect(() => {
-    if (selected !== selectedId) selected = selectedId
   })
 
   const hasTree = $derived(tree.children.length > 0)
@@ -133,17 +130,8 @@
     return [toView(tree)]
   })
 
-  function findNode(node: TreeNode, id: string): TreeNode | null {
-    if (node.id === id) return node
-    for (const child of node.children) {
-      const found = findNode(child, id)
-      if (found) return found
-    }
-    return null
-  }
-
   const selectedPath = $derived(decodeNodeId(selectedId))
-  const selectedNode = $derived(findNode(tree, selectedId))
+  const selectedNode = $derived(nodeMap.get(selectedId) ?? null)
   const selectedSchema = $derived(schemaAtPath(resolvedSchema, selectedPath))
   const selectedEffective = $derived(selectedSchema ? getEffectiveSchema(selectedSchema) : null)
   const selectedValue = $derived(valueAtPath(value, selectedPath))
@@ -199,12 +187,8 @@
     focusDetail(kind === 'record' ? 'key' : 'first-field')
   }
 
-  function isPrefixOf(prefix: string[], path: string[]): boolean {
-    return prefix.length <= path.length && prefix.every((segment, i) => path[i] === segment)
-  }
-
   function arrayEntryRemoved(arrayPath: string[], index: number) {
-    const remapped = remapPathForArrayRemoval(decodeNodeId(selected), arrayPath, index)
+    const remapped = remapPathForArrayRemoval(decodeNodeId(selectedId), arrayPath, index)
     selected = encodeNodeId(remapped ?? arrayPath)
     expanded = expanded.flatMap(id => {
       const next = remapPathForArrayRemoval(decodeNodeId(id), arrayPath, index)
@@ -214,8 +198,8 @@
 
   function recordEntryRemoved(recordPath: string[], key: string) {
     const removed = [...recordPath, key]
-    if (isPrefixOf(removed, decodeNodeId(selected))) selected = encodeNodeId(recordPath)
-    expanded = expanded.filter(id => !isPrefixOf(removed, decodeNodeId(id)))
+    if (pathStartsWith(decodeNodeId(selectedId), removed)) selected = encodeNodeId(recordPath)
+    expanded = expanded.filter(id => !pathStartsWith(decodeNodeId(id), removed))
   }
 
   function handleChange(path: string[], newValue: unknown) {
@@ -271,7 +255,12 @@
   <schema-form-root data-flat={hasTree ? undefined : ''}>
     {#if hasTree}
       <schema-form-tree>
-        <TreeView nodes={viewNodes} bind:selected bind:expanded {disabled} />
+        <TreeView
+          nodes={viewNodes}
+          bind:selected={() => selectedId, v => (selected = v)}
+          bind:expanded
+          {disabled}
+        />
       </schema-form-tree>
     {/if}
 

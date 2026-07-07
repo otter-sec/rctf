@@ -1,5 +1,7 @@
 import type { JsonSchema } from './types'
 import {
+  arrayItemSchema,
+  collectionSummary,
   fieldLabel,
   getEffectiveSchema,
   getItemLabel,
@@ -13,7 +15,7 @@ import {
 
 export const WEIGHT_THRESHOLD = 12
 
-const ID_SEPARATOR = ''
+const ID_SEPARATOR = '\u001f'
 
 export type HeavyKind = 'record' | 'array' | 'object'
 
@@ -42,9 +44,7 @@ export function classifyHeavy(schema: JsonSchema): HeavyKind | null {
   }
   const primary = getPrimaryType(effective)
   if (primary === 'array') {
-    const itemSchema = getEffectiveSchema(
-      effective.items ?? ({ type: 'string' } as JsonSchema)
-    )
+    const itemSchema = getEffectiveSchema(arrayItemSchema(effective))
     return getPrimaryType(itemSchema) === 'object' ? 'array' : null
   }
   if (primary === 'object' && effective.properties) {
@@ -83,17 +83,7 @@ function nodeSummary(
   notConfigured: boolean
 ): string {
   if (notConfigured) return 'Not configured'
-  const effective = getEffectiveSchema(schema)
-  if (isRecordSchema(effective)) {
-    const count =
-      value && typeof value === 'object' ? Object.keys(value).length : 0
-    return count === 1 ? '1 entry' : `${count} entries`
-  }
-  if (getPrimaryType(effective) === 'array') {
-    const count = Array.isArray(value) ? value.length : 0
-    return count === 1 ? '1 item' : `${count} items`
-  }
-  return ''
+  return collectionSummary(getEffectiveSchema(schema), value) ?? ''
 }
 
 function childNodes(
@@ -114,7 +104,7 @@ function childNodes(
     )
   }
   if (kind === 'array') {
-    const itemSchema = effective.items ?? ({ type: 'string' } as JsonSchema)
+    const itemSchema = arrayItemSchema(effective)
     const items = Array.isArray(value) ? value : []
     const fallback = fieldLabel(effective, path, 'Items')
     return items.map((item, index) =>
@@ -137,12 +127,16 @@ function heavyDescendants(
   if (getPrimaryType(effective) !== 'object' || !effective.properties) {
     return []
   }
+  const record =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : undefined
   const nodes: TreeNode[] = []
   for (const [key, childSchema] of Object.entries(effective.properties)) {
     const childPath = [...path, key]
-    const childValue = valueAtPath(value, [key])
-    if (classifyHeavy(childSchema)) {
-      const childEffective = getEffectiveSchema(childSchema)
+    const childValue = record?.[key]
+    const childEffective = getEffectiveSchema(childSchema)
+    if (classifyHeavy(childEffective)) {
       nodes.push(
         buildNode(
           childSchema,
@@ -151,20 +145,17 @@ function heavyDescendants(
           fieldLabel(childEffective, childPath)
         )
       )
-    } else {
-      const childEffective = getEffectiveSchema(childSchema)
-      if (
-        getPrimaryType(childEffective) === 'object' &&
-        childEffective.properties
-      ) {
-        nodes.push(...heavyDescendants(childEffective, childValue, childPath))
-      }
+    } else if (
+      getPrimaryType(childEffective) === 'object' &&
+      childEffective.properties
+    ) {
+      nodes.push(...heavyDescendants(childEffective, childValue, childPath))
     }
   }
   return nodes
 }
 
-function pathStartsWith(path: string[], prefix: string[]): boolean {
+export function pathStartsWith(path: string[], prefix: string[]): boolean {
   return prefix.every((segment, i) => path[i] === segment)
 }
 

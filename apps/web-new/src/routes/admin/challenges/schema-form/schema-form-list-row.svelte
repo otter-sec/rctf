@@ -1,11 +1,12 @@
 <script lang="ts">
   import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
   import IconX from '$lib/icons/icon-x.svelte'
+  import type { PathStatus } from './types'
 
   interface Props {
     label: string
     removeLabel: string
-    status?: 'invalid' | 'incomplete' | undefined
+    status?: PathStatus | undefined
     mono?: boolean
     disabled?: boolean
     onOpen: () => void
@@ -147,17 +148,5 @@
       inline-size: 0.75rem;
       block-size: 0.75rem;
     }
-  }
-
-  [data-visually-hidden] {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    clip-path: inset(50%);
-    border: 0;
   }
 </style>

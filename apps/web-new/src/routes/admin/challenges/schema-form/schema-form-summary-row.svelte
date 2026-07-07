@@ -1,8 +1,7 @@
 <script lang="ts">
   import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
-  import { getContext } from 'svelte'
-  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
-  import { fieldLabel, getPrimaryType, isRecordSchema } from './utils'
+  import { getSchemaFormErrors, type JsonSchema } from './types'
+  import { collectionSummary, fieldLabel } from './utils'
 
   interface Props {
     schema: JsonSchema
@@ -15,19 +14,13 @@
 
   let { schema, value, path, required = false, isNullable = false, onSelect }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const label = $derived(fieldLabel(schema, path))
   const status = $derived(errorsContext?.status(path))
   const summary = $derived.by(() => {
-    if (isRecordSchema(schema)) {
-      const count = value && typeof value === 'object' ? Object.keys(value).length : 0
-      return count === 1 ? '1 entry' : `${count} entries`
-    }
-    if (getPrimaryType(schema) === 'array') {
-      const count = Array.isArray(value) ? value.length : 0
-      return count === 1 ? '1 item' : `${count} items`
-    }
+    const collection = collectionSummary(schema, value)
+    if (collection !== null) return collection
     if (isNullable) {
       return value === null || value === undefined ? 'Not configured' : 'Configured'
     }
@@ -118,17 +111,5 @@
       inline-size: 0.875rem;
       block-size: 0.875rem;
     }
-  }
-
-  [data-visually-hidden] {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    margin: -1px;
-    padding: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    clip-path: inset(50%);
-    border: 0;
   }
 </style>

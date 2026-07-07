@@ -213,6 +213,18 @@ input:where([type='button'], [type='reset'], [type='submit']),
   display: none !important;
 }
 
+[data-visually-hidden] {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

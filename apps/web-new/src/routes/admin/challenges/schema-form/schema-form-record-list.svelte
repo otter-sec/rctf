@@ -1,10 +1,10 @@
 <script lang="ts">
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
-  import { getContext, tick } from 'svelte'
+  import { tick } from 'svelte'
   import SchemaFormListRow from './schema-form-list-row.svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
+  import { getSchemaFormErrors, type JsonSchema } from './types'
   import { addRecordEntry, recordValueSchema, removeRecordEntry } from './utils'
 
   interface Props {
@@ -29,7 +29,7 @@
     disabled = false,
   }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
   const valueSchema = $derived(recordValueSchema(schema))

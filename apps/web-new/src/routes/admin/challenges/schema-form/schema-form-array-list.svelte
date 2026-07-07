@@ -1,9 +1,9 @@
 <script lang="ts">
   import Button from '$lib/ui/button.svelte'
-  import { getContext, tick } from 'svelte'
+  import { tick } from 'svelte'
   import SchemaFormListRow from './schema-form-list-row.svelte'
-  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
-  import { defaultValue, fieldLabel, getItemLabel } from './utils'
+  import { getSchemaFormErrors, type JsonSchema } from './types'
+  import { arrayItemSchema, defaultValue, fieldLabel, getItemLabel } from './utils'
 
   interface Props {
     schema: JsonSchema
@@ -27,10 +27,10 @@
     disabled = false,
   }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const items = $derived((value ?? []) as unknown[])
-  const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
+  const itemSchema = $derived(arrayItemSchema(schema))
   const label = $derived(fieldLabel(schema, path, 'Items'))
 
   let listEl = $state<HTMLElement | null>(null)

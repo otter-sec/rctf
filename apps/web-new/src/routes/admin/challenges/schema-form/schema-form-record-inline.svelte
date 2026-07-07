@@ -2,9 +2,8 @@
   import IconX from '$lib/icons/icon-x.svelte'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
-  import { getContext } from 'svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import { SCHEMA_FORM_ERRORS_KEY, type FieldProps, type SchemaFormErrorsContext } from './types'
+  import { getSchemaFormErrors, type FieldProps } from './types'
   import {
     addRecordEntry,
     fieldLabel,
@@ -18,7 +17,7 @@
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 
-  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+  const errorsContext = getSchemaFormErrors()
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
   const valueSchema = $derived(recordValueSchema(schema))

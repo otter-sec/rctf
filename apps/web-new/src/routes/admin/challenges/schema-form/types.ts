@@ -1,3 +1,5 @@
+import { getContext } from 'svelte'
+
 export interface JsonSchema {
   $ref?: string
   $defs?: Record<string, JsonSchema>
@@ -40,14 +42,22 @@ export interface FieldProps {
   required?: boolean
 }
 
+export type FindingSeverity = 'missing' | 'invalid'
+
+export type PathStatus = 'invalid' | 'incomplete'
+
 export interface SchemaFormFieldError {
-  severity: 'missing' | 'invalid'
+  severity: FindingSeverity
   message: string
 }
 
 export interface SchemaFormErrorsContext {
   get: (path: string[]) => SchemaFormFieldError | null
-  status: (path: string[]) => 'invalid' | 'incomplete' | undefined
+  status: (path: string[]) => PathStatus | undefined
 }
 
 export const SCHEMA_FORM_ERRORS_KEY = 'schema-form-errors'
+
+export function getSchemaFormErrors(): SchemaFormErrorsContext | undefined {
+  return getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+}
