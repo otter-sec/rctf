@@ -247,8 +247,6 @@
     --checker-color-2: var(--background-l3);
     display: flex;
     flex: 1;
-    align-items: center;
-    justify-content: center;
     overflow: auto;
     padding: 1rem;
     background-color: var(--checker-color-2);
@@ -263,6 +261,11 @@
       0 var(--checker-size),
       var(--checker-size) calc(var(--checker-size) * -1),
       calc(var(--checker-size) * -1) 0;
+
+    :global(screenshot-preview) {
+      flex-shrink: 0;
+      margin: auto;
+    }
   }
 
   @media (width >= 48rem) {

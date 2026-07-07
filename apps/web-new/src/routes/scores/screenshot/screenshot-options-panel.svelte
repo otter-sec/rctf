@@ -76,24 +76,26 @@
 
 <options-panel>
   <Section title="Content">
-    <panel-field>
-      <span data-label>Teams in list</span>
-      {@render selectTrigger(`${options.teamCount} teams`, 'Teams in list', teamCountItems)}
-    </panel-field>
+    <field-list>
+      <panel-field>
+        <span data-label>Teams in list</span>
+        {@render selectTrigger(`${options.teamCount} teams`, 'Teams in list', teamCountItems)}
+      </panel-field>
 
-    <panel-field>
-      <span data-label>Teams in graph</span>
-      {@render selectTrigger(
-        `${options.graphTeamCount} teams`,
-        'Teams in graph',
-        graphTeamCountItems
-      )}
-    </panel-field>
+      <panel-field>
+        <span data-label>Teams in graph</span>
+        {@render selectTrigger(
+          `${options.graphTeamCount} teams`,
+          'Teams in graph',
+          graphTeamCountItems
+        )}
+      </panel-field>
 
-    <panel-field>
-      <span data-label>Subtitle</span>
-      <Input bind:value={options.subtitle} placeholder="Optional subtitle" />
-    </panel-field>
+      <panel-field>
+        <span data-label>Subtitle</span>
+        <Input bind:value={options.subtitle} placeholder="Optional subtitle" />
+      </panel-field>
+    </field-list>
   </Section>
 
   <Section title="Display">
@@ -149,20 +151,28 @@
   </Section>
 
   <Section title="Export">
-    <panel-field>
-      <span data-label>Resolution</span>
-      {@render selectTrigger(`${exportSettings.scale}x`, 'Resolution', scaleItems)}
-    </panel-field>
+    <field-list>
+      <panel-field>
+        <span data-label>Resolution</span>
+        {@render selectTrigger(`${exportSettings.scale}x`, 'Resolution', scaleItems)}
+      </panel-field>
 
-    <panel-field>
-      <span data-label>Format</span>
-      {@render selectTrigger(exportSettings.format.toUpperCase(), 'Format', formatItems)}
-    </panel-field>
+      <panel-field>
+        <span data-label>Format</span>
+        {@render selectTrigger(exportSettings.format.toUpperCase(), 'Format', formatItems)}
+      </panel-field>
+    </field-list>
   </Section>
 </options-panel>
 
 <style>
   options-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  field-list {
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
