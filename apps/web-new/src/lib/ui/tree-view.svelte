@@ -1,0 +1,212 @@
+<script lang="ts" module>
+  export interface TreeViewNode {
+    id: string
+    label: string
+    summary?: string
+    status?: 'invalid' | 'incomplete'
+    children?: TreeViewNode[]
+  }
+</script>
+
+<script lang="ts">
+  import { normalizeProps, useMachine } from '@zag-js/svelte'
+  import * as treeView from '@zag-js/tree-view'
+  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
+
+  interface Props {
+    nodes: TreeViewNode[]
+    selected: string
+    expanded?: string[]
+    disabled?: boolean
+    label?: string
+  }
+
+  let {
+    nodes,
+    selected = $bindable(),
+    expanded = $bindable([]),
+    disabled = false,
+    label = 'Configuration tree',
+  }: Props = $props()
+
+  // NUL sentinel: never collides with consumer node ids (which may include '')
+  const hiddenRootId = '\u0000'
+
+  const collection = $derived(
+    treeView.collection<TreeViewNode>({
+      rootNode: { id: hiddenRootId, label: '', children: nodes },
+      nodeToValue: node => node.id,
+      nodeToString: node => node.label,
+      nodeToChildren: node => node.children ?? [],
+    })
+  )
+
+  const id = $props.id()
+  const service = useMachine(treeView.machine, () => ({
+    id,
+    collection,
+    selectionMode: 'single' as const,
+    translations: { treeLabel: label },
+    selectedValue: [selected],
+    expandedValue: expanded,
+    onSelectionChange(details: treeView.SelectionChangeDetails) {
+      const next = details.selectedValue[0]
+      if (next !== undefined) selected = next
+    },
+    onExpandedChange(details: treeView.ExpandedChangeDetails) {
+      expanded = details.expandedValue
+    },
+  }))
+  const api = $derived(treeView.connect(service, normalizeProps))
+</script>
+
+{#snippet rowContent(node: TreeViewNode, textProps: Record<string, unknown>)}
+  <span {...textProps}>
+    {node.label}
+    {#if node.status === 'invalid'}
+      <span data-visually-hidden>contains errors</span>
+    {:else if node.status === 'incomplete'}
+      <span data-visually-hidden>incomplete</span>
+    {/if}
+  </span>
+  {#if node.summary}
+    <tree-row-summary>{node.summary}</tree-row-summary>
+  {/if}
+  {#if node.status}
+    <tree-row-status aria-hidden="true">{node.status === 'invalid' ? '!' : '●'}</tree-row-status>
+  {/if}
+{/snippet}
+
+{#snippet treeNode(node: TreeViewNode, indexPath: number[])}
+  {@const nodeProps = { node, indexPath }}
+  {#if node.children && node.children.length > 0}
+    <div {...api.getBranchProps(nodeProps)}>
+      <div
+        {...api.getBranchControlProps(nodeProps)}
+        data-invalid={node.status === 'invalid' ? '' : undefined}
+        data-incomplete={node.status === 'incomplete' ? '' : undefined}
+      >
+        <span {...api.getBranchIndicatorProps(nodeProps)}>
+          <IconChevronDown />
+        </span>
+        {@render rowContent(node, api.getBranchTextProps(nodeProps) as Record<string, unknown>)}
+      </div>
+      <div {...api.getBranchContentProps(nodeProps)}>
+        {#each node.children as child, index (child.id)}
+          {@render treeNode(child, [...indexPath, index])}
+        {/each}
+      </div>
+    </div>
+  {:else}
+    <div
+      {...api.getItemProps(nodeProps)}
+      data-invalid={node.status === 'invalid' ? '' : undefined}
+      data-incomplete={node.status === 'incomplete' ? '' : undefined}
+    >
+      {@render rowContent(node, api.getItemTextProps(nodeProps) as Record<string, unknown>)}
+    </div>
+  {/if}
+{/snippet}
+
+<div {...api.getRootProps()} data-disabled={disabled ? '' : undefined}>
+  <div {...api.getTreeProps()}>
+    {#each nodes as node, index (node.id)}
+      {@render treeNode(node, [index])}
+    {/each}
+  </div>
+</div>
+
+<style>
+  [data-part='tree']:focus-visible {
+    outline: none;
+  }
+
+  [data-part='branch-control'],
+  [data-part='item'] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding-block: 0.25rem;
+    padding-inline-end: var(--space-2xs);
+    padding-inline-start: calc(var(--space-3xs) + (var(--depth) - 1) * var(--space-s));
+    font-size: var(--step--1);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+
+    &:hover,
+    &[data-selected] {
+      background: var(--background-l2);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+  }
+
+  [data-part='item'] {
+    padding-inline-start: calc(
+      var(--space-3xs) + (var(--depth) - 1) * var(--space-s) + 1em + var(--space-3xs)
+    );
+  }
+
+  [data-part='branch-indicator'] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    color: var(--foreground-l3);
+    rotate: -90deg;
+    transition: rotate 0.15s ease;
+
+    &[data-state='open'] {
+      rotate: 0deg;
+    }
+
+    :global(svg) {
+      inline-size: 1em;
+      block-size: 1em;
+    }
+  }
+
+  [data-part='branch-text'],
+  [data-part='item-text'] {
+    overflow: hidden;
+    color: var(--foreground-l1);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  tree-row-summary {
+    overflow: hidden;
+    color: var(--foreground-l4);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  tree-row-status {
+    flex: none;
+    margin-inline-start: auto;
+    font-size: 0.75em;
+    line-height: 1;
+  }
+
+  [data-invalid] tree-row-status {
+    color: var(--foreground-destructive);
+  }
+
+  [data-incomplete] tree-row-status {
+    color: var(--foreground-l3);
+  }
+
+  [data-visually-hidden] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
+  }
+</style>
