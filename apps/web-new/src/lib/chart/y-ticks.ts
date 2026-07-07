@@ -21,12 +21,12 @@ export function niceLinearTicks(max: number, count = 4): LinearTicks {
     return { max: 1, values: [0, 1] }
   }
 
-  const step = niceNum(max / Math.max(1, count), true)
+  const step = Math.max(1, niceNum(max / Math.max(1, count), true))
   const niceMax = Math.ceil(max / step) * step
 
   const values: number[] = []
-  for (let value = 0; value <= niceMax + step * 0.5; value += step) {
-    values.push(Math.round(value))
+  for (let value = 0; value <= niceMax; value += step) {
+    values.push(value)
   }
   return { max: niceMax, values }
 }

@@ -47,15 +47,15 @@
     --arrow-size: 0.625rem;
     --arrow-background: var(--background-l2);
     z-index: calc(var(--layer-popover) + 1);
-  }
 
-  [data-part='arrow']:has(+ [data-part='content'][data-side='top']) [data-part='arrow-tip'] {
-    border-inline-end: 2px solid var(--border);
-    border-block-end: 2px solid var(--border);
-  }
+    &:has(+ [data-part='content'][data-side='top']) [data-part='arrow-tip'] {
+      border-inline-end: 2px solid var(--border);
+      border-block-end: 2px solid var(--border);
+    }
 
-  [data-part='arrow']:has(+ [data-part='content'][data-side='bottom']) [data-part='arrow-tip'] {
-    border-inline-start: 2px solid var(--border);
-    border-block-start: 2px solid var(--border);
+    &:has(+ [data-part='content'][data-side='bottom']) [data-part='arrow-tip'] {
+      border-inline-start: 2px solid var(--border);
+      border-block-start: 2px solid var(--border);
+    }
   }
 </style>

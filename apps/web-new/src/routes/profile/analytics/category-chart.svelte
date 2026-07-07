@@ -5,11 +5,7 @@
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import IconCheck from '$lib/icons/icon-check.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import {
-    maxChartValue,
-    type CategoryBarDatum,
-    type CategoryBarSegment,
-  } from './analytics-data'
+  import { maxChartValue, type CategoryBarDatum, type CategoryBarSegment } from './analytics-data'
   import { earnedSegmentEnd, separatorIsNeutral } from './chart-geometry'
   import { compactNumber } from './chart-utils'
 
@@ -337,22 +333,22 @@
   [data-seg-active] {
     fill: var(--category-foreground-l1);
     fill-opacity: 0.25;
-  }
 
-  [data-seg-active][data-kind='unsolved'] {
-    fill: var(--foreground-l5);
-    fill-opacity: 0.12;
+    &[data-kind='unsolved'] {
+      fill: var(--foreground-l5);
+      fill-opacity: 0.12;
+    }
   }
 
   [data-sep] {
     stroke: var(--category-foreground-l1);
     stroke-opacity: 0.45;
     stroke-width: 1;
-  }
 
-  [data-sep][data-neutral] {
-    stroke: var(--foreground-l5);
-    stroke-opacity: 0.28;
+    &[data-neutral] {
+      stroke: var(--foreground-l5);
+      stroke-opacity: 0.28;
+    }
   }
 
   [data-track-outline] {

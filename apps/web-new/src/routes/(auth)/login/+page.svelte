@@ -85,8 +85,7 @@
       if (urlToken) {
         form.setData({ teamToken: urlToken })
       }
-    } catch {
-    }
+    } catch {}
     form.submit()
   }
 

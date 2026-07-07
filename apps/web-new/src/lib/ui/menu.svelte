@@ -107,10 +107,8 @@
       block-size: 1em;
       flex-shrink: 0;
     }
-  }
 
-  [data-part='item'][role='menuitemradio'] {
-    span {
+    &[role='menuitemradio'] span {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;

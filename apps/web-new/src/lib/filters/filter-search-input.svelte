@@ -32,13 +32,13 @@
       inline-size: 0.875rem;
       block-size: 0.875rem;
     }
-  }
 
-  filter-search[data-variant='mobile'] {
-    block-size: 2.5rem;
-    background: var(--background-l2);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
+    &[data-variant='mobile'] {
+      block-size: 2.5rem;
+      background: var(--background-l2);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+    }
   }
 
   input {

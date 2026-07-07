@@ -373,14 +373,14 @@
   code {
     font-family: var(--font-mono);
     font-size: var(--step--1);
-  }
 
-  code[data-readonly] {
-    display: block;
-    padding: var(--space-3xs) var(--space-2xs);
-    word-break: break-all;
-    background: var(--background-l4);
-    border-radius: var(--radius-md);
+    &[data-readonly] {
+      display: block;
+      padding: var(--space-3xs) var(--space-2xs);
+      word-break: break-all;
+      background: var(--background-l4);
+      border-radius: var(--radius-md);
+    }
   }
 
   secret-row {

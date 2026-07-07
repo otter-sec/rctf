@@ -16,13 +16,13 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
   import { getRankTier, getSparklineDataByTeam } from '../../scores/model/transforms'
+  import ChallengePointDelta from '../model/point-delta.svelte'
+  import { rankVariant } from '../model/solve-times'
   import ChallengeDetailsRow from './details-row.svelte'
+  import { computeRankDeltas } from './rank-delta'
   import ScoreTrailing from './score-trailing.svelte'
   import ChallengeDetailsScoresGraph from './scores-graph.svelte'
   import ChallengeDetailsScoresSelf from './scores-self.svelte'
-  import ChallengePointDelta from '../model/point-delta.svelte'
-  import { computeRankDeltas } from './rank-delta'
-  import { rankVariant } from '../model/solve-times'
 
   interface Props {
     challenge: Challenge

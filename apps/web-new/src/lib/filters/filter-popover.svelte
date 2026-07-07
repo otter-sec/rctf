@@ -73,6 +73,11 @@
     position: relative;
     display: inline-flex;
     min-inline-size: 0;
+
+    &[data-align='end'] filter-popover-panel {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
   }
 
   filter-popover-panel {
@@ -88,10 +93,5 @@
     border: 2px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
-  }
-
-  filter-popover[data-align='end'] filter-popover-panel {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
   }
 </style>

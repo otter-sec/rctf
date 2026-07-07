@@ -115,14 +115,14 @@
     display: block;
     background: var(--background-l1);
     border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
-  }
 
-  column-surface[data-main] {
-    grid-area: 1 / 1 / -1 / 2;
-  }
+    &[data-main] {
+      grid-area: 1 / 1 / -1 / 2;
+    }
 
-  column-surface[data-aside] {
-    display: none;
+    &[data-aside] {
+      display: none;
+    }
   }
 
   profile-header-slot {
@@ -137,19 +137,19 @@
     display: flex;
     gap: var(--space-3xs);
     padding-inline: var(--space-s);
-  }
 
-  profile-tabbar button {
-    flex: 1;
-    padding-block: var(--space-2xs);
-    color: var(--foreground-l2);
-    background: var(--background-l2);
-    cursor: pointer;
-    border-radius: var(--radius-md);
+    button {
+      flex: 1;
+      padding-block: var(--space-2xs);
+      color: var(--foreground-l2);
+      background: var(--background-l2);
+      cursor: pointer;
+      border-radius: var(--radius-md);
 
-    &[data-selected] {
-      color: var(--foreground-l0);
-      background: var(--background-l3);
+      &[data-selected] {
+        color: var(--foreground-l0);
+        background: var(--background-l3);
+      }
     }
   }
 
@@ -157,18 +157,18 @@
     grid-area: content;
     display: none;
     min-block-size: 0;
-  }
 
-  profile-panel[data-tab='challenges'] {
-    overflow: hidden;
-  }
+    &[data-tab='challenges'] {
+      overflow: hidden;
+    }
 
-  profile-panel[data-tab='analytics'],
-  profile-panel[data-tab='settings'] {
-    gap: var(--space-m);
-    padding-inline: var(--space-m);
-    padding-block-end: var(--space-m);
-    overflow-y: auto;
+    &[data-tab='analytics'],
+    &[data-tab='settings'] {
+      gap: var(--space-m);
+      padding-inline: var(--space-m);
+      padding-block-end: var(--space-m);
+      overflow-y: auto;
+    }
   }
 
   profile-page[data-active-tab='challenges'] profile-panel[data-tab='challenges'],

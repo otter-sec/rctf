@@ -16,11 +16,9 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
+  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../model/editor-state'
   import AdminChallengesDetailsAdminbot from './adminbot.svelte'
   import AdminChallengesDetailsAttachments from './attachments.svelte'
-  import AdminChallengesDetailsInstancer from './instancer.svelte'
-  import AdminChallengesDetailsSolves from './solves.svelte'
-  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../model/editor-state'
   import FieldSelect from './field-select.svelte'
   import {
     detailsTabInvalid,
@@ -30,6 +28,8 @@
     scoringTabInvalid,
     type FormErrors,
   } from './form-validation'
+  import AdminChallengesDetailsInstancer from './instancer.svelte'
+  import AdminChallengesDetailsSolves from './solves.svelte'
 
   interface Props {
     form: EditorForm

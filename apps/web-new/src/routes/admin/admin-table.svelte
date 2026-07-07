@@ -150,6 +150,10 @@
     border: 2px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+
+    &[data-scrolling] admin-row {
+      pointer-events: none;
+    }
   }
 
   admin-toolbar {
@@ -217,9 +221,5 @@
     justify-content: center;
     color: var(--foreground-l3);
     font-size: 1.25rem;
-  }
-
-  admin-table[data-scrolling] admin-row {
-    pointer-events: none;
   }
 </style>

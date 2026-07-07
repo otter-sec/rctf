@@ -2,10 +2,10 @@
   import type { Challenge } from '@rctf/types'
   import type { SparklinePoint } from '$lib/chart/sparkline.svelte'
   import { useCurrentUser } from '$lib/query/user'
-  import ChallengeDetailsRow from './details-row.svelte'
-  import ScoreTrailing from './score-trailing.svelte'
   import ChallengePointDelta from '../model/point-delta.svelte'
   import { rankVariant } from '../model/solve-times'
+  import ChallengeDetailsRow from './details-row.svelte'
+  import ScoreTrailing from './score-trailing.svelte'
 
   interface Props {
     challenge: Challenge

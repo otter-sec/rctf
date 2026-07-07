@@ -96,6 +96,11 @@
       block-size: 2.75rem;
       gap: var(--space-xs);
       padding-inline: 0.5rem;
+
+      check-box {
+        inline-size: 1.25rem;
+        block-size: 1.25rem;
+      }
     }
 
     :global(svg) {
@@ -130,11 +135,6 @@
       inline-size: 0.75rem;
       block-size: 0.75rem;
     }
-  }
-
-  button[data-mobile] check-box {
-    inline-size: 1.25rem;
-    block-size: 1.25rem;
   }
 
   option-path {

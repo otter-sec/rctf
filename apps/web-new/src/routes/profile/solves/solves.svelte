@@ -20,7 +20,11 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
-  import type { ChallengeInfo, ProfileDynamicScore, ProfileSolve } from '../analytics/analytics-data'
+  import type {
+    ChallengeInfo,
+    ProfileDynamicScore,
+    ProfileSolve,
+  } from '../analytics/analytics-data'
   import {
     buildDisplayRows,
     computeSolvesStats,
@@ -630,6 +634,15 @@
     gap: var(--space-xs);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+
+    [data-part='points'] {
+      color: var(--category-foreground-l1);
+
+      strong {
+        color: var(--category-foreground-l0);
+        font-weight: var(--font-weight-normal);
+      }
+    }
   }
 
   row-actions {
@@ -641,15 +654,6 @@
   [data-part='time'] {
     color: var(--category-foreground-l1);
     opacity: 0.75;
-  }
-
-  row-meta [data-part='points'] {
-    color: var(--category-foreground-l1);
-
-    strong {
-      color: var(--category-foreground-l0);
-      font-weight: var(--font-weight-normal);
-    }
   }
 
   @container solves (width >= 30rem) {

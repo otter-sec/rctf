@@ -52,10 +52,10 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-l);
-  }
 
-  admin-status :global(ui-card) {
-    inline-size: 100%;
-    max-inline-size: 28rem;
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
   }
 </style>

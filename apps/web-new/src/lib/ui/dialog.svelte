@@ -90,7 +90,7 @@
     gap: var(--space-s);
     padding: var(--dialog-content-padding, var(--space-m));
     overflow-y: auto;
-    background: var(--background-l1);
+    background: var(--dialog-content-background, var(--background-l1));
     border: 2px solid var(--border);
   }
 
@@ -119,8 +119,8 @@
 
     [data-part='content'] {
       inline-size: 100%;
-      max-inline-size: 28rem;
-      max-block-size: 100%;
+      max-inline-size: var(--dialog-max-inline-size, 28rem);
+      max-block-size: var(--dialog-max-block-size, 100%);
       border-radius: var(--radius-lg);
     }
   }
@@ -137,7 +137,7 @@
 
   [data-flush] [data-part='content'] {
     gap: 0;
-    block-size: 100%;
+    block-size: var(--dialog-block-size, 100%);
     padding: 0;
   }
 

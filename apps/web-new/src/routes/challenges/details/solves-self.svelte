@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useCurrentUser } from '$lib/query/user'
-  import ChallengeDetailsRow from './details-row.svelte'
   import { rankVariant, solveTimeLabels } from '../model/solve-times'
+  import ChallengeDetailsRow from './details-row.svelte'
 
   interface Props {
     rank: number

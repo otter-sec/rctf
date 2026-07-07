@@ -47,6 +47,11 @@
     &[data-mobile] {
       gap: var(--space-3xs);
       padding: var(--space-2xs);
+
+      option-status {
+        padding-block: 2rem;
+        justify-content: center;
+      }
     }
 
     &[data-scroll] {
@@ -67,10 +72,5 @@
     &[data-empty] {
       justify-content: center;
     }
-  }
-
-  option-list[data-mobile] option-status {
-    padding-block: 2rem;
-    justify-content: center;
   }
 </style>

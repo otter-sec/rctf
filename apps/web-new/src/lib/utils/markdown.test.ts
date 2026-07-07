@@ -132,9 +132,9 @@ describe('alert content attribute escaping', () => {
     const root = frag(out)
     // The payload stays trapped inside data-content; no real <img> is created.
     expect(root.querySelectorAll('img').length).toBe(0)
-    expect(root.querySelector('[data-alert]')?.getAttribute('data-content')).toBe(
-      content
-    )
+    expect(
+      root.querySelector('[data-alert]')?.getAttribute('data-content')
+    ).toBe(content)
   })
 })
 

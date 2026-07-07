@@ -130,6 +130,12 @@
         animation: none;
       }
     }
+
+    &[data-min-cols='2'],
+    &[data-min-cols='3'],
+    &[data-min-cols='4'] {
+      display: none;
+    }
   }
 
   slot-ordinal {
@@ -172,12 +178,6 @@
     text-align: end;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  podium-slot[data-min-cols='2'],
-  podium-slot[data-min-cols='3'],
-  podium-slot[data-min-cols='4'] {
-    display: none;
   }
 
   @container (min-inline-size: 28rem) {

@@ -139,18 +139,16 @@
 </Dialog>
 
 <style>
-  :global([data-part='content']:has(> screenshot-modal)) {
-    inline-size: 90svw;
-    max-inline-size: 90svw;
-    block-size: 90svh;
-    max-block-size: 90svh;
-    background: var(--background-l2);
+  :global([data-part='positioner']:has(screenshot-modal)) {
+    --dialog-max-inline-size: 90svw;
+    --dialog-block-size: 90svh;
+    --dialog-max-block-size: 90svh;
+    --dialog-content-background: var(--background-l2);
 
     @media (width >= 48rem) {
-      inline-size: 95svw;
-      max-inline-size: 95svw;
-      block-size: 85svh;
-      max-block-size: 56.25rem;
+      --dialog-max-inline-size: 95svw;
+      --dialog-block-size: 85svh;
+      --dialog-max-block-size: 56.25rem;
     }
   }
 

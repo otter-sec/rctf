@@ -30,6 +30,17 @@ describe('niceLinearTicks', () => {
     })
   })
 
+  test('small maxima produce unique integer ticks, never duplicates', () => {
+    for (const max of [1, 2, 3, 4, 5]) {
+      for (const count of [3, 4, 5]) {
+        const { values } = niceLinearTicks(max, count)
+        expect(new Set(values).size).toBe(values.length)
+        expect(values).toEqual(values.map(Math.round))
+      }
+    }
+    expect(niceLinearTicks(2, 3).values).toEqual([0, 1, 2])
+  })
+
   test('the nice max is always at or above the data max', () => {
     for (const input of [1, 7, 42, 99, 333, 4096, 65_537]) {
       expect(niceLinearTicks(input).max).toBeGreaterThanOrEqual(input)

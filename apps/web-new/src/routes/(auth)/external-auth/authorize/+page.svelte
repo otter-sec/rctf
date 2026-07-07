@@ -145,21 +145,21 @@
         color: var(--foreground-l1);
         font-weight: var(--font-weight-medium);
       }
-    }
 
-    > p[role='alert'] {
-      padding: var(--space-2xs);
-      color: var(--foreground-destructive);
-      background: var(--background-destructive);
-      border-radius: var(--radius-md);
-    }
+      &[role='alert'] {
+        padding: var(--space-2xs);
+        color: var(--foreground-destructive);
+        background: var(--background-destructive);
+        border-radius: var(--radius-md);
+      }
 
-    > p[data-part='redirect-note'] {
-      font-size: 0.75rem;
+      &[data-part='redirect-note'] {
+        font-size: 0.75rem;
 
-      code {
-        font-family: var(--font-mono);
-        word-break: break-all;
+        code {
+          font-family: var(--font-mono);
+          word-break: break-all;
+        }
       }
     }
 

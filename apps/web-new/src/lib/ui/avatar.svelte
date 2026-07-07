@@ -40,10 +40,6 @@
     object-fit: cover;
   }
 
-  [data-part='fallback'][hidden] {
-    display: none;
-  }
-
   [data-part='fallback'] {
     display: flex;
     align-items: center;
@@ -53,5 +49,9 @@
     font-size: var(--step--1);
     color: var(--foreground-l3);
     background: var(--background-l4);
+
+    &[hidden] {
+      display: none;
+    }
   }
 </style>

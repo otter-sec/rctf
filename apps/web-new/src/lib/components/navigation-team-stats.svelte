@@ -150,10 +150,10 @@
 
     stop {
       stop-color: var(--sparkline-stroke);
-    }
 
-    stop:first-of-type {
-      stop-opacity: 0;
+      &:first-of-type {
+        stop-opacity: 0;
+      }
     }
   }
 

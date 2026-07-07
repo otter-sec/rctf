@@ -138,6 +138,11 @@
       outline: 2px solid var(--ring);
       outline-offset: -2px;
     }
+
+    &:hover expander-button {
+      color: var(--foreground-l1);
+      background: var(--background-l4);
+    }
   }
 
   row-cell {
@@ -156,6 +161,41 @@
 
     &[data-banned] {
       opacity: 0.7;
+    }
+
+    &[data-col='challenge'] a {
+      display: inline-flex;
+      min-inline-size: 0;
+      gap: var(--space-3xs);
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      [data-part='category'] {
+        flex-shrink: 0;
+        color: var(--category-foreground-l1);
+      }
+
+      [data-part='name'] {
+        min-inline-size: 0;
+        overflow: hidden;
+        color: var(--category-foreground-l0);
+        text-overflow: ellipsis;
+      }
+
+      &:hover [data-part='name'] {
+        text-decoration: underline;
+      }
+    }
+
+    &[data-col='team'] a {
+      min-inline-size: 0;
+      overflow: hidden;
+      color: var(--foreground-l1);
+      text-overflow: ellipsis;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 
@@ -179,11 +219,6 @@
     }
   }
 
-  submission-row:hover expander-button {
-    color: var(--foreground-l1);
-    background: var(--background-l4);
-  }
-
   time-value {
     flex-shrink: 0;
     color: var(--foreground-l1);
@@ -199,46 +234,11 @@
     font-variant-numeric: tabular-nums;
   }
 
-  row-cell[data-col='challenge'] a {
-    display: inline-flex;
-    min-inline-size: 0;
-    gap: var(--space-3xs);
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    [data-part='category'] {
-      flex-shrink: 0;
-      color: var(--category-foreground-l1);
-    }
-
-    [data-part='name'] {
-      min-inline-size: 0;
-      overflow: hidden;
-      color: var(--category-foreground-l0);
-      text-overflow: ellipsis;
-    }
-
-    &:hover [data-part='name'] {
-      text-decoration: underline;
-    }
-  }
-
   avatar-slot {
     --avatar-size: 2rem;
     --avatar-radius: var(--radius-md);
     display: flex;
     flex-shrink: 0;
-  }
-
-  row-cell[data-col='team'] a {
-    min-inline-size: 0;
-    overflow: hidden;
-    color: var(--foreground-l1);
-    text-overflow: ellipsis;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   banned-tag {

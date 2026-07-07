@@ -261,13 +261,13 @@
         text-decoration-color: var(--underline);
         cursor: pointer;
       }
-    }
 
-    > p[role='alert'] {
-      padding: var(--space-2xs);
-      color: var(--foreground-destructive);
-      background: var(--background-destructive);
-      border-radius: var(--radius-md);
+      &[role='alert'] {
+        padding: var(--space-2xs);
+        color: var(--foreground-destructive);
+        background: var(--background-destructive);
+        border-radius: var(--radius-md);
+      }
     }
   }
 

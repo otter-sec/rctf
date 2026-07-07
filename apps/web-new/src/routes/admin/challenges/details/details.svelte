@@ -24,8 +24,6 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
   import { hasPermissions } from '$lib/utils/permissions'
-  import AdminChallengesDetailsDialogs from './dialogs.svelte'
-  import AdminChallengesDetailsForm from './details-form.svelte'
   import {
     cancel,
     del,
@@ -49,6 +47,8 @@
     type EditorState,
     type ScoringConfig,
   } from '../model/editor-state'
+  import AdminChallengesDetailsForm from './details-form.svelte'
+  import AdminChallengesDetailsDialogs from './dialogs.svelte'
   import { buildSavePayload, formErrors, hasFormErrors } from './form-validation'
 
   interface Props {
