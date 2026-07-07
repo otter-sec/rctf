@@ -123,8 +123,25 @@
     hoveredRowId = null
   }
 
+  let lastPointer: { x: number; y: number } | null = null
+
   function handlePointerMove(event: PointerEvent) {
-    const target = event.target instanceof Element ? event.target : null
+    lastPointer = { x: event.clientX, y: event.clientY }
+    updateHover(event.target instanceof Element ? event.target : null)
+  }
+
+  function handlePointerLeave() {
+    lastPointer = null
+    clearHover()
+  }
+
+  function refreshHoverFromPoint() {
+    if (virtual.isScrolling || !lastPointer) return
+    const el = document.elementFromPoint(lastPointer.x, lastPointer.y)
+    updateHover(el && scrollRoot?.contains(el) ? el : null)
+  }
+
+  function updateHover(target: Element | null) {
     const row = target?.closest<HTMLElement>('[data-team-id]') ?? null
     const cell = target?.closest<HTMLElement>('[data-tooltip-cell]') ?? null
     const spark = target?.closest('spark-slot')
@@ -226,7 +243,18 @@
 
   $effect(() => {
     void data.entries
-    untrack(clearHover)
+    untrack(() => {
+      clearHover()
+      refreshHoverFromPoint()
+    })
+  })
+
+  $effect(() => {
+    if (virtual.isScrolling) {
+      untrack(clearHover)
+    } else {
+      untrack(refreshHoverFromPoint)
+    }
   })
 
   let latched = false
@@ -370,7 +398,7 @@
     {@attach captureScroll}
     tabindex="-1"
     onpointermove={handlePointerMove}
-    onpointerleave={clearHover}
+    onpointerleave={handlePointerLeave}
   >
     <scores-table>
       <header-row>
