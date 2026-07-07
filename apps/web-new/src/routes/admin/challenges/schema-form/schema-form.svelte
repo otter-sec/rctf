@@ -1,16 +1,32 @@
 <script lang="ts">
+  import Button from '$lib/ui/button.svelte'
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
-  import { tick } from 'svelte'
-  import { SvelteMap } from 'svelte/reactivity'
-  import SchemaFormField from './schema-form-field.svelte'
-  import type { JsonSchema } from './types'
+  import TreeView, { type TreeViewNode } from '$lib/ui/tree-view.svelte'
+  import { setContext, tick, untrack } from 'svelte'
+  import SchemaFormArrayList from './schema-form-array-list.svelte'
+  import SchemaFormObject from './schema-form-object.svelte'
+  import SchemaFormRecordList from './schema-form-record-list.svelte'
+  import {
+    classifyHeavy,
+    decodeNodeId,
+    deriveTree,
+    encodeNodeId,
+    nearestSurvivingPath,
+    remapPathForArrayRemoval,
+    remapPathForRename,
+    type TreeNode,
+  } from './tree'
+  import {
+    SCHEMA_FORM_ERRORS_KEY,
+    type JsonSchema,
+    type SchemaFormErrorsContext,
+    type SchemaFormFieldError,
+  } from './types'
   import {
     collectDefs,
-    fieldLabel,
     getEffectiveSchema,
-    getItemLabel,
-    getPrimaryType,
+    isNullable,
     isRecordSchema,
     renameRecordEntry,
     resolveRefs,
@@ -18,6 +34,7 @@
     setValueAtPath,
     valueAtPath,
   } from './utils'
+  import { pathStatuses, validateTree } from './validate-tree'
 
   interface Props {
     schema: JsonSchema
@@ -39,129 +56,301 @@
     rootLabel = 'Config',
   }: Props = $props()
 
-  const errors = new SvelteMap<string, string>()
-
-  function reportError(pathKey: string, error: string | null) {
-    if (error) errors.set(pathKey, error)
-    else errors.delete(pathKey)
-    valid = errors.size === 0
-  }
+  // Deprecated no-op kept so instancer.svelte compiles until U5 drops the prop
+  $effect(() => {
+    drilled = false
+  })
 
   const resolvedSchema = $derived(resolveRefs(schema, collectDefs(schema)))
+  const tree = $derived(deriveTree(resolvedSchema, value))
+  const findings = $derived(validateTree(resolvedSchema, value))
+  const statuses = $derived(pathStatuses(findings))
 
-  let navStack = $state<string[][]>([])
-  const stack = $derived(navStack.filter(p => schemaAtPath(resolvedSchema, p) !== null))
-  const currentPath = $derived(stack[stack.length - 1] ?? [])
-  const currentSchema = $derived(schemaAtPath(resolvedSchema, currentPath))
-  const currentValue = $derived(valueAtPath(value, currentPath))
+  $effect(() => {
+    valid = findings.size === 0
+  })
 
-  const crumbs = $derived(stack.map(p => ({ path: p, label: crumbLabel(p) })))
-
-  function crumbLabel(path: string[]): string {
-    const segment = path[path.length - 1] ?? ''
-    const parent = schemaAtPath(resolvedSchema, path.slice(0, -1))
-    if (!parent) return segment
-    const parentEffective = getEffectiveSchema(parent)
-    if (getPrimaryType(parentEffective) === 'array') {
-      const fallback = fieldLabel(parentEffective, path.slice(0, -1), 'Items')
-      return getItemLabel(valueAtPath(value, path), Number(segment), fallback)
+  const fieldErrors = $derived.by(() => {
+    const map = new Map<string, SchemaFormFieldError>()
+    for (const nodeFindings of findings.values()) {
+      for (const finding of nodeFindings) {
+        const id = encodeNodeId(finding.fieldPath)
+        const existing = map.get(id)
+        if (!existing || (existing.severity === 'missing' && finding.severity === 'invalid')) {
+          map.set(id, { severity: finding.severity, message: finding.message })
+        }
+      }
     }
-    if (isRecordSchema(parentEffective)) return segment
-    const own = schemaAtPath(resolvedSchema, path)
-    return own ? fieldLabel(own, path, segment) : segment
+    return map
+  })
+
+  setContext<SchemaFormErrorsContext>(SCHEMA_FORM_ERRORS_KEY, {
+    get: path => fieldErrors.get(encodeNodeId(path)) ?? null,
+    status: path => statuses.get(encodeNodeId(path)),
+  })
+
+  // Selection/expansion reset to the root view whenever the schema identity changes (KTD-5)
+  let selected = $derived.by(() => {
+    void schema
+    return encodeNodeId([])
+  })
+  let expanded = $derived.by(() => {
+    void schema
+    return untrack(() => [tree.id])
+  })
+
+  const nodeIds = $derived.by(() => {
+    const ids = new Set<string>()
+    const visit = (node: TreeNode) => {
+      ids.add(node.id)
+      for (const child of node.children) visit(child)
+    }
+    visit(tree)
+    return ids
+  })
+
+  // Falls back to the nearest surviving tree node when the selected path stops resolving
+  const selectedId = $derived.by(() => {
+    if (nodeIds.has(selected)) return selected
+    let path = nearestSurvivingPath(decodeNodeId(selected), resolvedSchema, value)
+    while (path.length > 0 && !nodeIds.has(encodeNodeId(path))) {
+      path = path.slice(0, -1)
+    }
+    return encodeNodeId(path)
+  })
+
+  $effect(() => {
+    if (selected !== selectedId) selected = selectedId
+  })
+
+  const hasTree = $derived(tree.children.length > 0)
+
+  const viewNodes = $derived.by(() => {
+    const toView = (node: TreeNode): TreeViewNode => {
+      const view: TreeViewNode = {
+        id: node.id,
+        label: node.id === '' ? rootLabel : node.label,
+      }
+      if (node.summary) view.summary = node.summary
+      const status = statuses.get(node.id)
+      if (status) view.status = status
+      if (node.children.length > 0) view.children = node.children.map(toView)
+      return view
+    }
+    return [toView(tree)]
+  })
+
+  function findNode(node: TreeNode, id: string): TreeNode | null {
+    if (node.id === id) return node
+    for (const child of node.children) {
+      const found = findNode(child, id)
+      if (found) return found
+    }
+    return null
   }
 
-  let rootEl = $state<HTMLElement | null>(null)
+  const selectedPath = $derived(decodeNodeId(selectedId))
+  const selectedNode = $derived(findNode(tree, selectedId))
+  const selectedSchema = $derived(schemaAtPath(resolvedSchema, selectedPath))
+  const selectedEffective = $derived(selectedSchema ? getEffectiveSchema(selectedSchema) : null)
+  const selectedValue = $derived(valueAtPath(value, selectedPath))
+  const selectedKind = $derived(selectedSchema ? classifyHeavy(selectedSchema) : null)
+  const selectedNullable = $derived(selectedSchema ? isNullable(selectedSchema) : false)
+  const headingLabel = $derived(selectedId === '' ? rootLabel : (selectedNode?.label ?? ''))
 
-  function setStack(next: string[][]) {
-    navStack = next
-    drilled = next.length > 0
-    void tick().then(() => rootEl?.scrollIntoView({ block: 'start', inline: 'nearest' }))
+  let detailEl = $state<HTMLElement | null>(null)
+  let headingEl = $state<HTMLElement | null>(null)
+
+  // The detail pane scrolls independently and resets its own scroll on selection change (KTD-11)
+  $effect(() => {
+    void selectedId
+    if (detailEl) detailEl.scrollTop = 0
+  })
+
+  function focusDetail(target: 'heading' | 'key' | 'first-field') {
+    void tick().then(() => {
+      if (target === 'heading') {
+        headingEl?.focus()
+        return
+      }
+      if (target === 'key') {
+        const keyInput = detailEl?.querySelector<HTMLElement>('key-rename input')
+        if (keyInput) {
+          keyInput.focus()
+          return
+        }
+      }
+      detailEl
+        ?.querySelector<HTMLElement>('detail-body input, detail-body textarea, detail-body button')
+        ?.focus()
+    })
   }
 
-  function navigate(path: string[]) {
-    setStack([...stack, path])
+  function revealAncestors(path: string[]) {
+    const ids = new Set(expanded)
+    for (let length = 0; length < path.length; length++) {
+      ids.add(encodeNodeId(path.slice(0, length)))
+    }
+    expanded = [...ids]
+  }
+
+  function selectNode(path: string[]) {
+    revealAncestors(path)
+    selected = encodeNodeId(path)
+    focusDetail('heading')
+  }
+
+  function entryAdded(entryPath: string[], kind: 'record' | 'array') {
+    revealAncestors(entryPath)
+    selected = encodeNodeId(entryPath)
+    focusDetail(kind === 'record' ? 'key' : 'first-field')
+  }
+
+  function isPrefixOf(prefix: string[], path: string[]): boolean {
+    return prefix.length <= path.length && prefix.every((segment, i) => path[i] === segment)
+  }
+
+  function arrayEntryRemoved(arrayPath: string[], index: number) {
+    const remapped = remapPathForArrayRemoval(decodeNodeId(selected), arrayPath, index)
+    selected = encodeNodeId(remapped ?? arrayPath)
+    expanded = expanded.flatMap(id => {
+      const next = remapPathForArrayRemoval(decodeNodeId(id), arrayPath, index)
+      return next ? [encodeNodeId(next)] : []
+    })
+  }
+
+  function recordEntryRemoved(recordPath: string[], key: string) {
+    const removed = [...recordPath, key]
+    if (isPrefixOf(removed, decodeNodeId(selected))) selected = encodeNodeId(recordPath)
+    expanded = expanded.filter(id => !isPrefixOf(removed, decodeNodeId(id)))
   }
 
   function handleChange(path: string[], newValue: unknown) {
     onChange(setValueAtPath(value, path, newValue) as Record<string, unknown>)
   }
 
+  function enableCollection() {
+    handleChange(selectedPath, selectedKind === 'record' ? {} : [])
+  }
+
   const parentSchema = $derived(
-    stack.length > 0 ? schemaAtPath(resolvedSchema, currentPath.slice(0, -1)) : null
+    selectedPath.length > 0 ? schemaAtPath(resolvedSchema, selectedPath.slice(0, -1)) : null
   )
   const renamableKey = $derived.by(() => {
     if (!parentSchema) return null
     const effective = getEffectiveSchema(parentSchema)
     if (!isRecordSchema(effective) || effective.propertyNames?.enum) return null
-    return currentPath[currentPath.length - 1] ?? null
+    return selectedPath[selectedPath.length - 1] ?? null
   })
 
   let keyNameInput = $derived(renamableKey ?? '')
 
-  function renameCurrentKey() {
-    if (!renamableKey || keyNameInput === renamableKey) return
-    const parentPath = currentPath.slice(0, -1)
-    const next = renameRecordEntry(valueAtPath(value, parentPath), renamableKey, keyNameInput)
+  const keyError = $derived.by(() => {
+    if (!renamableKey) return null
+    const nextKey = keyNameInput.trim()
+    if (!nextKey || nextKey === renamableKey) return null
+    const parentValue = valueAtPath(value, selectedPath.slice(0, -1))
+    if (parentValue && typeof parentValue === 'object' && Object.hasOwn(parentValue, nextKey)) {
+      return `A "${nextKey}" entry already exists`
+    }
+    return null
+  })
+
+  function renameSelectedKey() {
+    if (!renamableKey) return
+    const oldKey = renamableKey
+    const nextKey = keyNameInput.trim()
+    const parentPath = selectedPath.slice(0, -1)
+    const next = renameRecordEntry(valueAtPath(value, parentPath), oldKey, nextKey)
     if (!next) {
-      keyNameInput = renamableKey
+      keyNameInput = oldKey
       return
     }
-    navStack = [...stack.slice(0, -1), [...parentPath, keyNameInput]]
+    selected = encodeNodeId(remapPathForRename(selectedPath, parentPath, oldKey, nextKey))
+    expanded = expanded.map(id =>
+      encodeNodeId(remapPathForRename(decodeNodeId(id), parentPath, oldKey, nextKey))
+    )
     onChange(setValueAtPath(value, parentPath, next) as Record<string, unknown>)
   }
 </script>
 
 {#if resolvedSchema.properties}
-  <schema-form-root bind:this={rootEl}>
-    {#if crumbs.length > 0}
-      <nav aria-label="Configuration path">
-        <button type="button" class="crumb" onclick={() => setStack([])}>{rootLabel}</button>
-        {#each crumbs as crumb, i (i)}
-          <crumb-sep aria-hidden="true">›</crumb-sep>
-          {#if i === crumbs.length - 1}
-            <crumb-current aria-current="page">{crumb.label}</crumb-current>
-          {:else}
-            <button type="button" class="crumb" onclick={() => setStack(stack.slice(0, i + 1))}>
-              {crumb.label}
-            </button>
+  <schema-form-root data-flat={hasTree ? undefined : ''}>
+    {#if hasTree}
+      <schema-form-tree>
+        <TreeView nodes={viewNodes} bind:selected bind:expanded {disabled} />
+      </schema-form-tree>
+    {/if}
+
+    <schema-form-detail bind:this={detailEl}>
+      {#if hasTree}
+        <h4 bind:this={headingEl} tabindex="-1">{headingLabel}</h4>
+      {/if}
+
+      {#key selectedId}
+        {#if renamableKey !== null}
+          <key-rename>
+            <Field label="Key name" error={keyError}>
+              {#snippet children({ id, describedBy })}
+                <Input
+                  {id}
+                  aria-describedby={describedBy}
+                  type="text"
+                  data-mono
+                  bind:value={keyNameInput}
+                  onblur={renameSelectedKey}
+                  aria-invalid={keyError ? 'true' : undefined}
+                  {disabled}
+                />
+              {/snippet}
+            </Field>
+          </key-rename>
+        {/if}
+
+        <detail-body>
+          {#if selectedSchema && selectedEffective}
+            {#if selectedNode?.notConfigured && (selectedKind === 'record' || selectedKind === 'array')}
+              <detail-gate>
+                <detail-gate-empty>Not configured</detail-gate-empty>
+                <Button size="sm" onclick={enableCollection} {disabled}>Enable</Button>
+              </detail-gate>
+            {:else if selectedKind === 'record'}
+              <SchemaFormRecordList
+                schema={selectedEffective}
+                value={selectedValue}
+                path={selectedPath}
+                onChange={handleChange}
+                onOpen={selectNode}
+                onAdded={entryPath => entryAdded(entryPath, 'record')}
+                onRemoved={key => recordEntryRemoved(selectedPath, key)}
+                {disabled}
+              />
+            {:else if selectedKind === 'array'}
+              <SchemaFormArrayList
+                schema={selectedEffective}
+                value={selectedValue}
+                path={selectedPath}
+                onChange={handleChange}
+                onOpen={selectNode}
+                onAdded={entryPath => entryAdded(entryPath, 'array')}
+                onRemoved={index => arrayEntryRemoved(selectedPath, index)}
+                {disabled}
+              />
+            {:else}
+              <SchemaFormObject
+                schema={selectedEffective}
+                value={selectedValue}
+                path={selectedPath}
+                onChange={handleChange}
+                onSelect={selectNode}
+                {disabled}
+                isNullable={selectedNullable}
+              />
+            {/if}
           {/if}
-        {/each}
-      </nav>
-    {/if}
-
-    {#if renamableKey !== null}
-      <key-rename>
-        <Field label="Key name">
-          {#snippet children({ id })}
-            <Input
-              {id}
-              type="text"
-              data-mono
-              bind:value={keyNameInput}
-              onblur={renameCurrentKey}
-              {disabled}
-            />
-          {/snippet}
-        </Field>
-      </key-rename>
-    {/if}
-
-    {#if currentSchema}
-      {#key currentPath.join('\u001f')}
-        <SchemaFormField
-          schema={currentSchema}
-          value={currentValue}
-          path={currentPath}
-          onChange={handleChange}
-          onError={reportError}
-          onNavigate={navigate}
-          {disabled}
-          showLabel={false}
-          root
-        />
+        </detail-body>
       {/key}
-    {/if}
+    </schema-form-detail>
   </schema-form-root>
 {:else}
   <schema-form-empty>Schema has no properties to render</schema-form-empty>
@@ -169,27 +358,45 @@
 
 <style>
   schema-form-root {
+    display: grid;
+    grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+    gap: var(--space-s);
+    align-items: start;
+
+    &[data-flat] {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  schema-form-tree {
+    display: block;
+    min-block-size: 0;
+    max-block-size: min(70vh, 44rem);
+    padding: var(--space-3xs);
+    overflow-y: auto;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  schema-form-detail {
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
-    scroll-margin-block-start: var(--space-s);
-  }
+    min-block-size: 0;
+    max-block-size: min(70vh, 44rem);
+    overflow-y: auto;
 
-  nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3xs);
-    align-items: center;
-    font-size: var(--step--1);
-  }
-
-  .crumb {
-    color: var(--foreground-l4);
-    cursor: pointer;
-
-    &:hover {
-      color: var(--foreground-l0);
+    schema-form-root[data-flat] & {
+      max-block-size: none;
+      overflow-y: visible;
     }
+  }
+
+  h4 {
+    margin: 0;
+    color: var(--foreground-l1);
+    font-size: var(--step--1);
+    font-weight: 600;
 
     &:focus-visible {
       outline: 2px solid var(--ring);
@@ -198,20 +405,29 @@
     }
   }
 
-  crumb-sep {
-    color: var(--foreground-l5);
-  }
-
-  crumb-current {
-    color: var(--foreground-l1);
-  }
-
   key-rename {
     display: block;
 
     :global(input[data-mono]) {
       font-family: var(--font-mono);
     }
+  }
+
+  detail-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  detail-gate {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  detail-gate-empty {
+    color: var(--foreground-l4);
+    font-size: var(--step--1);
   }
 
   schema-form-empty {

@@ -1,14 +1,35 @@
 <script lang="ts">
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
+  import { getContext, tick } from 'svelte'
   import SchemaFormListRow from './schema-form-list-row.svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps } from './types'
+  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
   import { addRecordEntry, recordValueSchema, removeRecordEntry } from './utils'
 
-  interface Props extends FieldProps {}
+  interface Props {
+    schema: JsonSchema
+    value: unknown
+    path: string[]
+    onChange: (path: string[], value: unknown) => void
+    onOpen: (entryPath: string[]) => void
+    onAdded: (entryPath: string[]) => void
+    onRemoved?: (key: string) => void
+    disabled?: boolean
+  }
 
-  let { schema, value, path, onChange, onNavigate, disabled = false }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    onChange,
+    onOpen,
+    onAdded,
+    onRemoved,
+    disabled = false,
+  }: Props = $props()
+
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
   const valueSchema = $derived(recordValueSchema(schema))
@@ -18,6 +39,7 @@
     keyEnumValues?.filter(k => !entries.some(([ek]) => ek === k)) ?? []
   )
 
+  let listEl = $state<HTMLElement | null>(null)
   let newKeyInput = $state('')
   let newKeySelect = $state('')
 
@@ -30,7 +52,15 @@
     if (!next) return
     onChange(path, next)
     newKeyInput = ''
-    onNavigate?.([...path, key])
+    onAdded([...path, key])
+  }
+
+  function removeEntry(key: string) {
+    onChange(path, removeRecordEntry(value, key))
+    onRemoved?.(key)
+    void tick().then(() =>
+      listEl?.querySelector<HTMLElement>('sf-list-add input, sf-list-add button')?.focus()
+    )
   }
 
   function addFromControls() {
@@ -45,7 +75,7 @@
   }
 </script>
 
-<sf-list>
+<sf-list bind:this={listEl}>
   {#if entries.length === 0}
     <sf-list-empty>No entries</sf-list-empty>
   {:else}
@@ -53,10 +83,11 @@
       <SchemaFormListRow
         label={key}
         removeLabel="Remove {key}"
+        status={errorsContext?.status([...path, key])}
         mono
         {disabled}
-        onOpen={() => onNavigate?.([...path, key])}
-        onRemove={() => onChange(path, removeRecordEntry(value, key))}
+        onOpen={() => onOpen([...path, key])}
+        onRemove={() => removeEntry(key)}
       />
     {/each}
   {/if}

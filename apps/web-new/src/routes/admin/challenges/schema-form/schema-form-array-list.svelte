@@ -1,20 +1,43 @@
 <script lang="ts">
   import Button from '$lib/ui/button.svelte'
+  import { getContext, tick } from 'svelte'
   import SchemaFormListRow from './schema-form-list-row.svelte'
-  import type { FieldProps, JsonSchema } from './types'
+  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
   import { defaultValue, fieldLabel, getItemLabel } from './utils'
 
-  interface Props extends FieldProps {}
+  interface Props {
+    schema: JsonSchema
+    value: unknown
+    path: string[]
+    onChange: (path: string[], value: unknown) => void
+    onOpen: (entryPath: string[]) => void
+    onAdded: (entryPath: string[]) => void
+    onRemoved?: (index: number) => void
+    disabled?: boolean
+  }
 
-  let { schema, value, path, onChange, onNavigate, disabled = false }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    onChange,
+    onOpen,
+    onAdded,
+    onRemoved,
+    disabled = false,
+  }: Props = $props()
+
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
 
   const items = $derived((value ?? []) as unknown[])
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
   const label = $derived(fieldLabel(schema, path, 'Items'))
 
+  let listEl = $state<HTMLElement | null>(null)
+
   function add() {
     onChange(path, [...items, defaultValue(itemSchema)])
-    onNavigate?.([...path, String(items.length)])
+    onAdded([...path, String(items.length)])
   }
 
   function remove(index: number) {
@@ -22,10 +45,12 @@
       path,
       items.filter((_, i) => i !== index)
     )
+    onRemoved?.(index)
+    void tick().then(() => listEl?.querySelector<HTMLElement>('sf-list-actions button')?.focus())
   }
 </script>
 
-<sf-list>
+<sf-list bind:this={listEl}>
   {#if items.length === 0}
     <sf-list-empty>No items</sf-list-empty>
   {:else}
@@ -33,8 +58,9 @@
       <SchemaFormListRow
         label={getItemLabel(item, i, label)}
         removeLabel="Remove item"
+        status={errorsContext?.status([...path, String(i)])}
         {disabled}
-        onOpen={() => onNavigate?.([...path, String(i)])}
+        onOpen={() => onOpen([...path, String(i)])}
         onRemove={() => remove(i)}
       />
     {/each}

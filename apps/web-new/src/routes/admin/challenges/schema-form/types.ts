@@ -30,15 +30,24 @@ export interface JsonSchema {
   propertyNames?: JsonSchema
 }
 
-export type ErrorReporter = (pathKey: string, error: string | null) => void
-
 export interface FieldProps {
   schema: JsonSchema
   value: unknown
   path: string[]
   onChange: (path: string[], value: unknown) => void
-  onError?: ErrorReporter
-  onNavigate?: (path: string[]) => void
+  onSelect?: (path: string[]) => void
   disabled?: boolean
   required?: boolean
 }
+
+export interface SchemaFormFieldError {
+  severity: 'missing' | 'invalid'
+  message: string
+}
+
+export interface SchemaFormErrorsContext {
+  get: (path: string[]) => SchemaFormFieldError | null
+  status: (path: string[]) => 'invalid' | 'incomplete' | undefined
+}
+
+export const SCHEMA_FORM_ERRORS_KEY = 'schema-form-errors'

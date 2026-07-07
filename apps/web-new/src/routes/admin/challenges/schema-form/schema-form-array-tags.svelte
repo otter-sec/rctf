@@ -2,13 +2,21 @@
   import Checkbox from '$lib/ui/checkbox.svelte'
   import Field from '$lib/ui/field.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
-  import type { FieldProps, JsonSchema } from './types'
+  import { getContext } from 'svelte'
+  import {
+    SCHEMA_FORM_ERRORS_KEY,
+    type FieldProps,
+    type JsonSchema,
+    type SchemaFormErrorsContext,
+  } from './types'
   import { fieldLabel } from './utils'
   import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
+
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
 
   const items = $derived((value ?? []) as unknown[])
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
@@ -17,6 +25,10 @@
   const isNumeric = $derived(itemSchema.type === 'number' || itemSchema.type === 'integer')
   const enumValues = $derived(itemSchema.enum as unknown[] | undefined)
   const selected = $derived(new Set(items.map(String)))
+
+  const finding = $derived(errorsContext?.get(path) ?? null)
+  const error = $derived(finding?.message ?? null)
+  const incomplete = $derived(finding?.severity === 'missing')
 
   function validate(entry: string): boolean {
     if (isNumeric) {
@@ -39,7 +51,7 @@
   }
 </script>
 
-<Field {label} hint={description}>
+<Field {label} hint={description} {error} {incomplete}>
   {#snippet children({ id, describedBy })}
     {#if enumValues}
       <checkbox-group aria-describedby={describedBy}>

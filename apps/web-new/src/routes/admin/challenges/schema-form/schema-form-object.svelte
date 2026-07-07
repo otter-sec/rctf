@@ -6,6 +6,8 @@
 
   interface Props extends FieldProps {
     isNullable?: boolean
+    nested?: boolean
+    label?: string
   }
 
   let {
@@ -13,10 +15,12 @@
     value,
     path,
     onChange,
-    onError,
-    onNavigate,
+    onSelect,
     disabled = false,
+    required = false,
     isNullable = false,
+    nested = false,
+    label = '',
   }: Props = $props()
 
   const isNull = $derived(value === null || value === undefined)
@@ -33,31 +37,43 @@
   }
 </script>
 
-{#if isNullable && isNull}
-  <sf-nullable>
-    <sf-empty>Not configured</sf-empty>
-    <Button size="sm" onclick={enableObject} {disabled}>Enable</Button>
-  </sf-nullable>
-{:else}
-  <sf-fields>
-    {#each entries as [key, propSchema] (key)}
-      <SchemaFormField
-        schema={propSchema}
-        value={obj[key]}
-        path={[...path, key]}
-        {onChange}
-        {onError}
-        {onNavigate}
-        {disabled}
-        required={requiredFields.has(key)}
-      />
-    {/each}
-    {#if isNullable}
-      <sf-nullable-actions>
-        <Button size="sm" variant="ghost" onclick={disableObject} {disabled}>Disable</Button>
-      </sf-nullable-actions>
+{#snippet body()}
+  {#if isNullable && isNull}
+    <sf-nullable>
+      <sf-empty>Not configured</sf-empty>
+      <Button size="sm" onclick={enableObject} {disabled}>Enable</Button>
+    </sf-nullable>
+  {:else}
+    <sf-fields>
+      {#each entries as [key, propSchema] (key)}
+        <SchemaFormField
+          schema={propSchema}
+          value={obj[key]}
+          path={[...path, key]}
+          {onChange}
+          {onSelect}
+          {disabled}
+          required={requiredFields.has(key)}
+        />
+      {/each}
+      {#if isNullable}
+        <sf-nullable-actions>
+          <Button size="sm" variant="ghost" onclick={disableObject} {disabled}>Disable</Button>
+        </sf-nullable-actions>
+      {/if}
+    </sf-fields>
+  {/if}
+{/snippet}
+
+{#if nested}
+  <sf-object-group>
+    {#if label}
+      <sf-object-heading>{label}{required ? ' *' : ''}</sf-object-heading>
     {/if}
-  </sf-fields>
+    {@render body()}
+  </sf-object-group>
+{:else}
+  {@render body()}
 {/if}
 
 <style>
@@ -65,6 +81,21 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
+  }
+
+  sf-object-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    padding-block: var(--space-3xs);
+    padding-inline-start: var(--space-s);
+    border-inline-start: 2px solid var(--border);
+  }
+
+  sf-object-heading {
+    color: var(--foreground-l2);
+    font-size: var(--step--1);
+    font-weight: 600;
   }
 
   sf-nullable {

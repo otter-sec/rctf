@@ -6,10 +6,11 @@
     description?: string
     hint?: string
     error?: string | null
+    incomplete?: boolean
     children: Snippet<[{ id: string; describedBy: string | undefined }]>
   }
 
-  let { label, description, hint, error = null, children }: Props = $props()
+  let { label, description, hint, error = null, incomplete = false, children }: Props = $props()
 
   const uid = $props.id()
   const describedBy = $derived(
@@ -18,7 +19,10 @@
   )
 </script>
 
-<form-field data-invalid={error ? '' : undefined}>
+<form-field
+  data-invalid={error && !incomplete ? '' : undefined}
+  data-incomplete={error && incomplete ? '' : undefined}
+>
   {#if label}
     <label for={uid}>
       {label}
@@ -61,5 +65,9 @@
     display: block;
     font-size: var(--step--1);
     color: var(--foreground-destructive);
+  }
+
+  form-field[data-incomplete] field-error {
+    color: var(--foreground-l3);
   }
 </style>

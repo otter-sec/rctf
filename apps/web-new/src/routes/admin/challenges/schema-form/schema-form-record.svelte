@@ -6,7 +6,7 @@
 
   interface Props extends FieldProps {}
 
-  let { schema, value, path, onChange, onError, onNavigate, disabled = false }: Props = $props()
+  let { schema, value, path, onChange, onSelect, disabled = false }: Props = $props()
 
   const valueSchema = $derived(
     (typeof schema.additionalProperties === 'object'
@@ -19,7 +19,15 @@
 </script>
 
 {#if isSimpleValue}
-  <SchemaFormRecordInline {schema} {value} {path} {onChange} {onError} {disabled} />
+  <SchemaFormRecordInline {schema} {value} {path} {onChange} {disabled} />
 {:else}
-  <SchemaFormRecordList {schema} {value} {path} {onChange} {onError} {onNavigate} {disabled} />
+  <SchemaFormRecordList
+    {schema}
+    {value}
+    {path}
+    {onChange}
+    onOpen={entryPath => onSelect?.(entryPath)}
+    onAdded={entryPath => onSelect?.(entryPath)}
+    {disabled}
+  />
 {/if}

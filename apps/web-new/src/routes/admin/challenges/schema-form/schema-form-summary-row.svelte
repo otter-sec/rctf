@@ -1,6 +1,7 @@
 <script lang="ts">
   import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
-  import type { JsonSchema } from './types'
+  import { getContext } from 'svelte'
+  import { SCHEMA_FORM_ERRORS_KEY, type JsonSchema, type SchemaFormErrorsContext } from './types'
   import { fieldLabel, getPrimaryType, isRecordSchema } from './utils'
 
   interface Props {
@@ -9,12 +10,15 @@
     path: string[]
     required?: boolean
     isNullable?: boolean
-    onNavigate: (path: string[]) => void
+    onSelect: (path: string[]) => void
   }
 
-  let { schema, value, path, required = false, isNullable = false, onNavigate }: Props = $props()
+  let { schema, value, path, required = false, isNullable = false, onSelect }: Props = $props()
+
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
 
   const label = $derived(fieldLabel(schema, path))
+  const status = $derived(errorsContext?.status(path))
   const summary = $derived.by(() => {
     if (isRecordSchema(schema)) {
       const count = value && typeof value === 'object' ? Object.keys(value).length : 0
@@ -31,9 +35,24 @@
   })
 </script>
 
-<button type="button" onclick={() => onNavigate(path)}>
-  <row-label>{label}{required ? ' *' : ''}</row-label>
+<button
+  type="button"
+  data-invalid={status === 'invalid' ? '' : undefined}
+  data-incomplete={status === 'incomplete' ? '' : undefined}
+  onclick={() => onSelect(path)}
+>
+  <row-label>
+    {label}{required ? ' *' : ''}
+    {#if status === 'invalid'}
+      <span data-visually-hidden>contains errors</span>
+    {:else if status === 'incomplete'}
+      <span data-visually-hidden>incomplete</span>
+    {/if}
+  </row-label>
   <row-summary>{summary}</row-summary>
+  {#if status}
+    <row-status aria-hidden="true">{status === 'invalid' ? '!' : '●'}</row-status>
+  {/if}
   <row-chevron aria-hidden="true"><IconChevronRight /></row-chevron>
 </button>
 
@@ -75,6 +94,20 @@
     font-size: var(--step--1);
   }
 
+  row-status {
+    flex-shrink: 0;
+    font-size: 0.75em;
+    line-height: 1;
+  }
+
+  button[data-invalid] row-status {
+    color: var(--foreground-destructive);
+  }
+
+  button[data-incomplete] row-status {
+    color: var(--foreground-l3);
+  }
+
   row-chevron {
     display: flex;
     flex-shrink: 0;
@@ -85,5 +118,17 @@
       inline-size: 0.875rem;
       block-size: 0.875rem;
     }
+  }
+
+  [data-visually-hidden] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
   }
 </style>

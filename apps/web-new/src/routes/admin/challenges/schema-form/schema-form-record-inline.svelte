@@ -2,9 +2,9 @@
   import IconX from '$lib/icons/icon-x.svelte'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
-  import { SvelteMap } from 'svelte/reactivity'
+  import { getContext } from 'svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps } from './types'
+  import { SCHEMA_FORM_ERRORS_KEY, type FieldProps, type SchemaFormErrorsContext } from './types'
   import {
     addRecordEntry,
     fieldLabel,
@@ -13,11 +13,12 @@
     removeRecordEntry,
     renameRecordEntry,
   } from './utils'
-  import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
 
-  let { schema, value, path, onChange, onError, disabled = false }: Props = $props()
+  let { schema, value, path, onChange, disabled = false }: Props = $props()
+
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
 
   const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
   const valueSchema = $derived(recordValueSchema(schema))
@@ -25,7 +26,6 @@
   const description = $derived(schema.description)
   const isNumeric = $derived(valueSchema.type === 'number' || valueSchema.type === 'integer')
   const isBoolean = $derived(valueSchema.type === 'boolean')
-  const basePath = $derived(path.join('.'))
 
   const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
   const availableKeys = $derived(
@@ -34,45 +34,23 @@
 
   let newKeyInput = $state('')
   let selectedKey = $state('')
-  let errors = $state<Record<string, string | null>>({})
   let keyInputs = $state<Record<string, string>>({})
-  const pendingRenames = new SvelteMap<string, string>()
-  const registeredKeys = new Set<string>()
 
   $effect(() => {
     const currentKeys = new Set(entries.map(([k]) => k))
-
-    for (const [oldKey, newKey] of pendingRenames) {
-      if (currentKeys.has(newKey)) pendingRenames.delete(oldKey)
-    }
 
     for (const key of currentKeys) {
       if (!(key in keyInputs)) keyInputs[key] = key
     }
 
     for (const key of Object.keys(keyInputs)) {
-      if (!currentKeys.has(key) && !pendingRenames.has(key)) delete keyInputs[key]
+      if (!currentKeys.has(key)) delete keyInputs[key]
     }
   })
 
   const isDuplicateKey = $derived(
     newKeyInput.trim() !== '' && entries.some(([k]) => k === newKeyInput.trim())
   )
-
-  $effect(() => {
-    return () => {
-      for (const pathKey of registeredKeys) onError?.(pathKey, null)
-      registeredKeys.clear()
-    }
-  })
-
-  function setError(key: string, error: string | null) {
-    errors[key] = error
-    const pathKey = basePath ? `${basePath}.${key}` : key
-    onError?.(pathKey, error)
-    if (error) registeredKeys.add(pathKey)
-    else registeredKeys.delete(pathKey)
-  }
 
   function addEntry(key: string) {
     const next = addRecordEntry(value, key, valueSchema)
@@ -83,11 +61,6 @@
 
   function removeEntry(key: string) {
     onChange(path, removeRecordEntry(value, key))
-
-    const pathKey = basePath ? `${basePath}.${key}` : key
-    onError?.(pathKey, null)
-    registeredKeys.delete(pathKey)
-    delete errors[key]
   }
 
   function renameEntry(oldKey: string, newKey: string) {
@@ -97,45 +70,25 @@
       return
     }
 
-    pendingRenames.set(oldKey, newKey)
     delete keyInputs[oldKey]
     keyInputs[newKey] = newKey
-
     onChange(path, next)
-
-    const oldPathKey = basePath ? `${basePath}.${oldKey}` : oldKey
-    onError?.(oldPathKey, null)
-    registeredKeys.delete(oldPathKey)
-
-    if (errors[oldKey]) {
-      const oldError = errors[oldKey]
-      delete errors[oldKey]
-      setError(newKey, oldError)
-    }
   }
 
   function handleValueInput(key: string, inputValue: string) {
     if (!isNumeric) {
-      setError(key, validateValue(valueSchema, inputValue).error)
       onChange([...path, key], inputValue)
       return
     }
 
     if (inputValue === '') {
-      setError(key, null)
       onChange([...path, key], undefined)
       return
     }
 
+    // Unparsable input commits the raw string; the central walker flags the type mismatch
     const num = parseNumber(inputValue)
-    if (num === undefined) {
-      setError(key, 'Must be a valid number')
-      return
-    }
-
-    const result = validateValue(valueSchema, num)
-    setError(key, result.error)
-    if (result.valid) onChange([...path, key], num)
+    onChange([...path, key], num ?? inputValue)
   }
 
   function addFromControls() {
@@ -158,7 +111,7 @@
 
   <record-rows>
     {#each entries as [key, val] (key)}
-      {@const error = errors[key]}
+      {@const error = errorsContext?.get([...path, key])?.message ?? null}
       <record-row>
         <record-controls>
           {#if keyEnumValues}

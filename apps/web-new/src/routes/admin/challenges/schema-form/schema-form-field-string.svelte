@@ -2,15 +2,15 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
+  import { getContext } from 'svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps } from './types'
+  import { SCHEMA_FORM_ERRORS_KEY, type FieldProps, type SchemaFormErrorsContext } from './types'
   import {
     isNullable as checkNullable,
     fieldLabel,
     getEffectiveSchema,
     resolveValue,
   } from './utils'
-  import { validateValue } from './validate'
 
   interface Props extends FieldProps {
     showLabel?: boolean
@@ -21,16 +21,16 @@
     value,
     path,
     onChange,
-    onError,
     disabled = false,
     showLabel = true,
     required = false,
   }: Props = $props()
 
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+
   const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
   const isTextarea = $derived((schema.maxLength ?? 0) > 100 || schema.format === 'textarea')
-  const pathKey = $derived(path.join('.'))
 
   const effectiveSchema = $derived(getEffectiveSchema(schema))
   const enumValues = $derived(effectiveSchema.enum as unknown[] | undefined)
@@ -46,26 +46,14 @@
   )
   const selected = $derived(String(choices.findIndex(choice => choice.value === value)))
 
-  let error = $state<string | null>(null)
-
-  $effect(() => {
-    const key = pathKey
-    return () => onError?.(key, null)
-  })
-
-  function setError(newError: string | null) {
-    error = newError
-    onError?.(pathKey, newError)
-  }
+  const finding = $derived(errorsContext?.get(path) ?? null)
+  const error = $derived(finding?.message ?? null)
+  const incomplete = $derived(finding?.severity === 'missing')
 
   function handleInput(event: Event) {
     const target = event.currentTarget as HTMLInputElement | HTMLTextAreaElement
     const newValue = target.value
-
-    const valueToSet = isNullable && newValue === '' ? null : newValue
-
-    setError(validateValue(schema, valueToSet).error)
-    onChange(path, valueToSet)
+    onChange(path, isNullable && newValue === '' ? null : newValue)
   }
 
   function set(next: string) {
@@ -78,6 +66,7 @@
   label={showLabel && label ? `${label}${required ? ' *' : ''}` : undefined}
   hint={showLabel ? description : undefined}
   {error}
+  {incomplete}
 >
   {#snippet children({ id, describedBy })}
     {#if enumValues}
@@ -95,7 +84,8 @@
         aria-describedby={describedBy}
         value={displayValue}
         oninput={handleInput}
-        aria-invalid={error ? 'true' : undefined}
+        aria-invalid={error && !incomplete ? 'true' : undefined}
+        data-incomplete={incomplete ? '' : undefined}
         rows={3}
         placeholder={isNullable ? '(empty for none)' : undefined}
         {disabled}
@@ -107,7 +97,8 @@
         type="text"
         value={displayValue}
         oninput={handleInput}
-        aria-invalid={error ? 'true' : undefined}
+        aria-invalid={error && !incomplete ? 'true' : undefined}
+        data-incomplete={incomplete ? '' : undefined}
         placeholder={isNullable ? '(empty for none)' : undefined}
         {disabled}
       />

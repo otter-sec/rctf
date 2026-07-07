@@ -5,18 +5,41 @@
   interface Props {
     label: string
     removeLabel: string
+    status?: 'invalid' | 'incomplete' | undefined
     mono?: boolean
     disabled?: boolean
     onOpen: () => void
     onRemove: () => void
   }
 
-  let { label, removeLabel, mono = false, disabled = false, onOpen, onRemove }: Props = $props()
+  let {
+    label,
+    removeLabel,
+    status = undefined,
+    mono = false,
+    disabled = false,
+    onOpen,
+    onRemove,
+  }: Props = $props()
 </script>
 
-<list-row data-mono={mono || undefined}>
+<list-row
+  data-mono={mono || undefined}
+  data-invalid={status === 'invalid' ? '' : undefined}
+  data-incomplete={status === 'incomplete' ? '' : undefined}
+>
   <button type="button" class="open" data-empty={label.trim() ? undefined : ''} onclick={onOpen}>
-    <row-label>{label.trim() || '(unnamed)'}</row-label>
+    <row-label>
+      {label.trim() || '(unnamed)'}
+      {#if status === 'invalid'}
+        <span data-visually-hidden>contains errors</span>
+      {:else if status === 'incomplete'}
+        <span data-visually-hidden>incomplete</span>
+      {/if}
+    </row-label>
+    {#if status}
+      <row-status aria-hidden="true">{status === 'invalid' ? '!' : '●'}</row-status>
+    {/if}
     <row-chevron aria-hidden="true"><IconChevronRight /></row-chevron>
   </button>
   <button type="button" class="remove" aria-label={removeLabel} onclick={onRemove} {disabled}>
@@ -73,6 +96,20 @@
     white-space: nowrap;
   }
 
+  row-status {
+    flex-shrink: 0;
+    font-size: 0.75em;
+    line-height: 1;
+  }
+
+  list-row[data-invalid] row-status {
+    color: var(--foreground-destructive);
+  }
+
+  list-row[data-incomplete] row-status {
+    color: var(--foreground-l3);
+  }
+
   row-chevron {
     display: flex;
     flex-shrink: 0;
@@ -110,5 +147,17 @@
       inline-size: 0.75rem;
       block-size: 0.75rem;
     }
+  }
+
+  [data-visually-hidden] {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+    border: 0;
   }
 </style>

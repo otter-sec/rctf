@@ -1,7 +1,8 @@
 <script lang="ts">
   import Field from '$lib/ui/field.svelte'
+  import { getContext } from 'svelte'
   import SchemaFormSelect from './schema-form-select.svelte'
-  import type { FieldProps } from './types'
+  import { SCHEMA_FORM_ERRORS_KEY, type FieldProps, type SchemaFormErrorsContext } from './types'
   import { fieldLabel, resolveValue } from './utils'
 
   interface Props extends FieldProps {
@@ -18,15 +19,23 @@
     required = false,
   }: Props = $props()
 
+  const errorsContext = getContext<SchemaFormErrorsContext | undefined>(SCHEMA_FORM_ERRORS_KEY)
+
   const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
   const resolved = $derived(resolveValue(schema, value) as boolean | undefined)
   const displayValue = $derived(resolved ?? false)
+
+  const finding = $derived(errorsContext?.get(path) ?? null)
+  const error = $derived(finding?.message ?? null)
+  const incomplete = $derived(finding?.severity === 'missing')
 </script>
 
 <Field
   label={showLabel && label ? `${label}${required ? ' *' : ''}` : undefined}
   hint={showLabel ? description : undefined}
+  {error}
+  {incomplete}
 >
   {#snippet children()}
     <SchemaFormSelect

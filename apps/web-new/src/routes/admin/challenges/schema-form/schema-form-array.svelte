@@ -6,14 +6,22 @@
 
   interface Props extends FieldProps {}
 
-  let { schema, value, path, onChange, onError, onNavigate, disabled = false }: Props = $props()
+  let { schema, value, path, onChange, onSelect, disabled = false }: Props = $props()
 
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
   const isPrimitive = $derived(isTypeOneOf(itemSchema.type, ['string', 'number', 'integer']))
 </script>
 
 {#if isPrimitive}
-  <SchemaFormArrayTags {schema} {value} {path} {onChange} {onError} {disabled} />
+  <SchemaFormArrayTags {schema} {value} {path} {onChange} {disabled} />
 {:else}
-  <SchemaFormArrayList {schema} {value} {path} {onChange} {onError} {onNavigate} {disabled} />
+  <SchemaFormArrayList
+    {schema}
+    {value}
+    {path}
+    {onChange}
+    onOpen={entryPath => onSelect?.(entryPath)}
+    onAdded={entryPath => onSelect?.(entryPath)}
+    {disabled}
+  />
 {/if}
