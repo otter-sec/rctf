@@ -409,6 +409,38 @@ export function getRankDeltaByTeam(
   return deltas
 }
 
+export interface RankWindow {
+  minRank: number
+  maxRank: number
+}
+
+export interface RankWindowConfig {
+  scrollTop: number
+  clientHeight: number
+  headerOffset: number
+  rowHeight: number
+  loadedCount: number
+}
+
+export function computeVisibleRankWindow(config: RankWindowConfig): RankWindow {
+  if (config.loadedCount <= 0 || config.clientHeight <= 0) {
+    return { minRank: 0, maxRank: 0 }
+  }
+  const bandTop = config.scrollTop + config.headerOffset
+  const bandBottom = config.scrollTop + config.clientHeight
+  const firstRowMid = config.headerOffset + config.rowHeight / 2
+  const first = Math.max(
+    0,
+    Math.ceil((bandTop - firstRowMid) / config.rowHeight)
+  )
+  const last = Math.min(
+    config.loadedCount - 1,
+    Math.ceil((bandBottom - firstRowMid) / config.rowHeight) - 1
+  )
+  if (last < first) return { minRank: 0, maxRank: 0 }
+  return { minRank: first + 1, maxRank: last + 1 }
+}
+
 export function getEmptyGraphVisibility(): GraphVisibility {
   return { visibleTeamIds: new Set(), contextTeamIds: new Set() }
 }

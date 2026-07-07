@@ -10,6 +10,7 @@ import {
   SELF_COLOR,
 } from '../leaderboard/constants'
 import {
+  computeVisibleRankWindow,
   getBloodIndex,
   getCategoryCellsInnerWidth,
   getCategoryGroups,
@@ -561,5 +562,93 @@ describe('getCategoryCellsInnerWidth', () => {
     expect(getCategoryCellsInnerWidth(3)).toBe(
       3 * SCORE_CELL_WIDTH_PX + 2 * SCORE_ROW_GAP_PX
     )
+  })
+})
+
+describe('computeVisibleRankWindow', () => {
+  const desktop = { headerOffset: 192, rowHeight: 68, loadedCount: 100 }
+
+  test('returns the empty window when nothing is loaded', () => {
+    expect(
+      computeVisibleRankWindow({
+        ...desktop,
+        scrollTop: 0,
+        clientHeight: 800,
+        loadedCount: 0,
+      })
+    ).toStrictEqual({ minRank: 0, maxRank: 0 })
+  })
+
+  test('returns the empty window before the viewport has measured', () => {
+    expect(
+      computeVisibleRankWindow({ ...desktop, scrollTop: 0, clientHeight: 0 })
+    ).toStrictEqual({ minRank: 0, maxRank: 0 })
+  })
+
+  test('returns the empty window when no row midpoint falls in the band', () => {
+    expect(
+      computeVisibleRankWindow({
+        scrollTop: 35,
+        clientHeight: 60,
+        headerOffset: 0,
+        rowHeight: 68,
+        loadedCount: 50,
+      })
+    ).toStrictEqual({ minRank: 0, maxRank: 0 })
+  })
+
+  test('counts rows whose midpoints sit inside the desktop band', () => {
+    expect(
+      computeVisibleRankWindow({ ...desktop, scrollTop: 0, clientHeight: 800 })
+    ).toStrictEqual({ minRank: 1, maxRank: 9 })
+  })
+
+  test('offsets the window when scrolled without a header', () => {
+    expect(
+      computeVisibleRankWindow({
+        scrollTop: 340,
+        clientHeight: 680,
+        headerOffset: 0,
+        rowHeight: 68,
+        loadedCount: 50,
+      })
+    ).toStrictEqual({ minRank: 6, maxRank: 15 })
+  })
+
+  test('a band edge exactly on a midpoint includes that row', () => {
+    expect(
+      computeVisibleRankWindow({
+        scrollTop: 170,
+        clientHeight: 68,
+        headerOffset: 0,
+        rowHeight: 68,
+        loadedCount: 50,
+      })
+    ).toStrictEqual({ minRank: 3, maxRank: 3 })
+  })
+
+  test('clamps the window to the loaded row count', () => {
+    expect(
+      computeVisibleRankWindow({
+        ...desktop,
+        scrollTop: 0,
+        clientHeight: 10_000,
+        loadedCount: 3,
+      })
+    ).toStrictEqual({ minRank: 1, maxRank: 3 })
+  })
+
+  test('identical inputs produce value-equal windows for the caller memo', () => {
+    const first = computeVisibleRankWindow({
+      ...desktop,
+      scrollTop: 0,
+      clientHeight: 800,
+    })
+    const nudged = computeVisibleRankWindow({
+      ...desktop,
+      scrollTop: 10,
+      clientHeight: 800,
+    })
+    expect(nudged).toStrictEqual(first)
   })
 })

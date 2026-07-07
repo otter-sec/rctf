@@ -9,6 +9,7 @@
   import ScoresGraph from '../graph/graph.svelte'
   import type { ScoresData } from '../model/data.svelte'
   import {
+    computeVisibleRankWindow,
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
     getGraphVisibility,
@@ -24,6 +25,7 @@
     SCORE_ROW_HEIGHT_FULL_PX,
     SCORE_VIRTUAL_OVERSCAN,
   } from './constants'
+  import { createTooltipTiming, resolveHoverTarget } from './hover-state'
   import ScoresHeader from './leaderboard-header.svelte'
   import ScoresScrollbars from './scrollbars.svelte'
   import ScoresSelfRow from './self-row.svelte'
@@ -78,24 +80,14 @@
   let tooltipY = $state(0)
   let tooltipPlace = $state<'top' | 'bottom'>('top')
 
-  const TOOLTIP_OPEN_DELAY_MS = 400
-  const TOOLTIP_COOLDOWN_MS = 300
-  let tooltipWarm = false
-  let openTimer: ReturnType<typeof setTimeout> | undefined
-  let coolTimer: ReturnType<typeof setTimeout> | undefined
-  let pendingCell: Element | null = null
-  let tooltipCell: Element | null = null
-
-  function cancelOpenTimer() {
-    clearTimeout(openTimer)
-    openTimer = undefined
-    pendingCell = null
-  }
-
-  $effect(() => () => {
-    clearTimeout(openTimer)
-    clearTimeout(coolTimer)
+  const tooltipTiming = createTooltipTiming<Element>({
+    openDelayMs: 400,
+    cooldownMs: 300,
+    setTimer: (callback, delayMs) => window.setTimeout(callback, delayMs),
+    clearTimer: id => window.clearTimeout(id),
   })
+
+  $effect(() => () => tooltipTiming.dispose())
 
   let hoveredTeamId = $state<string | null>(null)
   let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
@@ -104,15 +96,8 @@
   let hoveredRowId = $state<string | null>(null)
 
   function clearTooltip() {
-    cancelOpenTimer()
-    if (activeTooltip) {
-      activeTooltip = null
-      tooltipCell = null
-      clearTimeout(coolTimer)
-      coolTimer = setTimeout(() => {
-        tooltipWarm = false
-      }, TOOLTIP_COOLDOWN_MS)
-    }
+    tooltipTiming.clear()
+    activeTooltip = null
   }
 
   function clearHover() {
@@ -148,26 +133,23 @@
 
     const teamId = row?.dataset.teamId ?? null
     const overMatrixGap = row ? !target?.closest('row-team') : !!target?.closest('challenge-header')
-    if (cell) {
-      hoveredColumnId = cell.dataset.col ?? null
-      hoveredRowId = teamId
-    } else if (!overMatrixGap) {
-      hoveredColumnId = null
-      hoveredRowId = null
-    }
-    if (spark) {
-      hoveredTeamId = teamId
-      solveHighlight = null
-    } else if (!cell) {
-      hoveredTeamId = null
-      solveHighlight = null
-    }
+    const hoverPatch = resolveHoverTarget({
+      teamId,
+      hasCell: !!cell,
+      columnId: cell?.dataset.col ?? null,
+      hasSpark: !!spark,
+      overMatrixGap,
+    })
+    if (hoverPatch.columnId !== undefined) hoveredColumnId = hoverPatch.columnId
+    if (hoverPatch.rowId !== undefined) hoveredRowId = hoverPatch.rowId
+    if (hoverPatch.teamId !== undefined) hoveredTeamId = hoverPatch.teamId
+    if (hoverPatch.solveHighlight !== undefined) solveHighlight = null
 
     if (virtual.isScrolling || !cell) {
       clearTooltip()
       return
     }
-    if (cell === pendingCell || (activeTooltip && cell === tooltipCell)) return
+    if (tooltipTiming.isCurrent(cell)) return
     const resolved = resolveCellTooltip(cell.dataset, startTime)
     if (!resolved) {
       clearTooltip()
@@ -178,50 +160,31 @@
     const show = () => {
       const rect = cell.getBoundingClientRect()
       activeTooltip = resolved
-      tooltipCell = cell
       tooltipX = rect.left + rect.width / 2
       tooltipY = isHeader ? rect.bottom : rect.top
       tooltipPlace = isHeader ? 'bottom' : 'top'
-      tooltipWarm = true
-      clearTimeout(coolTimer)
       hoveredTeamId = teamId
       solveHighlight =
         teamId && kind === CELL_KIND.challenge && cell.dataset.solveTime
           ? { teamId, time: Number(cell.dataset.solveTime) }
           : null
     }
-    cancelOpenTimer()
-    if (tooltipWarm && isHeader) {
-      show()
-      return
+    if (tooltipTiming.pointerOverCell(cell, isHeader, show) === 'scheduled') {
+      activeTooltip = null
     }
-    activeTooltip = null
-    pendingCell = cell
-    openTimer = setTimeout(show, TOOLTIP_OPEN_DELAY_MS)
   }
 
   let lastWindow = { minRank: 0, maxRank: 0 }
   const liveWindow = $derived.by(() => {
-    let minRank = 0
-    let maxRank = 0
-    const loaded = data.entries.length
-    if (loaded > 0 && geometry.clientHeight > 0) {
-      const bandTop = geometry.scrollTop + headerOffset
-      const bandBottom = geometry.scrollTop + geometry.clientHeight
-      const rowMid = (index: number) =>
-        headerOffset + index * SCORE_ROW_HEIGHT_FULL_PX + SCORE_ROW_HEIGHT_FULL_PX / 2
-      const first = Math.max(0, Math.ceil((bandTop - rowMid(0)) / SCORE_ROW_HEIGHT_FULL_PX))
-      const last = Math.min(
-        loaded - 1,
-        Math.ceil((bandBottom - rowMid(0)) / SCORE_ROW_HEIGHT_FULL_PX) - 1
-      )
-      if (last >= first) {
-        minRank = first + 1
-        maxRank = last + 1
-      }
-    }
-    if (lastWindow.minRank !== minRank || lastWindow.maxRank !== maxRank) {
-      lastWindow = { minRank, maxRank }
+    const next = computeVisibleRankWindow({
+      scrollTop: geometry.scrollTop,
+      clientHeight: geometry.clientHeight,
+      headerOffset,
+      rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
+      loadedCount: data.entries.length,
+    })
+    if (lastWindow.minRank !== next.minRank || lastWindow.maxRank !== next.maxRank) {
+      lastWindow = next
     }
     return lastWindow
   })
