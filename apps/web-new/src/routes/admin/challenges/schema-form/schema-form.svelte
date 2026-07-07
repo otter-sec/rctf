@@ -41,7 +41,6 @@
     value: Record<string, unknown>
     onChange: (next: Record<string, unknown>) => void
     valid?: boolean
-    drilled?: boolean
     disabled?: boolean
     rootLabel?: string
   }
@@ -51,15 +50,9 @@
     value,
     onChange,
     valid = $bindable(true),
-    drilled = $bindable(false),
     disabled = false,
     rootLabel = 'Config',
   }: Props = $props()
-
-  // Deprecated no-op kept so instancer.svelte compiles until U5 drops the prop
-  $effect(() => {
-    drilled = false
-  })
 
   const resolvedSchema = $derived(resolveRefs(schema, collectDefs(schema)))
   const tree = $derived(deriveTree(resolvedSchema, value))
@@ -434,5 +427,15 @@
     display: block;
     color: var(--foreground-l4);
     font-size: var(--step--1);
+  }
+
+  @container challenge-details (width < 46rem) {
+    schema-form-root {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    schema-form-tree {
+      max-block-size: 14rem;
+    }
   }
 </style>

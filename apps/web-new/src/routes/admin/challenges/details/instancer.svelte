@@ -2,7 +2,6 @@
   import type { InstancerConfig } from '@rctf/types'
   import IconCloudComputingFilled from '$lib/icons/icon-cloud-computing-filled.svelte'
   import { useInstancerSchema } from '$lib/query/admin'
-  import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Input from '$lib/ui/input.svelte'
   import { type MenuItem } from '$lib/ui/menu.svelte'
@@ -46,7 +45,6 @@
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
   let schemaFormValid = $state(true)
-  let schemaDrilled = $state(false)
 
   $effect(() => {
     valid = resolveInstancerValidity({
@@ -121,7 +119,6 @@
       yamlError = null
     }
     advanced = true
-    schemaDrilled = false
   }
 
   function exitAdvanced() {
@@ -156,63 +153,61 @@
     />
   {:else}
     <instancer-reveal data-reveal={revealAfterLoading || undefined}>
-      {#if !schemaDrilled}
-        <Section title="Configuration">
-          <config-fields>
-            <form-field>
-              <field-label>Enable instancer</field-label>
-              <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
-            </form-field>
+      <Section title="Configuration">
+        <config-fields>
+          <form-field>
+            <field-label>Enable instancer</field-label>
+            <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
+          </form-field>
 
-            {#if config}
-              {#if hasMultiple}
-                <form-field>
-                  <field-label>Instancer</field-label>
-                  <FieldSelect
-                    label={active?.name ?? 'Select instancer'}
-                    items={instancerItems}
-                    {disabled}
-                  />
-                </form-field>
-              {/if}
-
-              <field-grid>
-                <form-field>
-                  <field-label>Integration ID</field-label>
-                  <Input
-                    type="text"
-                    data-mono
-                    placeholder="challenge-id"
-                    value={config.challengeIntegrationId}
-                    {disabled}
-                    oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
-                  />
-                </form-field>
-                <form-field>
-                  <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={timeoutToSeconds(config.timeoutMilliseconds)}
-                    {disabled}
-                    oninput={e =>
-                      patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
-                  />
-                </form-field>
-              </field-grid>
-
+          {#if config}
+            {#if hasMultiple}
               <form-field>
-                <field-label>Allow extending</field-label>
+                <field-label>Instancer</field-label>
                 <FieldSelect
-                  label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
-                  items={extendItems}
+                  label={active?.name ?? 'Select instancer'}
+                  items={instancerItems}
                   {disabled}
                 />
               </form-field>
             {/if}
-          </config-fields>
-        </Section>
-      {/if}
+
+            <field-grid>
+              <form-field>
+                <field-label>Integration ID</field-label>
+                <Input
+                  type="text"
+                  data-mono
+                  placeholder="challenge-id"
+                  value={config.challengeIntegrationId}
+                  {disabled}
+                  oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
+                />
+              </form-field>
+              <form-field>
+                <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={timeoutToSeconds(config.timeoutMilliseconds)}
+                  {disabled}
+                  oninput={e =>
+                    patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
+                />
+              </form-field>
+            </field-grid>
+
+            <form-field>
+              <field-label>Allow extending</field-label>
+              <FieldSelect
+                label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
+                items={extendItems}
+                {disabled}
+              />
+            </form-field>
+          {/if}
+        </config-fields>
+      </Section>
 
       {#if config}
         <Section title="Provider config">
@@ -224,7 +219,7 @@
             </provider-toolbar>
           {/snippet}
           <provider-config>
-            {#if advanced}
+            <yaml-editor hidden={!advanced}>
               <Textarea
                 data-mono
                 rows={12}
@@ -235,42 +230,42 @@
                 oninput={e => applyYaml(e.currentTarget.value)}
               ></Textarea>
               {#if yamlError}<field-error>{yamlError}</field-error>{/if}
-            {:else if active}
-              <SchemaForm
-                schema={active.schema as unknown as JsonSchema}
-                value={config.config}
-                onChange={next => patch({ config: next })}
-                {disabled}
-                bind:valid={schemaFormValid}
-                bind:drilled={schemaDrilled}
-              />
-            {:else}
+            </yaml-editor>
+            {#if active}
+              <form-editor hidden={advanced}>
+                <SchemaForm
+                  schema={active.schema as unknown as JsonSchema}
+                  value={config.config}
+                  onChange={next => patch({ config: next })}
+                  {disabled}
+                  bind:valid={schemaFormValid}
+                />
+              </form-editor>
+            {:else if !advanced}
               <provider-empty>No provider schema available.</provider-empty>
             {/if}
           </provider-config>
         </Section>
 
-        {#if !schemaDrilled}
-          <Section title="Exposed ports">
-            <AdminChallengesDetailsInstancerExpose
-              expose={config.expose ?? []}
-              {disabled}
-              onChange={onExposeChange}
+        <Section title="Exposed ports">
+          <AdminChallengesDetailsInstancerExpose
+            expose={config.expose ?? []}
+            {disabled}
+            onChange={onExposeChange}
+          />
+        </Section>
+
+        {#if challengeId}
+          <Section title="Instance management">
+            <ChallengesDetailsOverviewInstancer
+              {challengeId}
+              instancerLifetime={config.timeoutMilliseconds}
+              instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
+              instancerStoppable={active?.canStop ?? true}
+              instancerActions={[]}
+              onSolve={() => {}}
             />
           </Section>
-
-          {#if challengeId}
-            <Section title="Instance management">
-              <ChallengesDetailsOverviewInstancer
-                {challengeId}
-                instancerLifetime={config.timeoutMilliseconds}
-                instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
-                instancerStoppable={active?.canStop ?? true}
-                instancerActions={[]}
-                onSolve={() => {}}
-              />
-            </Section>
-          {/if}
         {/if}
       {/if}
     </instancer-reveal>
@@ -312,6 +307,24 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
+  }
+
+  yaml-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  form-editor {
+    display: block;
+
+    &[hidden] {
+      display: none;
+    }
   }
 
   provider-toolbar {
