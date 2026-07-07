@@ -62,9 +62,10 @@ export function defaultValue(schema: JsonSchema): unknown {
   const primaryType = getPrimaryType(schema)
 
   if (primaryType === 'object' && schema.properties) {
+    const required = new Set(schema.required ?? [])
     const obj: Record<string, unknown> = {}
     for (const [k, p] of Object.entries(schema.properties)) {
-      obj[k] = defaultValue(p)
+      if (required.has(k) || p.default !== undefined) obj[k] = defaultValue(p)
     }
     return obj
   }

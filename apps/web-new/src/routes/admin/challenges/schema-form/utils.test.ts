@@ -164,22 +164,33 @@ describe('defaultValue', () => {
     expect((schema.default as { nested: { a: number } }).nested.a).toBe(1)
   })
 
-  it('seeds object properties recursively', () => {
+  it('seeds only required and defaulted object properties', () => {
     const schema: JsonSchema = {
       type: 'object',
+      required: ['name', 'tags'],
       properties: {
         name: { type: 'string' },
         count: { type: 'integer' },
-        on: { type: 'boolean' },
+        on: { type: 'boolean', default: true },
         tags: { type: 'array' },
       },
     }
     expect(defaultValue(schema)).toEqual({
       name: '',
-      count: 0,
-      on: false,
+      on: true,
       tags: [],
     })
+  })
+
+  it('leaves optional undefaulted properties absent so they validate as unset', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        interval: { type: 'string', pattern: '^\\d+s$' },
+        retries: { type: 'integer', minimum: 1 },
+      },
+    }
+    expect(defaultValue(schema)).toEqual({})
   })
 
   it('uses null for nullable primitives', () => {
