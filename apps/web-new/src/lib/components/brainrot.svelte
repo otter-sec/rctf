@@ -53,7 +53,11 @@
   }
 </script>
 
-<svelte:window onkeydown={onKeydown} onmousemove={onMouseMove} onmouseup={onMouseUp} />
+<svelte:window
+  onkeydown={onKeydown}
+  onmousemove={dragging ? onMouseMove : undefined}
+  onmouseup={dragging ? onMouseUp : undefined}
+/>
 
 {#each windows as win (win.id)}
   <brainrot-window

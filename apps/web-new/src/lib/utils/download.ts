@@ -88,17 +88,21 @@ function navigateViaIframe(file: DownloadFile, reportError: () => void): void {
   window.setTimeout(() => iframe.remove(), IFRAME_GRACE_MS)
 }
 
-export function downloadTextFile(
-  fileName: string,
-  contents: string,
-  mimeType: string
-): void {
-  const url = URL.createObjectURL(new Blob([contents], { type: mimeType }))
+export function downloadBlob(fileName: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
   anchor.download = fileName
   anchor.click()
   URL.revokeObjectURL(url)
+}
+
+export function downloadTextFile(
+  fileName: string,
+  contents: string,
+  mimeType: string
+): void {
+  downloadBlob(fileName, new Blob([contents], { type: mimeType }))
 }
 
 let domScheduler: DownloadScheduler | null = null

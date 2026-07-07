@@ -6,6 +6,7 @@
   import Button from '$lib/ui/button.svelte'
   import Dialog from '$lib/ui/dialog.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { downloadBlob } from '$lib/utils/download'
   import type { CategoryGroup } from '../model/transforms'
   import {
     buildFilename,
@@ -64,13 +65,7 @@
 
       // Fetch into a blob first; webkit chokes on very large data URLs in anchors.
       const blob = await (await fetch(dataUrl)).blob()
-      const objectUrl = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.download = buildFilename(exportSettings.format)
-      link.href = objectUrl
-      link.click()
-      link.remove()
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
+      downloadBlob(buildFilename(exportSettings.format), blob)
 
       toast.success('Screenshot exported')
     } catch (error) {
