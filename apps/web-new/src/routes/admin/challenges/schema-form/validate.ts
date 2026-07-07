@@ -24,6 +24,7 @@ const METADATA_KEYWORDS = new Set([
   'title',
   'description',
   'default',
+  'format',
   '$schema',
   '$id',
   '$defs',

@@ -151,4 +151,9 @@ describe('validateValue - unsupported keywords', () => {
   it('allows metadata keywords without throwing', () => {
     ok({ type: 'string', title: 'Name', description: 'd', default: 'x' }, 'v')
   })
+
+  it('treats format as metadata (the co-emitted pattern carries the constraint)', () => {
+    ok({ type: 'string', format: 'ipv4', pattern: '^[\\d.]+$' }, '1.1.1.1')
+    bad({ type: 'string', format: 'ipv4', pattern: '^[\\d.]+$' }, 'nope')
+  })
 })
