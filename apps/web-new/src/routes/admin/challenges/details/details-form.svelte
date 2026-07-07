@@ -1,6 +1,5 @@
 <script lang="ts">
   import { ChallengeScoringKind, DynamicScoringTransport, type InstancerConfig } from '@rctf/types'
-  import Markdown from '$lib/components/markdown.svelte'
   import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
   import IconCloudComputingFilled from '$lib/icons/icon-cloud-computing-filled.svelte'
   import IconEyeFilled from '$lib/icons/icon-eye-filled.svelte'
@@ -89,6 +88,9 @@
     description: false,
     flag: false,
   })
+
+  type TouchedField = keyof typeof touched
+  const showError = (field: TouchedField) => touched[field] && Boolean(errors[field])
 
   const tabItems = $derived([
     {
@@ -213,57 +215,56 @@
 </script>
 
 <challenge-form>
+  {#snippet fieldError(field: TouchedField)}
+    {#if showError(field)}<field-error>{errors[field]}</field-error>{/if}
+  {/snippet}
+
   <form-tabs>
     <Tabs bind:value={tab} tabs={tabItems}>
       {#snippet content({ value })}
         {#if value === 'details'}
           <FormScroll {disabled}>
             <field-grid>
-              <form-field
-                bind:this={nameFieldEl}
-                data-invalid={touched.name && errors.name ? '' : undefined}
-              >
+              <form-field bind:this={nameFieldEl} data-invalid={showError('name') ? '' : undefined}>
                 <field-label>Name<req>*</req></field-label>
                 <Input
                   type="text"
                   placeholder="Challenge name"
                   value={form.name}
                   {disabled}
-                  aria-invalid={touched.name && Boolean(errors.name)}
+                  aria-invalid={showError('name')}
                   oninput={e => onFieldChange('name', e.currentTarget.value)}
                   onblur={() => (touched.name = true)}
                 />
-                {#if touched.name && errors.name}<field-error>{errors.name}</field-error>{/if}
+                {@render fieldError('name')}
               </form-field>
-              <form-field data-invalid={touched.category && errors.category ? '' : undefined}>
+              <form-field data-invalid={showError('category') ? '' : undefined}>
                 <field-label>Category<req>*</req></field-label>
                 <Input
                   type="text"
                   placeholder="web, pwn, crypto, etc."
                   value={form.category}
                   {disabled}
-                  aria-invalid={touched.category && Boolean(errors.category)}
+                  aria-invalid={showError('category')}
                   oninput={e => onFieldChange('category', e.currentTarget.value)}
                   onblur={() => (touched.category = true)}
                 />
-                {#if touched.category && errors.category}
-                  <field-error>{errors.category}</field-error>
-                {/if}
+                {@render fieldError('category')}
               </form-field>
             </field-grid>
 
-            <form-field data-invalid={touched.author && errors.author ? '' : undefined}>
+            <form-field data-invalid={showError('author') ? '' : undefined}>
               <field-label>Author<req>*</req></field-label>
               <Input
                 type="text"
                 placeholder="Challenge author"
                 value={form.author}
                 {disabled}
-                aria-invalid={touched.author && Boolean(errors.author)}
+                aria-invalid={showError('author')}
                 oninput={e => onFieldChange('author', e.currentTarget.value)}
                 onblur={() => (touched.author = true)}
               />
-              {#if touched.author && errors.author}<field-error>{errors.author}</field-error>{/if}
+              {@render fieldError('author')}
             </form-field>
 
             <form-field>
@@ -277,7 +278,7 @@
               />
             </form-field>
 
-            <form-field data-invalid={touched.description && errors.description ? '' : undefined}>
+            <form-field data-invalid={showError('description') ? '' : undefined}>
               <field-label>
                 Description<req>*</req>
                 <field-hint>(Markdown supported)</field-hint>
@@ -298,16 +299,14 @@
                 rows={12}
                 value={form.description}
                 {disabled}
-                aria-invalid={touched.description && Boolean(errors.description)}
+                aria-invalid={showError('description')}
                 oninput={e => onFieldChange('description', e.currentTarget.value)}
                 onblur={() => (touched.description = true)}
               ></Textarea>
-              {#if touched.description && errors.description}
-                <field-error>{errors.description}</field-error>
-              {/if}
+              {@render fieldError('description')}
             </form-field>
 
-            <form-field data-invalid={touched.flag && errors.flag ? '' : undefined}>
+            <form-field data-invalid={showError('flag') ? '' : undefined}>
               <field-label>
                 Flag{#if !isDynamic}<req>*</req>{/if}
                 {#if isDynamic}<field-hint>(unused for dynamic)</field-hint>{/if}
@@ -318,11 +317,11 @@
                 placeholder={flagPlaceholder}
                 value={isDynamic ? '' : form.flag}
                 disabled={disabled || isDynamic}
-                aria-invalid={touched.flag && Boolean(errors.flag)}
+                aria-invalid={showError('flag')}
                 oninput={e => onFieldChange('flag', e.currentTarget.value)}
                 onblur={() => (touched.flag = true)}
               />
-              {#if touched.flag && errors.flag}<field-error>{errors.flag}</field-error>{/if}
+              {@render fieldError('flag')}
             </form-field>
           </FormScroll>
         {:else if value === 'scoring'}
