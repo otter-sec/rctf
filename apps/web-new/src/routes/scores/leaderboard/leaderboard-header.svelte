@@ -261,7 +261,6 @@
     max-inline-size: 9.5rem;
     color: var(--category-foreground-l1);
     font-size: var(--step-0);
-    line-height: 1;
     transform-origin: bottom left;
     rotate: -45deg;
   }

@@ -88,8 +88,6 @@
 {/snippet}
 
 <scores-toolbar>
-  <score-title>Scoreboard</score-title>
-
   <score-controls role="toolbar" aria-label="Scoreboard display controls" {@attach rovingFocus}>
     <control-group>
       <span>View</span>
@@ -149,21 +147,19 @@
       />
     </search-slot>
 
-    {#if data.entries.length > 0}
-      <Tooltip label="Export screenshot">
-        {#snippet children({ props })}
-          <button
-            {...props}
-            type="button"
-            data-screenshot
-            aria-label="Export screenshot"
-            onclick={onScreenshot}
-          >
-            <IconPhotoFilled aria-hidden="true" />
-          </button>
-        {/snippet}
-      </Tooltip>
-    {/if}
+    <Tooltip label="Export screenshot">
+      {#snippet children({ props })}
+        <button
+          {...props}
+          type="button"
+          data-screenshot
+          aria-label="Export screenshot"
+          onclick={onScreenshot}
+        >
+          <IconPhotoFilled aria-hidden="true" />
+        </button>
+      {/snippet}
+    </Tooltip>
 
     {#if showDivision}
       <Menu label="Filter by division" items={divisionItems} placement="bottom-end">
@@ -189,11 +185,6 @@
     column-gap: 1rem;
     padding-block: 0.5rem;
     padding-inline: 1rem;
-  }
-
-  score-title {
-    color: var(--foreground-l0);
-    font-size: var(--step-1);
   }
 
   score-controls {
@@ -256,7 +247,6 @@
   search-slot {
     display: flex;
     flex: 1;
-    max-inline-size: 20rem;
     min-inline-size: 0;
   }
 
@@ -409,10 +399,6 @@
   @media (width >= 48rem) {
     scores-toolbar {
       padding-inline: 2.25rem;
-    }
-
-    score-title {
-      display: none;
     }
 
     score-controls {
