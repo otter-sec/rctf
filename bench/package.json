@@ -1,0 +1,8 @@
+{
+  "name": "rctf-bench",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "playwright": "1.61.1"
+  }
+}
