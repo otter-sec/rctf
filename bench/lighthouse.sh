@@ -9,7 +9,8 @@ runs=${1:-5}
 
 # Use Playwright's Chromium when no system Chrome is available.
 if [[ -z "${CHROME_PATH:-}" ]]; then
-  pw_chrome=$(fd -d 3 'Google Chrome for Testing.app' "$HOME/Library/Caches/ms-playwright" | head -1)
+  pw_chrome=$(fd -d 3 'Google Chrome for Testing.app' \
+    "$HOME/Library/Caches/ms-playwright" | head -1)
   if [[ -n "$pw_chrome" ]]; then
     export CHROME_PATH="$pw_chrome/Contents/MacOS/Google Chrome for Testing"
   fi
@@ -34,10 +35,16 @@ for app in v1:4173 v2:4174; do
         --preset desktop --quiet --output json --output-path "$out" \
         --only-categories performance \
         --chrome-flags='--headless=new' >/dev/null 2>&1
-      lcp+=("$(bun -e "const r=await Bun.file('$out').json();console.log(r.audits['largest-contentful-paint'].numericValue)")")
-      tbt+=("$(bun -e "const r=await Bun.file('$out').json();console.log(r.audits['total-blocking-time'].numericValue)")")
-      cls+=("$(bun -e "const r=await Bun.file('$out').json();console.log(r.audits['cumulative-layout-shift'].numericValue)")")
-      bytes+=("$(bun -e "const r=await Bun.file('$out').json();console.log(r.audits['total-byte-weight'].numericValue)")")
+      read -r run_lcp run_tbt run_cls run_bytes < <(bun -e "
+        const r = await Bun.file('$out').json()
+        const g = k => r.audits[k].numericValue
+        console.log([
+          g('largest-contentful-paint'),
+          g('total-blocking-time'),
+          g('cumulative-layout-shift'),
+          g('total-byte-weight'),
+        ].join(' '))")
+      lcp+=("$run_lcp") tbt+=("$run_tbt") cls+=("$run_cls") bytes+=("$run_bytes")
     done
     m_lcp=$(printf '%s\n' "${lcp[@]}" | median)
     m_tbt=$(printf '%s\n' "${tbt[@]}" | median)

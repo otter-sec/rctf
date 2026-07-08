@@ -25,7 +25,8 @@ css_lines() {
 }
 
 prod_dep_count() {
-  bun -e "const p = await Bun.file('apps/$1/package.json').json(); console.log(Object.keys(p.dependencies ?? {}).length)"
+  bun -e "const p = await Bun.file('apps/$1/package.json').json(); \
+console.log(Object.keys(p.dependencies ?? {}).length)"
 }
 
 node_modules_size() {
@@ -47,7 +48,8 @@ measure() {
   css=$(css_lines "$app")
   raw=$(($(loc_total "$app") + css))
   fair=$((raw - styles - css))
-  echo "$raw $((styles + css)) $fair $(file_count "$app") $(prod_dep_count "$app") $(node_modules_size "$app")"
+  echo "$raw $((styles + css)) $fair" \
+    "$(file_count "$app") $(prod_dep_count "$app") $(node_modules_size "$app")"
 }
 
 read -r v1_raw v1_style v1_fair v1_files v1_deps v1_nm <<<"$(measure web)"
