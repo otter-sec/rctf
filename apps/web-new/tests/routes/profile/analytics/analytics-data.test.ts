@@ -297,7 +297,7 @@ describe('buildTimelineData', () => {
     expect(data.map(d => d.points)).toEqual([100, 50, 30])
     expect(data.map(d => d.scoreBefore)).toEqual([0, 100, 150])
     expect(data.map(d => d.score)).toEqual([100, 150, 180])
-    expect(data[0]!.color).toBe('blue')
+    expect(data[0]!.color).toBe('sky')
   })
 
   test('empty solves produce an empty timeline', () => {

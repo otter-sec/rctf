@@ -7,7 +7,6 @@ import { createDatabase } from '@rctf/db'
 import {
   buildSeedData,
   SEED_CHALLENGE_CATEGORIES,
-  SEED_CHALLENGE_COUNT,
   SEED_TEAM_COUNT,
 } from './data'
 import { resetAndSeedDatabase } from './writer'
