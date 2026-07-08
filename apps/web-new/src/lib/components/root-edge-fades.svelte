@@ -1,15 +1,6 @@
-<script lang="ts">
-  import {
-    createWindowScrollGeometry,
-    deriveEdgeFades,
-  } from '$lib/components/scroll-geometry.svelte'
-
-  const fades = deriveEdgeFades(createWindowScrollGeometry())
-</script>
-
 <root-edge-fades aria-hidden="true">
-  <root-fade data-edge="top" data-visible={fades.top || undefined}></root-fade>
-  <root-fade data-edge="bottom" data-visible={fades.bottom || undefined}></root-fade>
+  <root-fade data-edge="top"></root-fade>
+  <root-fade data-edge="bottom"></root-fade>
 </root-edge-fades>
 
 <style>
@@ -25,11 +16,6 @@
     block-size: 1.5rem;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 150ms ease;
-
-    &[data-visible] {
-      opacity: 1;
-    }
 
     &[data-edge='top'] {
       inset-block-start: var(--header-height);
@@ -39,6 +25,41 @@
     &[data-edge='bottom'] {
       inset-block-end: 0;
       background: linear-gradient(to top, var(--background-l0), transparent);
+    }
+
+    @supports (animation-timeline: scroll()) {
+      animation: linear both;
+      animation-timeline: scroll(root);
+
+      &[data-edge='top'] {
+        animation-name: root-fade-in;
+        animation-range: 0 1.5rem;
+      }
+
+      &[data-edge='bottom'] {
+        animation-name: root-fade-out;
+        animation-range: calc(100% - 1.5rem) 100%;
+      }
+    }
+  }
+
+  @keyframes root-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes root-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
     }
   }
 </style>

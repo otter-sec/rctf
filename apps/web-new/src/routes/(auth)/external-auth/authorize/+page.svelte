@@ -132,39 +132,12 @@
 {/if}
 
 <style>
-  auth-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-s);
+  auth-page > p[data-part='redirect-note'] {
+    font-size: 0.75rem;
 
-    > p {
-      font-size: var(--step--1);
-      color: var(--foreground-l3);
-
-      strong {
-        color: var(--foreground-l1);
-        font-weight: var(--font-weight-medium);
-      }
-
-      &[role='alert'] {
-        padding: var(--space-2xs);
-        color: var(--foreground-destructive);
-        background: var(--background-destructive);
-        border-radius: var(--radius-md);
-      }
-
-      &[data-part='redirect-note'] {
-        font-size: 0.75rem;
-
-        code {
-          font-family: var(--font-mono);
-          word-break: break-all;
-        }
-      }
-    }
-
-    > :global(button) {
-      inline-size: 100%;
+    code {
+      font-family: var(--font-mono);
+      word-break: break-all;
     }
   }
 

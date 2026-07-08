@@ -2,11 +2,7 @@
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import {
-    createScrollGeometry,
-    deriveEdgeFades,
-    deriveSelfRowClip,
-  } from '$lib/components/scroll-geometry.svelte'
+  import { createScrollGeometry, deriveSelfRowClip } from '$lib/components/scroll-geometry.svelte'
   import { IconGlobeHemisphereWest } from '$lib/icons'
   import { useChallengeScores, useChallengeScoresInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -80,7 +76,6 @@
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   const geometry = createScrollGeometry(() => scrollRoot)
-  const fades = deriveEdgeFades(geometry)
 
   let hoveredTeamId = $state<string | null>(null)
 
@@ -202,10 +197,11 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <scores-viewport
       data-reveal={revealAfterLoading || undefined}
+      data-fade-scope
       onpointermove={handleSparkHover}
       onpointerleave={clearSparkHover}
     >
-      <scores-scroll {@attach captureScroll} tabindex="-1">
+      <scores-scroll {@attach captureScroll} data-fade-source tabindex="-1">
         <scores-list {@attach captureList}>
           {#each allScores as score, index (score.userId)}
             {@const rank = index + 1}
@@ -261,11 +257,7 @@
         </self-overlay>
       {/if}
 
-      <EdgeFades
-        top={fades.top}
-        bottom={fades.bottom}
-        selfEdge={(myPosition !== null && pinnedEdge) || null}
-      />
+      <EdgeFades selfEdge={(myPosition !== null && pinnedEdge) || null} />
     </scores-viewport>
   {/if}
 </scores>
