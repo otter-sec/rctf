@@ -94,7 +94,7 @@ export function downloadBlob(fileName: string, blob: Blob): void {
   anchor.href = url
   anchor.download = fileName
   anchor.click()
-  URL.revokeObjectURL(url)
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export function downloadTextFile(
