@@ -65,7 +65,7 @@ Unknown challenge IDs, non-dynamic challenges, mismatched signatures, and timest
 
 rCTF also refuses to apply the same delivery twice. Each accepted signature is remembered for ten minutes, and re-sending the same signed bytes to the same challenge within that window returns `<response>409 badReplayedRequest</response>`, so a captured request can't be replayed against the scoreboard.
 
-Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. Because the challenge ID is part of the signed string, pushing the same payload to several challenges — even ones sharing a secret — means signing it once per challenge.
+Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. Because the challenge ID is part of the signed string, pushing the same payload to several challenges (even ones sharing a secret) means signing it once per challenge.
 
 ::request-body{def="SubmitDynamicScoresRouteV2" source="params" title="Path parameters"}
 

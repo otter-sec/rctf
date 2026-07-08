@@ -10,6 +10,7 @@
     "apps/cli",
     "apps/docs",
     "apps/web",
+    "apps/web-new",
     "packages/*",
     "tests/server",
     "tests/admin-bot",

@@ -6,7 +6,7 @@ order: 6
 
 rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. [`marked`](https://marked.js.org/) does the rendering with two custom extensions (alerts and timer), and the output then runs through [DOMPurify](https://github.com/cure53/DOMPurify) for sanitization before it hits the page.
 
-The renderer is defined in `apps/web/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web/src/lib/components/markdown.svelte{:file}`.
+The renderer is defined in `apps/web-new/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web-new/src/lib/components/markdown.svelte{:file}`.
 
 ## Alerts
 
@@ -58,10 +58,12 @@ A copy button sits next to the value so players can paste it straight into a ter
 
 ## Timer
 
-The `<timer />{:html}` inline element renders a live countdown for the competition.
+The `<timer />{:html}` element renders a live countdown for the competition. It works both inline inside a paragraph and as a standalone block on its own line.
 
 ```md title="Home content"
 The CTF begins in <timer />. Good luck!
+
+<timer />
 ```
 
 The element takes **no attributes**. It always targets the global CTF schedule (`startTime` / `endTime` from the runtime client config). Behaviour:
@@ -82,7 +84,7 @@ rCTF doesn't support `<timer to="...">{:html}` or `<timer until="...">{:html}`. 
 The renderer uses `marked` with its default options, so no GFM plugin is registered. CommonMark features (headings, lists, emphasis, links, images, fenced code blocks, inline code, blockquotes) plus `marked`'s built-in tables and autolinks all pass through. There are no task lists, footnotes, or strikethrough.
 
 ````md title="Challenge description"
-# Setup
+## Setup
 
 Download the [source archive](./source.tar.gz) and run:
 
@@ -97,10 +99,10 @@ For the full list of what CommonMark supports, see the [CommonMark spec](https:/
 
 ## Sanitization
 
-After parsing, output passes through DOMPurify before insertion. Author-facing implications:
+After parsing, the HTML passes through DOMPurify before it is inserted into the page. Author-facing implications:
 
 - `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
 - Most HTML tags from DOMPurify's default profile are allowed (e.g. `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
-- The only custom attributes preserved beyond defaults are `data-alert`, `data-type`, `data-content`, and `data-timer`. The renderer uses them as hydration markers for the alert and timer extensions. Writing these attributes by hand has no effect, since only the extensions emit them.
+- The alert and timer extensions hydrate through the data attributes `data-alert`, `data-type`, `data-content`, and `data-timer`. These are gated by a per-render nonce: the extensions stamp every element they emit with a secret `data-nonce`, and a DOMPurify hook strips the hydration attributes from any element whose nonce doesn't match (then removes the nonce itself). Writing `data-alert`, `data-timer`, or the other markers by hand has no effect — hand-written markup never carries the nonce, so the hook removes the attributes and the content renders as inert HTML.
 
 If you need richer interactivity than these extensions cover, add it in the frontend code, not through embedded HTML in a description.

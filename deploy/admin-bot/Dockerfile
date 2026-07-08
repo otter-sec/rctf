@@ -21,6 +21,7 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/cli/package.json ./apps/cli/
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/web/package.json ./apps/web/
+COPY apps/web-new/package.json ./apps/web-new/
 
 FROM build-base AS deps
 
@@ -38,6 +39,7 @@ RUN bun install \
     --filter '!@rctf/scoring' \
     --filter '!@rctf/types' \
     --filter '!@rctf/web' \
+    --filter '!@rctf/web-new' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
@@ -72,6 +74,7 @@ RUN bun install \
     --filter '!@rctf/scoring' \
     --filter '!@rctf/types' \
     --filter '!@rctf/web' \
+    --filter '!@rctf/web-new' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
