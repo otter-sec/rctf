@@ -1,6 +1,7 @@
 export { default as IconArrowsInLineVertical } from './icon-arrows-in-line-vertical.svelte'
 export { default as IconAwardFilled } from './icon-award-filled.svelte'
 export { default as IconBomb } from './icon-bomb.svelte'
+export { default as IconBoxingGlove } from './icon-boxing-glove.svelte'
 export { default as IconCamera } from './icon-camera.svelte'
 export { default as IconCaretDown } from './icon-caret-down.svelte'
 export { default as IconCaretRight } from './icon-caret-right.svelte'

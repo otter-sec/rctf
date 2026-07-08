@@ -274,6 +274,31 @@
   --violet-a11: light-dark(#1f0099af, #baa7ff);
   --violet-a12: light-dark(#0b0043d9, #e3defffe);
 
+  --crimson-1:   light-dark(#fffcfd, #191114);
+  --crimson-2:   light-dark(#fef7f9, #201318);
+  --crimson-3:   light-dark(#ffe9f0, #381525);
+  --crimson-4:   light-dark(#fedce7, #4d122f);
+  --crimson-5:   light-dark(#facedd, #5c1839);
+  --crimson-6:   light-dark(#f3bed1, #6d2545);
+  --crimson-7:   light-dark(#eaacc3, #873356);
+  --crimson-8:   light-dark(#e093b2, #b0436e);
+  --crimson-9:   light-dark(#e93d82, #e93d82);
+  --crimson-10:  light-dark(#df3478, #ee518a);
+  --crimson-11:  light-dark(#cb1d63, #ff92ad);
+  --crimson-12:  light-dark(#621639, #fdd3e8);
+  --crimson-a1:  light-dark(#ff005503, #f4126709);
+  --crimson-a2:  light-dark(#e0004008, #f22f7a11);
+  --crimson-a3:  light-dark(#ff005216, #fe2a8b2a);
+  --crimson-a4:  light-dark(#f8005123, #fd158741);
+  --crimson-a5:  light-dark(#e5004f31, #fd278f51);
+  --crimson-a6:  light-dark(#d0004b41, #fe459763);
+  --crimson-a7:  light-dark(#bf004753, #fd559b7f);
+  --crimson-a8:  light-dark(#b6004a6c, #fe5b9bab);
+  --crimson-a9:  light-dark(#e2005bc2, #fe418de8);
+  --crimson-a10: light-dark(#d70056cb, #ff5693ed);
+  --crimson-a11: light-dark(#c4004fe2, #ff92ad);
+  --crimson-a12: light-dark(#530026e9, #ffd5eafd);
+
   --plum-1:   light-dark(#fefcff, #181118);
   --plum-2:   light-dark(#fdf7fd, #201320);
   --plum-3:   light-dark(#fbebfb, #351a35);
@@ -547,17 +572,29 @@
   --foreground-purple-l0:       var(--purple-a12);
   --foreground-purple-l1:       var(--purple-a11);
 
-  --background-pink-l0:       var(--pink-a3);
-  --background-pink-l1:       var(--pink-a2);
-  --background-pink-l1-hover: var(--pink-a2);
-  --foreground-pink-l0:       var(--pink-a12);
-  --foreground-pink-l1:       var(--pink-a11);
+  --background-sky-l0:       var(--sky-a3);
+  --background-sky-l1:       var(--sky-a2);
+  --background-sky-l1-hover: var(--sky-a2);
+  --foreground-sky-l0:       var(--sky-a12);
+  --foreground-sky-l1:       var(--sky-a11);
 
-  --background-fuchsia-l0:       var(--plum-a3);
-  --background-fuchsia-l1:       var(--plum-a2);
-  --background-fuchsia-l1-hover: var(--plum-a2);
-  --foreground-fuchsia-l0:       var(--plum-a12);
-  --foreground-fuchsia-l1:       var(--plum-a11);
+  --background-violet-l0:       var(--violet-a3);
+  --background-violet-l1:       var(--violet-a2);
+  --background-violet-l1-hover: var(--violet-a2);
+  --foreground-violet-l0:       var(--violet-a12);
+  --foreground-violet-l1:       var(--violet-a11);
+
+  --background-plum-l0:       var(--plum-a3);
+  --background-plum-l1:       var(--plum-a2);
+  --background-plum-l1-hover: var(--plum-a2);
+  --foreground-plum-l0:       var(--plum-a12);
+  --foreground-plum-l1:       var(--plum-a11);
+
+  --background-crimson-l0:       var(--crimson-a3);
+  --background-crimson-l1:       var(--crimson-a2);
+  --background-crimson-l1-hover: var(--crimson-a2);
+  --foreground-crimson-l0:       var(--crimson-a12);
+  --foreground-crimson-l1:       var(--crimson-a11);
 
   --background-gray-l0:       var(--gray-a3);
   --background-gray-l1:       var(--gray-a2);
@@ -572,6 +609,14 @@
   --category-foreground-l1:       var(--foreground-gray-l1);
 
   color-scheme: light dark;
+}
+
+[data-category-color='crimson'] {
+  --category-background-l0:       var(--background-crimson-l0);
+  --category-background-l1:       var(--background-crimson-l1);
+  --category-background-l1-hover: var(--background-crimson-l1-hover);
+  --category-foreground-l0:       var(--foreground-crimson-l0);
+  --category-foreground-l1:       var(--foreground-crimson-l1);
 }
 
 [data-category-color='red'] {
@@ -614,36 +659,28 @@
   --category-foreground-l1:       var(--foreground-teal-l1);
 }
 
-[data-category-color='blue'] {
-  --category-background-l0:       var(--background-blue-l0);
-  --category-background-l1:       var(--background-blue-l1);
-  --category-background-l1-hover: var(--background-blue-l1-hover);
-  --category-foreground-l0:       var(--foreground-blue-l0);
-  --category-foreground-l1:       var(--foreground-blue-l1);
+[data-category-color='sky'] {
+  --category-background-l0:       var(--background-sky-l0);
+  --category-background-l1:       var(--background-sky-l1);
+  --category-background-l1-hover: var(--background-sky-l1-hover);
+  --category-foreground-l0:       var(--foreground-sky-l0);
+  --category-foreground-l1:       var(--foreground-sky-l1);
 }
 
-[data-category-color='purple'] {
-  --category-background-l0:       var(--background-purple-l0);
-  --category-background-l1:       var(--background-purple-l1);
-  --category-background-l1-hover: var(--background-purple-l1-hover);
-  --category-foreground-l0:       var(--foreground-purple-l0);
-  --category-foreground-l1:       var(--foreground-purple-l1);
+[data-category-color='violet'] {
+  --category-background-l0:       var(--background-violet-l0);
+  --category-background-l1:       var(--background-violet-l1);
+  --category-background-l1-hover: var(--background-violet-l1-hover);
+  --category-foreground-l0:       var(--foreground-violet-l0);
+  --category-foreground-l1:       var(--foreground-violet-l1);
 }
 
-[data-category-color='fuchsia'] {
-  --category-background-l0:       var(--background-fuchsia-l0);
-  --category-background-l1:       var(--background-fuchsia-l1);
-  --category-background-l1-hover: var(--background-fuchsia-l1-hover);
-  --category-foreground-l0:       var(--foreground-fuchsia-l0);
-  --category-foreground-l1:       var(--foreground-fuchsia-l1);
-}
-
-[data-category-color='pink'] {
-  --category-background-l0:       var(--background-pink-l0);
-  --category-background-l1:       var(--background-pink-l1);
-  --category-background-l1-hover: var(--background-pink-l1-hover);
-  --category-foreground-l0:       var(--foreground-pink-l0);
-  --category-foreground-l1:       var(--foreground-pink-l1);
+[data-category-color='plum'] {
+  --category-background-l0:       var(--background-plum-l0);
+  --category-background-l1:       var(--background-plum-l1);
+  --category-background-l1-hover: var(--background-plum-l1-hover);
+  --category-foreground-l0:       var(--foreground-plum-l0);
+  --category-foreground-l1:       var(--foreground-plum-l1);
 }
 
 [data-category-color='gray'] {

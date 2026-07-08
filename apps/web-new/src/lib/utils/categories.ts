@@ -1,5 +1,6 @@
 import {
   IconBomb,
+  IconBoxingGlove,
   IconCloud,
   IconCrown,
   IconDiceFive,
@@ -18,15 +19,15 @@ import type { SVGAttributes } from 'svelte/elements'
 export type IconComponent = Component<SVGAttributes<SVGSVGElement>>
 
 export type CategoryColor =
+  | 'crimson'
   | 'red'
   | 'orange'
   | 'yellow'
   | 'green'
   | 'teal'
-  | 'blue'
-  | 'purple'
-  | 'fuchsia'
-  | 'pink'
+  | 'sky'
+  | 'violet'
+  | 'plum'
   | 'gray'
 
 export type CategoryConfig = {
@@ -37,6 +38,7 @@ export type CategoryConfig = {
 
 export const categoryOrder = [
   'koth',
+  'ad',
   'sanity',
   'pwn',
   'reverse',
@@ -51,6 +53,7 @@ export const categoryOrder = [
 
 export const scoreboardCategoryOrder = [
   'koth',
+  'ad',
   'pwn',
   'reverse',
   'crypto',
@@ -103,22 +106,27 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   web: {
     name: 'Web',
     icon: IconCloud,
-    color: 'blue',
+    color: 'sky',
   },
   misc: {
     name: 'Miscellaneous',
     icon: IconDiceFive,
-    color: 'purple',
+    color: 'violet',
   },
   ppc: {
     name: 'Professional Programming and Coding',
     icon: IconGraph,
-    color: 'fuchsia',
+    color: 'plum',
   },
   koth: {
     name: 'King of the Hill',
     icon: IconCrown,
-    color: 'pink',
+    color: 'plum',
+  },
+  ad: {
+    name: 'Attack-Defense',
+    icon: IconBoxingGlove,
+    color: 'crimson',
   },
   osint: {
     name: 'OSINT',

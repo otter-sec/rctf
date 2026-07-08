@@ -50,8 +50,6 @@ export function resolveSeedTeamCount(): number {
   return parsed
 }
 
-const SEED_GENERATED_CHALLENGE_COUNT = 24
-export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 4
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
 export const SEED_CHALLENGE_CATEGORIES = [
@@ -62,7 +60,13 @@ export const SEED_CHALLENGE_CATEGORIES = [
   'misc',
   'forensics',
   'blockchain',
+  'ppc',
 ] as const
+
+const MIN_CHALLENGES_PER_CATEGORY = 1
+const MAX_CHALLENGES_PER_CATEGORY = 5
+const MAX_GENERATED_CHALLENGE_COUNT =
+  SEED_CHALLENGE_CATEGORIES.length * MAX_CHALLENGES_PER_CATEGORY
 
 type SeedTiming = {
   startTime: number
@@ -75,6 +79,8 @@ const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
 const KOTH_1_CHALLENGE_ID = 'seed-koth-1'
 const KOTH_2_CHALLENGE_ID = 'seed-koth-2'
+const AD_1_CHALLENGE_ID = 'seed-ad-1'
+const AD_2_CHALLENGE_ID = 'seed-ad-2'
 const INSTANCER_CHALLENGE_ID = 'instancer-playground'
 const ADMIN_BOT_CHALLENGE_ID = 'admin-bot-playground'
 const KOTH_TICK_INTERVAL = 15 * 60_000
@@ -210,15 +216,18 @@ function buildMembers(config: ServerConfig, teams: User[]): UserMember[] {
 }
 
 function buildChallenges(): Challenge[] {
-  const categoryCounts = new Map<string, number>()
+  const plannedChallenges = SEED_CHALLENGE_CATEGORIES.flatMap(category => {
+    const count =
+      MIN_CHALLENGES_PER_CATEGORY +
+      randomInt(MAX_CHALLENGES_PER_CATEGORY - MIN_CHALLENGES_PER_CATEGORY + 1)
+    return Array.from({ length: count }, (_, index) => ({
+      category,
+      categoryOrdinal: index + 1,
+    }))
+  })
 
-  const generatedChallenges = Array.from(
-    { length: SEED_GENERATED_CHALLENGE_COUNT },
-    (_, index) => {
-      const category = randomItem(SEED_CHALLENGE_CATEGORIES)
-      const categoryOrdinal = (categoryCounts.get(category) ?? 0) + 1
-      categoryCounts.set(category, categoryOrdinal)
-
+  const generatedChallenges = plannedChallenges.map(
+    ({ category, categoryOrdinal }, index) => {
       const categorySlug = slug(category)
       const challengeOrdinal = index + 1
       const id = `seed-${categorySlug}-${categoryOrdinal}`
@@ -262,7 +271,7 @@ function buildChallenges(): Challenge[] {
         },
         flag: '',
         tiebreakEligible: true,
-        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 1) * 10,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 1) * 10,
         hidden: false,
         releaseTime: null,
         scoring: {
@@ -288,7 +297,7 @@ function buildChallenges(): Challenge[] {
         },
         flag: '',
         tiebreakEligible: true,
-        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 2) * 10,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 2) * 10,
         hidden: false,
         releaseTime: null,
         scoring: {
@@ -296,6 +305,59 @@ function buildChallenges(): Challenge[] {
           source: {
             transport: DynamicScoringTransport.WEBHOOK,
             secret: 'seed-koth-2-webhook-secret',
+          },
+        },
+      },
+    },
+    {
+      id: AD_1_CHALLENGE_ID,
+      data: {
+        name: 'Ad 1',
+        description: 'Generated attack/defense challenge 1.',
+        category: 'ad',
+        author: 'seed',
+        files: [],
+        points: {
+          min: 0,
+          max: 500,
+        },
+        flag: '',
+        tiebreakEligible: true,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 5) * 10,
+        hidden: false,
+        releaseTime: null,
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: 'seed-ad-webhook-secret',
+          },
+        },
+      },
+    },
+    {
+      id: AD_2_CHALLENGE_ID,
+      data: {
+        name: 'Ad 2',
+        description:
+          'Generated attack/defense challenge 2 with performance penalties.',
+        category: 'ad',
+        author: 'seed',
+        files: [],
+        points: {
+          min: 0,
+          max: 500,
+        },
+        flag: '',
+        tiebreakEligible: true,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 6) * 10,
+        hidden: false,
+        releaseTime: null,
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: 'seed-ad-2-webhook-secret',
           },
         },
       },
@@ -315,7 +377,7 @@ function buildChallenges(): Challenge[] {
         },
         flag: 'rctf{instancer_playground}',
         tiebreakEligible: true,
-        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 3) * 10,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 3) * 10,
         hidden: false,
         releaseTime: Date.now() - DAY,
         instancerConfig: {
@@ -367,7 +429,7 @@ function buildChallenges(): Challenge[] {
         },
         flag: 'rctf{admin_bot_playground}',
         tiebreakEligible: true,
-        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 4) * 10,
+        sortWeight: (MAX_GENERATED_CHALLENGE_COUNT + 4) * 10,
         hidden: false,
         releaseTime: Date.now() - DAY,
         adminBotConfig: {
@@ -806,6 +868,11 @@ export function buildSeedData(config: ServerConfig): SeedData {
     buildKothScores(timing, teams, {
       allowPenalties: true,
       challengeId: KOTH_2_CHALLENGE_ID,
+    }),
+    buildKothScores(timing, teams, { challengeId: AD_1_CHALLENGE_ID }),
+    buildKothScores(timing, teams, {
+      allowPenalties: true,
+      challengeId: AD_2_CHALLENGE_ID,
     }),
   ]
   const flagScoreEvents = buildFlagScoreEvents(
