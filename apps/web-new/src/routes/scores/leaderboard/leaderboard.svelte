@@ -378,7 +378,7 @@
     --score-row-gap: 4px;
     --score-row-height-full: 68px;
     --score-row-height: calc(var(--score-row-height-full) - var(--score-row-gap));
-    --score-header-height: 192px;
+    --score-header-height: 188px;
     --score-name-row-height: 128px;
     --score-diagonal-overflow: 96px;
     --score-team-column-width: 100%;

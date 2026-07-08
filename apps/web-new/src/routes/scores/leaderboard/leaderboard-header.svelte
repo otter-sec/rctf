@@ -449,7 +449,7 @@
   category-footer {
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     padding-block: 0 0.5rem;
     padding-inline: 0.5rem;
     overflow: hidden;
