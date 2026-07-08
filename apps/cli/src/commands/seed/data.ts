@@ -76,6 +76,10 @@ const KOTH_CHALLENGES = [
   { id: 'seed-koth-1', penalties: false },
   { id: 'seed-koth-2', penalties: true },
 ] as const
+const AD_CHALLENGES = [
+  { id: 'seed-ad-1', penalties: false },
+  { id: 'seed-ad-2', penalties: true },
+] as const
 const INSTANCER_CHALLENGE_ID = 'instancer-playground'
 const ADMIN_BOT_CHALLENGE_ID = 'admin-bot-playground'
 const KOTH_TICK_INTERVAL = 15 * 60_000
@@ -271,6 +275,27 @@ const buildChallenges = (): Challenge[] => {
     })
   )
 
+  const ads = AD_CHALLENGES.map((ad, index) =>
+    makeChallenge(
+      ad.id,
+      FLAG_CHALLENGE_COUNT + KOTH_CHALLENGES.length + 2 + index,
+      {
+        name: `Ad ${index + 1}`,
+        description: `Generated attack/defense challenge ${index + 1}${
+          ad.penalties ? ' with performance penalties' : ''
+        }.`,
+        category: 'ad',
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: `${ad.id}-webhook-secret`,
+          },
+        },
+      }
+    )
+  )
+
   const playgrounds = [
     makeChallenge(
       INSTANCER_CHALLENGE_ID,
@@ -341,7 +366,7 @@ const buildChallenges = (): Challenge[] => {
     ),
   ]
 
-  return [...flags, ...koths, ...playgrounds]
+  return [...flags, ...koths, ...ads, ...playgrounds]
 }
 
 const pickChallengeIndices = (weights: readonly number[], count: number) =>
@@ -654,8 +679,8 @@ export const buildSeedData = (config: ServerConfig): SeedData => {
   )
   const submissions = buildSubmissions(timing, teams, flagChallenges, solves)
 
-  for (const koth of KOTH_CHALLENGES) {
-    const scores = buildKothScores(timing, teams, koth.id, koth.penalties)
+  for (const dynamic of [...KOTH_CHALLENGES, ...AD_CHALLENGES]) {
+    const scores = buildKothScores(timing, teams, dynamic.id, dynamic.penalties)
     solves.push(...scores.solves)
     scoreEvents.push(...scores.scoreEvents)
   }
