@@ -1,0 +1,43 @@
+@font-face {
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-VariableFont_wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMonoVF.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* fallback metrics computed fontaine-style from @capsizecss/metrics@4.1.0 (outfit/geistMono vs arial/courierNew) */
+@font-face {
+  font-family: 'Outfit Fallback';
+  src: local('Arial');
+  font-weight: 100 900;
+  font-style: normal;
+  size-adjust:       99.8204%;
+  ascent-override:   100.18%;
+  descent-override:  26.0468%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Geist Mono Fallback';
+  src: local('Courier New');
+  font-weight: 100 900;
+  font-style: normal;
+  size-adjust:       99.9837%;
+  ascent-override:   100.5164%;
+  descent-override:  29.5048%;
+  line-gap-override: 0%;
+}
+
+:root {
+  --font-sans: 'Outfit', 'Outfit Fallback', sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+}
