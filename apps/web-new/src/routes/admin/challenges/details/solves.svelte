@@ -4,7 +4,6 @@
   import { apiRequest, showApiError } from '$lib/api'
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import { IconTrash, IconTrophy } from '$lib/icons'
   import { useChallengeSolvesInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -49,8 +48,6 @@
 
   let scrollRoot = $state<HTMLElement | null>(null)
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
-  const geometry = createScrollGeometry(() => scrollRoot)
-  const fades = deriveEdgeFades(geometry)
 
   const loadMore: Attachment<HTMLElement> = node => {
     const root = scrollRoot
@@ -126,8 +123,8 @@
       subtitle="This challenge has not been solved yet."
     />
   {:else}
-    <solves-viewport data-reveal={revealAfterLoading || undefined}>
-      <solves-scroll {@attach captureScroll} tabindex="-1">
+    <solves-viewport data-reveal={revealAfterLoading || undefined} data-fade-scope>
+      <solves-scroll {@attach captureScroll} data-fade-source tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}
             {@const rank = index + 1}
@@ -178,7 +175,7 @@
         </solves-list>
       </solves-scroll>
 
-      <EdgeFades top={fades.top} bottom={fades.bottom} />
+      <EdgeFades />
     </solves-viewport>
   {/if}
 </solves>

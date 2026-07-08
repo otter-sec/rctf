@@ -2,7 +2,6 @@
   import { Permissions, type AdminChallenge } from '@rctf/types'
   import { mergeProps } from '@zag-js/svelte'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import {
     IconArrowsInLineVertical,
     IconCaretDown,
@@ -62,9 +61,6 @@
   function toggleCollapseAll() {
     collapsed = anyOpen ? [...categories] : []
   }
-
-  let listEl = $state<HTMLElement | null>(null)
-  const fades = deriveEdgeFades(createScrollGeometry(() => listEl))
 </script>
 
 <admin-challenges-list>
@@ -129,8 +125,8 @@
     </list-controls>
   </list-header>
 
-  <list-viewport>
-    <list-scroll bind:this={listEl} tabindex="-1">
+  <list-viewport data-fade-scope>
+    <list-scroll data-fade-source tabindex="-1">
       {#if groups.length === 0}
         <EmptyState
           icon={IconQuestion}
@@ -171,7 +167,7 @@
         </Accordion>
       {/if}
     </list-scroll>
-    <EdgeFades top={fades.top} bottom={fades.bottom} />
+    <EdgeFades />
   </list-viewport>
 </admin-challenges-list>
 

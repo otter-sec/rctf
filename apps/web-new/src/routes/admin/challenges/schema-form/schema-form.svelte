@@ -2,7 +2,6 @@
   import * as splitter from '@zag-js/splitter'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import Button from '$lib/ui/button.svelte'
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
@@ -179,10 +178,6 @@
 
   let detailEl = $state<HTMLElement | null>(null)
   let headingEl = $state<HTMLElement | null>(null)
-  let treeEl = $state<HTMLElement | null>(null)
-
-  const treeFades = deriveEdgeFades(createScrollGeometry(() => treeEl))
-  const detailFades = deriveEdgeFades(createScrollGeometry(() => detailEl))
 
   const splitId = $props.id()
   const splitService = useMachine(splitter.machine, () => ({
@@ -311,8 +306,8 @@
 
 {#snippet treePane()}
   <schema-form-tree>
-    <tree-viewport>
-      <tree-scroll bind:this={treeEl} tabindex="-1">
+    <tree-viewport data-fade-scope>
+      <tree-scroll data-fade-source tabindex="-1">
         <TreeView
           nodes={viewNodes}
           bind:selected={
@@ -326,7 +321,7 @@
           {disabled}
         />
       </tree-scroll>
-      <EdgeFades top={treeFades.top} bottom={treeFades.bottom} />
+      <EdgeFades />
     </tree-viewport>
     {#if treeFooter}
       <tree-footer>{@render treeFooter()}</tree-footer>
@@ -355,8 +350,8 @@
       </nav>
     {/if}
 
-    <detail-viewport>
-      <detail-scroll bind:this={detailEl} tabindex="-1">
+    <detail-viewport data-fade-scope>
+      <detail-scroll bind:this={detailEl} data-fade-source tabindex="-1">
         {#key detailEpoch}
           {#if renamableKey !== null}
             <key-rename>
@@ -431,7 +426,7 @@
           </detail-body>
         {/key}
       </detail-scroll>
-      <EdgeFades top={detailFades.top} bottom={detailFades.bottom} />
+      <EdgeFades />
     </detail-viewport>
   </schema-form-detail>
 {/snippet}
