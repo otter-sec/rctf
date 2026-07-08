@@ -1,8 +1,6 @@
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
-  import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import { IconFile, IconFlagBanner, IconGlobeHemisphereWest, IconTrophy } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
@@ -51,11 +49,6 @@
   })
 
   const activeTab = $derived(tabItems.some(item => item.value === tab) ? tab : 'details')
-
-  let detailsScroll = $state<HTMLElement | null>(null)
-  const captureDetailsScroll = captureElement<HTMLElement>(node => (detailsScroll = node))
-  const detailsGeometry = createScrollGeometry(() => detailsScroll)
-  const detailsFades = deriveEdgeFades(detailsGeometry)
 </script>
 
 {#if challenge}
@@ -67,11 +60,11 @@
         {#snippet content({ value })}
           {#if value === activeTab && challenge}
             {#if value === 'details'}
-              <details-viewport>
-                <details-scroll {@attach captureDetailsScroll} tabindex="-1">
+              <details-viewport data-fade-scope>
+                <details-scroll data-fade-source tabindex="-1">
                   <ChallengeDetailsOverview {challenge} {onSolve} />
                 </details-scroll>
-                <EdgeFades top={detailsFades.top} bottom={detailsFades.bottom} />
+                <EdgeFades />
               </details-viewport>
             {:else if value === 'solves'}
               <ChallengeDetailsSolves {challenge} />

@@ -11,10 +11,6 @@
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import MarkdownEditor from '$lib/components/markdown-editor.svelte'
-  import {
-    createWindowScrollGeometry,
-    deriveEdgeFades,
-  } from '$lib/components/scroll-geometry.svelte'
   import { IconCloud, IconTrash, IconWarningCircle, IconX } from '$lib/icons'
   import { useAdminSettings } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
@@ -47,8 +43,6 @@
   const userQuery = useCurrentUser()
   const configQuery = useClientConfig()
   const settingsQuery = useAdminSettings()
-
-  const rootFades = deriveEdgeFades(createWindowScrollGeometry())
 
   const revealAfterLoading = settingsQuery.isPending
 
@@ -519,7 +513,7 @@
     </settings-form>
 
     <save-bar>
-      <bar-fade aria-hidden="true" data-visible={rootFades.bottom || undefined}></bar-fade>
+      <bar-fade aria-hidden="true"></bar-fade>
       <Button onclick={save} disabled={saving}>
         {#if saving}<Spinner />{/if}
         Save changes
@@ -843,10 +837,21 @@
     pointer-events: none;
     background: linear-gradient(to top, var(--background-l0), transparent);
     opacity: 0;
-    transition: opacity 150ms ease;
 
-    &[data-visible] {
+    @supports (animation-timeline: scroll()) {
+      animation: bar-fade-out linear both;
+      animation-timeline: scroll(root);
+      animation-range: calc(100% - 1.5rem) 100%;
+    }
+  }
+
+  @keyframes bar-fade-out {
+    from {
       opacity: 1;
+    }
+
+    to {
+      opacity: 0;
     }
   }
 </style>

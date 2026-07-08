@@ -3,11 +3,7 @@
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { resolvePinnedEdge } from '$lib/components/pinned-self-row'
-  import {
-    createScrollGeometry,
-    deriveEdgeFades,
-    deriveSelfRowClip,
-  } from '$lib/components/scroll-geometry.svelte'
+  import { createScrollGeometry, deriveSelfRowClip } from '$lib/components/scroll-geometry.svelte'
   import { IconAwardFilled } from '$lib/icons'
   import { useChallengeSolvesInfinite, useChallengeSolvesSelf } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -60,7 +56,6 @@
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   const geometry = createScrollGeometry(() => scrollRoot)
-  const fades = deriveEdgeFades(geometry)
 
   let selfRowNode = $state<HTMLElement | null>(null)
   const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
@@ -110,8 +105,8 @@
       subtitle="Be the first to solve this challenge!"
     />
   {:else}
-    <solves-viewport data-reveal={revealAfterLoading || undefined}>
-      <solves-scroll {@attach captureScroll} tabindex="-1">
+    <solves-viewport data-reveal={revealAfterLoading || undefined} data-fade-scope>
+      <solves-scroll {@attach captureScroll} data-fade-source tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}
             {@const rank = index + 1}
@@ -160,11 +155,7 @@
         </self-overlay>
       {/if}
 
-      <EdgeFades
-        top={fades.top}
-        bottom={fades.bottom}
-        selfEdge={(currentUserSolve && mySolvePosition !== null && pinnedEdge) || null}
-      />
+      <EdgeFades selfEdge={(currentUserSolve && mySolvePosition !== null && pinnedEdge) || null} />
     </solves-viewport>
   {/if}
 </solves>

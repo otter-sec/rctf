@@ -1,7 +1,7 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
+  import { createScrollGeometry } from '$lib/components/scroll-geometry.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { getCategoryConfig } from '$lib/utils/categories'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
@@ -133,10 +133,6 @@
     startTime: () => startTime,
   })
 
-  const fades = deriveEdgeFades(geometry)
-  const fadeLeft = $derived(geometry.scrollLeft > 1)
-  const fadeRight = $derived(geometry.scrollLeft < geometry.scrollWidth - geometry.clientWidth - 1)
-
   const selfIndex = $derived(
     data.currentUserId ? (data.teamRanks.get(data.currentUserId) ?? 0) - 1 : -1
   )
@@ -236,10 +232,6 @@
 
 <scores-shell
   style:--score-content-width={`${contentWidth}px`}
-  data-fade-top={fades.top || undefined}
-  data-fade-bottom={fades.bottom || undefined}
-  data-fade-left={fadeLeft || undefined}
-  data-fade-right={fadeRight || undefined}
   data-self-edge={selfEdge ?? undefined}
 >
   <mobile-graph>
@@ -388,6 +380,7 @@
     --score-fade-inset-bottom: 0px;
     --score-fade-region-top: calc(var(--score-mobile-graph-height) + var(--space-3xs));
     --score-fade-rail: 0px;
+    timeline-scope: --lb-block, --lb-inline;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -410,7 +403,34 @@
     display: block;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 150ms ease;
+
+    @supports (animation-timeline: scroll()) {
+      animation: linear both;
+
+      &[data-edge='top'] {
+        animation-name: lb-fade-in;
+        animation-timeline: --lb-block;
+        animation-range: 0 1.5rem;
+      }
+
+      &[data-edge='bottom'] {
+        animation-name: lb-fade-out;
+        animation-timeline: --lb-block;
+        animation-range: calc(100% - 1.5rem) 100%;
+      }
+
+      &[data-edge='left'] {
+        animation-name: lb-fade-in;
+        animation-timeline: --lb-inline;
+        animation-range: 0 1.5rem;
+      }
+
+      &[data-edge='right'] {
+        animation-name: lb-fade-out;
+        animation-timeline: --lb-inline;
+        animation-range: calc(100% - 1.5rem) 100%;
+      }
+    }
 
     &[data-edge='top'] {
       inset-block-start: calc(var(--score-fade-region-top) + var(--score-fade-inset-top));
@@ -432,11 +452,24 @@
     }
   }
 
-  scores-shell[data-fade-top] edge-fade[data-edge='top'],
-  scores-shell[data-fade-bottom] edge-fade[data-edge='bottom'],
-  scores-shell[data-fade-left] edge-fade[data-edge='left'],
-  scores-shell[data-fade-right] edge-fade[data-edge='right'] {
-    opacity: 1;
+  @keyframes lb-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes lb-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
   }
 
   mobile-graph {
@@ -461,6 +494,9 @@
     outline: none;
     overscroll-behavior: none;
     scrollbar-width: none;
+    scroll-timeline:
+      --lb-block block,
+      --lb-inline inline;
   }
 
   scores-table {
