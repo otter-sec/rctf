@@ -48,6 +48,10 @@
     border-radius: var(--radius-lg);
     cursor: pointer;
 
+    &:focus-visible {
+      outline-offset: 0;
+    }
+
     &:hover {
       background: var(--background-l3);
     }

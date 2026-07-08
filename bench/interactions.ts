@@ -2,30 +2,16 @@
 // Usage: bun bench/interactions.ts <base-url> <login-token>
 // The flag submit uses a deliberately wrong flag so every run measures the same path.
 import { chromium, type Page } from 'playwright'
+import { login, median } from './lib'
 
 const RUNS = 5
+const FLAG_INPUT_SELECTOR =
+  'input[data-flag-input], input[placeholder*="flag" i]'
 const base = process.argv[2]
 const loginToken = process.argv[3]
 if (!base || !loginToken) {
   console.error('usage: bun bench/interactions.ts <base-url> <login-token>')
   process.exit(1)
-}
-
-const median = (xs: number[]) => {
-  const s = [...xs].sort((a, b) => a - b)
-  const mid = Math.floor(s.length / 2)
-  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2
-}
-
-async function login(page: Page) {
-  await page.goto(`${base}/login?token=${encodeURIComponent(loginToken)}`)
-  await page.waitForFunction(
-    () => localStorage.getItem('token') !== null,
-    undefined,
-    {
-      timeout: 15_000,
-    }
-  )
 }
 
 // Time from committing an input to the next paint after the UI settles (double rAF).
@@ -59,15 +45,13 @@ async function openFirstChallenge(page: Page) {
   await item.waitFor({ state: 'visible', timeout: 30_000 })
   await item.click()
   await page
-    .locator('input[data-flag-input], input[placeholder*="flag" i]')
+    .locator(FLAG_INPUT_SELECTOR)
     .first()
     .waitFor({ state: 'visible', timeout: 15_000 })
 }
 
 async function flagSubmitProbe(page: Page): Promise<number> {
-  const input = page
-    .locator('input[data-flag-input], input[placeholder*="flag" i]')
-    .first()
+  const input = page.locator(FLAG_INPUT_SELECTOR).first()
   await input.fill('rctf{definitely_wrong_flag}')
   return inputToNextPaint(page, async () => {
     await input.press('Enter')
@@ -110,7 +94,7 @@ const filterTimes: number[] = []
 
 const context = await browser.newContext()
 const page = await context.newPage()
-await login(page)
+await login(page, base, loginToken)
 
 for (let i = 0; i < RUNS; i++) {
   await openFirstChallenge(page)

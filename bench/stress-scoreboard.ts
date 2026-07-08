@@ -2,6 +2,7 @@
 // Usage: bun bench/stress-scoreboard.ts <base-url> <login-token>
 // Requires: bunx playwright install chromium
 import { chromium, type Page } from 'playwright'
+import { login, median } from './lib'
 
 const RUNS = 5
 const ROUTES = ['/', '/challenges', '/scores', '/profile']
@@ -13,23 +14,6 @@ if (!base || !loginToken) {
     'usage: bun bench/stress-scoreboard.ts <base-url> <login-token>'
   )
   process.exit(1)
-}
-
-const median = (xs: number[]) => {
-  const s = [...xs].sort((a, b) => a - b)
-  const mid = Math.floor(s.length / 2)
-  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2
-}
-
-async function login(page: Page) {
-  await page.goto(`${base}/login?token=${encodeURIComponent(loginToken)}`)
-  await page.waitForFunction(
-    () => localStorage.getItem('token') !== null,
-    undefined,
-    {
-      timeout: 15_000,
-    }
-  )
 }
 
 async function timeToFirstRows(page: Page): Promise<number> {
@@ -48,9 +32,12 @@ async function scrollFrameStats(page: Page): Promise<number> {
       document.scrollingElement &&
       document.scrollingElement.scrollHeight > innerHeight
         ? document.scrollingElement
-        : [...document.querySelectorAll('*')].find(
-            e => e.scrollHeight > e.clientHeight + 200
-          )
+        : (() => {
+            for (const e of document.querySelectorAll('*')) {
+              if (e.scrollHeight > e.clientHeight + 200) return e
+            }
+            return undefined
+          })()
     if (!el) return -1
     const frames: number[] = []
     let last = performance.now()
@@ -98,7 +85,7 @@ async function navLatency(page: Page): Promise<number> {
   return median(times)
 }
 
-const browser = await chromium.launch({ channel: undefined })
+const browser = await chromium.launch()
 const ttfr: number[] = []
 const fps: number[] = []
 const heap: number[] = []
@@ -107,7 +94,7 @@ const nav: number[] = []
 for (let run = 0; run < RUNS; run++) {
   const context = await browser.newContext()
   const page = await context.newPage()
-  await login(page)
+  await login(page, base, loginToken)
   ttfr.push(await timeToFirstRows(page))
   fps.push(await scrollFrameStats(page))
   heap.push(await heapUsed(page))

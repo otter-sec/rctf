@@ -34,41 +34,30 @@ const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 export const SEED_TEAM_COUNT = 250
 
+function resolvePositiveIntEnv(name: string, fallback: number): number {
+  const raw = process.env[name]
+  if (raw === undefined || raw.trim() === '') {
+    return fallback
+  }
+
+  const parsed = Number(raw.trim())
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(
+      `${name} must be a positive integer, got: ${JSON.stringify(raw)}`
+    )
+  }
+
+  return parsed
+}
+
 export function resolveSeedTeamCount(): number {
-  const raw = process.env.SEED_TEAM_COUNT
-  if (raw === undefined || raw.trim() === '') {
-    return SEED_TEAM_COUNT
-  }
-
-  const parsed = Number(raw.trim())
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(
-      `SEED_TEAM_COUNT must be a positive integer, got: ${JSON.stringify(raw)}`
-    )
-  }
-
-  return parsed
+  return resolvePositiveIntEnv('SEED_TEAM_COUNT', SEED_TEAM_COUNT)
 }
 
-const DEFAULT_GENERATED_CHALLENGE_COUNT = 18
-
-function resolveSeedGeneratedChallengeCount(): number {
-  const raw = process.env.SEED_GENERATED_CHALLENGE_COUNT
-  if (raw === undefined || raw.trim() === '') {
-    return DEFAULT_GENERATED_CHALLENGE_COUNT
-  }
-
-  const parsed = Number(raw.trim())
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(
-      `SEED_GENERATED_CHALLENGE_COUNT must be a positive integer, got: ${JSON.stringify(raw)}`
-    )
-  }
-
-  return parsed
-}
-
-const SEED_GENERATED_CHALLENGE_COUNT = resolveSeedGeneratedChallengeCount()
+const SEED_GENERATED_CHALLENGE_COUNT = resolvePositiveIntEnv(
+  'SEED_GENERATED_CHALLENGE_COUNT',
+  18
+)
 export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 4
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
