@@ -3,12 +3,7 @@
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
-  import {
-    IconChartAreaLineFilled,
-    IconFileInfoFilled,
-    IconFlagFilled,
-    IconTrophyFilled,
-  } from '$lib/icons'
+  import { IconFile, IconFlagBanner, IconGlobeHemisphereWest, IconTrophy } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
   import type { Component } from 'svelte'
@@ -36,20 +31,20 @@
 
   const tabItems = $derived.by((): TabItem[] => {
     if (!challenge) return []
-    const items: TabItem[] = [{ value: 'details', label: 'Details', icon: IconFileInfoFilled }]
+    const items: TabItem[] = [{ value: 'details', label: 'Details', icon: IconFile }]
     if (challenge.hasFlag) {
       items.push({
         value: 'solves',
         label: 'Solves',
         count: challenge.solves,
-        icon: IconTrophyFilled,
+        icon: IconTrophy,
       })
     } else if (isDynamic) {
       items.push({
         value: 'scores',
         label: 'Scores',
         count: challenge.solves,
-        icon: IconChartAreaLineFilled,
+        icon: IconGlobeHemisphereWest,
       })
     }
     return items
@@ -104,7 +99,7 @@
 {:else}
   <challenge-details data-empty>
     <EmptyState
-      icon={IconFlagFilled}
+      icon={IconFlagBanner}
       title="Select a challenge"
       subtitle="Choose a challenge from the list to view details"
     />

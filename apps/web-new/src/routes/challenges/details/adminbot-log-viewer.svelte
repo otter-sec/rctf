@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight, IconDownload } from '$lib/icons'
+  import { IconCaretRight, IconDownload } from '$lib/icons'
   import type { AdminBotLogEntry } from '$lib/utils/admin-bot-logs'
   import { downloadTextFile } from '$lib/utils/download'
   import { formatClockTime } from '$lib/utils/time'
@@ -50,7 +50,7 @@
           onclick={() => expandable && toggle(index)}
         >
           <log-caret data-open={isExpanded || undefined}>
-            {#if expandable}<IconChevronRight />{/if}
+            {#if expandable}<IconCaretRight />{/if}
           </log-caret>
           <log-time>{formatClockTime(entry.time)}</log-time>
           <log-level>{entry.level.charAt(0).toUpperCase()}</log-level>

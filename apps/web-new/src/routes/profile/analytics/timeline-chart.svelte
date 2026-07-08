@@ -3,7 +3,7 @@
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
-  import { IconFlagFilled } from '$lib/icons'
+  import { IconFlagBanner } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import type { ActivityDomain, TimelineDatum } from './analytics-data'
   import ProfileSolveTooltip from './solve-tooltip.svelte'
@@ -129,7 +129,7 @@
     {/if}
   </timeline-root>
 {:else}
-  <EmptyState icon={IconFlagFilled} title="No solves yet." />
+  <EmptyState icon={IconFlagBanner} title="No solves yet." />
 {/if}
 
 <style>

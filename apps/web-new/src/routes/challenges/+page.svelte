@@ -1,7 +1,7 @@
 <script lang="ts">
   import { isAuthenticated } from '$lib/api'
   import CtfNotStarted from '$lib/components/ctf-not-started.svelte'
-  import { IconFlag3Filled } from '$lib/icons'
+  import { IconFlagBannerFold } from '$lib/icons'
   import { useChallenges } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { ApiError } from '$lib/query/core'
@@ -51,7 +51,7 @@
 {:else}
   <challenges-empty>
     <EmptyState
-      icon={IconFlag3Filled}
+      icon={IconFlagBannerFold}
       title="No challenges yet"
       subtitle="Check back soon for challenges!"
     />

@@ -8,16 +8,16 @@
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import ThemeToggle from '$lib/components/theme-toggle.svelte'
   import {
-    IconChartAreaLineFilled,
     IconCopy,
-    IconFlag3Filled,
-    IconHomeFilled,
-    IconLogin,
-    IconLogout,
+    IconFlagBannerFold,
+    IconGear,
+    IconGlobeHemisphereWest,
+    IconHouse,
     IconMenu2,
-    IconSettingsFilled,
+    IconSignIn,
+    IconSignOut,
     IconTableFilled,
-    IconUserCog,
+    IconUserGear,
     IconX,
   } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
@@ -47,40 +47,40 @@
 
   const navItems = $derived(
     [
-      { href: '/', activePath: '/', label: 'Home', icon: IconHomeFilled, show: true },
+      { href: '/', activePath: '/', label: 'Home', icon: IconHouse, show: true },
       {
         href: '/challenges',
         activePath: '/challenges',
         label: 'Challenges',
-        icon: IconFlag3Filled,
+        icon: IconFlagBannerFold,
         show: true,
       },
       {
         href: '/scores',
         activePath: '/scores',
         label: 'Scoreboard',
-        icon: IconChartAreaLineFilled,
+        icon: IconGlobeHemisphereWest,
         show: true,
       },
       {
         href: '/profile',
         activePath: '/profile',
         label: 'Manage team',
-        icon: IconUserCog,
+        icon: IconUserGear,
         show: !!user && !isArchived,
       },
       {
         href: '/admin/challenges',
         activePath: '/admin/challenges',
         label: 'Manage challenges',
-        icon: IconFlag3Filled,
+        icon: IconFlagBannerFold,
         show: isAdmin,
       },
       {
         href: '/admin/teams',
         activePath: '/admin/teams',
         label: 'Manage teams',
-        icon: IconUserCog,
+        icon: IconUserGear,
         show: isAdmin,
       },
       {
@@ -94,7 +94,7 @@
         href: '/admin/settings',
         activePath: '/admin/settings',
         label: 'Settings',
-        icon: IconSettingsFilled,
+        icon: IconGear,
         show: isAdmin,
       },
     ].filter(item => item.show)
@@ -155,14 +155,14 @@
                   {...mergeProps(props, { onclick: () => logout(queryClient) })}
                   aria-label="Log out"
                 >
-                  <IconLogout />
+                  <IconSignOut />
                 </button>
               {/snippet}
             </Tooltip>
           </footer-actions>
         {:else if !isArchived}
           <a href="/login" aria-label="Login">
-            <IconLogin />
+            <IconSignIn />
           </a>
         {/if}
       </sheet-footer>

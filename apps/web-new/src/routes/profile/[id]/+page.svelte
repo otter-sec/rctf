@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { IconZoomQuestionFilled } from '$lib/icons'
+  import { IconQuestion } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import {
     PUBLIC_GRAPH_CACHING,
@@ -56,7 +56,7 @@
 <ProfileShell {tabs} desktopColumn="analytics" hideTablistOnDesktop {status}>
   {#snippet unavailable()}
     <StatusCard
-      icon={IconZoomQuestionFilled}
+      icon={IconQuestion}
       title="Profile not found"
       subtitle={userQuery.error?.message ?? 'The requested profile could not be found.'}
     >

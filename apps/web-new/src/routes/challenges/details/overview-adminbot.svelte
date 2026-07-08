@@ -15,14 +15,14 @@
   import { apiRequest, showApiError } from '$lib/api'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import {
-    IconAlertCircleFilled,
-    IconChevronDown,
-    IconChevronRight,
-    IconCircleCheckFilled,
-    IconClockFilled,
+    IconCaretDown,
+    IconCaretRight,
+    IconCheckCircle,
+    IconClock,
     IconDownload,
-    IconLogin,
-    IconSend,
+    IconPaperPlaneTilt,
+    IconSignIn,
+    IconWarningCircle,
   } from '$lib/icons'
   import { useAdminBotHistory, useAdminBotStatus } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -190,13 +190,13 @@
 {#snippet statusIcon(status: AdminBotJobStatus)}
   <status-icon data-status={status}>
     {#if status === AdminBotJobStatus.QUEUED}
-      <IconClockFilled />
+      <IconClock />
     {:else if status === AdminBotJobStatus.RUNNING}
       <Spinner />
     {:else if status === AdminBotJobStatus.COMPLETED}
-      <IconCircleCheckFilled />
+      <IconCheckCircle />
     {:else if status === AdminBotJobStatus.FAILED}
-      <IconAlertCircleFilled />
+      <IconWarningCircle />
     {/if}
   </status-icon>
 {/snippet}
@@ -206,7 +206,7 @@
     <adminbot-empty>
       <adminbot-message>Login to use the admin bot.</adminbot-message>
       <Button href="/login">
-        <IconLogin />
+        <IconSignIn />
         Login
       </Button>
     </adminbot-empty>
@@ -237,7 +237,7 @@
             onclick={() => (logsOpen = !logsOpen)}
           >
             Logs
-            <IconChevronDown data-open={logsOpen || undefined} />
+            <IconCaretDown data-open={logsOpen || undefined} />
           </button>
         {/if}
       </job-card>
@@ -254,7 +254,7 @@
         aria-expanded={historyOpen}
         onclick={() => (historyOpen = !historyOpen)}
       >
-        <IconChevronRight data-open={historyOpen || undefined} />
+        <IconCaretRight data-open={historyOpen || undefined} />
         <span>Previous jobs ({history.length})</span>
       </button>
 
@@ -274,7 +274,7 @@
                 {#if historyJob.hasLogs}
                   <history-logs-hint>
                     Logs
-                    <IconChevronDown
+                    <IconCaretDown
                       data-open={openHistoryLogsJobId === historyJob.id || undefined}
                     />
                   </history-logs-hint>
@@ -325,7 +325,7 @@
 
       <form-actions>
         <Button type="submit" disabled={submitting || isJobActive}>
-          {#if submitting}<Spinner />{:else}<IconSend />{/if}
+          {#if submitting}<Spinner />{:else}<IconPaperPlaneTilt />{/if}
           Submit
         </Button>
         <Button type="button" variant="secondary" onclick={downloadConfig}>

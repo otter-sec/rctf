@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GoodFilesUploadV2, UploadFilesRouteV2 } from '@rctf/types'
   import { apiRequest, showApiError } from '$lib/api'
-  import { IconFileFilled, IconTrashFilled } from '$lib/icons'
+  import { IconFiles, IconTrash } from '$lib/icons'
   import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
@@ -84,7 +84,7 @@
       {#if uploading}
         <Spinner label="Uploading files" />
       {:else}
-        <IconFileFilled />
+        <IconFiles />
         <zone-title>{dragging ? 'Drop files here' : 'Click to upload or drag and drop'}</zone-title>
         <zone-hint>Any file type supported</zone-hint>
       {/if}
@@ -96,7 +96,7 @@
     <file-list>
       {#each files as file, index (file.url)}
         <file-row>
-          <IconFileFilled />
+          <IconFiles />
           <a href={file.url} target="_blank" rel="noopener noreferrer">
             <file-name>{file.name}</file-name>
             <file-size>{formatFileSize(file.size)}</file-size>
@@ -108,14 +108,14 @@
               aria-label="Remove {file.name}"
               onclick={() => removeAt(index)}
             >
-              <IconTrashFilled />
+              <IconTrash />
             </Button>
           {/if}
         </file-row>
       {/each}
     </file-list>
   {:else if disabled}
-    <EmptyState icon={IconFileFilled} title="No files attached" />
+    <EmptyState icon={IconFiles} title="No files attached" />
   {/if}
 </attachments-pane>
 

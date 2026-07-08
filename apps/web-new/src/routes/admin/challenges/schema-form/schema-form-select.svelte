@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import Menu from '$lib/ui/menu.svelte'
 
   type Option = { value: string; label: string }
@@ -37,7 +37,7 @@
   {#snippet trigger({ props })}
     <button type="button" {disabled} data-placeholder={current ? undefined : ''} {...props}>
       <span>{current?.label ?? placeholder}</span>
-      <IconChevronDown />
+      <IconCaretDown />
     </button>
   {/snippet}
 </Menu>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
   import { filterOperatorLabel, includeOperatorLabel, type FilterMode } from './core'
 
@@ -31,7 +31,7 @@
   {#snippet trigger({ props })}
     <button {...props} type="button">
       {filterOperatorLabel(mode, count)}
-      <IconChevronDown aria-hidden="true" />
+      <IconCaretDown aria-hidden="true" />
     </button>
   {/snippet}
 </Menu>

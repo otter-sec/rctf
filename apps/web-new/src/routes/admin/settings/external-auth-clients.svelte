@@ -7,7 +7,7 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
-  import { IconCopy, IconTrashFilled, IconX } from '$lib/icons'
+  import { IconCopy, IconTrash, IconX } from '$lib/icons'
   import { useAdminExternalAuthClients } from '$lib/query/admin'
   import { queryKeys } from '$lib/query/keys'
   import { toast } from '$lib/toast'
@@ -222,7 +222,7 @@
               variant="destructive"
               onclick={() => (deleteTarget = { id: client.id, name: client.name })}
             >
-              <IconTrashFilled />
+              <IconTrash />
               Delete
             </Button>
           </client-actions>

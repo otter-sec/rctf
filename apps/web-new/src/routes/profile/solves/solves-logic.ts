@@ -117,12 +117,6 @@ export function filterRows(
   return filtered
 }
 
-export function nextSortMode(mode: SortMode): SortMode {
-  if (mode === 'category') return 'time'
-  if (mode === 'time') return 'points'
-  return 'category'
-}
-
 export function sortRowsByMode(
   rows: DisplayRow[],
   mode: SortMode

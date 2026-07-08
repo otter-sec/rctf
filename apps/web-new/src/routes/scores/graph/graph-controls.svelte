@@ -1,6 +1,6 @@
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
-  import { IconMoodHappyFilled, IconPinFilled } from '$lib/icons'
+  import { IconPushPin, IconSmiley } from '$lib/icons'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { Component } from 'svelte'
 
@@ -31,8 +31,8 @@
 {/snippet}
 
 <graph-controls>
-  {@render pinToggle('Pin top 3 to graph', IconPinFilled, showTop3Context, onToggleTop3)}
-  {@render pinToggle('Pin self to graph', IconMoodHappyFilled, showSelfContext, onToggleSelf)}
+  {@render pinToggle('Pin top 3 to graph', IconPushPin, showTop3Context, onToggleTop3)}
+  {@render pinToggle('Pin self to graph', IconSmiley, showSelfContext, onToggleSelf)}
 </graph-controls>
 
 <style>

@@ -7,7 +7,7 @@
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
-  import { IconChartAreaLineFilled } from '$lib/icons'
+  import { IconGlobeHemisphereWest } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import type { ProfileDynamicScore, ProfileSolve } from './analytics-data'
   import { compactNumber } from './chart-utils'
@@ -216,7 +216,7 @@
       </ChartTip>
     {/if}
   {:else}
-    <EmptyState icon={IconChartAreaLineFilled} title="No score graph data." />
+    <EmptyState icon={IconGlobeHemisphereWest} title="No score graph data." />
   {/if}
 </graph-root>
 

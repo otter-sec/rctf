@@ -4,11 +4,11 @@
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import {
-    IconChevronDown,
-    IconFold,
-    IconLibraryPlusFilled,
+    IconArrowsInLineVertical,
+    IconCaretDown,
+    IconPlus,
+    IconQuestion,
     IconSearch,
-    IconZoomQuestionFilled,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query/user'
   import Accordion from '$lib/ui/accordion.svelte'
@@ -105,7 +105,7 @@
               data-active={!anyOpen || undefined}
               aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
             >
-              <IconFold />
+              <IconArrowsInLineVertical />
             </button>
           {/snippet}
         </Tooltip>
@@ -120,7 +120,7 @@
                 data-active={isCreatingNew || undefined}
                 aria-label="New challenge"
               >
-                <IconLibraryPlusFilled />
+                <IconPlus />
               </button>
             {/snippet}
           </Tooltip>
@@ -133,7 +133,7 @@
     <list-scroll bind:this={listEl} tabindex="-1">
       {#if groups.length === 0}
         <EmptyState
-          icon={IconZoomQuestionFilled}
+          icon={IconQuestion}
           title={searching ? 'No challenges found' : 'No challenges yet'}
           subtitle={emptySubtitle}
         />
@@ -147,7 +147,7 @@
                 <config.icon data-slot="icon" />
                 <span data-slot="name">{config.name}</span>
                 <span data-slot="count">{entries.length}</span>
-                <IconChevronDown data-slot="chevron" />
+                <IconCaretDown data-slot="chevron" />
               </button>
             </group-header>
           {/snippet}

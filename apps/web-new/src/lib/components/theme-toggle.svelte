@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconMoonFilled, IconSunHighFilled } from '$lib/icons'
+  import { IconMoonStars, IconSun } from '$lib/icons'
 
   function toggle() {
     const root = document.documentElement
@@ -13,8 +13,8 @@
 </script>
 
 <button type="button" onclick={toggle} aria-label="Toggle theme">
-  <sun-icon><IconSunHighFilled /></sun-icon>
-  <moon-icon><IconMoonFilled /></moon-icon>
+  <sun-icon><IconSun /></sun-icon>
+  <moon-icon><IconMoonStars /></moon-icon>
 </button>
 
 <style>

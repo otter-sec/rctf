@@ -3,10 +3,10 @@
     IconAwardFilled,
     IconCheck,
     IconGavel,
-    IconKeyFilled,
-    IconSend,
-    IconTrashFilled,
-    IconUserCog,
+    IconKey,
+    IconPaperPlaneTilt,
+    IconTrash,
+    IconUserGear,
   } from '$lib/icons'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { IconComponent } from '$lib/utils/categories'
@@ -86,13 +86,13 @@
       {#if canManage}
         {@render action({
           label: 'Manage team',
-          icon: IconUserCog,
+          icon: IconUserGear,
           onclick: () => onManage(team.id),
         })}
       {/if}
       {@render action({
         label: 'Copy login token',
-        icon: IconKeyFilled,
+        icon: IconKey,
         loading: copyingId === team.id,
         onclick: () => onCopyToken({ id: team.id, name: team.name }),
       })}
@@ -105,7 +105,7 @@
       })}
       {@render action({
         label: 'Delete team',
-        icon: IconTrashFilled,
+        icon: IconTrash,
         destructive: true,
         loading: deletingId === team.id,
         onclick: () => onDelete({ id: team.id, name: team.name }),
@@ -115,7 +115,7 @@
     {@const verification = row.verification}
     {@render action({
       label: 'Resend verification',
-      icon: IconSend,
+      icon: IconPaperPlaneTilt,
       loading: resendingId === verification.id,
       disabled: completingId === verification.id,
       onclick: () => onResend({ id: verification.id, name: verification.name }),

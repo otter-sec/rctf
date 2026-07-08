@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SubmissionKind } from '@rctf/types'
-  import { IconChevronRight, IconFlag3Filled, IconRobot } from '$lib/icons'
+  import { IconCaretRight, IconFlagBannerFold, IconRobot } from '$lib/icons'
   import Avatar from '$lib/ui/avatar.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
@@ -44,7 +44,7 @@
 >
   <row-cell data-col="expander">
     <expander-button role="presentation" data-open={expanded || undefined} aria-hidden="true">
-      <IconChevronRight />
+      <IconCaretRight />
     </expander-button>
   </row-cell>
 
@@ -99,7 +99,7 @@
       {#if submission.kind === SubmissionKind.ADMIN_BOT}
         <IconRobot aria-hidden="true" />
       {:else}
-        <IconFlag3Filled aria-hidden="true" />
+        <IconFlagBannerFold aria-hidden="true" />
       {/if}
       <span>{kindLabel(submission.kind)}</span>
     </kind-badge>

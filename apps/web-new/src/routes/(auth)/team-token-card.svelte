@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconCopy, IconLogin } from '$lib/icons'
+  import { IconCopy, IconSignIn } from '$lib/icons'
   import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import Card from '$lib/ui/card.svelte'
@@ -57,7 +57,7 @@
     </token-box>
     <p>Store your team token somewhere safe. It is the easiest way back into this account.</p>
     <Button href="/" variant="secondary">
-      <IconLogin />
+      <IconSignIn />
       Continue
     </Button>
   </team-token-card>

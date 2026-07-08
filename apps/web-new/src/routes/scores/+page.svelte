@@ -1,6 +1,6 @@
 <script lang="ts">
   import CtfNotStarted from '$lib/components/ctf-not-started.svelte'
-  import { IconFlagFilled, IconSearch, IconTrophyFilled } from '$lib/icons'
+  import { IconFlagBanner, IconSearch, IconTrophy } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
@@ -58,7 +58,7 @@
     {:else if data.loadError && data.entries.length === 0}
       <scores-leaderboard-slot>
         <EmptyState
-          icon={IconTrophyFilled}
+          icon={IconTrophy}
           title="Couldn't load the scoreboard"
           subtitle={data.loadError.message}
         />
@@ -71,7 +71,7 @@
       <scores-leaderboard-slot>
         {#if urlState.focusedChallengeId}
           <EmptyState
-            icon={IconFlagFilled}
+            icon={IconFlagBanner}
             title="No solves"
             subtitle="No matching teams have solved this challenge."
           />
@@ -83,7 +83,7 @@
           />
         {:else}
           <EmptyState
-            icon={IconTrophyFilled}
+            icon={IconTrophy}
             title="No scores yet"
             subtitle="Check back once teams start solving."
           />

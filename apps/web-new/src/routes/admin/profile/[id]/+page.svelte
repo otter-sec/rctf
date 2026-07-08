@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { apiRequest, showApiError } from '$lib/api'
-  import { IconZoomQuestionFilled } from '$lib/icons'
+  import { IconQuestion } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
   import {
@@ -107,7 +107,7 @@
   <ProfileShell {tabs} desktopColumn="settings" {status}>
     {#snippet unavailable()}
       <StatusCard
-        icon={IconZoomQuestionFilled}
+        icon={IconQuestion}
         title="Team not found"
         subtitle={userQuery.error?.message ?? 'The requested team could not be found.'}
       >

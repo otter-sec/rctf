@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SubmissionSortBy } from '@rctf/types'
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import type { SubmissionSort } from '../submissions-model'
 
   type Props = {
@@ -31,7 +31,7 @@
         onclick={() => onSort(column)}
       >
         <span>{label}</span>
-        <IconChevronDown aria-hidden="true" />
+        <IconCaretDown aria-hidden="true" />
       </button>
     </header-cell>
   {/each}
