@@ -82,9 +82,11 @@
     outline: none;
     background: transparent;
     color: var(--foreground-l0);
+    text-overflow: ellipsis;
 
     &::placeholder {
       color: var(--foreground-l1);
+      text-overflow: ellipsis;
     }
   }
 

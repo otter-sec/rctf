@@ -114,7 +114,7 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: var(--space-s);
+    gap: var(--space-xs);
     min-block-size: 0;
     padding: var(--dialog-content-padding, 0.75rem 1rem);
     overflow-y: auto;

@@ -124,7 +124,7 @@
 
     small {
       color: var(--foreground-l3);
-      font-size: var(--step--2);
+      font-size: var(--step--1);
       font-variant-numeric: tabular-nums;
     }
   }
@@ -150,7 +150,6 @@
     a {
       overflow: hidden;
       color: var(--rank-fg-l0, var(--foreground-l0));
-      font-size: var(--step-1);
       white-space: nowrap;
       text-overflow: ellipsis;
 

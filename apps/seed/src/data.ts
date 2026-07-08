@@ -390,7 +390,7 @@ function buildSeedTiming(config: ServerConfig): SeedTiming {
   )
 
   if (config.startTime > 0 && config.startTime < solveLatest) {
-    const solveEarliest = Math.max(config.startTime, solveLatest - DAY)
+    const solveEarliest = config.startTime
     return {
       startTime: config.startTime,
       endTime: config.endTime,
