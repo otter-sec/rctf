@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { parseCodeAnnotations, stripCodeAnnotationTags } from '@/lib/code-annotations'
 import { getDocs, type DocsEntry } from '@/lib/docs'
-import { plainInlineText } from '@/lib/rich-text'
+import { plainInline } from '@/lib/inline-markdown'
 import type { ElementContent } from 'hast'
 import satori from 'satori'
 import sharp from 'sharp'
@@ -180,7 +180,7 @@ function titleRow(title: string): VNode {
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'baseline',
-        fontSize: titleSize(plainInlineText(title)),
+        fontSize: titleSize(plainInline(title)),
         fontWeight: 500,
         lineHeight: 1.05,
       },
@@ -296,7 +296,7 @@ function breadcrumb(id: string, docs: DocsEntry[]): string[] {
   const segments = id.split('/')
   const ancestors = segments.slice(0, -1)
   if (ancestors.length === 0) return ['Docs']
-  const titleById = new Map(docs.map(entry => [entry.id, plainInlineText(entry.data.title)]))
+  const titleById = new Map(docs.map(entry => [entry.id, plainInline(entry.data.title)]))
   const labels = ancestors.map((segment, i) => {
     const prefix = segments.slice(0, i + 1).join('/')
     return titleById.get(prefix) ?? humanize(segment)

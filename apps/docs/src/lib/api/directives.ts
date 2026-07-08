@@ -36,7 +36,10 @@ interface ExampleInput {
 
 const CURL_META = 'title="Request" frame="terminal" showLineNumbers=false'
 
-function attr(attrs: Record<string, string> | null | undefined, name: string): string | undefined {
+function attr(
+  attrs: Record<string, string | null | undefined> | null | undefined,
+  name: string
+): string | undefined {
   const value = attrs?.[name]
   return typeof value === 'string' ? value : undefined
 }
@@ -83,7 +86,7 @@ function sourceFromCode(node: Code): SourceName | undefined {
 }
 
 function exampleInput(
-  attrs: Record<string, string> | null | undefined,
+  attrs: Record<string, string | null | undefined> | null | undefined,
   children: DirectiveChildren
 ): ExampleInput {
   const input: ExampleInput = {
@@ -157,7 +160,7 @@ function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
   if (responses.length === 0) return undefined
 
   const tabs: ContainerDirective[] = responses.map(resp => {
-    const labelData: ContainerDirectiveData = { directiveLabel: true }
+    const labelData = { directiveLabel: true } as ContainerDirectiveData
     const label: Paragraph = {
       type: 'paragraph',
       data: labelData,

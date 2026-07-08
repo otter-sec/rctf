@@ -5,7 +5,7 @@ import type { List, ListItem, Paragraph, PhrasingContent } from 'mdast'
 import type {} from 'mdast-util-to-hast'
 import { defineMdastPlugin } from 'satteri'
 import { loadIcon } from './icons'
-import { inlineCodeNode } from './rich-text'
+import { renderInline } from './inline-markdown'
 
 const icons: Record<string, string> = {
   folder: loadIcon('code/folder'),
@@ -61,7 +61,7 @@ async function richInlineToHast(nodes: PhrasingContent[]): Promise<ElementConten
         out.push({ type: 'text', value: node.value })
         break
       case 'inlineCode':
-        out.push(await inlineCodeNode(node.value))
+        out.push(raw(await renderInline(`\`${node.value}\``)))
         break
       case 'emphasis':
         out.push(h('em', await richInlineToHast(node.children)))

@@ -1,5 +1,4 @@
 ---
-import InlineText from '@/components/InlineText.astro'
 import MetaPage from '@/components/MetaPage.astro'
 import PostActions from '@/components/PostActions.astro'
 import ScrollToTop from '@/components/ScrollToTop.astro'
@@ -7,7 +6,7 @@ import SeriesReader from '@/components/SeriesReader.astro'
 import TableOfContents from '@/components/TableOfContents.astro'
 import { DOCS } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
-import { enrichHeadings, pageTitle } from '@/lib/content'
+import { enrichHeadings, entryInline, pageTitle } from '@/lib/content'
 import {
   buildDocsTree,
   docsHref,
@@ -50,11 +49,11 @@ const rendered = await Promise.all(
 
 const tocSections = rendered.map(({ entry: chained, headings }, i) => ({
   id: i === 0 ? undefined : sectionId(chained.id),
-  label: chained.data.title,
+  label: entryInline(chained, 'title'),
   open: chained.id === entry.id,
   headings: enrichHeadings(
     headings.filter(({ depth, text }) => depth >= 2 && depth <= 4 && text.trim()),
-    chained.rendered?.html
+    chained.rendered?.metadata?.frontmatter
   ),
 }))
 const hasToc = tocSections.length > 1 || tocSections.some(({ headings }) => headings.length > 0)
@@ -83,7 +82,7 @@ const editUrlOf = (chained: DocsEntry) =>
   />
   {
     hasToc && !reference && (
-      <TableOfContents slot="toc" title={chain[0].data.title} sections={tocSections} />
+      <TableOfContents slot="toc" title={entryInline(chain[0], 'title')} sections={tocSections} />
     )
   }
   <PostActions slot="actions" prev={prev} next={next} />
@@ -104,11 +103,11 @@ const editUrlOf = (chained: DocsEntry) =>
         >
           <header>
             <h1>
-              <InlineText value={chained.data.title} />
+              <Fragment set:html={entryInline(chained, 'title').html} />
             </h1>
             {chained.data.description && (
               <p>
-                <InlineText value={chained.data.description} />
+                <Fragment set:html={entryInline(chained, 'description').html} />
               </p>
             )}
           </header>

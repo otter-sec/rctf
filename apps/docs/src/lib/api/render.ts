@@ -3,7 +3,7 @@ import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
 import type { PhrasingContent } from 'mdast'
 import type {} from 'mdast-util-to-hast'
-import { inlineCodeNode, renderInlineText } from '../rich-text'
+import { renderInline } from '../inline-markdown'
 import { permissionNames, type ResolvedResponse, type ResolvedRoute } from './registry'
 import {
   dimPlaceholders,
@@ -18,6 +18,8 @@ import {
 const raw = (value: string): ElementContent => ({ type: 'raw', value })
 const tsAnnotated = (value: string): string => `${value}{:ts}`
 const inlineCodeMarkup = (value: string): string => `\`${tsAnnotated(value)}\``
+const inlineCode = async (value: string): Promise<ElementContent> =>
+  raw(await renderInline(`\`${value}\``))
 
 const METHOD_TONE = new Map<string, string>([
   ['GET', 'cyan'],
@@ -39,16 +41,16 @@ async function fieldEntry(
   description: string | undefined,
   required: boolean
 ): Promise<ElementContent> {
-  const nameParts: ElementContent[] = [await inlineCodeNode(name)]
+  const nameParts: ElementContent[] = [await inlineCode(name)]
   if (required) nameParts.push(requiredMark())
   const term: ElementContent[] = [
     h('span', { dataFieldName: '' }, nameParts),
-    h('span', { dataFieldType: '' }, [await inlineCodeNode(tsAnnotated(typeLabel))]),
+    h('span', { dataFieldType: '' }, [await inlineCode(tsAnnotated(typeLabel))]),
   ]
 
   const children: ElementContent[] = [h('dt', term)]
   if (description) {
-    const { html } = await renderInlineText(description)
+    const html = await renderInline(description)
     children.push(h('dd', [raw(html)]))
   }
   return h('div', { dataField: '' }, children)
@@ -132,7 +134,7 @@ export async function routeMetaHtml(
   const groups: ElementContent[] = []
   for (const item of items) {
     const empty = isEmptyMeta(item.value)
-    const { html } = await renderInlineText(empty ? item.empty : item.value)
+    const html = await renderInline(empty ? item.empty : item.value)
     groups.push(
       h('div', [h('dt', item.label), h('dd', empty ? { dataEmpty: 'true' } : {}, [raw(html)])])
     )

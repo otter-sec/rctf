@@ -26,10 +26,11 @@ import Search from '@/components/Search.astro'
 import Sidebar from '@/components/Sidebar.astro'
 import TabGroups from '@/components/TabGroups.astro'
 import { SITE } from '@/consts'
+import type { InlineLabel } from '@/lib/content'
 import type { DocsTreeNode } from '@/lib/docs'
 
 type Props = {
-  crumbs?: { label: string; href: string }[]
+  crumbs?: { label: InlineLabel; href: string }[]
   tree?: DocsTreeNode[]
   wide?: boolean
 }
