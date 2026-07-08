@@ -30,3 +30,11 @@ html,
 body {
   overscroll-behavior: none;
 }
+
+[data-fade-scope] {
+  timeline-scope: --edge-fade;
+}
+
+[data-fade-source] {
+  scroll-timeline: --edge-fade block;
+}

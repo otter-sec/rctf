@@ -1,16 +1,14 @@
 <script lang="ts">
   type Props = {
-    top: boolean
-    bottom: boolean
     selfEdge?: 'top' | 'bottom' | null
   }
 
-  let { top, bottom, selfEdge = null }: Props = $props()
+  let { selfEdge = null }: Props = $props()
 </script>
 
 <edge-fades data-self-edge={selfEdge ?? undefined}>
-  <edge-fade data-edge="top" data-visible={top || undefined} aria-hidden="true"></edge-fade>
-  <edge-fade data-edge="bottom" data-visible={bottom || undefined} aria-hidden="true"></edge-fade>
+  <edge-fade data-edge="top" aria-hidden="true"></edge-fade>
+  <edge-fade data-edge="bottom" aria-hidden="true"></edge-fade>
 </edge-fades>
 
 <style>
@@ -37,11 +35,6 @@
     block-size: 1.5rem;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 150ms ease;
-
-    &[data-visible] {
-      opacity: 1;
-    }
 
     &[data-edge='top'] {
       inset-block-start: var(--fade-inset-top);
@@ -51,6 +44,41 @@
     &[data-edge='bottom'] {
       inset-block-end: var(--fade-inset-bottom);
       background: linear-gradient(to top, var(--fade-color, var(--background-l2)), transparent);
+    }
+
+    @supports (animation-timeline: scroll()) {
+      animation: linear both;
+      animation-timeline: --edge-fade;
+
+      &[data-edge='top'] {
+        animation-name: edge-fade-in;
+        animation-range: 0 1.5rem;
+      }
+
+      &[data-edge='bottom'] {
+        animation-name: edge-fade-out;
+        animation-range: calc(100% - 1.5rem) 100%;
+      }
+    }
+  }
+
+  @keyframes edge-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes edge-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
     }
   }
 </style>

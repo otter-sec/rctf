@@ -1,9 +1,7 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
-  import { captureElement } from '$lib/attachments/capture-element'
   import CodeEditor from '$lib/components/code-editor.svelte'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import { useInstancerSchema } from '$lib/query/admin'
   import Spinner from '$lib/ui/spinner.svelte'
   import * as yaml from 'yaml'
@@ -68,10 +66,6 @@
       yamlError = error instanceof Error ? error.message : 'Invalid YAML'
     }
   }
-
-  let scrollRoot = $state<HTMLElement | null>(null)
-  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
-  const fades = deriveEdgeFades(createScrollGeometry(() => scrollRoot))
 </script>
 
 {#snippet modeToggle()}
@@ -84,8 +78,8 @@
   </button>
 {/snippet}
 
-<provider-viewport>
-  <provider-pane data-disabled={disabled || undefined} {@attach captureScroll} tabindex="-1">
+<provider-viewport data-fade-scope>
+  <provider-pane data-disabled={disabled || undefined} data-fade-source tabindex="-1">
     {#if schemaQuery.isPending}
       <pane-loading><Spinner label="Loading instancer schema" /></pane-loading>
     {:else if !config}
@@ -122,7 +116,7 @@
       </provider-editor>
     {/if}
   </provider-pane>
-  <EdgeFades top={fades.top} bottom={fades.bottom} />
+  <EdgeFades />
 </provider-viewport>
 
 <style>

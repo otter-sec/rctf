@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import type { Snippet } from 'svelte'
 
   interface Props {
@@ -10,18 +8,13 @@
   }
 
   let { disabled, children }: Props = $props()
-
-  let scrollRoot = $state<HTMLElement | null>(null)
-  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
-  const geometry = createScrollGeometry(() => scrollRoot)
-  const fades = deriveEdgeFades(geometry)
 </script>
 
-<form-viewport>
-  <form-scroll {@attach captureScroll} tabindex="-1" data-mode={disabled ? 'view' : 'edit'}>
+<form-viewport data-fade-scope>
+  <form-scroll data-fade-source tabindex="-1" data-mode={disabled ? 'view' : 'edit'}>
     {@render children()}
   </form-scroll>
-  <EdgeFades top={fades.top} bottom={fades.bottom} />
+  <EdgeFades />
 </form-viewport>
 
 <style>
