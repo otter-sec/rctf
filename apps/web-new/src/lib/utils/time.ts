@@ -60,19 +60,17 @@ const localTimeFormat = new Intl.DateTimeFormat('en-US', {
 })
 
 export function formatLocalTime(timestamp: number): string {
-  const parts = new Map(
-    localTimeFormat.formatToParts(timestamp).map(p => [p.type, p.value])
-  )
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.get(type) ?? ''
-  return `${get('month')} ${get('day')}, ${get('hour')}:${get('minute')} ${get('dayPeriod')}`
+  return localTimeFormat.format(timestamp)
 }
 
 function formatOffsetMinutes(totalMinutes: number): string {
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  if (hours === 0 && minutes === 0) return '0h'
-  if (minutes === 0) return `+${hours}h`
-  return `+${hours}h ${minutes}m`
+  if (totalMinutes === 0) return '0h'
+  const sign = totalMinutes < 0 ? '-' : '+'
+  const absMinutes = Math.abs(totalMinutes)
+  const hours = Math.floor(absMinutes / 60)
+  const minutes = absMinutes % 60
+  if (minutes === 0) return `${sign}${hours}h`
+  return `${sign}${hours}h ${minutes}m`
 }
 
 export function formatRelativeHours(
