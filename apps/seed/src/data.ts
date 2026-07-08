@@ -50,7 +50,7 @@ export function resolveSeedTeamCount(): number {
   return parsed
 }
 
-const SEED_GENERATED_CHALLENGE_COUNT = 18
+const SEED_GENERATED_CHALLENGE_COUNT = 24
 export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 4
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
@@ -60,6 +60,8 @@ export const SEED_CHALLENGE_CATEGORIES = [
   'crypto',
   'web',
   'misc',
+  'forensics',
+  'blockchain',
 ] as const
 
 type SeedTiming = {

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
+  import { getCategoryConfig } from '$lib/utils/categories'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
   import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
@@ -342,21 +343,31 @@
         {hover.tooltip.title}
       </strong>
       {#each hover.tooltip.lines as line, index (index)}
-        <span data-trend={line.trend}>
-          {line.text}
-          {#if line.icon}
-            {#if line.icon.kind === 'blood'}
-              <svg viewBox="0 0 24 24" data-icon="blood" data-medal={line.icon.medal}>
-                <path fill="currentColor" d={BLOOD_PATHS[line.icon.medal - 1]} />
-              </svg>
-            {:else}
-              <svg viewBox="0 0 24 24" data-icon="solved">
-                <circle cx="12" cy="12" r="10.5" />
-              </svg>
+        {#if line.icon?.kind === 'category'}
+          {@const category = getCategoryConfig(line.icon.category)}
+          <span data-trend={line.trend} data-category-color={category.color}>
+            <category.icon data-icon="category" aria-hidden="true" />
+            <span data-category-name>{line.iconLabel}</span>
+            &middot;
+            {line.text}
+          </span>
+        {:else}
+          <span data-trend={line.trend}>
+            {line.text}
+            {#if line.icon}
+              {#if line.icon.kind === 'blood'}
+                <svg viewBox="0 0 24 24" data-icon="blood" data-medal={line.icon.medal}>
+                  <path fill="currentColor" d={BLOOD_PATHS[line.icon.medal - 1]} />
+                </svg>
+              {:else}
+                <svg viewBox="0 0 24 24" data-icon="solved">
+                  <circle cx="12" cy="12" r="10.5" />
+                </svg>
+              {/if}
+              {line.iconLabel}
             {/if}
-            {line.iconLabel}
-          {/if}
-        </span>
+          </span>
+        {/if}
       {/each}
     </cell-tooltip>
   {/if}
@@ -745,6 +756,17 @@
     svg[data-icon] {
       inline-size: 0.875rem;
       block-size: 0.875rem;
+    }
+
+    :global(svg[data-icon='category']),
+    span[data-category-name] {
+      color: var(--category-foreground-l1);
+    }
+
+    :global(svg[data-icon='category']) {
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+      flex-shrink: 0;
     }
 
     svg[data-icon='solved'] circle {
