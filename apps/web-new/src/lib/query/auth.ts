@@ -1,7 +1,7 @@
 import { GetVerifyInfoRouteV2, GoodVerifyInfo } from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
-import { ApiError } from '$lib/query/core'
+import { unwrapData } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 
 export function verifyInfoQueryOptions(token: string | null) {
@@ -11,10 +11,7 @@ export function verifyInfoQueryOptions(token: string | null) {
       const response = await apiRequest(GetVerifyInfoRouteV2, {
         token: token ?? '',
       })
-      if (response.kind === GoodVerifyInfo.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodVerifyInfo)
     },
     enabled: token !== null,
     staleTime: Infinity,
