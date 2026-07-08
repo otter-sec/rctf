@@ -1,5 +1,6 @@
 <script lang="ts">
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import ScoresSparkline from '$lib/chart/sparkline.svelte'
   import { useClientConfig } from '$lib/query/config'
   import type { LeaderboardGraphSeries } from '$lib/query/leaderboard'
@@ -51,7 +52,8 @@
   }: Props = $props()
 
   const configQuery = useClientConfig()
-  const wordmark = $derived(configQuery.data?.logoDarkUrl || wordmarkDark)
+  const lightWordmark = $derived(configQuery.data?.logoLightUrl || wordmarkLight)
+  const darkWordmark = $derived(configQuery.data?.logoDarkUrl || wordmarkDark)
 
   const selfId = $derived(selfTeam?.id ?? null)
   const teamIds = $derived(teams.map(team => team.id))
@@ -92,7 +94,8 @@
 <screenshot-preview data-shadow={shadow || undefined} data-screenshot-container>
   {#if options.showHeader}
     <preview-header>
-      <img src={wordmark} alt="Logo" data-wordmark />
+      <logo-light><img src={lightWordmark} alt="Logo" data-wordmark /></logo-light>
+      <logo-dark><img src={darkWordmark} alt="Logo" data-wordmark /></logo-dark>
       <title-block>
         <ctf-name>{ctfName}</ctf-name>
         {#if options.subtitle}
@@ -290,6 +293,23 @@
 
     img[data-wordmark] {
       block-size: 2.5rem;
+    }
+  }
+
+  logo-light,
+  logo-dark {
+    display: contents;
+  }
+
+  logo-light {
+    :global(:root[data-theme='dark']) & {
+      display: none;
+    }
+  }
+
+  logo-dark {
+    :global(:root[data-theme='light']) & {
+      display: none;
     }
   }
 

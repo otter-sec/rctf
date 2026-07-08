@@ -262,6 +262,11 @@
     &[data-dimmed] {
       opacity: 0.25;
     }
+
+    &[data-tooltip-cell][data-col-hover] cell-circle[data-unsolved],
+    &[data-tooltip-cell]:hover cell-circle[data-unsolved] {
+      border-color: var(--foreground-l3);
+    }
   }
 
   cell-circle {
@@ -275,7 +280,7 @@
     }
 
     &[data-unsolved] {
-      border: 2px dashed color-mix(in oklab, var(--foreground-l5) 25%, transparent);
+      border: 2px dashed var(--foreground-l5);
     }
   }
 
