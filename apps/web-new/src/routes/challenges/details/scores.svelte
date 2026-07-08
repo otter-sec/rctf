@@ -7,7 +7,7 @@
     deriveEdgeFades,
     deriveSelfRowClip,
   } from '$lib/components/scroll-geometry.svelte'
-  import { IconChartAreaLineFilled } from '$lib/icons'
+  import { IconGlobeHemisphereWest } from '$lib/icons'
   import { useChallengeScores, useChallengeScoresInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
@@ -183,7 +183,7 @@
     <scores-status><Spinner label="Loading scores" /></scores-status>
   {:else if total === 0}
     <EmptyState
-      icon={IconChartAreaLineFilled}
+      icon={IconGlobeHemisphereWest}
       title="No scores yet"
       subtitle="Scores appear here once the scoring feed publishes them."
     />

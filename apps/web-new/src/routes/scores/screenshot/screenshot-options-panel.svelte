@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import Checkbox from '$lib/ui/checkbox.svelte'
   import Input from '$lib/ui/input.svelte'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
@@ -68,7 +68,7 @@
     {#snippet trigger({ props })}
       <button {...props} type="button" data-select>
         <span>{label}</span>
-        <IconChevronDown aria-hidden="true" />
+        <IconCaretDown aria-hidden="true" />
       </button>
     {/snippet}
   </Menu>

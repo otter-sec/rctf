@@ -15,12 +15,7 @@
     createWindowScrollGeometry,
     deriveEdgeFades,
   } from '$lib/components/scroll-geometry.svelte'
-  import {
-    IconAlertCircleFilled,
-    IconCloudComputingFilled,
-    IconTrashFilled,
-    IconX,
-  } from '$lib/icons'
+  import { IconCloud, IconTrash, IconWarningCircle, IconX } from '$lib/icons'
   import { useAdminSettings } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -235,7 +230,7 @@
 {#if !canManageSettings && user}
   <settings-status>
     <StatusCard
-      icon={IconAlertCircleFilled}
+      icon={IconWarningCircle}
       title="Access denied"
       subtitle="Your account does not have permission to manage settings."
     >
@@ -344,7 +339,7 @@
                     onclick={() => logoInputs[target.key]?.click()}
                     disabled={logoUploading}
                   >
-                    <IconCloudComputingFilled />
+                    <IconCloud />
                     {url ? 'Change' : 'Upload'}
                   </Button>
                   {#if url}
@@ -355,7 +350,7 @@
                       onclick={() => removeLogo(target.key)}
                       disabled={logoUploading}
                     >
-                      <IconTrashFilled />
+                      <IconTrash />
                     </Button>
                   {/if}
                 </logo-actions>

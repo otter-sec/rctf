@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
 
   interface Props {
@@ -13,13 +13,13 @@
 
 {#if disabled}
   <button type="button" data-field-trigger data-disabled disabled>
-    {label}<IconChevronDown />
+    {label}<IconCaretDown />
   </button>
 {:else}
   <Menu {label} {items} sameWidth>
     {#snippet trigger({ props })}
       <button type="button" data-field-trigger {...props}>
-        {label}<IconChevronDown />
+        {label}<IconCaretDown />
       </button>
     {/snippet}
   </Menu>

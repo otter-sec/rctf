@@ -1,11 +1,6 @@
 <script lang="ts">
   import { ChallengeScoringKind, type AdminChallenge } from '@rctf/types'
-  import {
-    IconChartAreaLineFilled,
-    IconCloudComputingFilled,
-    IconEyeClosed,
-    IconRobot,
-  } from '$lib/icons'
+  import { IconCloud, IconEyeClosed, IconGlobeHemisphereWest, IconRobot } from '$lib/icons'
   import { pointsLabel } from './list-logic'
 
   interface Props {
@@ -38,10 +33,10 @@
             <IconEyeClosed data-status-icon />
           {/if}
           {#if isDynamic}
-            <IconChartAreaLineFilled data-status-icon />
+            <IconGlobeHemisphereWest data-status-icon />
           {/if}
           {#if challenge.instancerConfig}
-            <IconCloudComputingFilled data-status-icon />
+            <IconCloud data-status-icon />
           {/if}
           {#if challenge.adminBotConfig}
             <IconRobot data-status-icon />

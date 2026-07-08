@@ -16,7 +16,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import { IconCopy, IconLogin } from '$lib/icons'
+  import { IconCopy, IconSignIn } from '$lib/icons'
   import { useChallengeInstance } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -208,7 +208,7 @@
     <instancer-empty>
       <instancer-message>Login to use the instancer.</instancer-message>
       <Button href="/login">
-        <IconLogin />
+        <IconSignIn />
         Login
       </Button>
     </instancer-empty>

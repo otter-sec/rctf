@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight, IconClockFilled, IconX } from '$lib/icons'
+  import { IconCaretRight, IconClock, IconX } from '$lib/icons'
   import Dialog from '$lib/ui/dialog.svelte'
   import { includeOperatorLabel, setFilterMode, type MultiFilter } from './core'
   import FilterOptionList from './filter-option-list.svelte'
@@ -69,7 +69,7 @@
     <Icon aria-hidden="true" />
     <span data-label>{family.label}</span>
     {#if summary}<span data-summary>{summary}</span>{/if}
-    <IconChevronRight aria-hidden="true" data-chevron />
+    <IconCaretRight aria-hidden="true" data-chevron />
   </button>
 {/snippet}
 
@@ -84,7 +84,7 @@
             aria-label="Back to filters"
             onclick={() => (activeId = null)}
           >
-            <IconChevronRight aria-hidden="true" data-back />
+            <IconCaretRight aria-hidden="true" data-back />
           </button>
         {/if}
         <drawer-title>{title}</drawer-title>
@@ -142,12 +142,12 @@
             {/each}
             {#if timeFilter}
               <button type="button" data-row onclick={() => (activeId = 'time')}>
-                <IconClockFilled aria-hidden="true" />
+                <IconClock aria-hidden="true" />
                 <span data-label>Time</span>
                 {#if hasTimeRangeFilter(timeFilter)}
                   <span data-summary>{formatTimeRangeSummary(timeFilter, ctfStartTime)}</span>
                 {/if}
-                <IconChevronRight aria-hidden="true" data-chevron />
+                <IconCaretRight aria-hidden="true" data-chevron />
               </button>
             {/if}
           </root-list>

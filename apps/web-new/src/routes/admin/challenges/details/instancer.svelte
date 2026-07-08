@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
-  import { IconCloudComputingFilled } from '$lib/icons'
+  import { IconCloud } from '$lib/icons'
   import { useInstancerSchema } from '$lib/query/admin'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Input from '$lib/ui/input.svelte'
@@ -101,7 +101,7 @@
     <pane-loading><Spinner label="Loading instancer schema" /></pane-loading>
   {:else if !schema}
     <EmptyState
-      icon={IconCloudComputingFilled}
+      icon={IconCloud}
       title="Instancer not configured"
       subtitle="No on-demand instancer provider is configured on the backend."
     />

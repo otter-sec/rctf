@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import Markdown from '$lib/components/markdown.svelte'
-  import { IconDownload, IconFileFilled } from '$lib/icons'
+  import { IconDownload, IconFiles } from '$lib/icons'
   import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import Section from '$lib/ui/section.svelte'
@@ -45,7 +45,7 @@
           <file-list tabindex="-1">
             {#each challenge.files as file (file.url)}
               <a href={file.url} target="_blank" rel="noopener noreferrer">
-                <IconFileFilled data-slot="icon" />
+                <IconFiles data-slot="icon" />
                 <file-meta>
                   <span data-slot="name">{file.name}</span>
                   <span data-slot="size">{formatFileSize(file.size)}</span>

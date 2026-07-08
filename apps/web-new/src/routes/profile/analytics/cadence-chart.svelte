@@ -3,7 +3,7 @@
   import { createHoverTip } from '$lib/chart/hover-tip.svelte'
   import { createLinearScale } from '$lib/chart/scale'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
-  import { IconFlagFilled } from '$lib/icons'
+  import { IconFlagBanner } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import { formatRelativeHoursMinutes } from '$lib/utils/time'
   import { maxChartValue, type CadenceDatum } from './analytics-data'
@@ -111,7 +111,7 @@
     {/if}
   </cadence-root>
 {:else}
-  <EmptyState icon={IconFlagFilled} title="No solves yet." />
+  <EmptyState icon={IconFlagBanner} title="No solves yet." />
 {/if}
 
 <style>

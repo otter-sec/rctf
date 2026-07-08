@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown, IconClockFilled, IconFilter, IconX } from '$lib/icons'
+  import { IconCaretDown, IconClock, IconFunnel, IconX } from '$lib/icons'
   import Spinner from '$lib/ui/spinner.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { MultiFilter } from './core'
@@ -48,7 +48,7 @@
       ? {
           id: 'time',
           label: 'Time',
-          icon: IconClockFilled,
+          icon: IconClock,
           searchTerms: ['date', 'range', 'ctf', 'relative'],
         }
       : undefined
@@ -69,14 +69,14 @@
   {#if timeFilter}
     <filter-chip data-invalid={timeError ? '' : undefined}>
       <chip-label>
-        <IconClockFilled aria-hidden="true" />
+        <IconClock aria-hidden="true" />
         Time
       </chip-label>
       <FilterPopover label="Time range" width="18rem">
         {#snippet trigger({ props })}
           <button {...props} type="button" data-chip-value>
             <chip-summary>{timeSummary}</chip-summary>
-            <IconChevronDown aria-hidden="true" data-chevron />
+            <IconCaretDown aria-hidden="true" data-chevron />
           </button>
         {/snippet}
         {#snippet panel()}
@@ -112,7 +112,7 @@
           data-active={hasActiveFilters || undefined}
           onclick={() => (drawerOpen = true)}
         >
-          <IconFilter aria-hidden="true" />
+          <IconFunnel aria-hidden="true" />
         </button>
       {/snippet}
     </Tooltip>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { validateAvatarFile } from '$lib/components/avatar-upload-logic'
-  import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
+  import { IconCamera, IconTrash } from '$lib/icons'
   import { toast } from '$lib/toast'
   import Avatar from '$lib/ui/avatar.svelte'
   import Button from '$lib/ui/button.svelte'
@@ -92,12 +92,12 @@
         onchange={handleFileSelect}
       />
       <Button size="sm" onclick={() => fileInput?.click()} disabled={loading}>
-        <IconCameraFilled />
+        <IconCamera />
         {avatarUrl ? 'Change' : 'Upload'}
       </Button>
       {#if avatarUrl}
         <Button variant="destructive" size="sm" onclick={handleRemove} disabled={loading}>
-          <IconTrashFilled />
+          <IconTrash />
           Remove
         </Button>
       {/if}

@@ -10,7 +10,7 @@ import {
   type ResultTone,
   type ValueFilterFamily,
 } from '$lib/filters/ui'
-import { IconCircleCheckFilled, IconUsersGroup } from '$lib/icons'
+import { IconCheckCircle, IconUsersThree } from '$lib/icons'
 import {
   statusLabel,
   TEAM_STATUS_VALUES,
@@ -46,7 +46,7 @@ export function statusFilterFamily(
     id: 'status',
     label: 'Status',
     pluralLabel: 'statuses',
-    icon: IconCircleCheckFilled,
+    icon: IconCheckCircle,
     menuSize: 'narrow',
     searchTerms: ['active', 'banned', 'admin', 'unverified'],
     clear: () => clearFilter(filter),
@@ -68,7 +68,7 @@ export function divisionFilterFamily(
     id: 'division',
     label: 'Division',
     pluralLabel: 'divisions',
-    icon: IconUsersGroup,
+    icon: IconUsersThree,
     menuSize: 'narrow',
     clear: () => clearFilter(filter),
     emptyLabel: 'No divisions',

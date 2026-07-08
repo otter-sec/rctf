@@ -3,7 +3,7 @@
   import type { MultiFilter } from '$lib/filters/core'
   import FilterBar from '$lib/filters/filter-bar.svelte'
   import type { ValueFilterFamily } from '$lib/filters/ui'
-  import { IconChevronDown, IconSearch } from '$lib/icons'
+  import { IconCaretDown, IconSearch } from '$lib/icons'
   import Avatar from '$lib/ui/avatar.svelte'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
   import { nextSort, type SortState } from '../admin-table-logic'
@@ -155,7 +155,7 @@
   <th-cell data-active={active || undefined} data-order={active ? sort.order : undefined}>
     <button type="button" onclick={() => toggleSort(col)}>
       <span>{label}</span>
-      <IconChevronDown aria-hidden="true" data-arrow />
+      <IconCaretDown aria-hidden="true" data-arrow />
     </button>
   </th-cell>
 {/snippet}

@@ -11,7 +11,7 @@
 <script lang="ts">
   import { normalizeProps, useMachine } from '@zag-js/svelte'
   import * as treeView from '@zag-js/tree-view'
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
 
   interface Props {
     nodes: TreeViewNode[]
@@ -97,7 +97,7 @@
       >
         <span {...api.getBranchTriggerProps(nodeProps)} aria-label="Toggle {node.label}">
           <span {...api.getBranchIndicatorProps(nodeProps)}>
-            <IconChevronDown />
+            <IconCaretDown />
           </span>
         </span>
         {@render rowContent(node, api.getBranchTextProps(nodeProps) as Record<string, unknown>)}

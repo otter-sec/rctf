@@ -2,7 +2,7 @@
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute, type Challenge } from '@rctf/types'
   import { showApiError } from '$lib/api'
   import { useApiForm } from '$lib/forms/use-api-form.svelte'
-  import { IconCheck, IconInfoCircleFilled, IconLogin, IconSend } from '$lib/icons'
+  import { IconCheck, IconInfo, IconPaperPlaneTilt, IconSignIn } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
   import { toast } from '$lib/toast'
@@ -73,17 +73,17 @@
 <challenge-submit>
   {#if submitState === 'archived'}
     <submit-notice>
-      <IconInfoCircleFilled />
+      <IconInfo />
       <span>The CTF is archived.</span>
     </submit-notice>
   {:else if submitState === 'ended'}
     <submit-notice>
-      <IconInfoCircleFilled />
+      <IconInfo />
       <span>The CTF has ended.</span>
     </submit-notice>
   {:else if submitState === 'login'}
     <Button href="/login">
-      <IconLogin />
+      <IconSignIn />
       Login to submit
     </Button>
   {:else}
@@ -116,7 +116,7 @@
           {#if form.submitting}
             <Spinner />
           {:else}
-            <IconSend />
+            <IconPaperPlaneTilt />
           {/if}
         </button>
       </submit-row>

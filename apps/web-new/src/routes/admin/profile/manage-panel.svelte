@@ -17,7 +17,7 @@
   import AvatarUpload from '$lib/components/avatar-upload.svelte'
   import DivisionMenu from '$lib/components/division-menu.svelte'
   import FlagPicker from '$lib/components/flag-picker.svelte'
-  import { IconCopy, IconFilter, IconKeyFilled, IconTrashFilled } from '$lib/icons'
+  import { IconCopy, IconFunnel, IconKey, IconTrash } from '$lib/icons'
   import { invalidateAdminTeamQueries, useAdminUser } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -355,7 +355,7 @@
           {#if pendingAction === 'token'}
             <Spinner />
           {:else}
-            <IconKeyFilled />
+            <IconKey />
           {/if}
           Copy login token
         </Button>
@@ -370,7 +370,7 @@
         </Button>
 
         <Button variant="secondary" disabled={busy} onclick={viewSubmissions}>
-          <IconFilter />
+          <IconFunnel />
           View submissions
         </Button>
 
@@ -385,7 +385,7 @@
           {#if pendingAction === 'delete'}
             <Spinner />
           {:else}
-            <IconTrashFilled />
+            <IconTrash />
           {/if}
           Delete team
         </Button>

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
-  import { getCategoryConfig } from '$lib/utils/categories'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
   import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
+  import { getCategoryConfig } from '$lib/utils/categories'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
   import ScoresGraph from '../graph/graph.svelte'
