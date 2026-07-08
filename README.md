@@ -1,6 +1,6 @@
 <div align="center">
 
-# <picture><source media="(prefers-color-scheme: dark)" srcset="apps/docs/src/assets/wordmark-dark.svg" /><img alt="rCTF" src="apps/docs/src/assets/wordmark-light.svg" /></picture>
+# <picture><source media="(prefers-color-scheme: dark)" srcset="apps/docs/src/assets/banner-dark.svg" /><img alt="rCTF" src="apps/docs/src/assets/banner-light.svg" /></picture>
 
 [![Docs][Docs Badge]][Docs]
 [![CI][CI Badge]][CI]
