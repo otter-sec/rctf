@@ -1,8 +1,10 @@
+import { getCategoryConfig } from '$lib/utils/categories'
 import { formatRelativeHoursMinutes } from '$lib/utils/time'
 
 export type TooltipIcon =
   | { kind: 'solved' }
   | { kind: 'blood'; medal: 1 | 2 | 3 }
+  | { kind: 'category'; category: string }
 
 export interface TooltipLine {
   text: string
@@ -119,7 +121,22 @@ function resolveHeaderChallenge(dataset: CellDataset): CellTooltip | null {
     dataset.dynamic !== undefined
       ? 'Dynamic scoring'
       : `${Number(dataset.points ?? 0)} pts`
-  return { title, capitalize: false, lines: [{ text }] }
+  const category = dataset.category
+  return {
+    title,
+    capitalize: false,
+    lines: [
+      {
+        text,
+        ...(category !== undefined
+          ? {
+              icon: { kind: 'category' as const, category },
+              iconLabel: getCategoryConfig(category).name,
+            }
+          : {}),
+      },
+    ],
+  }
 }
 
 function resolveHeaderCategory(dataset: CellDataset): CellTooltip | null {

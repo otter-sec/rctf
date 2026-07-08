@@ -86,6 +86,7 @@
     data-kind={isCategory ? CELL_KIND.headerCategory : CELL_KIND.headerChallenge}
     data-col={isCategory ? item.group.category : item.challenge.id}
     data-name={isCategory ? item.group.config.name : item.challenge.name}
+    data-category={isCategory ? item.group.category : item.challenge.category}
     data-points={isCategory ? fixedCategoryPoints(item.group) : item.challenge.points}
     data-count={isCategory ? item.group.challenges.length : undefined}
     data-dynamic-count={isCategory ? dynamicCount(item.group) || undefined : undefined}
