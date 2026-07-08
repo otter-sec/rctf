@@ -232,6 +232,7 @@
 
 <scores-shell
   style:--score-content-width={`${contentWidth}px`}
+  data-fade-scope
   data-self-edge={selfEdge ?? undefined}
 >
   <mobile-graph>
@@ -242,6 +243,7 @@
   <scores-scroll
     {@attach virtual.scrollContainer}
     {@attach captureScroll}
+    data-fade-source
     tabindex="-1"
     onpointermove={hover.handlePointerMove}
     onpointerleave={hover.handlePointerLeave}
