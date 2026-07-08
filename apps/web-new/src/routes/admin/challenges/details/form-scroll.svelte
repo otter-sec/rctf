@@ -18,7 +18,7 @@
 </script>
 
 <form-viewport>
-  <form-scroll {@attach captureScroll} data-mode={disabled ? 'view' : 'edit'}>
+  <form-scroll {@attach captureScroll} tabindex="-1" data-mode={disabled ? 'view' : 'edit'}>
     {@render children()}
   </form-scroll>
   <EdgeFades top={fades.top} bottom={fades.bottom} />

@@ -312,7 +312,7 @@
 {#snippet treePane()}
   <schema-form-tree>
     <tree-viewport>
-      <tree-scroll bind:this={treeEl}>
+      <tree-scroll bind:this={treeEl} tabindex="-1">
         <TreeView
           nodes={viewNodes}
           bind:selected={
@@ -356,7 +356,7 @@
     {/if}
 
     <detail-viewport>
-      <detail-scroll bind:this={detailEl}>
+      <detail-scroll bind:this={detailEl} tabindex="-1">
         {#key detailEpoch}
           {#if renamableKey !== null}
             <key-rename>
@@ -494,7 +494,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 1px;
     }
   }
 
@@ -575,7 +574,6 @@
 
       &:focus-visible {
         outline: 2px solid var(--ring);
-        outline-offset: 2px;
       }
     }
   }
@@ -591,7 +589,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
     }
   }
 

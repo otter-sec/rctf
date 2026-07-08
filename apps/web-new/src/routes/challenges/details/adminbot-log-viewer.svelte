@@ -37,7 +37,7 @@
 </script>
 
 <log-viewer>
-  <log-lines>
+  <log-lines tabindex="-1">
     {#each entries as entry, index (index)}
       {@const expandable = hasExtra(entry)}
       {@const isExpanded = expanded.has(index)}

@@ -130,7 +130,7 @@
   </list-header>
 
   <list-viewport>
-    <list-scroll bind:this={listEl}>
+    <list-scroll bind:this={listEl} tabindex="-1">
       {#if groups.length === 0}
         <EmptyState
           icon={IconZoomQuestionFilled}
@@ -232,7 +232,6 @@
 
     &:focus-within {
       outline: 2px solid var(--ring);
-      outline-offset: 1px;
     }
 
     :global(svg) {
@@ -294,7 +293,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
     }
 
     :global(svg) {

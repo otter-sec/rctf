@@ -78,10 +78,8 @@
 {#if data.length > 0}
   <timeline-root style="--chart-height: {height}px">
     <div data-viewport bind:clientWidth={width}>
-      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <svg
         role="img"
-        tabindex="0"
         aria-label="Solve timeline with {data.length} solve{data.length === 1 ? '' : 's'}"
         {width}
         {height}

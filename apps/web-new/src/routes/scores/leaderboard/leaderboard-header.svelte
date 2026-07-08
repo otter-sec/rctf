@@ -304,7 +304,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 3px;
       border-radius: var(--radius-xs);
     }
 

@@ -152,7 +152,6 @@
 
     &:focus-within {
       outline: 2px solid var(--ring);
-      outline-offset: 1px;
     }
 
     :global(svg) {
@@ -220,7 +219,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
     }
   }
 </style>

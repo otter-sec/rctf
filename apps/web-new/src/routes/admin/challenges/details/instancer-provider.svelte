@@ -85,7 +85,7 @@
 {/snippet}
 
 <provider-viewport>
-  <provider-pane data-disabled={disabled || undefined} {@attach captureScroll}>
+  <provider-pane data-disabled={disabled || undefined} {@attach captureScroll} tabindex="-1">
     {#if schemaQuery.isPending}
       <pane-loading><Spinner label="Loading instancer schema" /></pane-loading>
     {:else if !config}
@@ -208,7 +208,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
   }

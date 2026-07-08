@@ -148,7 +148,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
     }
 
     &[data-dragging] {
@@ -213,6 +212,10 @@
 
     &:hover file-name {
       text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline-offset: 0;
     }
   }
 
