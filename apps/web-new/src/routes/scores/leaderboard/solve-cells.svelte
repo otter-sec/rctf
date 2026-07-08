@@ -329,8 +329,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
-    line-height: 1;
   }
 
   dyn-value {

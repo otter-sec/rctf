@@ -303,19 +303,16 @@
   ctf-name {
     color: var(--foreground-l0);
     font-size: 1.5rem;
-    line-height: 1;
   }
 
   subtitle-text {
     color: var(--foreground-l2);
     font-size: 1rem;
-    line-height: 1;
   }
 
   date-range {
     color: var(--foreground-l3);
     font-size: 0.875rem;
-    line-height: 1;
 
     span {
       color: var(--foreground-l4);
