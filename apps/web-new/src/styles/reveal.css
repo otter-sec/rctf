@@ -1,0 +1,15 @@
+[data-reveal] {
+  animation: reveal-fade-in 300ms ease;
+}
+
+@keyframes reveal-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    animation: none;
+  }
+}

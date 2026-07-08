@@ -13,6 +13,7 @@ import {
   ALL_PERMISSIONS,
   ChallengeScoringKind,
   DynamicScoringTransport,
+  ExposeKind,
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
@@ -35,6 +36,22 @@ const SOLVE_END_OFFSET = 5 * 60_000
 
 const TEAM_COUNT = 1000
 const FLAG_CHALLENGE_COUNT = 38
+
+const resolveTeamCount = (): number => {
+  const raw = Bun.env.SEED_TEAM_COUNT
+  if (raw === undefined || raw.trim() === '') {
+    return TEAM_COUNT
+  }
+
+  const parsed = Number(raw.trim())
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(
+      `SEED_TEAM_COUNT must be a positive integer, got: ${JSON.stringify(raw)}`
+    )
+  }
+
+  return parsed
+}
 
 const SOLVE_COUNT_EXPONENT = 2.2
 const TOP_SOLVE_RATIO = 0.85
@@ -59,6 +76,8 @@ const KOTH_CHALLENGES = [
   { id: 'seed-koth-1', penalties: false },
   { id: 'seed-koth-2', penalties: true },
 ] as const
+const INSTANCER_CHALLENGE_ID = 'instancer-playground'
+const ADMIN_BOT_CHALLENGE_ID = 'admin-bot-playground'
 const KOTH_TICK_INTERVAL = 15 * 60_000
 const KOTH_MAX_POINTS = 880
 const KOTH_PAYOUT_EXPONENT = 1.1
@@ -83,6 +102,34 @@ const WRONG_FLAGS = [
   'rctf{hello}',
   '',
 ] as const
+
+const ADMIN_BOT_PLAYGROUND_CODE = `const { Challenge } = require('../types')
+
+export const challenge = new Challenge({
+  timeoutMilliseconds: 30000,
+  inputs: {
+    url: { pattern: '^https?://.+', flags: 'i' },
+  },
+  handler: async ctx => {
+    const page = await ctx.browserContext.newPage()
+    await page.setCookie({
+      name: 'flag',
+      value: ctx.job.flag,
+      url: ctx.input.url,
+    })
+    ctx.output.info('admin-bot', 'visiting ' + ctx.input.url)
+    await page.goto(ctx.input.url, { waitUntil: 'networkidle2', timeout: 15000 })
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    await page.close()
+  },
+  hooksConfig: {
+    showConsoleLogs: false,
+    showBrowserErrors: false,
+    showNavigation: false,
+    limitTabsNumber: -1,
+  },
+})
+`
 
 const randomInt = (max: number) => Math.floor(Math.random() * max)
 const randomItem = <T>(items: readonly T[]): T =>
@@ -132,7 +179,7 @@ function buildTeams(config: ServerConfig): User[] {
     divisions.push('open')
   }
 
-  return Array.from({ length: TEAM_COUNT }, (_, index) => {
+  return Array.from({ length: resolveTeamCount() }, (_, index) => {
     const padded = String(index + 1).padStart(3, '0')
 
     return {
@@ -224,7 +271,77 @@ const buildChallenges = (): Challenge[] => {
     })
   )
 
-  return [...flags, ...koths]
+  const playgrounds = [
+    makeChallenge(
+      INSTANCER_CHALLENGE_ID,
+      FLAG_CHALLENGE_COUNT + KOTH_CHALLENGES.length,
+      {
+        name: 'Instancer Playground',
+        description:
+          'On-demand instanced challenge for exercising the instancer panel.',
+        category: 'web',
+        points: { min: 100, max: 500 },
+        flag: 'rctf{instancer_playground}',
+        releaseTime: Date.now() - DAY,
+        instancerConfig: {
+          challengeIntegrationId: INSTANCER_CHALLENGE_ID,
+          instancer: 'docker',
+          config: {
+            services: {
+              app: {
+                image: 'traefik/whoami:latest',
+                environment: { CHALLENGE: INSTANCER_CHALLENGE_ID },
+              },
+            },
+          },
+          expose: [
+            {
+              kind: ExposeKind.HTTP,
+              hostPrefix: 'instancer-playground-web',
+              containerName: 'app',
+              containerPort: 80,
+              shouldDisplay: true,
+              title: 'Web',
+            },
+            {
+              kind: ExposeKind.TCP,
+              hostPrefix: 'instancer-playground-nc',
+              containerName: 'app',
+              containerPort: 1337,
+              shouldDisplay: true,
+              title: 'Netcat',
+            },
+          ],
+          timeoutMilliseconds: 600_000,
+          extendable: true,
+        },
+      }
+    ),
+    makeChallenge(
+      ADMIN_BOT_CHALLENGE_ID,
+      FLAG_CHALLENGE_COUNT + KOTH_CHALLENGES.length + 1,
+      {
+        name: 'Admin Bot Playground',
+        description:
+          'Standalone admin-bot challenge for exercising the admin-bot panel.',
+        category: 'web',
+        points: { min: 100, max: 500 },
+        flag: 'rctf{admin_bot_playground}',
+        releaseTime: Date.now() - DAY,
+        adminBotConfig: {
+          code: ADMIN_BOT_PLAYGROUND_CODE,
+          inputs: {
+            url: { pattern: '^https?://.+', flags: 'i' },
+          },
+          revision: '1',
+          timeoutMilliseconds: 60_000,
+          requireInstancerInstancesRunning: false,
+        },
+      }
+    ),
+  ]
+
+  return [...flags, ...koths, ...playgrounds]
 }
 
 const pickChallengeIndices = (weights: readonly number[], count: number) =>
