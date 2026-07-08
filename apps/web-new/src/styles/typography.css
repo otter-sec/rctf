@@ -26,13 +26,13 @@ body {
 
 a {
   text-decoration: underline;
-  text-decoration-color: var(--underline, transparent);
+  text-decoration-color: color-mix(in oklab, var(--underline, transparent) 75%, transparent);
   text-decoration-thickness: max(1px, 0.0625em);
   text-decoration-skip-ink: none;
   text-underline-position: under;
   text-underline-offset: -0.06em;
 
   &:hover {
-    text-decoration-color: currentColor;
+    text-decoration-color: var(--underline, currentColor);
   }
 }
