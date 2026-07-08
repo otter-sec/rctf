@@ -24,6 +24,7 @@ export const CELL_KIND = {
   category: 'category',
   headerChallenge: 'header-challenge',
   headerCategory: 'header-category',
+  divisionRank: 'division-rank',
 } as const
 
 export type CellKind = (typeof CELL_KIND)[keyof typeof CELL_KIND]
@@ -43,6 +44,8 @@ export function resolveCellTooltip(
       return resolveHeaderChallenge(dataset)
     case CELL_KIND.headerCategory:
       return resolveHeaderCategory(dataset)
+    case CELL_KIND.divisionRank:
+      return resolveDivisionRank(dataset)
     default:
       return null
   }
@@ -131,6 +134,16 @@ function resolveHeaderCategory(dataset: CellDataset): CellTooltip | null {
     title,
     capitalize: true,
     lines: [{ text: `${count} ${noun} · ${points} pts${suffix}` }],
+  }
+}
+
+function resolveDivisionRank(dataset: CellDataset): CellTooltip | null {
+  const title = dataset.name
+  if (title === undefined || !dataset.place) return null
+  return {
+    title,
+    capitalize: false,
+    lines: [{ text: `#${Number(dataset.place)} in division` }],
   }
 }
 
