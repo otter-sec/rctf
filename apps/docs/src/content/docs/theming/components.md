@@ -1,10 +1,12 @@
 ---
 title: "Components"
-description: "Overview of the rCTF UI component library: Zag.js primitives with native scoped CSS."
+description: "How rCTF builds UI components from Zag.js machines and scoped CSS."
 order: 3
 ---
 
-The rCTF UI layer is built on [Zag.js](https://zagjs.com/) headless state machines wrapped in Svelte 5 components and styled with native scoped `<style>{:html}` blocks. Variants are plain [data attributes](/theming/colors/) and styling hooks are custom-element tags. You can find reusable primitives in `apps/web-new/src/lib/ui/{:dir}` and the feature components that compose them (Navigation, Markdown, ThemeToggle) in `apps/web-new/src/lib/components/{:dir}`. Icons are vendored as local Svelte components in `apps/web-new/src/lib/icons/{:dir}` from [Tabler icons](https://tabler.io/icons).
+rCTF's interface is plain Svelte 5 components styled with scoped `<style>{:html}` blocks. There is no CSS framework and no utility classes. Widgets that need real interaction logic, like dialogs and menus, get their behavior from [Zag.js](https://zagjs.com/) state machines, and rCTF owns all of the markup and styling around them.
+
+Reusable primitives live in `apps/web-new/src/lib/ui/{:dir}`. Bigger pieces that compose them, like the navigation bar and the Markdown renderer, live in `apps/web-new/src/lib/components/{:dir}`. Icons come from [Tabler Icons](https://tabler.io/icons) and are vendored as small Svelte components in `apps/web-new/src/lib/icons/{:dir}`. Component variants are plain [data attributes](/theming/colors/), and layout wrappers are custom-element tags like `<ui-card>{:html}`.
 
 Components fall into three tiers by how much machinery they need.
 
@@ -12,13 +14,13 @@ Components fall into three tiers by how much machinery they need.
 
 | Tier | Components |
 | --- | --- |
-| **Native HTML/CSS** | `Button`, `Input`, `Textarea`, `Checkbox`, `Card`, `Section`, `Chip`, `Spinner`, `Progress`, `EmptyState`, `Field` |
-| **Zag.js machines** | `Dialog`, `Menu`, `Combobox`, `Tabs`, `Accordion`, `Tooltip`, `Avatar`, `Splitter`, `Toast` |
-| **Custom Svelte** | `TagInput`, `Markdown`, `Portal` |
+| **Native HTML/CSS** | `Button`, `Input`, `Textarea`, `Checkbox`, `Card`, `Section`, `Chip`, `Spinner`, `EmptyState`, `Field`, `StatusCard` |
+| **Zag.js machines** | `Dialog`, `Menu`, `Combobox`, `Tabs`, `Accordion`, `Tooltip`, `Avatar`, `Splitter`, `Progress`, `TreeView`, `Toast` |
+| **Custom Svelte** | `TagInput`, `Portal` |
 
 :::
 
-Native components are a semantic element (or a custom-element tag) plus a scoped `<style>{:html}` block and no JavaScript. Zag components wrap a `@zag-js/*{:ts}` machine once and style its emitted parts. Custom components are ported or hand-written logic that no headless machine covers.
+Native components are a semantic element or a custom-element tag plus a scoped `<style>{:html}` block, with no JavaScript. Zag components wrap a `@zag-js/*{:ts}` machine once and style the parts it emits. Custom components carry hand-written logic that no headless machine covers.
 
 ## Adding components
 
@@ -45,11 +47,11 @@ Adding a component means creating one Svelte file, choosing a tier, and expressi
 
    The reactive props passed to `useMachine{:ts}` **must** be a thunk, or controlled state silently freezes:
 
-```svelte showLineNumbers=false
-const service = useMachine(dialog.machine, () => ({ id, open }))
-const api = $derived(dialog.connect(service, normalizeProps))
-```
-
+   ```svelte showLineNumbers=false
+   const service = useMachine(dialog.machine, () => ({ id, open }))
+   const api = $derived(dialog.connect(service, normalizeProps))
+   ```
+    
    IDs come from `$props.id(){:ts}` (never `Math.random()`), and every `@zag-js/*{:ts}` package is pinned to the same 1.x version.
 
 6. **Validate**
@@ -60,7 +62,7 @@ const api = $derived(dialog.connect(service, normalizeProps))
 
 ## Full example
 
-`card.svelte{:file}` is a native component: custom-element tags for structure, a scoped `<style>{:html}` block that reads layout and color tokens, and no JavaScript beyond the props.
+`card.svelte{:file}` is a native component. It uses custom-element tags for structure and a scoped `<style>{:html}` block that reads layout and color tokens, with no JavaScript beyond the props.
 
 ```svelte title="lib/ui/card.svelte" showLineNumbers
 <script lang="ts">
@@ -94,7 +96,7 @@ const api = $derived(dialog.connect(service, normalizeProps))
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
-    padding: var(--space-m);
+    padding: var(--space-s-m);
     background: var(--background-l1);
     border-radius: var(--radius-lg);
   }
@@ -118,5 +120,5 @@ const api = $derived(dialog.connect(service, normalizeProps))
 </style>
 ```
 
-For a variant-driven native component, see `button.svelte{:file}`: it renders either a `<button>{:html}` or an `<a>{:html}` depending on whether `href` is set, carries `data-variant` and `data-size`, and its scoped style targets those attributes (`&[data-variant='default']{:css}` maps to `var(--background-accent){:css}`, `&[data-size='sm']{:css}` shrinks the height, and so on) rather than composing utility classes.
+For a variant-driven native component, see `button.svelte{:file}`. It renders either a `<button>{:html}` or an `<a>{:html}` depending on whether `href` is set, and it carries `data-variant` and `data-size` attributes. The scoped style targets those attributes instead of composing utility classes, so `&[data-variant='default']{:css}` maps to `var(--background-accent){:css}` and `&[data-size='sm']{:css}` shrinks the height.
 </content>

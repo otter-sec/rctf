@@ -42,13 +42,17 @@ order: 1
   }
 </style>
 
-All colors in rCTF are vendored from [Radix Colors](https://www.radix-ui.com/colors). Every token is declared once in `:root{:css}` as a `light-dark(<light>, <dark>){:css}` pair, and `color-scheme: light dark{:css}` lets the browser resolve the correct side per mode. The active mode is driven by the `data-theme{:html}` attribute on `<html>{:html}`: `:root[data-theme='light']{:css}` and `:root[data-theme='dark']{:css}` pin `color-scheme{:css}`, and with no attribute set the page follows the OS via `prefers-color-scheme`. A pre-paint inline script reads `localStorage.theme` into `document.documentElement.dataset.theme` so there is no flash on load.
+All colors in rCTF come from [Radix Colors](https://www.radix-ui.com/colors). The palette is copied into `apps/web-new/src/styles/color.css{:file}`, so there is no runtime dependency on Radix itself.
+
+Every token is declared once with `light-dark(){:css}`, which carries both the light value and the dark value. The browser picks a side based on `color-scheme{:css}`. Setting `data-theme{:html}` to `light` or `dark` on `<html>{:html}` pins the page to one mode. When the attribute is absent, the page follows the operating system through `prefers-color-scheme{:css}`.
+
+The theme toggle saves your choice to `localStorage{:js}`. A small blocking script, `static/theme.js{:file}`, restores it onto `<html>{:html}` before the page first paints, so a reload never flashes the wrong theme.
 
 ## Color reference
 
 ### Layered colors
 
-The foundation of rCTF's color system is Radix's neutral `gray{:css}` scale. Layers `l0` through `l5` map onto ascending gray steps: backgrounds climb from `gray-1{:css}` (the page base) toward `gray-7{:css}`, while foregrounds descend from `gray-12{:css}` (primary text) toward `gray-8{:css}`. Higher layer numbers add emphasis for backgrounds and reduce prominence for foregrounds.
+Most of the UI is drawn with Radix's neutral `gray{:css}` scale. Backgrounds and foregrounds each come in six layers, `l0` through `l5`. Background layers climb the gray steps from `gray-1{:css}` (the page base) up to `gray-7{:css}`, so a higher number stands out more. Foreground layers walk down from `gray-12{:css}` (primary text) to `gray-8{:css}`, so a higher number fades further back.
 
 :::table{cols="auto auto auto auto auto"}
 
@@ -63,7 +67,7 @@ The foundation of rCTF's color system is Radix's neutral `gray{:css}` scale. Lay
 
 :::
 
-Component styles read these tokens directly, e.g. `background: var(--background-l1){:css}` and `color: var(--foreground-l2){:css}`. There is no utility-class layer between the tokens and the components.
+Component styles read these tokens directly, as in `background: var(--background-l1){:css}` or `color: var(--foreground-l2){:css}`. There is no utility-class layer in between.
 
 ### Semantic colors
 
@@ -81,25 +85,25 @@ Semantic colors convey meaning. Each role pairs a soft background wash with a re
 
 ### Scoreboard colors
 
-Leaderboard colors are reserved for visualizing rankings on scoreboards and podiums, as well as for highlighting first, second, and third bloods. Gold, silver, and bronze semantically denote the top three placements (see [Wikipedia's "Hierarchy of precious substances"](https://en.wikipedia.org/wiki/Hierarchy_of_precious_substances)), while `self` highlights the current user's row. `nth` is applied to every participant outside the top three and is a mapping of the layered color system.
+These colors appear on scoreboards, podiums, and blood medals. `gold`, `silver`, and `bronze` mark the top three placements (see [Wikipedia's "Hierarchy of precious substances"](https://en.wikipedia.org/wiki/Hierarchy_of_precious_substances)). `self` highlights the current user's row, and `nth` covers everyone outside the top three by reusing the layered grays.
 
 :::table{cols="auto auto auto auto auto"}
 
 | Color | Background (light) | Background (dark) | Foreground (light) | Foreground (dark) |
 | --- | --- | --- | --- | --- |
-| `gold` | <color-swatch style="--c:#ffde003d;--bg:#fcfcfc">amber-a3</color-swatch> | <color-swatch style="--c:#fa820022;--bg:#111111">amber-a3</color-swatch> | <color-swatch style="--c:#ab6400">amber-11</color-swatch> | <color-swatch style="--c:#ffca16">amber-11</color-swatch> |
-| `silver` | <color-swatch style="--c:#0000330f;--bg:#fcfcfc">slate-a3</color-swatch> | <color-swatch style="--c:#ddeaf814;--bg:#111111">slate-a3</color-swatch> | <color-swatch style="--c:#60646c">slate-11</color-swatch> | <color-swatch style="--c:#b0b4ba">slate-11</color-swatch> |
-| `bronze` | <color-swatch style="--c:#a04b0018;--bg:#fcfcfc">brown-a3</color-swatch> | <color-swatch style="--c:#fcb58c19;--bg:#111111">brown-a3</color-swatch> | <color-swatch style="--c:#815e46">brown-11</color-swatch> | <color-swatch style="--c:#dbb594">brown-11</color-swatch> |
+| `gold` | <color-swatch style="--c:#ffde003d;--bg:#fcfcfc">amber-a3</color-swatch> | <color-swatch style="--c:#ffc53d26;--bg:#111111">amber-9 15%</color-swatch> | <color-swatch style="--c:#ab6400">amber-11</color-swatch> | <color-swatch style="--c:#ffca16">amber-11</color-swatch> |
+| `silver` | <color-swatch style="--c:#0000330f;--bg:#fcfcfc">slate-a3</color-swatch> | <color-swatch style="--c:#696e774d;--bg:#111111">slate-9 30%</color-swatch> | <color-swatch style="--c:#60646c">slate-11</color-swatch> | <color-swatch style="--c:#b0b4ba">slate-11</color-swatch> |
+| `bronze` | <color-swatch style="--c:#9f4d0035;--bg:#fcfcfc">brown-a5</color-swatch> | <color-swatch style="--c:#ad7f5840;--bg:#111111">brown-9 25%</color-swatch> | <color-swatch style="--c:#815e46">brown-11</color-swatch> | <color-swatch style="--c:#dbb594">brown-11</color-swatch> |
 | `self` | <color-swatch style="--c:#e6f7ed">jade-3</color-swatch> | <color-swatch style="--c:#0f2e22">jade-3</color-swatch> | <color-swatch style="--c:#208368">jade-11</color-swatch> | <color-swatch style="--c:#1fd8a4">jade-11</color-swatch> |
 | `nth` | <color-swatch style="--c:#d9d9d9">background-l4</color-swatch> | <color-swatch style="--c:#2a2a2a">background-l3</color-swatch> | <color-swatch style="--c:#202020">foreground-l0</color-swatch> | <color-swatch style="--c:#6e6e6e">foreground-l3</color-swatch> |
 
 :::
 
-`gold`, `silver`, and `bronze` each expose `--background-<medal>{:css}` plus `--foreground-<medal>-l0{:css}` and `--foreground-<medal>-l1{:css}` (a 70%-alpha variant). `self` and `nth` expose `-l0{:css}` / `-l1{:css}` background and foreground pairs.
+The token sets differ a little per color. Each medal has one background, `--background-gold{:css}` and so on, plus two foregrounds. The `-l1{:css}` foreground is the `-l0{:css}` color at 70% opacity and is used for secondary text on a medal row. `self` has two backgrounds and two foregrounds (`--background-self-l0{:css}`, `--background-self-l1{:css}`, `--foreground-self-l0{:css}`, `--foreground-self-l1{:css}`) because the current user's row needs more states. `nth` has a single `--background-nth{:css}` and two foregrounds that reuse the layered grays.
 
 ### Graph colors
 
-Graph colors are exclusively used to color lines on graphs and sparklines. The tokens are `--foreground-first{:css}` through `--foreground-tenth{:css}`, each mapping to the solid step 9 of a distinct Radix hue (identical in light and dark).
+Graph colors are only used for lines on graphs and sparklines. The tokens run from `--foreground-first{:css}` to `--foreground-tenth{:css}`. Each one is step 9 of a different Radix hue and stays the same in both modes.
 
 :::table{cols="auto auto auto"}
 
@@ -120,7 +124,7 @@ Graph colors are exclusively used to color lines on graphs and sparklines. The t
 
 ### Prose colors
 
-Prose colors are used for text in prose content, such as descriptions of challenges and homepage content.
+Prose colors style rendered Markdown, such as challenge descriptions and homepage content.
 
 :::table{cols="auto auto auto"}
 
@@ -134,7 +138,7 @@ Prose colors are used for text in prose content, such as descriptions of challen
 
 ### Category colors
 
-Each challenge category is assigned one of ten hue ramps. Every hue defines a two-step background wash and two foreground levels, all drawn from Radix alpha scales so they sit correctly on any layer.
+Challenge categories pick from ten hues. Each hue has two background tints plus a hover variant and two foreground levels. All of them come from Radix's alpha scales, so they blend into whatever layer they sit on.
 
 :::table{cols="auto auto auto auto auto"}
 
@@ -153,6 +157,6 @@ Each challenge category is assigned one of ten hue ramps. Every hue defines a tw
 
 :::
 
-Each hue also defines a `--background-<hue>-l1-hover{:css}` variant for hover states. The generic `--category-*{:css}` tokens are remapped onto one of these ramps by the `[data-category-color='<hue>']{:css}` blocks in `color.css{:file}`. See [Categories](/theming/categories/) for how a component activates a hue.
+A `[data-category-color='<hue>']{:css}` block in `color.css{:file}` points the generic `--category-*{:css}` tokens at one of these ramps. See [Categories](/theming/categories/) for how a component picks its hue.
 </content>
 </invoke>

@@ -52,7 +52,9 @@ order: 2
   }
 </style>
 
-Each challenge category in rCTF has an icon, a display name, and a color, configured in `apps/web-new/src/lib/utils/categories.ts{:file}`. A category's `color{:ts}` is one of ten hue keys from the `CategoryColor{:ts}` union (e.g. `red`). Colors are applied declaratively: a container element carries `data-category-color={config.color}{:svelte}`, and matching `[data-category-color='<hue>']{:css}` blocks in `apps/web-new/src/styles/color.css{:file}` remap the generic `--category-*{:css}` tokens onto that hue's ramp. Because custom properties inherit, descendants read the generic tokens (`var(--category-foreground-l0){:css}`, `var(--category-background-l0){:css}`, …) without knowing which hue is active.
+Every challenge category has an icon, a display name, and a color. All three are configured in `apps/web-new/src/lib/utils/categories.ts{:file}`. The color is one of ten names like `'red'{:ts}` or `'teal'{:ts}`, listed in the `CategoryColor{:ts}` type.
+
+Applying the color takes one attribute. A component sets `data-category-color={config.color}{:svelte}` on a wrapping element, and a matching block in `apps/web-new/src/styles/color.css{:file}` points the generic `--category-*{:css}` variables at that hue. CSS variables inherit, so everything inside the wrapper can read `var(--category-foreground-l0){:css}` and the other generic tokens without knowing which hue is active.
 
 ## Default categories
 
@@ -111,7 +113,7 @@ A component sets `data-category-color` on a container, and descendants read the 
 </style>
 ```
 
-Each hue defines five variables in `color.css{:file}` for both light and dark modes (via `light-dark(){:css}`): `--background-<hue>-l0{:css}`, `--background-<hue>-l1{:css}`, `--background-<hue>-l1-hover{:css}`, `--foreground-<hue>-l0{:css}`, and `--foreground-<hue>-l1{:css}`.
+Each hue defines five variables in `color.css{:file}`, all declared as `light-dark(){:css}` pairs. They are `--background-<hue>-l0{:css}`, `--background-<hue>-l1{:css}`, `--background-<hue>-l1-hover{:css}`, `--foreground-<hue>-l0{:css}`, and `--foreground-<hue>-l1{:css}`.
 
 :::
 ## Adding a custom category
@@ -136,14 +138,14 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
 
 2. **Register the icon**
 
-   Icons are vendored as local Svelte components under `lib/icons/{:file}`. Add the component file (e.g. `lib/icons/icon-cpu-filled.svelte{:file}`) and export it from `lib/icons/index.ts{:file}`:
+   Icons are vendored as local Svelte components under `lib/icons/{:dir}`. Add the component file (e.g. `lib/icons/icon-cpu-filled.svelte{:file}`) and export it from `lib/icons/index.ts{:file}`:
 
 ```ts title="lib/icons/index.ts" ins={3}
-export { default as IconAlertCircleFilled } from './icon-alert-circle-filled.svelte'
-export { default as IconCameraFilled } from './icon-camera-filled.svelte'
+export { default as IconCoinFilled } from './icon-coin-filled.svelte'
+export { default as IconCopy } from './icon-copy.svelte'
 export { default as IconCpuFilled } from './icon-cpu-filled.svelte'
-export { default as IconPhotoFilled } from './icon-photo-filled.svelte'
-export { default as IconAlertTriangleFilled } from './icon-alert-triangle-filled.svelte'
+export { default as IconDice6Filled } from './icon-dice6-filled.svelte'
+export { default as IconDownload } from './icon-download.svelte'
    ```
 
 3. **Set the display order (optional)**
@@ -171,7 +173,7 @@ export const categoryOrder = [
 
 4. **Add a hue (if using a new color)**
 
-   The `color{:ts}` must be a member of the `CategoryColor{:ts}` union. To introduce a hue that isn't already there, add it to the union in `categories.ts{:file}`, then define its ramp in `apps/web-new/src/styles/color.css{:file}`: `--background-<hue>-l0{:css}`, `--background-<hue>-l1{:css}`, `--background-<hue>-l1-hover{:css}`, `--foreground-<hue>-l0{:css}`, and `--foreground-<hue>-l1{:css}` (as `light-dark(){:css}` pairs). Finally add a `[data-category-color='<hue>']{:css}` block that points the generic `--category-*{:css}` tokens at those variables. Reuse an existing hue to skip this step.
+   The `color{:ts}` must be a member of the `CategoryColor{:ts}` union. Reusing an existing hue skips this step entirely. To introduce a new hue, add it to the union in `categories.ts{:file}`, then define the five ramp variables for it in `apps/web-new/src/styles/color.css{:file}` following the pattern above. Finish with a `[data-category-color='<hue>']{:css}` block that points the generic `--category-*{:css}` tokens at the new ramp.
 
 :::
 
@@ -183,7 +185,7 @@ The following utility functions help with category configuration:
 
 | Function | Purpose |
 | --- | --- |
-| `getCategoryConfig(category){:ts}` | Returns `{ name, icon, color }{:ts}` for a category key, falling back to a default flag icon and `gray{:ts}` for unknown keys |
+| `getCategoryConfig(category){:ts}` | Returns `{ name, icon, color }{:ts}` for a category key. Unknown keys fall back to a flag icon, `gray{:ts}`, and the key itself as the display name |
 | `getCategoryKeyOrAlias(category){:ts}` | Lowercases the key and resolves aliases to canonical keys (`'rev'{:ts}` => `'reverse'{:ts}`) |
 | `getCategoryOrder(category){:ts}` | Returns the sort index in `categoryOrder{:ts}` (`-1{:ts}` if unlisted) |
 | `getScoreboardCategoryOrder(category){:ts}` | Returns the sort index in `scoreboardCategoryOrder{:ts}` (`-1{:ts}` if unlisted) |
