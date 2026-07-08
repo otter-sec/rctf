@@ -15,6 +15,7 @@
   import RootEdgeFades from '$lib/components/root-edge-fades.svelte'
   import ToastHost from '$lib/ui/toast-host.svelte'
   import { initAnalytics } from '$lib/utils/analytics'
+  import { initFadeFallback } from '$lib/utils/fade-fallback'
   import { onMount } from 'svelte'
   import type { LayoutProps } from './$types'
 
@@ -22,6 +23,7 @@
 
   onMount(() => {
     initAnalytics(data.clientConfig)
+    return initFadeFallback()
   })
 
   function onAnimationEnd(event: AnimationEvent) {
