@@ -382,13 +382,16 @@
     --score-fade-inset-bottom: 0px;
     --score-fade-region-top: calc(var(--score-mobile-graph-height) + var(--space-3xs));
     --score-fade-rail: 0px;
-    timeline-scope: --lb-block, --lb-inline;
     position: relative;
     display: flex;
     flex-direction: column;
     min-block-size: 0;
     inline-size: 100%;
     max-inline-size: 100%;
+
+    &[data-fade-scope] {
+      timeline-scope: --edge-fade, --lb-block, --lb-inline;
+    }
 
     &[data-self-edge='top'] {
       --score-fade-inset-top: var(--score-row-height-full);
@@ -496,9 +499,13 @@
     outline: none;
     overscroll-behavior: none;
     scrollbar-width: none;
-    scroll-timeline:
-      --lb-block block,
-      --lb-inline inline;
+
+    &[data-fade-source] {
+      scroll-timeline:
+        --edge-fade block,
+        --lb-block block,
+        --lb-inline inline;
+    }
   }
 
   scores-table {
