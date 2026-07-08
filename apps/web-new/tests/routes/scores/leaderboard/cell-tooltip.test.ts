@@ -220,4 +220,28 @@ describe('resolveCellTooltip', () => {
       )!.lines
     ).toEqual([{ text: '1 challenge · 500 pts' }])
   })
+
+  test('division rank cell shows the division name and place', () => {
+    const tooltip = resolveCellTooltip(
+      { kind: 'division-rank', name: 'High School', place: '2' },
+      START_TIME
+    )
+    expect(tooltip).toEqual({
+      title: 'High School',
+      capitalize: false,
+      lines: [{ text: '#2 in division' }],
+    })
+  })
+
+  test('division rank cell without a name or place yields no tooltip', () => {
+    expect(
+      resolveCellTooltip({ kind: 'division-rank', place: '2' }, START_TIME)
+    ).toBeNull()
+    expect(
+      resolveCellTooltip(
+        { kind: 'division-rank', name: 'High School' },
+        START_TIME
+      )
+    ).toBeNull()
+  })
 })
