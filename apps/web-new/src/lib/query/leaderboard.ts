@@ -17,7 +17,7 @@ import {
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
 import { getNextOffset } from '$lib/query/challenges'
-import { ApiError } from '$lib/query/core'
+import { unwrapData } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 import { getCategoryKeyOrAlias } from '$lib/utils/categories'
 
@@ -81,10 +81,10 @@ export function useLeaderboardWithGraph(filters: () => LeaderboardFilters) {
           ...(division !== undefined ? { division } : {}),
           ...(search !== undefined ? { search } : {}),
         })
-        if (response.kind === GoodLeaderboardWithGraph.kind) {
-          return { ...response.data, offset: pageParam }
+        return {
+          ...unwrapData(response, GoodLeaderboardWithGraph),
+          offset: pageParam,
         }
-        throw new ApiError(response.kind, response.message)
       },
       initialPageParam: 0,
       getNextPageParam: (lastPage: LeaderboardWithGraphPage) =>
@@ -103,10 +103,9 @@ export const leaderboardChallengesQueryOptions = queryOptions({
   queryKey: queryKeys.leaderboardChallenges,
   queryFn: async () => {
     const response = await apiRequest(GetLeaderboardChallengesRouteV2)
-    if (response.kind === GoodLeaderboardChallengesV2.kind) {
-      return excludeSanityChallenges(response.data.challenges)
-    }
-    throw new ApiError(response.kind, response.message)
+    return excludeSanityChallenges(
+      unwrapData(response, GoodLeaderboardChallengesV2).challenges
+    )
   },
   refetchInterval: 30 * 1000,
 })
@@ -120,10 +119,7 @@ export function leaderboardQueryOptions(params: LeaderboardParams) {
     queryKey: queryKeys.leaderboard(params),
     queryFn: async () => {
       const response = await apiRequest(GetLeaderboardRouteV2, params)
-      if (response.kind === GoodLeaderboardV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodLeaderboardV2)
     },
   })
 }

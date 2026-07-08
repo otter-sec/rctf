@@ -22,7 +22,7 @@ import {
   type QueryClient,
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
-import { ApiError } from '$lib/query/core'
+import { ApiError, unwrapData } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 import { instancePollInterval } from '$lib/utils/instancer'
 
@@ -72,10 +72,7 @@ export const challengesQueryOptions = queryOptions({
   queryKey: queryKeys.challenges,
   queryFn: async () => {
     const response = await apiRequest(GetChallengesRouteV2)
-    if (response.kind === GoodChallengesV2.kind) {
-      return response.data
-    }
-    throw new ApiError(response.kind, response.message)
+    return unwrapData(response, GoodChallengesV2)
   },
   refetchInterval: 30 * 1000,
 })
@@ -95,10 +92,7 @@ export function challengeScoresQueryOptions(
         id: id!,
         ...params,
       })
-      if (response.kind === GoodChallengeScoresV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodChallengeScoresV2)
     },
     enabled: !!id,
     refetchInterval: 30 * 1000,
@@ -120,10 +114,7 @@ export function challengeSolvesSelfQueryOptions(id: string | null) {
         id: id!,
         ...SELF_SOLVES_PARAMS,
       })
-      if (response.kind === GoodChallengeSolvesV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodChallengeSolvesV2)
     },
     enabled: !!id,
     refetchInterval: 30 * 1000,
@@ -148,10 +139,10 @@ export function useChallengeSolvesInfinite(
           limit: INFINITE_PAGE_SIZE,
           offset: pageParam,
         })
-        if (response.kind === GoodChallengeSolvesV2.kind) {
-          return { ...response.data, offset: pageParam }
+        return {
+          ...unwrapData(response, GoodChallengeSolvesV2),
+          offset: pageParam,
         }
-        throw new ApiError(response.kind, response.message)
       },
       enabled: !!challengeId,
       initialPageParam: 0,
@@ -172,10 +163,10 @@ export function useChallengeScoresInfinite(id: () => string | null) {
           limit: INFINITE_PAGE_SIZE,
           offset: pageParam,
         })
-        if (response.kind === GoodChallengeScoresV2.kind) {
-          return { ...response.data, offset: pageParam }
+        return {
+          ...unwrapData(response, GoodChallengeScoresV2),
+          offset: pageParam,
         }
-        throw new ApiError(response.kind, response.message)
       },
       enabled: !!challengeId,
       initialPageParam: 0,
@@ -226,10 +217,7 @@ export function adminBotStatusQueryOptions(
       const response = await apiRequest(GetAdminBotJobStatusRouteV2, {
         id: id!,
       })
-      if (response.kind === GoodAdminBotJobStatus.kind) {
-        return response.data.job
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodAdminBotJobStatus).job
     },
     enabled: enabled && !!id,
     refetchInterval: query => {
@@ -259,10 +247,7 @@ export function adminBotHistoryQueryOptions(
       const response = await apiRequest(GetAdminBotJobHistoryRouteV2, {
         id: id!,
       })
-      if (response.kind === GoodAdminBotJobHistory.kind) {
-        return response.data.jobs
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodAdminBotJobHistory).jobs
     },
     enabled: enabled && !!id,
   })

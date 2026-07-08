@@ -15,6 +15,23 @@ export class ApiError extends Error {
   }
 }
 
+export function unwrapData<
+  R extends { kind: string; message: string },
+  K extends R['kind'],
+>(
+  response: R,
+  good: { kind: K }
+): Extract<R, { kind: K }> extends { data: infer D } ? D : never {
+  if (response.kind !== good.kind) {
+    throw new ApiError(response.kind, response.message)
+  }
+  return (
+    response as unknown as {
+      data: Extract<R, { kind: K }> extends { data: infer D } ? D : never
+    }
+  ).data
+}
+
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {

@@ -29,14 +29,12 @@ import {
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
 import { getNextOffset } from '$lib/query/challenges'
-import { ApiError } from '$lib/query/core'
+import { unwrapData } from '$lib/query/core'
 import {
   queryKeys,
   type AdminSubmissionsQueryParams,
   type AdminUsersQueryParams,
 } from '$lib/query/keys'
-
-const INFINITE_PAGE_SIZE = 100
 
 export function nextPageOffset(
   lastPage: { offset: number; total: number },
@@ -61,10 +59,7 @@ export const adminChallengesQueryOptions = queryOptions({
   queryKey: queryKeys.adminChallenges,
   queryFn: async () => {
     const response = await apiRequest(GetAdminChallengesRouteV2)
-    if (response.kind === GoodAdminChallengesV2.kind) {
-      return response.data
-    }
-    throw new ApiError(response.kind, response.message)
+    return unwrapData(response, GoodAdminChallengesV2)
   },
 })
 
@@ -77,10 +72,7 @@ export function adminChallengeQueryOptions(id: string | null) {
     queryKey: queryKeys.adminChallenge(id ?? ''),
     queryFn: async () => {
       const response = await apiRequest(GetAdminChallengeRouteV2, { id: id! })
-      if (response.kind === GoodAdminChallengeV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodAdminChallengeV2)
     },
     enabled: !!id,
   })
@@ -95,10 +87,7 @@ export function adminUserQueryOptions(id: string | null) {
     queryKey: queryKeys.adminUser(id ?? ''),
     queryFn: async () => {
       const response = await apiRequest(GetAdminUserRouteV2, { id: id! })
-      if (response.kind === GoodAdminUserV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodAdminUserV2)
     },
     enabled: !!id,
   })
@@ -121,10 +110,7 @@ export function useAdminUsersInfinite(
           ...query,
           offset: pageParam,
         })
-        if (response.kind === GoodAdminUsersV2.kind) {
-          return { ...response.data, offset: pageParam }
-        }
-        throw new ApiError(response.kind, response.message)
+        return { ...unwrapData(response, GoodAdminUsersV2), offset: pageParam }
       },
       enabled: enabled(),
       initialPageParam: 0,
@@ -147,10 +133,10 @@ export function useAdminSubmissionsInfinite(
           ...query,
           offset: pageParam,
         })
-        if (response.kind === GoodAdminSubmissions.kind) {
-          return { ...response.data, offset: pageParam }
+        return {
+          ...unwrapData(response, GoodAdminSubmissions),
+          offset: pageParam,
         }
-        throw new ApiError(response.kind, response.message)
       },
       enabled: enabled(),
       initialPageParam: 0,
@@ -165,10 +151,7 @@ export const adminUserVerificationsQueryOptions = queryOptions({
   queryKey: queryKeys.adminUserVerifications,
   queryFn: async () => {
     const response = await apiRequest(GetAdminUserVerificationsRouteV2)
-    if (response.kind === GoodAdminUserVerificationsV2.kind) {
-      return response.data
-    }
-    throw new ApiError(response.kind, response.message)
+    return unwrapData(response, GoodAdminUserVerificationsV2)
   },
 })
 
@@ -183,10 +166,7 @@ export const adminSettingsQueryOptions = queryOptions({
   queryKey: queryKeys.adminSettings,
   queryFn: async () => {
     const response = await apiRequest(GetAdminSettingsRouteV2)
-    if (response.kind === GoodAdminSettings.kind) {
-      return response.data
-    }
-    throw new ApiError(response.kind, response.message)
+    return unwrapData(response, GoodAdminSettings)
   },
 })
 
@@ -198,10 +178,7 @@ export const adminExternalAuthClientsQueryOptions = queryOptions({
   queryKey: queryKeys.adminExternalAuthClients,
   queryFn: async () => {
     const response = await apiRequest(ListExternalAuthClientsRouteV2)
-    if (response.kind === GoodAdminExternalAuthClients.kind) {
-      return response.data
-    }
-    throw new ApiError(response.kind, response.message)
+    return unwrapData(response, GoodAdminExternalAuthClients)
   },
 })
 

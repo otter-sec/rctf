@@ -8,7 +8,7 @@ import {
 } from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest, isAuthenticated } from '$lib/api'
-import { ApiError } from '$lib/query/core'
+import { unwrapData } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 
 export const userSelfQueryOptions = queryOptions({
@@ -36,10 +36,7 @@ export function userByIdQueryOptions(id: string) {
     queryKey: queryKeys.userById(id),
     queryFn: async () => {
       const response = await apiRequest(GetUserRouteV2, { id })
-      if (response.kind === GoodUserDataV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodUserDataV2)
     },
   })
 }
@@ -53,10 +50,7 @@ export function membersQueryOptions(enabled: boolean) {
     queryKey: queryKeys.members,
     queryFn: async () => {
       const response = await apiRequest(GetMembersRoute)
-      if (response.kind === GoodMemberData.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
+      return unwrapData(response, GoodMemberData)
     },
     enabled,
   })
