@@ -257,7 +257,7 @@
     pointer-events: auto;
     position: absolute;
     inset-block-end: 0;
-    inset-inline-start: 50%;
+    inset-inline-start: calc(50% + 3px);
     max-inline-size: 9.5rem;
     color: var(--category-foreground-l1);
     font-size: var(--step-0);
