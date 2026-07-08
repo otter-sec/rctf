@@ -481,10 +481,14 @@
     translate: 0 var(--row-y);
     contain: layout style paint;
 
-    &:has(:global(a:focus-visible)) {
-      outline: 2px solid var(--ring);
-      outline-offset: -2px;
+    &:has(:global(a:focus-visible))::after {
+      content: '';
+      position: absolute;
+      inset: 0 0 var(--score-row-gap) 0;
+      z-index: 11;
+      border: 2px solid var(--ring);
       border-radius: var(--radius-lg);
+      pointer-events: none;
     }
   }
 

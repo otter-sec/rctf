@@ -214,7 +214,7 @@
     </solves-controls>
   </solves-header>
 
-  <solves-body>
+  <solves-body tabindex="-1">
     {#if emptyState !== null}
       <EmptyState
         icon={IconZoomQuestionFilled}
@@ -395,7 +395,6 @@
 
     &:focus-within {
       outline: 2px solid var(--ring);
-      outline-offset: 1px;
     }
 
     :global(svg) {
@@ -475,7 +474,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
     }
   }
 

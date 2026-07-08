@@ -135,10 +135,8 @@
 <graph-root>
   {#if hasContent}
     <div data-graph-viewport bind:clientWidth={width} bind:clientHeight={height}>
-      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
       <svg
         role="img"
-        tabindex="0"
         aria-label={ariaLabel}
         {width}
         {height}

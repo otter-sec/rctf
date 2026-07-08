@@ -129,7 +129,7 @@
     onToggleCollapse={toggleCollapseAll}
   />
 
-  <list-scroll>
+  <list-scroll tabindex="-1">
     {#if groups.length === 0}
       <EmptyState
         icon={IconZoomQuestionFilled}

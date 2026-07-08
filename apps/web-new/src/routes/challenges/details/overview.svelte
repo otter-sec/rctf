@@ -42,7 +42,7 @@
     {#if challenge.files.length > 0}
       <Section title="Files">
         <files-box>
-          <file-list>
+          <file-list tabindex="-1">
             {#each challenge.files as file (file.url)}
               <a href={file.url} target="_blank" rel="noopener noreferrer">
                 <IconFileFilled data-slot="icon" />
@@ -145,7 +145,7 @@
 
       &:focus-visible {
         outline: 2px solid var(--ring);
-        outline-offset: 2px;
+        outline-offset: 0;
       }
     }
 
