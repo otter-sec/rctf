@@ -1,28 +1,28 @@
 ---
 import ChevronIcon from '@/assets/icons/callouts/alt-arrow-down.svg'
-import InlineText from '@/components/InlineText.astro'
-import type { TocHeading } from '@/lib/content'
+import { asInline, type InlineLabel, type TocHeading } from '@/lib/content'
 
 type Section = {
   id?: string
-  label: string
+  label: InlineLabel
   open?: boolean
   headings: TocHeading[]
 }
-type Props = { title: string; sections: Section[] }
+type Props = { title: InlineLabel; sections: Section[] }
 
-const { title, sections } = Astro.props
+const { title: titleLabel, sections } = Astro.props
+const title = asInline(titleLabel)
 ---
 
 <nav aria-label="Table of contents">
-  <toc-title aria-hidden="true"><span><InlineText value={title} /></span></toc-title>
+  <toc-title aria-hidden="true"><span><Fragment set:html={title.html} /></span></toc-title>
   <label data-bar>
     <input type="checkbox" aria-label="Toggle table of contents" />
     <svg viewBox="0 0 16 16" aria-hidden="true">
       <circle cx="8" cy="8" r="6.5"></circle>
       <circle cx="8" cy="8" r="6.5" transform="rotate(-90 8 8)"></circle>
     </svg>
-    <toc-current><InlineText value={title} /></toc-current>
+    <toc-current><Fragment set:html={title.html} /></toc-current>
     <ChevronIcon aria-hidden="true" />
   </label>
   <ul data-bar>
@@ -34,7 +34,7 @@ const { title, sections } = Astro.props
               <details open={open || undefined}>
                 <summary>
                   <a href={`#${id}`}>
-                    <InlineText value={label} />
+                    <Fragment set:html={asInline(label).html} />
                   </a>
                   <ChevronIcon aria-hidden="true" />
                 </summary>
@@ -48,7 +48,7 @@ const { title, sections } = Astro.props
               </details>
             ) : (
               <a href={`#${id}`}>
-                <InlineText value={label} />
+                <Fragment set:html={asInline(label).html} />
               </a>
             )}
           </li>

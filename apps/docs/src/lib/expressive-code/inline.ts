@@ -42,6 +42,11 @@ function parseAnnotation(value: string): Annotation | null {
 
 const raw = (value: string): ElementContent => ({ type: 'raw', value })
 
+export function plainCodeValue(value: string): string {
+  const code = stripCodeAnnotationTags(value.replace(/\{:[^}]+\}$/, ''))
+  return code.startsWith('$ ') && code.length > 2 ? code.slice(2) : code
+}
+
 const pathIcons: Record<string, string> = {
   folder: loadIcon('code/folder'),
   file: loadIcon('code/file'),

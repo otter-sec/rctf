@@ -2,15 +2,15 @@
 import ListIcon from '@/assets/icons/list.svg'
 import SearchIcon from '@/assets/icons/search.svg'
 import Wordmark from '@/assets/wordmark.svg'
-import InlineText from '@/components/InlineText.astro'
 import SidebarTree from '@/components/SidebarTree.astro'
 import ThemeToggle from '@/components/ThemeToggle.astro'
 import { NAVIGATION, SITE } from '@/consts'
+import { asInline, type InlineLabel } from '@/lib/content'
 import type { DocsTreeNode } from '@/lib/docs'
 import { normalizePath } from '@/lib/utils'
 
 type Props = {
-  crumbs?: { label: string; href: string }[]
+  crumbs?: { label: InlineLabel; href: string }[]
   tree?: DocsTreeNode[]
 }
 
@@ -31,7 +31,7 @@ const section = NAVIGATION.find(
         NAVIGATION.map(item => (
           <li>
             <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>
-              <InlineText value={item.label} />
+              {item.label}
             </a>
             {item === section && tree && (
               <sidebar-tree>
@@ -46,7 +46,7 @@ const section = NAVIGATION.find(
                       href={crumb.href}
                       aria-current={i === crumbs.length - 1 ? 'page' : undefined}
                     >
-                      <InlineText value={crumb.label} />
+                      <Fragment set:html={asInline(crumb.label).html} />
                     </a>
                   </li>
                 ))}
@@ -60,7 +60,7 @@ const section = NAVIGATION.find(
           crumbs.map((crumb, i) => (
             <li data-depth={i ? 1 : undefined}>
               <a href={crumb.href} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>
-                <InlineText value={crumb.label} />
+                <Fragment set:html={asInline(crumb.label).html} />
               </a>
             </li>
           ))

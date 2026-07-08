@@ -1,7 +1,7 @@
 ---
 import { SITE } from '@/consts'
 import { pageTitle } from '@/lib/content'
-import { plainInlineText } from '@/lib/rich-text'
+import { plainInline } from '@/lib/inline-markdown'
 
 type Props = {
   title?: string
@@ -20,8 +20,8 @@ const {
 } = Astro.props
 
 const base = Astro.site ?? new URL(Astro.url.origin)
-const plainTitle = title ? plainInlineText(title) : undefined
-const plainDescription = plainInlineText(description)
+const plainTitle = title ? plainInline(title) : undefined
+const plainDescription = plainInline(description)
 const ogTitle = plainTitle ?? SITE.title
 const fullTitle = plainTitle ? pageTitle(plainTitle) : SITE.title
 const canonical = new URL(canonicalPath ?? Astro.url.pathname, base)

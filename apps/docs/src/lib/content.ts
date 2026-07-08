@@ -1,26 +1,46 @@
 import { SITE } from '@/consts'
 import type { MarkdownHeading } from 'astro'
-import { plainInlineText } from './rich-text'
+import type { InlineRendered } from './frontmatter-inline'
+import { plainInline } from './inline-markdown'
 
-export const pageTitle = (title: string) => `${plainInlineText(title)} | ${SITE.title}`
+export const pageTitle = (title: string) => `${plainInline(title)} | ${SITE.title}`
+
+const escapeHtml = (value: string) =>
+  value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+
+export type InlineLabel = string | InlineRendered
+
+export const asInline = (label: InlineLabel): InlineRendered =>
+  typeof label === 'string' ? { html: escapeHtml(label), text: label } : label
+
+type RenderedFrontmatter = {
+  inline?: Partial<Record<'title' | 'description', InlineRendered>>
+  tocHtml?: Record<string, string>
+}
+
+type RenderableEntry = {
+  rendered?: { metadata?: Record<string, unknown> }
+  data: { title?: unknown; description?: unknown }
+}
+
+export function entryInline(
+  entry: RenderableEntry,
+  field: 'title' | 'description'
+): InlineRendered {
+  const frontmatter = entry.rendered?.metadata?.frontmatter as RenderedFrontmatter | undefined
+  const rendered = frontmatter?.inline?.[field]
+  if (rendered) return rendered
+  const raw = String(entry.data[field] ?? '')
+  return { html: escapeHtml(raw), text: raw }
+}
 
 export type TocHeading = MarkdownHeading & { html?: string }
 
-const HEADING_RE = /<h([2-6])[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g
-const TOC_UNSUPPORTED_RE =
-  /<\/?(?:a|copy-command)\b[^>]*>|<span class="shell-prompt"[^>]*><\/span>/g
-
-export function enrichHeadings(
-  headings: MarkdownHeading[],
-  html: string | undefined
-): TocHeading[] {
-  if (!html) return headings
-  const inner = new Map<string, string>()
-  for (const [, , id, content] of html.matchAll(HEADING_RE)) {
-    inner.set(id, content.replace(TOC_UNSUPPORTED_RE, '').trim())
-  }
+export function enrichHeadings(headings: MarkdownHeading[], frontmatter: unknown): TocHeading[] {
+  const inner = (frontmatter as RenderedFrontmatter | undefined)?.tocHtml
+  if (!inner) return headings
   return headings.map(heading => {
-    const html = inner.get(heading.slug)
+    const html = inner[heading.slug]
     return html && html !== heading.text ? { ...heading, html } : heading
   })
 }

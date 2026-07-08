@@ -44,14 +44,27 @@ prose-content {
       color: var(--prose-marker);
     }
 
-    > blockquote,
-    .expressive-code,
-    file-tree {
-      margin-block-start: 1em;
+    > p {
+      margin-block: 0 1em;
     }
 
-    > p {
-      margin-block: 0;
+    > :is(
+      blockquote,
+      figure,
+      details,
+      table,
+      pre,
+      math-display,
+      .expressive-code,
+      file-tree,
+      tab-group,
+      step-list
+    ) {
+      margin-block: 1em;
+    }
+
+    > :last-child {
+      margin-block-end: 0;
     }
 
     &.task-list-item {

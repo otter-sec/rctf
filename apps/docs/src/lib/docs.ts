@@ -1,14 +1,15 @@
 import { getCollection, type CollectionEntry } from 'astro:content'
-import { plainInlineText } from './rich-text'
+import { asInline, entryInline } from './content'
+import type { InlineRendered } from './frontmatter-inline'
 
 export type DocsEntry = CollectionEntry<'docs'>
 
 export type DocsTreeNode =
-  | { type: 'page'; href: string; label: string; order: number }
+  | { type: 'page'; href: string; label: InlineRendered; order: number }
   | {
       type: 'group'
       href?: string
-      label: string
+      label: InlineRendered
       order: number
       children: DocsTreeNode[]
     }
@@ -29,7 +30,7 @@ const humanize = (segment: string) => {
 }
 
 const byOrder = (a: DocsTreeNode, b: DocsTreeNode) =>
-  a.order - b.order || plainInlineText(a.label).localeCompare(plainInlineText(b.label))
+  a.order - b.order || a.label.text.localeCompare(b.label.text)
 
 export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
   const root: DocsTreeNode[] = []
@@ -41,7 +42,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
     const segments = path.split('/')
     const group: DocsGroup = {
       type: 'group',
-      label: humanize(segments[segments.length - 1]),
+      label: asInline(humanize(segments[segments.length - 1])),
       order: Infinity,
       children: [],
     }
@@ -56,7 +57,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
     const isGroupIndex = entries.some(other => other.id.startsWith(`${entry.id}/`))
     if (isGroupIndex) {
       const group = ensureGroup(entry.id)
-      group.label = entry.data.title
+      group.label = entryInline(entry, 'title')
       group.href = docsHref(entry.id)
       group.order = entry.data.order ?? Infinity
     } else {
@@ -65,7 +66,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
       ;(parent ? parent.children : root).push({
         type: 'page',
         href: docsHref(entry.id),
-        label: entry.data.title,
+        label: entryInline(entry, 'title'),
         order: entry.data.order ?? Infinity,
       })
     }
@@ -83,7 +84,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
 
 const byEntryOrder = (a: DocsEntry, b: DocsEntry) =>
   (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
-  plainInlineText(a.data.title).localeCompare(plainInlineText(b.data.title))
+  entryInline(a, 'title').text.localeCompare(entryInline(b, 'title').text)
 
 export function getScrollChain(entries: DocsEntry[], entry: DocsEntry): DocsEntry[] | null {
   let index: DocsEntry | undefined
@@ -110,14 +111,14 @@ export type FlatDoc = { href: string; title: string }
 export function flattenDocsTree(entries: DocsEntry[], tree: DocsTreeNode[]): FlatDoc[] {
   const flat: FlatDoc[] = []
   const index = entries.find(entry => entry.id === 'index')
-  if (index) flat.push({ href: '/', title: index.data.title })
+  if (index) flat.push({ href: '/', title: entryInline(index, 'title').text })
 
   const walk = (nodes: DocsTreeNode[]) => {
     for (const node of nodes) {
       if (node.type === 'page') {
-        flat.push({ href: node.href, title: node.label })
+        flat.push({ href: node.href, title: node.label.text })
       } else {
-        if (node.href) flat.push({ href: node.href, title: node.label })
+        if (node.href) flat.push({ href: node.href, title: node.label.text })
         walk(node.children)
       }
     }
