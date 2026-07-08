@@ -11,7 +11,11 @@ type TeamLike = Pick<
 > & { solves: readonly { id: string }[] }
 
 export function createScreenshotModel(data: ScoresData) {
-  function toTeam(entry: TeamLike, rank: number, fallbackColor: string): ScreenshotTeam {
+  function toTeam(
+    entry: TeamLike,
+    rank: number,
+    fallbackColor: string
+  ): ScreenshotTeam {
     return {
       id: entry.id,
       rank,
