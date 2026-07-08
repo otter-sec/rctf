@@ -1,23 +1,25 @@
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
   import {
+    IconArrowsInLineVertical,
     IconAwardFilled,
+    IconCaretDown,
+    IconCaretRight,
     IconCheck,
-    IconChevronRight,
-    IconClockFilled,
-    IconCoinFilled,
+    IconClock,
+    IconEye,
     IconEyeClosed,
-    IconEyeFilled,
-    IconFilter,
-    IconFlagFilled,
-    IconFold,
+    IconFlagBanner,
+    IconFunnel,
+    IconPiggyBank,
+    IconQuestion,
     IconSearch,
-    IconTrashFilled,
-    IconZoomQuestionFilled,
+    IconTrash,
   } from '$lib/icons'
   import Accordion from '$lib/ui/accordion.svelte'
   import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
+  import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
@@ -32,7 +34,6 @@
     computeSolvesStats,
     filterRows,
     groupRowsByCategory,
-    nextSortMode,
     selectEmptyState,
     sortModeLabels,
     sortRowsByMode,
@@ -67,6 +68,15 @@
   let searchQuery = $state('')
   let hideSolved = $state(false)
   let sortMode = $state<SortMode>('category')
+
+  const sortItems = $derived<MenuItem[]>(
+    (['category', 'time', 'points'] as const).map(mode => ({
+      value: mode,
+      label: sortModeLabels[mode],
+      checked: sortMode === mode,
+      onSelect: () => (sortMode = mode),
+    }))
+  )
 
   const displayResult = $derived(
     buildDisplayRows({ challenges, solves, dynamicScores, showUnsolved })
@@ -103,10 +113,6 @@
 
   function toggleCollapse() {
     openCategories = anyOpen ? [] : [...categoryNames]
-  }
-
-  function cycleSort() {
-    sortMode = nextSortMode(sortMode)
   }
 
   function bloodTierOf(bloodIndex: number | null): BloodTier | null {
@@ -166,7 +172,7 @@
                 data-active={!anyOpen || undefined}
                 aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
               >
-                <IconFold />
+                <IconArrowsInLineVertical />
               </button>
             {/snippet}
           </Tooltip>
@@ -186,30 +192,26 @@
               {#if hideSolved}
                 <IconEyeClosed />
               {:else}
-                <IconEyeFilled />
+                <IconEye />
               {/if}
             </button>
           {/snippet}
         </Tooltip>
 
-        <Tooltip label={sortModeLabels[sortMode]}>
-          {#snippet children({ props })}
-            <button
-              {...mergeProps(props, { onclick: cycleSort })}
-              type="button"
-              data-slot="sort"
-              aria-label={sortModeLabels[sortMode]}
-            >
+        <Menu label="Sort challenges" items={sortItems} placement="bottom-end">
+          {#snippet trigger({ props })}
+            <button {...props} type="button" data-slot="sort" aria-label={sortModeLabels[sortMode]}>
               {#if sortMode === 'category'}
-                <IconFlagFilled />
+                <IconFlagBanner />
               {:else if sortMode === 'time'}
-                <IconClockFilled />
+                <IconClock />
               {:else}
-                <IconCoinFilled />
+                <IconPiggyBank />
               {/if}
+              <IconCaretDown data-slot="sort-chevron" />
             </button>
           {/snippet}
-        </Tooltip>
+        </Menu>
       </toggle-group>
     </solves-controls>
   </solves-header>
@@ -217,7 +219,7 @@
   <solves-body tabindex="-1">
     {#if emptyState !== null}
       <EmptyState
-        icon={IconZoomQuestionFilled}
+        icon={IconQuestion}
         title="No challenges"
         subtitle={emptyState === 'no-matches' ? 'No matches found' : 'No challenge data available'}
       />
@@ -239,7 +241,7 @@
                   <strong>{entries.length}</strong>
                 {/if}
               </span>
-              <IconChevronRight data-slot="chevron" />
+              <IconCaretRight data-slot="chevron" />
             </button>
           </solves-group-header>
         {/snippet}
@@ -298,7 +300,7 @@
               {#if revokingId === entry.id}
                 <Spinner />
               {:else}
-                <IconTrashFilled />
+                <IconTrash />
               {/if}
               Revoke
             </Button>
@@ -310,7 +312,7 @@
               aria-label="View submissions for {entry.name}"
               onclick={() => onViewSubmissions?.(entry.id)}
             >
-              <IconFilter />
+              <IconFunnel />
             </Button>
           {/if}
         </row-actions>
@@ -452,7 +454,13 @@
     }
 
     &[data-slot='sort'] {
+      gap: 0.25rem;
       border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
+
+      :global(svg[data-slot='sort-chevron']) {
+        font-size: 1rem;
+        color: var(--foreground-l3);
+      }
     }
 
     :global(svg) {
@@ -599,10 +607,6 @@
       font-size: 1.25rem;
       color: var(--edge-color);
     }
-  }
-
-  ul[data-flat] li {
-    background: var(--background-l1);
   }
 
   row-main {

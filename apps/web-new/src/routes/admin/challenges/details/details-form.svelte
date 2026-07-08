@@ -1,14 +1,7 @@
 <script lang="ts">
   import { ChallengeScoringKind, DynamicScoringTransport, type InstancerConfig } from '@rctf/types'
   import MarkdownEditor from '$lib/components/markdown-editor.svelte'
-  import {
-    IconChevronDown,
-    IconCloudComputingFilled,
-    IconFileInfoFilled,
-    IconRobot,
-    IconSettingsFilled,
-    IconTrophyFilled,
-  } from '$lib/icons'
+  import { IconCaretDown, IconCloud, IconFile, IconGear, IconRobot, IconTrophy } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
@@ -96,16 +89,16 @@
     {
       value: 'details',
       label: 'Details',
-      icon: IconFileInfoFilled,
+      icon: IconFile,
       invalid: detailsTabInvalid(errors) || scoringTabInvalid(errors),
     },
-    { value: 'instancer', label: 'Instancer', icon: IconCloudComputingFilled },
+    { value: 'instancer', label: 'Instancer', icon: IconCloud },
     ...(form.instancerConfig
       ? [
           {
             value: 'provider',
             label: 'Provider',
-            icon: IconSettingsFilled,
+            icon: IconGear,
             invalid: !instancerValid,
           },
         ]
@@ -117,7 +110,7 @@
           {
             value: 'solves',
             label: 'Solves',
-            icon: IconTrophyFilled,
+            icon: IconTrophy,
             count: totalSolves || undefined,
           },
         ]),
@@ -328,7 +321,7 @@
                     <Tooltip label="Delete all solves before changing the scoring kind.">
                       {#snippet children({ props })}
                         <button type="button" data-field-trigger data-disabled {...props}>
-                          {kindLabel}<IconChevronDown />
+                          {kindLabel}<IconCaretDown />
                         </button>
                       {/snippet}
                     </Tooltip>

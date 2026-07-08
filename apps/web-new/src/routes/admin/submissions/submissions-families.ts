@@ -15,14 +15,14 @@ import {
 } from '$lib/filters/ui'
 import {
   IconAwardFilled,
-  IconCircleCheckFilled,
-  IconFlag3Filled,
+  IconCheckCircle,
+  IconFlagBannerFold,
   IconGavel,
   IconLayoutListFilled,
-  IconPuzzleFilled,
+  IconPuzzlePiece,
   IconRobot,
   IconTableFilled,
-  IconUsersGroup,
+  IconUsersThree,
 } from '$lib/icons'
 import { getCategoryConfig } from '$lib/utils/categories'
 import {
@@ -75,7 +75,7 @@ function challengeFamily({
     id: 'challenge',
     label: 'Challenge',
     pluralLabel: 'challenges',
-    icon: IconPuzzleFilled,
+    icon: IconPuzzlePiece,
     menuSize: 'search',
     chipWidth: 'challenge',
     search: {
@@ -112,7 +112,7 @@ function teamFamily({
     id: 'team',
     label: 'Team',
     pluralLabel: 'teams',
-    icon: IconUsersGroup,
+    icon: IconUsersThree,
     menuSize: 'search',
     chipWidth: 'team',
     search: {
@@ -141,7 +141,7 @@ function kindFamily(filters: SubmissionFilters) {
     id: 'kind',
     label: 'Kind',
     pluralLabel: 'kinds',
-    icon: IconFlag3Filled,
+    icon: IconFlagBannerFold,
     menuSize: 'narrow',
     options: () => KIND_OPTIONS,
     optionKey: kind => kind,
@@ -267,7 +267,7 @@ function teamOptionView(team: TeamOption): FilterOptionView {
 function kindOptionView(kind: SubmissionKind): FilterOptionView {
   return {
     textValue: kindLabel(kind),
-    icon: kind === SubmissionKind.ADMIN_BOT ? IconRobot : IconFlag3Filled,
+    icon: kind === SubmissionKind.ADMIN_BOT ? IconRobot : IconFlagBannerFold,
     segments: [{ text: kindLabel(kind) }],
   }
 }
@@ -283,10 +283,7 @@ function resultOptionView(result: SubmissionResult): FilterOptionView {
 function teamStatusOptionView(status: SubmissionTeamStatus): FilterOptionView {
   return {
     textValue: teamStatusLabel(status),
-    icon:
-      status === SubmissionTeamStatus.BANNED
-        ? IconGavel
-        : IconCircleCheckFilled,
+    icon: status === SubmissionTeamStatus.BANNED ? IconGavel : IconCheckCircle,
     segments: [{ text: teamStatusLabel(status) }],
   }
 }

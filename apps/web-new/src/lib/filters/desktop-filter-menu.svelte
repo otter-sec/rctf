@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight, IconClockFilled, IconFilter } from '$lib/icons'
+  import { IconCaretRight, IconClock, IconFunnel } from '$lib/icons'
   import Spinner from '$lib/ui/spinner.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { Snippet } from 'svelte'
@@ -61,7 +61,7 @@
     <button type="button" onclick={() => (active = family)}>
       <Icon aria-hidden="true" />
       <span>{family.label}</span>
-      <IconChevronRight aria-hidden="true" data-chevron />
+      <IconCaretRight aria-hidden="true" data-chevron />
     </button>
   </family-row>
 {/snippet}
@@ -69,7 +69,7 @@
 {#snippet drillHeader()}
   <drill-header>
     <button type="button" onclick={() => (active = null)}>
-      <IconChevronRight aria-hidden="true" data-back />
+      <IconCaretRight aria-hidden="true" data-back />
       {activeLabel}
     </button>
   </drill-header>
@@ -79,9 +79,9 @@
   {#if timeFamily}
     <family-row>
       <button type="button" onclick={() => (active = 'time')}>
-        <IconClockFilled aria-hidden="true" />
+        <IconClock aria-hidden="true" />
         <span>{timeFamily.label}</span>
-        <IconChevronRight aria-hidden="true" data-chevron />
+        <IconCaretRight aria-hidden="true" data-chevron />
       </button>
     </family-row>
   {/if}
@@ -98,7 +98,7 @@
           aria-label="Add filter"
           data-active={hasFilters || undefined}
         >
-          <IconFilter aria-hidden="true" />
+          <IconFunnel aria-hidden="true" />
         </button>
       {/snippet}
     </Tooltip>

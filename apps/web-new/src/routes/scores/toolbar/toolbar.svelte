@@ -1,12 +1,12 @@
 <script lang="ts">
   import {
-    IconChevronDown,
+    IconCaretDown,
+    IconImage,
     IconLayoutListFilled,
-    IconPhotoFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
-    IconUsersGroup,
+    IconUsersThree,
     IconX,
   } from '$lib/icons'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
@@ -134,7 +134,7 @@
     {/if}
 
     <team-count>
-      <IconUsersGroup aria-hidden="true" />
+      <IconUsersThree aria-hidden="true" />
       {data.entries.length.toLocaleString()} / {data.total.toLocaleString()}
     </team-count>
 
@@ -156,7 +156,7 @@
           aria-label="Export screenshot"
           onclick={onScreenshot}
         >
-          <IconPhotoFilled aria-hidden="true" />
+          <IconImage aria-hidden="true" />
         </button>
       {/snippet}
     </Tooltip>
@@ -166,7 +166,7 @@
         {#snippet trigger({ props })}
           <button {...props} type="button" data-division-trigger>
             <span>{divisionLabel}</span>
-            <IconChevronDown aria-hidden="true" />
+            <IconCaretDown aria-hidden="true" />
           </button>
         {/snippet}
       </Menu>

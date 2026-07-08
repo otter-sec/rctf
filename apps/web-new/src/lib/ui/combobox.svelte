@@ -9,7 +9,7 @@
 <script lang="ts" generics="T extends ComboboxItem">
   import * as combobox from '@zag-js/combobox'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
-  import { IconChevronDown } from '$lib/icons'
+  import { IconCaretDown } from '$lib/icons'
   import Portal from '$lib/ui/portal.svelte'
   import type { Snippet } from 'svelte'
 
@@ -94,7 +94,7 @@
     {/if}
     <input {...inputProps} data-has-prefix={prefix ? '' : undefined} />
     <button {...api.getTriggerProps()} type="button" aria-label="Toggle options">
-      <IconChevronDown />
+      <IconCaretDown />
     </button>
   </div>
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconTrashFilled } from '$lib/icons'
+  import { IconTrash } from '$lib/icons'
   import Button from '$lib/ui/button.svelte'
   import Dialog from '$lib/ui/dialog.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
@@ -49,7 +49,7 @@
     <Button variant="ghost" onclick={onDeleteCancel}>Cancel</Button>
     <Button variant="destructive" disabled={deleting} onclick={onDeleteConfirm}>
       {#if deleting}<Spinner />{/if}
-      <IconTrashFilled />
+      <IconTrash />
       Delete challenge
     </Button>
   </dialog-footer>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
-  import { IconChevronDown, IconZoomQuestionFilled } from '$lib/icons'
+  import { IconCaretDown, IconQuestion } from '$lib/icons'
   import Accordion from '$lib/ui/accordion.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
@@ -131,11 +131,7 @@
 
   <list-scroll tabindex="-1">
     {#if groups.length === 0}
-      <EmptyState
-        icon={IconZoomQuestionFilled}
-        title="No challenges found"
-        subtitle={emptySubtitle}
-      />
+      <EmptyState icon={IconQuestion} title="No challenges found" subtitle={emptySubtitle} />
     {:else}
       <Accordion items={allCategories} value={accordionValue} onValueChange={handleValueChange}>
         {#snippet header({ value, props, expanded })}
@@ -149,7 +145,7 @@
               <span data-slot="count">
                 <strong>{solvedInCategory}</strong> / {entries.length}
               </span>
-              <IconChevronDown data-slot="chevron" />
+              <IconCaretDown data-slot="chevron" />
             </button>
           </challenges-list-group-header>
         {/snippet}

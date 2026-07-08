@@ -5,7 +5,7 @@
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
-  import { IconTrashFilled, IconTrophyFilled } from '$lib/icons'
+  import { IconTrash, IconTrophy } from '$lib/icons'
   import { useChallengeSolvesInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -113,7 +113,7 @@
 <solves>
   {#if !challengeId}
     <EmptyState
-      icon={IconTrophyFilled}
+      icon={IconTrophy}
       title="No challenge selected"
       subtitle="Select a challenge to view its solves."
     />
@@ -121,7 +121,7 @@
     <solves-status><Spinner label="Loading solves" /></solves-status>
   {:else if totalSolves === 0}
     <EmptyState
-      icon={IconTrophyFilled}
+      icon={IconTrophy}
       title="No solves yet"
       subtitle="This challenge has not been solved yet."
     />
@@ -162,8 +162,7 @@
                       disabled={revokingUserId !== null}
                       onclick={() => requestRevoke(solve)}
                     >
-                      {#if revokingUserId === solve.userId}<Spinner />{:else}<IconTrashFilled
-                        />{/if}
+                      {#if revokingUserId === solve.userId}<Spinner />{:else}<IconTrash />{/if}
                     </Button>
                   {/if}
                 </solve-trailing>

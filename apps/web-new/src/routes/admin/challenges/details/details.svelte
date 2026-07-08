@@ -12,7 +12,7 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
-  import { IconFlag3Filled, IconTrashFilled } from '$lib/icons'
+  import { IconFlagBannerFold, IconTrash } from '$lib/icons'
   import { useChallenges } from '$lib/query/challenges'
   import { queryKeys } from '$lib/query/keys'
   import { useCurrentUser } from '$lib/query/user'
@@ -171,7 +171,7 @@
         disabled={isDeleting}
         onclick={() => onEditorChange(del(editor))}
       >
-        {#if isDeleting}<Spinner />{:else}<IconTrashFilled />{/if}
+        {#if isDeleting}<Spinner />{:else}<IconTrash />{/if}
         Delete
       </Button>
     {/if}
@@ -201,7 +201,7 @@
   {#if editor.mode === 'idle'}
     <details-empty>
       <EmptyState
-        icon={IconFlag3Filled}
+        icon={IconFlagBannerFold}
         title="Select a challenge"
         subtitle="Choose a challenge from the list to view or edit it."
       />

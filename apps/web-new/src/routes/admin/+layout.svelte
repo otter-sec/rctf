@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconAlertCircleFilled, IconLogin } from '$lib/icons'
+  import { IconSignIn, IconWarningCircle } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
   import Button from '$lib/ui/button.svelte'
@@ -31,7 +31,7 @@
 {:else if gate === 'loggedOut'}
   <admin-status>
     <StatusCard
-      icon={IconLogin}
+      icon={IconSignIn}
       title="Admin access required"
       subtitle="You need to be logged in with an administrator account to view this page."
     >
@@ -41,7 +41,7 @@
 {:else if gate === 'noPerms'}
   <admin-status>
     <StatusCard
-      icon={IconAlertCircleFilled}
+      icon={IconWarningCircle}
       title="Access denied"
       subtitle="Your account does not have permission to view the admin panel."
     >

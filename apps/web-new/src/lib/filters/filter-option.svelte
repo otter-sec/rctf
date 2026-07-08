@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconCheck, IconChevronRight } from '$lib/icons'
+  import { IconCaretRight, IconCheck } from '$lib/icons'
   import Avatar from '$lib/ui/avatar.svelte'
   import type { ValueFilterFamily, ValueFilterOption } from './ui'
 
@@ -35,7 +35,7 @@
     <option-path>
       <FamilyIcon aria-hidden="true" />
       <span>{family.label}</span>
-      <IconChevronRight aria-hidden="true" />
+      <IconCaretRight aria-hidden="true" />
     </option-path>
   {/if}
 

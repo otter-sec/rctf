@@ -1,16 +1,16 @@
 import {
-  IconBinaryTreeFilled,
-  IconBombFilled,
-  IconChessQueenFilled,
-  IconCloudComputingFilled,
-  IconCoinFilled,
-  IconDice6Filled,
-  IconEyeFilled,
-  IconFlagFilled,
-  IconKeyFilled,
-  IconMicroscopeFilled,
-  IconMoodHappyFilled,
-  IconPuzzleFilled,
+  IconBomb,
+  IconCloud,
+  IconCrown,
+  IconDiceFive,
+  IconEye,
+  IconFingerprint,
+  IconFlagBanner,
+  IconGraph,
+  IconKey,
+  IconPiggyBank,
+  IconPuzzlePiece,
+  IconSmiley,
 } from '$lib/icons'
 import type { Component } from 'svelte'
 import type { SVGAttributes } from 'svelte/elements'
@@ -72,64 +72,64 @@ export const categoryAliases: Record<string, string> = {
 export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
-    icon: IconMoodHappyFilled,
+    icon: IconSmiley,
     color: 'gray',
   },
   pwn: {
     name: 'Binary Exploitation',
-    icon: IconBombFilled,
+    icon: IconBomb,
     color: 'red',
   },
   reverse: {
     name: 'Reverse Engineering',
-    icon: IconPuzzleFilled,
+    icon: IconPuzzlePiece,
     color: 'orange',
   },
   crypto: {
     name: 'Cryptography',
-    icon: IconKeyFilled,
+    icon: IconKey,
     color: 'yellow',
   },
   forensics: {
     name: 'Forensics',
-    icon: IconMicroscopeFilled,
+    icon: IconFingerprint,
     color: 'green',
   },
   blockchain: {
     name: 'Blockchain',
-    icon: IconCoinFilled,
+    icon: IconPiggyBank,
     color: 'teal',
   },
   web: {
     name: 'Web',
-    icon: IconCloudComputingFilled,
+    icon: IconCloud,
     color: 'blue',
   },
   misc: {
     name: 'Miscellaneous',
-    icon: IconDice6Filled,
+    icon: IconDiceFive,
     color: 'purple',
   },
   ppc: {
     name: 'Professional Programming and Coding',
-    icon: IconBinaryTreeFilled,
+    icon: IconGraph,
     color: 'fuchsia',
   },
   koth: {
     name: 'King of the Hill',
-    icon: IconChessQueenFilled,
+    icon: IconCrown,
     color: 'pink',
   },
   osint: {
     name: 'OSINT',
-    icon: IconEyeFilled,
+    icon: IconEye,
     color: 'gray',
   },
 }
 
 const defaultConfig: CategoryConfig = {
   name: '',
-  icon: IconFlagFilled,
+  icon: IconFlagBanner,
   color: 'gray',
 }
 

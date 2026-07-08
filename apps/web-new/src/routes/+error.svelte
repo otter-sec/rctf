@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { IconAlertTriangleFilled } from '$lib/icons'
+  import { IconWarning } from '$lib/icons'
   import Button from '$lib/ui/button.svelte'
   import StatusCard from '$lib/ui/status-card.svelte'
 
@@ -11,7 +11,7 @@
 
 <error-page>
   <StatusCard
-    icon={IconAlertTriangleFilled}
+    icon={IconWarning}
     tone="danger"
     title={page.status === 404 ? 'Page not found' : 'Something went wrong'}
     subtitle={page.status === 404

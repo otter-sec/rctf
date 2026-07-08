@@ -8,7 +8,6 @@ import {
   computeSolvesStats,
   filterRows,
   groupRowsByCategory,
-  nextSortMode,
   selectEmptyState,
   sortRowsByMode,
   type DisplayRow,
@@ -162,14 +161,6 @@ describe('filterRows', () => {
     const result = filterRows(rows, { search: '', hideSolved: true })
     const ids = result.map(row => row.id).sort()
     expect(ids).toEqual(['dyn1', 'pwn1'])
-  })
-})
-
-describe('nextSortMode', () => {
-  test('cycles category to time to points and wraps around', () => {
-    expect(nextSortMode('category')).toBe('time')
-    expect(nextSortMode('time')).toBe('points')
-    expect(nextSortMode('points')).toBe('category')
   })
 })
 

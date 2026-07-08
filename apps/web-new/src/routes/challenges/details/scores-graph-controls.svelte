@@ -1,6 +1,6 @@
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
-  import { IconMoodHappyFilled, IconPinFilled } from '$lib/icons'
+  import { IconPushPin, IconSmiley } from '$lib/icons'
   import Tooltip from '$lib/ui/tooltip.svelte'
 
   interface Props {
@@ -21,7 +21,7 @@
         aria-pressed={pinTop3}
         data-active={pinTop3 ? '' : undefined}
       >
-        <IconPinFilled />
+        <IconPushPin />
       </button>
     {/snippet}
   </Tooltip>
@@ -35,7 +35,7 @@
         aria-pressed={pinSelf}
         data-active={pinSelf ? '' : undefined}
       >
-        <IconMoodHappyFilled />
+        <IconSmiley />
       </button>
     {/snippet}
   </Tooltip>

@@ -9,16 +9,16 @@
   import NavigationMobile from '$lib/components/navigation-mobile.svelte'
   import ThemeToggle from '$lib/components/theme-toggle.svelte'
   import {
-    IconChartAreaLineFilled,
     IconCopy,
-    IconFlag3Filled,
+    IconFlagBannerFold,
     IconGavel,
-    IconHomeFilled,
-    IconLogin,
-    IconLogout,
-    IconSettingsFilled,
+    IconGear,
+    IconGlobeHemisphereWest,
+    IconHouse,
+    IconSignIn,
+    IconSignOut,
     IconTableFilled,
-    IconUserCog,
+    IconUserGear,
   } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
@@ -52,10 +52,10 @@
     {
       value: 'admin-challenges',
       label: 'Manage challenges',
-      icon: IconFlag3Filled,
+      icon: IconFlagBannerFold,
       href: '/admin/challenges',
     },
-    { value: 'admin-teams', label: 'Manage teams', icon: IconUserCog, href: '/admin/teams' },
+    { value: 'admin-teams', label: 'Manage teams', icon: IconUserGear, href: '/admin/teams' },
     {
       value: 'admin-submissions',
       label: 'Submissions',
@@ -65,7 +65,7 @@
     {
       value: 'admin-settings',
       label: 'Settings',
-      icon: IconSettingsFilled,
+      icon: IconGear,
       href: '/admin/settings',
     },
   ]
@@ -79,8 +79,8 @@
         if (user?.teamToken) copyLoginUrl(user.teamToken)
       },
     },
-    { value: 'profile', label: 'Manage team', icon: IconUserCog, href: '/profile' },
-    { value: 'logout', label: 'Log out', icon: IconLogout, onSelect: () => logout(queryClient) },
+    { value: 'profile', label: 'Manage team', icon: IconUserGear, href: '/profile' },
+    { value: 'logout', label: 'Log out', icon: IconSignOut, onSelect: () => logout(queryClient) },
   ])
 </script>
 
@@ -99,7 +99,7 @@
             href="/"
             activePath="/"
             label="Home"
-            icon={IconHomeFilled}
+            icon={IconHouse}
           />
         {/snippet}
       </Tooltip>
@@ -111,7 +111,7 @@
             href="/challenges"
             activePath="/challenges"
             label="Challenges"
-            icon={IconFlag3Filled}
+            icon={IconFlagBannerFold}
           />
         {/snippet}
       </Tooltip>
@@ -123,7 +123,7 @@
             href="/scores"
             activePath="/scores"
             label="Scoreboard"
-            icon={IconChartAreaLineFilled}
+            icon={IconGlobeHemisphereWest}
           />
         {/snippet}
       </Tooltip>
@@ -183,7 +183,7 @@
     {:else if !isArchived}
       <Tooltip label="Login">
         {#snippet children({ props })}
-          <NavigationButton {...props} href="/login" label="Login" icon={IconLogin} />
+          <NavigationButton {...props} href="/login" label="Login" icon={IconSignIn} />
         {/snippet}
       </Tooltip>
     {/if}

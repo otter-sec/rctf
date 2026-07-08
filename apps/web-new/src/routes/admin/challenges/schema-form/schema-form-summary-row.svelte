@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronRight } from '$lib/icons'
+  import { IconCaretRight } from '$lib/icons'
   import { getSchemaFormErrors, type JsonSchema } from './types'
   import { collectionSummary, fieldLabel } from './utils'
 
@@ -51,7 +51,7 @@
       {status === 'invalid' ? '!' : '●'}
     </row-status>
   {/if}
-  <row-chevron aria-hidden="true"><IconChevronRight /></row-chevron>
+  <row-chevron aria-hidden="true"><IconCaretRight /></row-chevron>
 </button>
 
 <style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown, IconX } from '$lib/icons'
+  import { IconCaretDown, IconX } from '$lib/icons'
   import Avatar from '$lib/ui/avatar.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { Snippet } from 'svelte'
@@ -69,7 +69,7 @@
           {:else}
             <chip-count>{filter.selected.length} {family.pluralLabel}</chip-count>
           {/if}
-          <IconChevronDown aria-hidden="true" data-chevron />
+          <IconCaretDown aria-hidden="true" data-chevron />
         </button>
       {/snippet}
       {#snippet panel()}
