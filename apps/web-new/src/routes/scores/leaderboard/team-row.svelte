@@ -37,7 +37,12 @@
   <team-rank>
     <strong>#{rank}</strong>
     {#if showDivision && entry.divisionPlace}
-      <small title={divisionName}>#{entry.divisionPlace}</small>
+      <small
+        data-tooltip-cell
+        data-kind="division-rank"
+        data-name={divisionName}
+        data-place={entry.divisionPlace}>#{entry.divisionPlace}</small
+      >
     {/if}
   </team-rank>
 </rank-cluster>
@@ -110,7 +115,6 @@
     flex-direction: column;
     align-items: center;
     inline-size: 2rem;
-    line-height: 1;
 
     strong {
       color: var(--rank-fg-l0, var(--foreground-l0));
