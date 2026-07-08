@@ -3,6 +3,7 @@
   import { useAdminChallenge, useAdminChallenges } from '$lib/query/admin'
   import Dialog from '$lib/ui/dialog.svelte'
   import Splitter from '$lib/ui/splitter.svelte'
+  import { handlePaneArrowKey } from '$lib/utils/pane-keynav'
   import AdminChallengesDetails from './details/details.svelte'
   import AdminChallengesList from './list/list.svelte'
   import {
@@ -95,11 +96,12 @@
       presentation="drawer"
       flush
     >
-      <drawer-body>{@render detailPane()}</drawer-body>
+      <drawer-body tabindex="-1">{@render detailPane()}</drawer-body>
     </Dialog>
   </admin-challenges-page>
 {:else}
-  <admin-challenges-page data-form="desktop">
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <admin-challenges-page data-form="desktop" onkeydown={handlePaneArrowKey}>
     <Splitter
       panels={[
         { id: 'list', minSize: listMinSize, maxSize: 50 },

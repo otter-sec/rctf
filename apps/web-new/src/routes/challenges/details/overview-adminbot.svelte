@@ -352,7 +352,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-s);
+    gap: 0.5rem;
 
     :global(a[data-variant]) {
       inline-size: 100%;
@@ -429,7 +429,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
 
@@ -458,7 +457,6 @@
 
     &:focus-visible {
       outline: 2px solid var(--ring);
-      outline-offset: 2px;
       border-radius: var(--radius-sm);
     }
 
@@ -508,7 +506,6 @@
 
       &:focus-visible {
         outline: 2px solid var(--ring);
-        outline-offset: 2px;
       }
     }
   }

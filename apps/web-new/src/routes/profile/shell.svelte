@@ -75,6 +75,7 @@
     {#each tabs as tab (tab.value)}
       <profile-panel
         role="tabpanel"
+        tabindex="-1"
         id="profile-panel-{tab.value}"
         aria-labelledby="profile-tab-{tab.value}"
         data-tab={tab.value}

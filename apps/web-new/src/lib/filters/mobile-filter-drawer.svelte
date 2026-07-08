@@ -127,15 +127,15 @@
             </button>
           {/if}
         </mode-controls>
-        <drawer-body>
+        <drawer-body tabindex="-1">
           <FilterOptionList family={activeFamily} mobile />
         </drawer-body>
       {:else if activeId === 'time' && timeFilter}
-        <drawer-body>
+        <drawer-body tabindex="-1">
           <TimeRangeEditor filter={timeFilter} {ctfStartTime} onchange={onChanged} />
         </drawer-body>
       {:else}
-        <drawer-body>
+        <drawer-body tabindex="-1">
           <root-list>
             {#each families as family (family.id)}
               {@render familyRow(family)}

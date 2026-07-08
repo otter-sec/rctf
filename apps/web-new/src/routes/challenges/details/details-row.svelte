@@ -181,6 +181,11 @@
       --row-fg-l1: var(--foreground-self-l1);
       --row-gradient: var(--jade-a3);
     }
+
+    &:has(a[data-part='name']:focus-visible) {
+      outline: 2px solid var(--ring);
+      outline-offset: -2px;
+    }
   }
 
   row-rank {
@@ -231,6 +236,10 @@
 
     &:hover {
       text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: none;
     }
   }
 

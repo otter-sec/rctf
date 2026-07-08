@@ -324,7 +324,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-s);
+    gap: 0.5rem;
 
     :global(a[data-variant]),
     :global(button[data-variant]) {
@@ -412,7 +412,6 @@
 
       &:focus-visible {
         outline: 2px solid var(--ring);
-        outline-offset: 2px;
       }
 
       :global(svg) {

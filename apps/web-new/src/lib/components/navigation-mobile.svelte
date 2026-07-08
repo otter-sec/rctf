@@ -194,6 +194,10 @@
     &:hover {
       background: var(--background-l3);
     }
+
+    &:focus-visible {
+      outline-offset: 0;
+    }
   }
 
   sheet-header {
@@ -254,6 +258,10 @@
 
       &:hover {
         background: var(--background-l2);
+      }
+
+      &:focus-visible {
+        outline-offset: 0;
       }
 
       &[data-active] {

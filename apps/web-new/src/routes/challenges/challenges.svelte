@@ -12,6 +12,7 @@
   import { useCurrentUser } from '$lib/query/user'
   import Dialog from '$lib/ui/dialog.svelte'
   import Splitter from '$lib/ui/splitter.svelte'
+  import { handlePaneArrowKey } from '$lib/utils/pane-keynav'
   import { tick } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
   import ChallengeDetails from './details/details.svelte'
@@ -191,11 +192,12 @@
       presentation="drawer"
       flush
     >
-      <drawer-body>{@render detailPane(detailProps)}</drawer-body>
+      <drawer-body tabindex="-1">{@render detailPane(detailProps)}</drawer-body>
     </Dialog>
   </challenges-page>
 {:else}
-  <challenges-page data-form="desktop">
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <challenges-page data-form="desktop" onkeydown={handlePaneArrowKey}>
     <Splitter
       panels={[
         { id: 'list', minSize: listMinSize, maxSize: 50 },

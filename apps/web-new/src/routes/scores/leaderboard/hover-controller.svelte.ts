@@ -88,7 +88,13 @@ export function createHoverController(deps: HoverControllerDeps) {
     if (hoverPatch.teamId !== undefined) hoveredTeamId = hoverPatch.teamId
     if (hoverPatch.solveHighlight !== undefined) solveHighlight = null
 
-    if (deps.isScrolling() || horizontalScrolling || !cell) {
+    const scrolling = deps.isScrolling() || horizontalScrolling
+    if (cell && (scrolling || !tooltipTiming.isCurrent(cell))) {
+      hoveredTeamId = null
+      solveHighlight = null
+    }
+
+    if (scrolling || !cell) {
       clearTooltip()
       return
     }
