@@ -1,12 +1,13 @@
 ---
 title: Common mistakes
 description: Recurring operational and security mistakes for CTF organizers, with rCTF-specific notes on what the platform already handles.
-order: 7
+order: 2
+scroll: true
 ---
 
 These are issues that keep showing up in CTF retrospectives and event operations. The point isn't to make every organizer paranoid, but rather to surface the failure modes that matter early enough to handle them calmly.
 
-The notes are split across three pages. This page covers planning and onsite issues; the rest live in [Infrastructure](/meta/running-a-successful-ctf/common-mistakes/infrastructure) and [Challenges](/meta/running-a-successful-ctf/common-mistakes/challenges).
+This page focuses on planning and onsite issues, while [Infrastructure](/meta/common-mistakes/infrastructure) and [Challenges](/meta/common-mistakes/challenges) cover the rest.
 
 ## Planning
 

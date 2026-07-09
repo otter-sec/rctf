@@ -2,6 +2,7 @@
 title: Running a successful CTF
 description: A start-to-finish guide to organizing, running, and wrapping up a capture-the-flag competition.
 order: 1
+scroll: true
 ---
 
 Running a CTF takes coordination across organization, challenge development, infrastructure, and communication. These pages walk through the full lifecycle of an event, from early planning to teardown, along with the mistakes that tend to recur along the way.
@@ -25,7 +26,7 @@ Monitoring, incident response, and issue resolution during an active competition
 :::card[After the CTF]{href=/meta/running-a-successful-ctf/after-ctf}
 Uploading scoreboards to CTFtime, distributing prizes, collecting feedback, and tearing down infrastructure.
 :::
-:::card[Common mistakes]{href=/meta/running-a-successful-ctf/common-mistakes}
+:::card[Common mistakes]{href=/meta/common-mistakes}
 Recurring operational, infrastructure, and challenge-authoring mistakes, with rCTF-specific notes.
 :::
 ::::

@@ -1,7 +1,7 @@
 ---
 title: Things we will not implement
 description: Requests rCTF avoids because they tend to reduce fairness, transparency, or educational value.
-order: 2
+order: 3
 ---
 
 Some platform requests appear often enough that it is useful to document the project position. rCTF does not plan to support the following features because they tend to work against fair scoring, transparent events, or the educational value of a CTF.
