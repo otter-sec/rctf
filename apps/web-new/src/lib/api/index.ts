@@ -35,6 +35,12 @@ export function showApiError(response: {
   toast.error(response.message)
 }
 
+let apiFetch: typeof globalThis.fetch | null = null
+
+export function setApiFetch(fetchFn: typeof globalThis.fetch): void {
+  apiFetch = fetchFn
+}
+
 let cachedClientConfig: ClientConfig | null = null
 
 export function setClientConfig(config: ClientConfig): void {
@@ -254,7 +260,7 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
     }
   }
 
-  const res = await fetch(url, {
+  const res = await (apiFetch ?? fetch)(url, {
     method: route.method,
     headers,
     cache: 'no-store',

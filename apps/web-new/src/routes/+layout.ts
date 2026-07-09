@@ -1,3 +1,4 @@
+import { setApiFetch } from '$lib/api'
 import { clientConfigQueryOptions } from '$lib/query/config'
 import { createQueryClient } from '$lib/query/core'
 import { userSelfQueryOptions } from '$lib/query/user'
@@ -9,7 +10,8 @@ export const csr = true
 
 const queryClient = createQueryClient()
 
-export const load: LayoutLoad = async () => {
+export const load: LayoutLoad = async ({ fetch }) => {
+  setApiFetch(fetch)
   const clientConfig = await queryClient.fetchQuery(clientConfigQueryOptions)
   await queryClient.prefetchQuery(userSelfQueryOptions)
 
