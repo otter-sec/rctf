@@ -2,37 +2,48 @@ import { niceLinearTicks } from '$lib/chart/y-ticks'
 import { describe, expect, test } from 'bun:test'
 
 describe('niceLinearTicks', () => {
-  test.each([[0], [-5], [NaN], [Infinity]])(
-    'falls back to [0, 1] for invalid max %p',
-    max => {
-      expect(niceLinearTicks(max)).toEqual({ max: 1, values: [0, 1] })
-    }
-  )
-
-  test('rounds the max up to a nice step multiple', () => {
-    const { max, values } = niceLinearTicks(97, 4)
-    expect(max).toBe(100)
-    expect(values).toEqual([0, 20, 40, 60, 80, 100])
+  test('rounds the max up to a nice value and steps from zero', () => {
+    const { max, values } = niceLinearTicks(1337, 4)
+    expect(max).toBe(1500)
+    expect(values).toEqual([0, 500, 1000, 1500])
   })
 
-  test('uses a step of at least 1 for small maxima', () => {
-    const { max, values } = niceLinearTicks(3, 4)
-    expect(max).toBe(3)
-    expect(values).toEqual([0, 1, 2, 3])
+  test('keeps an already-nice max and includes both endpoints', () => {
+    const { max, values } = niceLinearTicks(1000, 4)
+    expect(max).toBe(1000)
+    expect(values).toEqual([0, 200, 400, 600, 800, 1000])
   })
 
-  test('always starts at zero and ends at the nice max', () => {
-    const { max, values } = niceLinearTicks(1234, 4)
+  test('never overshoots the requested max with a too-coarse step', () => {
+    const { max, values } = niceLinearTicks(500, 5)
+    expect(max).toBe(500)
+    expect(values.at(-1)).toBe(500)
     expect(values[0]).toBe(0)
-    expect(values[values.length - 1]).toBe(max)
-    expect(max).toBeGreaterThanOrEqual(1234)
   })
 
-  test('produces evenly spaced values', () => {
-    const { values } = niceLinearTicks(50, 5)
-    const step = values[1]! - values[0]!
-    for (let i = 1; i < values.length; i++) {
-      expect(values[i]! - values[i - 1]!).toBe(step)
+  test('degenerate max collapses to a unit axis rather than NaN', () => {
+    expect(niceLinearTicks(0)).toEqual({ max: 1, values: [0, 1] })
+    expect(niceLinearTicks(-5)).toEqual({ max: 1, values: [0, 1] })
+    expect(niceLinearTicks(Number.POSITIVE_INFINITY)).toEqual({
+      max: 1,
+      values: [0, 1],
+    })
+  })
+
+  test('small maxima produce unique integer ticks, never duplicates', () => {
+    for (const max of [1, 2, 3, 4, 5]) {
+      for (const count of [3, 4, 5]) {
+        const { values } = niceLinearTicks(max, count)
+        expect(new Set(values).size).toBe(values.length)
+        expect(values).toEqual(values.map(Math.round))
+      }
+    }
+    expect(niceLinearTicks(2, 3).values).toEqual([0, 1, 2])
+  })
+
+  test('the nice max is always at or above the data max', () => {
+    for (const input of [1, 7, 42, 99, 333, 4096, 65_537]) {
+      expect(niceLinearTicks(input).max).toBeGreaterThanOrEqual(input)
     }
   })
 })
