@@ -84,9 +84,11 @@
     const onUp = () => {
       thumb.removeEventListener('pointermove', onMove)
       thumb.removeEventListener('pointerup', onUp)
+      thumb.removeEventListener('pointercancel', onUp)
     }
     thumb.addEventListener('pointermove', onMove)
     thumb.addEventListener('pointerup', onUp)
+    thumb.addEventListener('pointercancel', onUp)
   }
 
   function jumpTrack(axis: 'x' | 'y', event: PointerEvent) {
