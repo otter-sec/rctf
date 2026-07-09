@@ -1,8 +1,8 @@
 <script lang="ts">
   import { IconCopy, IconSignIn } from '$lib/icons'
-  import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import Card from '$lib/ui/card.svelte'
+  import { copyText } from '$lib/utils/clipboard'
 
   type Props = {
     teamToken: string
@@ -10,15 +10,6 @@
   }
 
   let { teamToken, loginUrl }: Props = $props()
-
-  async function copy(value: string, successMessage: string, errorMessage: string) {
-    try {
-      await navigator.clipboard.writeText(value)
-      toast.success(successMessage)
-    } catch {
-      toast.error(errorMessage)
-    }
-  }
 </script>
 
 <Card title="Save your team token" description="You will need this token to log in again.">
@@ -31,7 +22,7 @@
           size="sm"
           aria-label="Copy team token"
           onclick={() =>
-            copy(teamToken, 'Team token copied to clipboard', 'Failed to copy team token')}
+            copyText(teamToken, 'Team token copied to clipboard', 'Failed to copy team token')}
         >
           <IconCopy />
           Copy
@@ -47,7 +38,7 @@
           size="sm"
           aria-label="Copy login URL"
           onclick={() =>
-            copy(loginUrl, 'Login URL copied to clipboard', 'Failed to copy login URL')}
+            copyText(loginUrl, 'Login URL copied to clipboard', 'Failed to copy login URL')}
         >
           <IconCopy />
           Copy

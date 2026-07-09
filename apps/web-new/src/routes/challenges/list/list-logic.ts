@@ -1,5 +1,5 @@
 import type { Challenge } from '@rctf/types'
-import { getCategoryKeyOrAlias, getCategoryOrder } from '$lib/utils/categories'
+import { compareCategories, getCategoryKeyOrAlias } from '$lib/utils/categories'
 
 export interface CategoryGroup {
   category: string
@@ -115,21 +115,6 @@ function sortWithinCategory(challenges: Challenge[]): Challenge[] {
     }
     return a.name.localeCompare(b.name)
   })
-}
-
-function compareCategories(a: string, b: string): number {
-  const orderA = getCategoryOrder(a)
-  const orderB = getCategoryOrder(b)
-  if (orderA === -1 && orderB === -1) {
-    return a.localeCompare(b)
-  }
-  if (orderA === -1) {
-    return 1
-  }
-  if (orderB === -1) {
-    return -1
-  }
-  return orderA - orderB
 }
 
 function toSet(

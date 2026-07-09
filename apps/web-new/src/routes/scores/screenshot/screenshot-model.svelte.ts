@@ -3,8 +3,6 @@ import type { ScoresData } from '../model/data.svelte'
 import { getVisibleSolveCount } from '../model/transforms'
 import type { ScreenshotTeam } from './options'
 
-export type ScreenshotModel = ReturnType<typeof createScreenshotModel>
-
 type TeamLike = Pick<
   LeaderboardEntry,
   'id' | 'name' | 'avatarUrl' | 'countryCode' | 'statusText' | 'score'

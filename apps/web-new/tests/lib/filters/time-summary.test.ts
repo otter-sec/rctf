@@ -2,7 +2,6 @@ import { createTimeRangeFilter } from '$lib/filters/time'
 import { formatTimeRangeSummary } from '$lib/filters/time-summary'
 import { describe, expect, test } from 'bun:test'
 
-const HOUR = 3_600_000
 const CTF_START = 1_600_000_000_000
 
 describe('formatTimeRangeSummary', () => {

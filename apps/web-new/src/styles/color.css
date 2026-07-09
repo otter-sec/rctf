@@ -560,18 +560,6 @@
   --foreground-teal-l0:       var(--teal-a12);
   --foreground-teal-l1:       var(--teal-a11);
 
-  --background-blue-l0:       var(--sky-a3);
-  --background-blue-l1:       var(--sky-a2);
-  --background-blue-l1-hover: var(--sky-a2);
-  --foreground-blue-l0:       var(--sky-a12);
-  --foreground-blue-l1:       var(--sky-a11);
-
-  --background-purple-l0:       var(--purple-a3);
-  --background-purple-l1:       var(--purple-a2);
-  --background-purple-l1-hover: var(--purple-a2);
-  --foreground-purple-l0:       var(--purple-a12);
-  --foreground-purple-l1:       var(--purple-a11);
-
   --background-sky-l0:       var(--sky-a3);
   --background-sky-l1:       var(--sky-a2);
   --background-sky-l1-hover: var(--sky-a2);

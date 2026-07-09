@@ -51,16 +51,11 @@
       .filter(dot => dot !== null)
   )
 
+  const nearestSeries = $derived<Series[]>([{ id: 'solve', points: dots }])
+
   const nearest = $derived.by(() => {
     if (!hover || dots.length === 0) return null
-    const series: Series[] = [{ id: 'solve', points: dots.map(dot => ({ x: dot.x, y: dot.y })) }]
-    return nearestPoint(
-      series,
-      hover.x,
-      hover.y,
-      px => px,
-      px => px
-    )
+    return nearestPoint(nearestSeries, hover.x, hover.y)
   })
 
   const hovered = $derived(nearest ? (dots[nearest.index] ?? null) : null)

@@ -89,7 +89,7 @@
     }
 
     &[data-type='note'] {
-      --accent: var(--foreground-blue-l1);
+      --accent: var(--sky-a11);
     }
 
     &[data-type='tip'] {
@@ -97,7 +97,7 @@
     }
 
     &[data-type='important'] {
-      --accent: var(--foreground-purple-l1);
+      --accent: var(--purple-a11);
     }
 
     &[data-type='warning'] {

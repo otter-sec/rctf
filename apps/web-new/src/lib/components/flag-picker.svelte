@@ -12,9 +12,7 @@
 
   type Props = {
     value?: string | null
-    onValueChange?: (value: string | null) => void
     placeholder?: string
-    label?: string
     id?: string
     describedBy?: string
     disabled?: boolean
@@ -22,9 +20,7 @@
 
   let {
     value = $bindable(null),
-    onValueChange,
     placeholder = 'Select country...',
-    label,
     id,
     describedBy,
     disabled = false,
@@ -36,7 +32,6 @@
 
   function handleChange(next: string | null) {
     value = fromComboboxValue(next)
-    onValueChange?.(value)
   }
 </script>
 
@@ -49,7 +44,6 @@
   value={comboValue}
   onValueChange={handleChange}
   {placeholder}
-  {label}
   {id}
   {describedBy}
   {disabled}

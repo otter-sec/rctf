@@ -29,8 +29,6 @@ export const CELL_KIND = {
   divisionRank: 'division-rank',
 } as const
 
-export type CellKind = (typeof CELL_KIND)[keyof typeof CELL_KIND]
-
 const BLOOD_LABELS = ['First blood', 'Second blood', 'Third blood'] as const
 
 export function resolveCellTooltip(

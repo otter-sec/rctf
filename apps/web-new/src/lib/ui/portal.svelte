@@ -2,26 +2,20 @@
   import type { Snippet } from 'svelte'
 
   type Props = {
-    disabled?: boolean
-    container?: HTMLElement
     children: Snippet
   }
 
-  let { disabled = false, container, children }: Props = $props()
+  let { children }: Props = $props()
 </script>
 
-{#if disabled}
+<portal-root
+  {@attach (node: HTMLElement) => {
+    document.body.appendChild(node)
+    return () => node.remove()
+  }}
+>
   {@render children()}
-{:else}
-  <portal-root
-    {@attach (node: HTMLElement) => {
-      ;(container ?? document.body).appendChild(node)
-      return () => node.remove()
-    }}
-  >
-    {@render children()}
-  </portal-root>
-{/if}
+</portal-root>
 
 <style>
   portal-root {

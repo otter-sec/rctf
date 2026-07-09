@@ -148,17 +148,23 @@
       } else {
         showApiError(res)
       }
+    } catch {
+      toast.error('Network error, please try again')
     } finally {
       submitting = false
     }
   }
 
   async function downloadConfig() {
-    const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
-    if (res.kind === GoodAdminBotConfig.kind) {
-      downloadTextFile(`bot${res.data.fileExtension}`, res.data.sourceCode, 'text/plain')
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
+      if (res.kind === GoodAdminBotConfig.kind) {
+        downloadTextFile(`bot${res.data.fileExtension}`, res.data.sourceCode, 'text/plain')
+      } else {
+        showApiError(res)
+      }
+    } catch {
+      toast.error('Network error, please try again')
     }
   }
 
@@ -173,15 +179,20 @@
     openHistoryLogsJobId = jobId
     historyLogs = null
     historyLogsLoading = true
-    const res = await apiRequest(GetAdminBotJobLogsRouteV2, {
-      id: challengeId,
-      jobId,
-    })
-    if (requestId !== historyLogsRequestId) return
-    if (res.kind === GoodAdminBotJobLogs.kind) {
-      historyLogs = res.data.logs
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(GetAdminBotJobLogsRouteV2, {
+        id: challengeId,
+        jobId,
+      })
+      if (requestId !== historyLogsRequestId) return
+      if (res.kind === GoodAdminBotJobLogs.kind) {
+        historyLogs = res.data.logs
+      } else {
+        showApiError(res)
+      }
+    } catch {
+      if (requestId !== historyLogsRequestId) return
+      toast.error('Network error, please try again')
     }
     historyLogsLoading = false
   }

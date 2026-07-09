@@ -38,7 +38,7 @@ interface CaptchaState {
 interface CaptchaHandler {
   scriptUrl: string
   init: (state: CaptchaState, siteKey: string) => Promise<void>
-  execute: (state: CaptchaState, siteKey: string) => Promise<string>
+  execute: (state: CaptchaState) => Promise<string>
 }
 
 const captchaStates: Record<string, CaptchaState> = {}
@@ -202,7 +202,7 @@ export const requestCaptchaCode = async (
     await loadScriptOnce(handler.scriptUrl)
     const state = getState(info.provider)
     await handler.init(state, info.siteKey)
-    return await handler.execute(state, info.siteKey)
+    return await handler.execute(state)
   } catch (err) {
     if (err instanceof CaptchaError) {
       throw err
@@ -220,12 +220,4 @@ export const getCaptchaCode = async (
   return isCaptchaProtected(action, config)
     ? await requestCaptchaCode(action, config)
     : undefined
-}
-
-export const getCaptchaProvider = (
-  config: ClientConfig | undefined | null
-): string | null => {
-  const info = getCaptchaInfo(config)
-  if (!info) return null
-  return info.provider
 }

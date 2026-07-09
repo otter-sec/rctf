@@ -72,19 +72,16 @@
   )
   const dotPx = $derived(graph.solveDots.map(d => ({ x: xScale(d.time), y: yScale(d.score) })))
 
-  const nearest = $derived.by(() => {
-    if (!hover) return null
+  const nearestSeries = $derived.by<Series[]>(() => {
     const series: Series[] = []
     if (totalPx.length > 0) series.push({ id: 'sample', points: totalPx })
     if (dotPx.length > 0) series.push({ id: 'solve', points: dotPx })
-    if (series.length === 0) return null
-    return nearestPoint(
-      series,
-      hover.x,
-      hover.y,
-      px => px,
-      px => px
-    )
+    return series
+  })
+
+  const nearest = $derived.by(() => {
+    if (!hover || nearestSeries.length === 0) return null
+    return nearestPoint(nearestSeries, hover.x, hover.y)
   })
 
   const hoveredSolve = $derived(
