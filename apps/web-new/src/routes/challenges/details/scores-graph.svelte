@@ -21,8 +21,6 @@
     selfId?: string | null
     startTime: number
     endTime: number
-    pinTop3?: boolean
-    pinSelf?: boolean
   }
 
   let {
@@ -32,9 +30,10 @@
     selfId = null,
     startTime,
     endTime,
-    pinTop3 = $bindable(true),
-    pinSelf = $bindable(true),
   }: Props = $props()
+
+  let pinTop3 = $state(true)
+  let pinSelf = $state(true)
 
   const HEIGHT = 176
   const PAD_TOP = 8
@@ -95,62 +94,76 @@
   const yScale = $derived(createLinearScale([0, yMax], [innerBottom, PAD_TOP]))
   const ticks = $derived(ctfRelativeTicks(startTime, xMax, 7))
 
-  interface RenderSeries {
+  interface ScaledSeries {
     id: string
     name: string
     role: string
     rank: number
+    isSelf: boolean
     width: number
-    opacity: number
+    baseOpacity: number
+    points: { time: number; score: number }[]
     scaled: { x: number; y: number }[]
-    data: { x: number; y: number }[]
   }
 
-  const renderSeries = $derived.by<RenderSeries[]>(() => {
-    const out: RenderSeries[] = []
+  interface RenderSeries extends ScaledSeries {
+    opacity: number
+  }
+
+  const scaledSeries = $derived.by<ScaledSeries[]>(() => {
+    const out: ScaledSeries[] = []
     for (const entry of rendered) {
       const isSelf = entry.id === selfId
-      const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !isSelf
       out.push({
         id: entry.id,
         name: entry.name,
         role: getRankTier(isSelf, entry.rank, entry.id),
         rank: entry.rank,
+        isSelf,
         width: isSelf ? 3 : 2,
-        opacity: dimmed ? 0.15 : isSelf ? 1 : focusIds.has(entry.id) ? 1 : 0.3,
+        baseOpacity: isSelf || focusIds.has(entry.id) ? 1 : 0.3,
+        points: entry.points,
         scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
-        data: entry.points.map(p => ({ x: p.time, y: p.score })),
       })
     }
+    return out
+  })
+
+  const renderSeries = $derived.by<RenderSeries[]>(() => {
+    const out = scaledSeries.map(entry => {
+      const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
+      return { ...entry, opacity: dimmed ? 0.15 : entry.baseOpacity }
+    })
     return out.sort((a, b) => {
       const ah = a.id === hoveredTeamId
       const bh = b.id === hoveredTeamId
       if (ah !== bh) return ah ? 1 : -1
-      if ((a.id === selfId) !== (b.id === selfId)) return a.id === selfId ? 1 : -1
+      if (a.isSelf !== b.isSelf) return a.isSelf ? 1 : -1
       return b.rank - a.rank
     })
   })
 
+  const nearestSeries = $derived<Series[]>(
+    scaledSeries.map(s => ({ id: s.id, points: s.scaled }))
+  )
+
   const nearest = $derived.by(() => {
-    if (!hover || renderSeries.length === 0) return null
-    const series: Series[] = renderSeries.map(s => ({ id: s.id, points: s.data }))
-    return nearestPoint(series, hover.x, hover.y, xScale, yScale)
+    if (!hover || nearestSeries.length === 0) return null
+    return nearestPoint(nearestSeries, hover.x, hover.y)
   })
 
   const hoveredSeries = $derived(
     nearest ? (renderSeries.find(s => s.id === nearest.seriesId) ?? null) : null
   )
-  const hoverPx = $derived(
-    nearest ? { x: xScale(nearest.point.x), y: yScale(nearest.point.y) } : null
-  )
+  const hoverPx = $derived(nearest ? nearest.point : null)
   const tooltipRows = $derived<TooltipRow[]>(
     nearest && hoveredSeries
       ? [
           {
             role: hoveredSeries.role,
             name: hoveredSeries.name,
-            score: nearest.point.y,
-            time: nearest.point.x,
+            score: hoveredSeries.points[nearest.index]?.score ?? 0,
+            time: hoveredSeries.points[nearest.index]?.time ?? 0,
           },
         ]
       : []

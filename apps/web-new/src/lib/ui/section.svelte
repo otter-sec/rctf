@@ -3,19 +3,15 @@
 
   type Props = {
     title: string
-    actions?: Snippet
     flush?: boolean
     children: Snippet
   }
 
-  let { title, actions, flush = false, children }: Props = $props()
+  let { title, flush = false, children }: Props = $props()
 </script>
 
 <ui-section>
-  <section-header>
-    {title}
-    {#if actions}{@render actions()}{/if}
-  </section-header>
+  <section-header>{title}</section-header>
   <section-content data-flush={flush || undefined}>{@render children()}</section-content>
 </ui-section>
 

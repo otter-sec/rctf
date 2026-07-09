@@ -1,6 +1,5 @@
 <script lang="ts">
   import { IconCaretRight, IconClock, IconFunnel } from '$lib/icons'
-  import Spinner from '$lib/ui/spinner.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { Snippet } from 'svelte'
   import FilterOptionList from './filter-option-list.svelte'
@@ -21,10 +20,9 @@
     hasFilters: boolean
     timeFamily?: TimeFilterFamily
     timeMenu?: Snippet<[{ close: () => void }]>
-    isSearchingTeams?: boolean
   }
 
-  let { families, hasFilters, timeFamily, timeMenu, isSearchingTeams = false }: Props = $props()
+  let { families, hasFilters, timeFamily, timeMenu }: Props = $props()
 
   type Drill = ValueFilterFamily | 'time' | null
 
@@ -129,10 +127,7 @@
             {#each optionMatches as match (rootFilterOptionKey(match))}
               <FilterOption family={match.family} option={match.option} showPath />
             {/each}
-            {#if isSearchingTeams}
-              <funnel-status><Spinner />Searching teams...</funnel-status>
-            {/if}
-            {#if !hasMatches && !isSearchingTeams}
+            {#if !hasMatches}
               <funnel-status data-empty>No filters found</funnel-status>
             {/if}
           {:else}

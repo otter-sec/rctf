@@ -15,7 +15,6 @@
     filterFor: (family: ValueFilterFamily) => MultiFilter<unknown>
     timeFilter?: TimeRangeFilter
     ctfStartTime?: number | null
-    onChanged?: () => void
   }
 
   let {
@@ -24,7 +23,6 @@
     filterFor,
     timeFilter,
     ctfStartTime = null,
-    onChanged,
   }: Props = $props()
 
   let activeId = $state<string | 'time' | null>(null)
@@ -47,18 +45,15 @@
 
   function clearFamily(family: ValueFilterFamily) {
     family.clear()
-    onChanged?.()
   }
 
   function selectMode(filter: MultiFilter<unknown>, mode: 'include' | 'exclude') {
     setFilterMode(filter, mode)
-    onChanged?.()
   }
 
   function clearAll() {
     for (const family of families) family.clear()
     if (timeFilter) clearTimeRangeFilter(timeFilter)
-    onChanged?.()
   }
 </script>
 
@@ -132,7 +127,7 @@
         </drawer-body>
       {:else if activeId === 'time' && timeFilter}
         <drawer-body tabindex="-1">
-          <TimeRangeEditor filter={timeFilter} {ctfStartTime} onchange={onChanged} />
+          <TimeRangeEditor filter={timeFilter} {ctfStartTime} />
         </drawer-body>
       {:else}
         <drawer-body tabindex="-1">

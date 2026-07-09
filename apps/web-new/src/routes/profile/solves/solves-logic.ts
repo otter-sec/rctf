@@ -1,4 +1,4 @@
-import { getCategoryOrder } from '$lib/utils/categories'
+import { compareCategories } from '$lib/utils/categories'
 import {
   isDynamicChallenge,
   type ChallengeInfo,
@@ -214,13 +214,4 @@ function compareWithinGroup(a: DisplayRow, b: DisplayRow): number {
   if (a.isSolved !== b.isSolved) return a.isSolved ? -1 : 1
   if (a.solves !== b.solves) return (b.solves ?? 0) - (a.solves ?? 0)
   return a.name.localeCompare(b.name)
-}
-
-function compareCategories(a: string, b: string): number {
-  const orderA = getCategoryOrder(a)
-  const orderB = getCategoryOrder(b)
-  if (orderA === -1 && orderB === -1) return a.localeCompare(b)
-  if (orderA === -1) return 1
-  if (orderB === -1) return -1
-  return orderA - orderB
 }

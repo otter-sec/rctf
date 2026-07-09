@@ -3,13 +3,12 @@
 
   type Props = {
     label: string
-    align?: 'start' | 'end'
     width?: string
     trigger: Snippet<[{ props: Record<string, unknown>; open: boolean }]>
     panel: Snippet<[{ close: () => void }]>
   }
 
-  let { label, align = 'start', width, trigger, panel }: Props = $props()
+  let { label, width, trigger, panel }: Props = $props()
 
   let open = $state(false)
   let root: HTMLElement | undefined
@@ -54,7 +53,7 @@
 
 <svelte:window onpointerdowncapture={onWindowPointerdown} onkeydown={onWindowKeydown} />
 
-<filter-popover {@attach attachRoot} data-align={align}>
+<filter-popover {@attach attachRoot}>
   {@render trigger({ props: triggerProps, open })}
   {#if open}
     <filter-popover-panel
@@ -73,11 +72,6 @@
     position: relative;
     display: inline-flex;
     min-inline-size: 0;
-
-    &[data-align='end'] filter-popover-panel {
-      inset-inline-start: auto;
-      inset-inline-end: 0;
-    }
   }
 
   filter-popover-panel {

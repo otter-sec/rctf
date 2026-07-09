@@ -113,7 +113,6 @@
     width: number
     opacity: number
     scaled: { x: number; y: number }[]
-    data: { x: number; y: number }[]
   }
 
   const scaledSeries = $derived(
@@ -121,7 +120,6 @@
       ...entry,
       width: entry.isSelf ? 3 : 2,
       scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
-      data: entry.points.map(p => ({ x: p.time, y: p.score })),
     }))
   )
 
@@ -139,16 +137,13 @@
     })
   })
 
+  const nearestSeries = $derived<Series[]>(
+    scaledSeries.map(s => ({ id: s.id, points: s.scaled }))
+  )
+
   const nearest = $derived.by(() => {
-    if (!hover || renderSeries.length === 0) return null
-    const series: Series[] = renderSeries.map(s => ({ id: s.id, points: s.scaled }))
-    return nearestPoint(
-      series,
-      hover.x,
-      hover.y,
-      px => px,
-      px => px
-    )
+    if (!hover || nearestSeries.length === 0) return null
+    return nearestPoint(nearestSeries, hover.x, hover.y)
   })
 
   const hoveredSeries = $derived(
@@ -161,8 +156,8 @@
           {
             role: hoveredSeries.role,
             name: hoveredSeries.name,
-            score: hoveredSeries.data[nearest.index]?.y ?? 0,
-            time: hoveredSeries.data[nearest.index]?.x ?? 0,
+            score: hoveredSeries.points[nearest.index]?.score ?? 0,
+            time: hoveredSeries.points[nearest.index]?.time ?? 0,
           },
         ]
       : []
@@ -171,18 +166,18 @@
   const solvePoint = $derived.by(() => {
     if (!solveHighlight) return null
     const series = renderSeries.find(s => s.id === solveHighlight.teamId)
-    if (!series || series.data.length === 0) return null
-    let best = series.data[0]!
-    for (const point of series.data) {
-      if (point.x === solveHighlight.time) {
+    if (!series || series.points.length === 0) return null
+    let best = series.points[0]!
+    for (const point of series.points) {
+      if (point.time === solveHighlight.time) {
         best = point
         break
       }
-      if (Math.abs(point.x - solveHighlight.time) < Math.abs(best.x - solveHighlight.time)) {
+      if (Math.abs(point.time - solveHighlight.time) < Math.abs(best.time - solveHighlight.time)) {
         best = point
       }
     }
-    return { role: series.role, x: xScale(best.x), y: yScale(best.y) }
+    return { role: series.role, x: xScale(best.time), y: yScale(best.score) }
   })
 
   const ariaLabel = $derived(

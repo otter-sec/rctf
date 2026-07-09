@@ -2,7 +2,7 @@
   import Checkbox from '$lib/ui/checkbox.svelte'
   import Field from '$lib/ui/field.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
-  import { getSchemaFormErrors, NO_FIELD_ERROR, type FieldProps, type JsonSchema } from './types'
+  import { getSchemaFormErrors, NO_FIELD_ERROR, type FieldProps } from './types'
   import { arrayItemSchema, fieldLabel } from './utils'
   import { validateValue } from './validate'
 

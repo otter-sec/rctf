@@ -1,3 +1,5 @@
+import { isRecord } from '$lib/utils/is-record'
+
 export type AdminBotLogLevel = 'info' | 'warn' | 'error' | 'fatal'
 
 export type AdminBotLogEntry = {
@@ -21,17 +23,13 @@ function isLogLevel(value: unknown): value is AdminBotLogLevel {
   )
 }
 
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 function toEntry(parsed: Record<string, unknown>): AdminBotLogEntry {
   return {
     time: typeof parsed.time === 'number' ? parsed.time : 0,
     level: isLogLevel(parsed.level) ? parsed.level : 'info',
     prefix: typeof parsed.prefix === 'string' ? parsed.prefix : '',
     line: typeof parsed.line === 'string' ? parsed.line : '',
-    extra: isPlainRecord(parsed.extra) ? parsed.extra : {},
+    extra: isRecord(parsed.extra) ? parsed.extra : {},
   }
 }
 
@@ -47,7 +45,7 @@ export function parseAdminBotLogs(jsonl: string): AdminBotLogEntry[] {
     } catch {
       continue
     }
-    if (isPlainRecord(parsed)) {
+    if (isRecord(parsed)) {
       entries.push(toEntry(parsed))
     }
   }

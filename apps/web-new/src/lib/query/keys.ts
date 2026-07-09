@@ -33,11 +33,6 @@ export const queryKeys = {
   leaderboard: (params: { limit: number; offset: number; division?: string }) =>
     ['leaderboard', params] as const,
   leaderboardChallenges: ['leaderboard', 'challenges'] as const,
-  leaderboardGraph: (params: {
-    limit: number
-    offset: number
-    division?: string
-  }) => ['leaderboard', 'graph', params] as const,
   leaderboardWithGraph: (params: { division?: string; search?: string }) =>
     ['leaderboard', 'with-graph', params] as const,
   selfUserGraph: (globalPlace: number | null, userId: string | null = null) =>
@@ -56,8 +51,6 @@ export const queryKeys = {
     ['challenges', id, 'admin-bot', 'status'] as const,
   challengeAdminBotHistory: (id: string) =>
     ['challenges', id, 'admin-bot', 'history'] as const,
-  challengeAdminBotJobLogs: (id: string, jobId: string) =>
-    ['challenges', id, 'admin-bot', 'jobs', jobId, 'logs'] as const,
   members: ['members'] as const,
   instancerSchema: ['admin', 'instancer', 'schema'] as const,
   adminBotStatus: ['admin', 'admin-bot', 'status'] as const,

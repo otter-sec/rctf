@@ -59,10 +59,6 @@ export function validateValue(
     return { valid: true, error: null }
   }
 
-  if (schema.nullable && value === null) {
-    return { valid: true, error: null }
-  }
-
   if (schema.anyOf) {
     for (const subSchema of schema.anyOf) {
       const result = validateValue(subSchema, value)

@@ -32,10 +32,6 @@ export type LeaderboardGraphSeries = LeaderboardWithGraphData['graph'][number]
 export type LeaderboardWithGraphPage = LeaderboardWithGraphData & {
   offset: number
 }
-export type LeaderboardChallenges = RouteResponseData<
-  typeof GetLeaderboardChallengesRouteV2
->['challenges']
-
 export type LeaderboardFilters = {
   division?: string
   search?: string

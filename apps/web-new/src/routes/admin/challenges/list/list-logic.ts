@@ -1,7 +1,7 @@
 import type { AdminChallenge } from '@rctf/types'
 import { ChallengeScoringKind } from '@rctf/types'
 import { normalizeSearchText, searchMatches } from '$lib/filters/ui'
-import { getCategoryKeyOrAlias, getCategoryOrder } from '$lib/utils/categories'
+import { compareCategories, getCategoryKeyOrAlias } from '$lib/utils/categories'
 
 export interface CategoryGroup {
   category: string
@@ -60,19 +60,4 @@ export function pointsLabel(challenge: AdminChallenge): string {
   }
   const { min, max } = challenge.points
   return min === max ? `${max}` : `${min}–${max}`
-}
-
-function compareCategories(a: string, b: string): number {
-  const orderA = getCategoryOrder(a)
-  const orderB = getCategoryOrder(b)
-  if (orderA === -1 && orderB === -1) {
-    return a.localeCompare(b)
-  }
-  if (orderA === -1) {
-    return 1
-  }
-  if (orderB === -1) {
-    return -1
-  }
-  return orderA - orderB
 }

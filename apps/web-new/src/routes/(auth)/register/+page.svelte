@@ -9,7 +9,7 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
-  import { apiRequest, setToken, showApiError } from '$lib/api'
+  import { apiRequest, setToken } from '$lib/api'
   import ArchivedNotice from '$lib/components/archived-notice.svelte'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms/use-api-form.svelte'
@@ -32,7 +32,6 @@
 
   let verifySent = $state(false)
   let ctftimeToken = $state<string | null>(null)
-  let ctftimeName = $state<string | null>(null)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
   let mutationPending = $state(false)
@@ -77,7 +76,6 @@
         goto('/')
       } else {
         ctftimeToken = data.ctftimeToken
-        ctftimeName = data.ctftimeName
         form.setData({ name: data.ctftimeName, ctftimeToken: data.ctftimeToken })
       }
     } catch (error) {
@@ -89,7 +87,6 @@
 
   function cancelCtftime() {
     ctftimeToken = null
-    ctftimeName = null
     form.reset()
   }
 
@@ -99,7 +96,6 @@
 
     if (storedToken && storedName) {
       ctftimeToken = storedToken
-      ctftimeName = storedName
       form.setData({ name: storedName, ctftimeToken: storedToken })
       sessionStorage.removeItem('ctftimeToken')
       sessionStorage.removeItem('ctftimeName')

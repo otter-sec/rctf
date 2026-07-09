@@ -63,7 +63,7 @@ describe('solveTimeLabels primary — missing first-blood anchor', () => {
 })
 
 describe('solveTimeLabels secondary — local time shape (TZ-safe)', () => {
-  const localTimeShape = /^[A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM)$/
+  const localTimeShape = /^[A-Z][a-z]{2} \d{1,2}(,| at) \d{1,2}:\d{2} (AM|PM)$/
 
   test('rank 1 secondary matches the local-time format', () => {
     const { secondary } = solveTimeLabels({

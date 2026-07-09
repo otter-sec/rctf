@@ -25,6 +25,7 @@
   import Button from '$lib/ui/button.svelte'
   import Progress from '$lib/ui/progress.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { copyText } from '$lib/utils/clipboard'
   import { formatEndpoint } from '$lib/utils/instancer'
   import { formatCountdown } from '$lib/utils/time'
 
@@ -99,15 +100,6 @@
     }, 1000)
     return () => clearInterval(tick)
   })
-
-  async function copy(value: string) {
-    try {
-      await navigator.clipboard.writeText(value)
-      toast.success('Copied to clipboard')
-    } catch {
-      toast.error('Failed to copy')
-    }
-  }
 
   async function start() {
     pendingAction = 'start'
@@ -252,7 +244,7 @@
               <button
                 type="button"
                 aria-label="Copy {endpoint.label}"
-                onclick={() => copy(endpoint.copyValue)}
+                onclick={() => copyText(endpoint.copyValue, 'Copied to clipboard', 'Failed to copy')}
               >
                 <IconCopy />
               </button>
