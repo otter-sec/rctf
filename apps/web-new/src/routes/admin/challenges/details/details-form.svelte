@@ -279,6 +279,7 @@
                     <field-hint>(Markdown supported)</field-hint>
                   </field-label>
                   <MarkdownEditor
+                    label="Challenge description"
                     placeholder="Challenge description (Markdown supported)"
                     rows={12}
                     value={form.description}

@@ -359,6 +359,7 @@
         <group-body>
           <MarkdownEditor
             value={settingsForm.homeContent.value}
+            label="Home content"
             placeholder="Markdown content for the home page..."
             oninput={value => {
               settingsForm.homeContent.value = value
@@ -473,6 +474,7 @@
                   <MarkdownEditor
                     rows={4}
                     value={sponsor.description}
+                    label="Sponsor description"
                     placeholder="Sponsor description"
                     oninput={value =>
                       dispatchSponsors({

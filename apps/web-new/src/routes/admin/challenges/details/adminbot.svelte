@@ -67,6 +67,7 @@
           <CodeEditor
             value={config.code}
             {language}
+            label="Admin bot challenge code"
             {disabled}
             rows={28}
             placeholder={`// Write your admin bot challenge code here (${language})…`}

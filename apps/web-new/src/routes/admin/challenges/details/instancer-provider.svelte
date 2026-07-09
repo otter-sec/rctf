@@ -91,6 +91,7 @@
             language="yaml"
             rows={12}
             value={yamlText}
+            label="Provider YAML configuration"
             invalid={Boolean(yamlError)}
             {disabled}
             placeholder="# YAML configuration…"
