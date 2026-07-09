@@ -10,7 +10,7 @@ For the participant lifecycle, the common `<red>instancerConfig</red>` fields, a
 
 ## Deployment
 
-The bundled deployment files live under `deploy/docker-instancer/{:dir}`:
+The deployment files are in `deploy/docker-instancer/{:dir}`.
 
 :::file-tree
 - deploy/
@@ -110,7 +110,7 @@ Traefik loads these at startup and doesn't watch the file config (`watch: false{
 
 ### Docker daemon address pool
 
-Every instanced challenge creates its own user-defined Docker network. Docker carves those networks out of the daemon's default address pool, which on a fresh install is only `172.17.0.0/16` plus a small chunk of `192.168.0.0/16`. That's enough for ~30 networks before `$ <red>docker</red> network create` starts failing with `could not find an available, non-overlapping IPv4 address pool`. For a production CTF this runs out fast.
+Every instanced challenge creates its own Docker network, so the daemon's default address pool can run out after roughly 30 networks. When that happens, `$ <red>docker</red> network create` fails with `could not find an available, non-overlapping IPv4 address pool`.
 
 Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on the instancer host:
 
@@ -125,9 +125,9 @@ Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on t
 }
 ```
 
-This carves `100.64.0.0/10` (the CGNAT range, safe to use internally) into `/24` subnets, giving you **16384** Docker networks. That's enough for ~8192 concurrent instances in the worst case (each challenge typically creates two networks). Add more `default-address-pools` entries if you need still more room.
+This splits the CGNAT range into 16,384 `/24` networks. Add more pools if your deployment needs additional space.
 
-Restart Docker after editing the file (`$ <red>systemctl</red> restart docker`) so it picks up the new pool. Networks already created on the old pool keep working but stick with their original ranges.
+Restart Docker after editing the file with `$ <red>systemctl</red> restart docker`. Existing networks keep their original ranges.
 
 ## Docker challenge config
 

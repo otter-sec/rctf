@@ -14,6 +14,6 @@ order: 28
 
 Returns every registered external-auth client. Client secrets are never returned by this route - they are shown exactly once at creation time by [Create external-auth client](/api/admin/external-auth-create/) and cannot be retrieved afterward.
 
-The end-user side of the external-auth flow lives at [External auth](/api/external-auth/), and the operator walkthrough lives at [External apps](/admin/external-auth/).
+See [External auth](/api/external-auth/) for the user-facing routes and [External apps](/admin/external-auth/) for the operator setup.
 
 ::response-body{def="ListExternalAuthClientsRouteV2" response="goodAdminExternalAuthClients" title="Response fields"}

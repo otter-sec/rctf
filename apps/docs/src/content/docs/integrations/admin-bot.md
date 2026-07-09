@@ -70,7 +70,7 @@ captcha:
 
 The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It exposes a protected test endpoint for config validation, and polls rCTF for queued jobs.
 
-The bundled deployment files live under `deploy/admin-bot/{:dir}`:
+The deployment files are in `deploy/admin-bot/{:dir}`.
 
 :::file-tree
 - deploy/

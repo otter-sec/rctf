@@ -2,20 +2,21 @@
 title: Theming and styling
 description: How rCTF's color system, challenge categories, and UI components fit together.
 order: 7
+scroll: true
 ---
 
-rCTF ships with an OKLCH-based color system, per-category color palettes, and a UI component library built on shadcn-svelte. These pages cover how the pieces fit together and how to customize them.
+rCTF uses Radix Colors for its light and dark palettes, with a separate icon and hue assigned to each challenge category. The interface itself is built from Svelte components and scoped CSS, with Zag.js state machines handling the more interactive controls.
 
 ::::card-grid
 :::card[Color system]{href=/theming/colors}
-Layered OKLCH tokens with semantic naming, plus light and dark themes out of the box.
+Radix-based color tokens, layered grays, and light and dark themes out of the box.
 :::
 
 :::card[Categories]{href=/theming/categories}
-Challenge category configuration: colors, icons, display names, and adding your own.
+Category colors, icons, and display names, plus how to add your own.
 :::
 
 :::card[Components]{href=/theming/components}
-The rCTF UI component library based on shadcn-svelte, and how to add to it.
+The Zag.js and scoped-CSS component library, and how to add to it.
 :::
 ::::

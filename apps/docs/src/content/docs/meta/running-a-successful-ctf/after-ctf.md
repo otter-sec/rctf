@@ -78,9 +78,7 @@ Encouraging participants to publish writeups gives back to the broader CTF commu
 
 ## Archive the platform
 
-Before decommissioning anything, run an archive of the live instance. rCTF ships a [static export tool](/archiving) that snapshots challenges, scoreboard, and team pages into a read-only site you can host on any static-file backend (S3, GitHub Pages, Netlify, plain nginx, and so on). Once the snapshot is up, participants can still browse the final standings and revisit challenge metadata long after the live platform is gone, which is the right time to also link writeups against permanent URLs.
-
-See [Archiving](/archiving) for the export commands and hosting tips. We recommend doing this **before** the teardown checklist below.
+Before decommissioning the platform, use the [static export tool](/archiving) to preserve challenges, profiles, solves, and the final leaderboard. Host the resulting read-only site wherever you plan to keep permanent links and writeups.
 
 ## Infrastructure teardown
 

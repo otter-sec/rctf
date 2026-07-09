@@ -59,7 +59,7 @@ $ <red>bun</red> run db:migrate
 
 ## API changes
 
-All v1 routes still work. The v2 API lives at `<route>/api/v2/...</route>` and adds several improvements and new endpoints.
+All v1 routes still work. V2 routes use the `<route>/api/v2/...</route>` prefix and include the following changes.
 
 ### Captcha field rename
 

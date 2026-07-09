@@ -39,7 +39,7 @@ The docs site renders alerts with its own component, which looks different from 
 
 ### Connection callout
 
-`> [!CONNECTION]{:md}` is a real, distinct alert type and not just a styled `NOTE`. It's built for the **Remote** field of a challenge, which holds a single line containing a connection string or URL.
+Use `> [!CONNECTION]{:md}` for the connection string or URL in a challenge's **Remote** field.
 
 ```text title="Challenge description"
 > [!CONNECTION]

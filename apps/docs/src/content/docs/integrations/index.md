@@ -15,4 +15,4 @@ rCTF integrates with several external services to enhance your CTF platform.
 | [Admin bot](/integrations/admin-bot) | `<red>adminBot</red>` | Browser automation for web challenges. Challenge authors write trusted TypeScript that validates participant input, runs a Chrome or Firefox session, and stores structured per-job logs. |
 | [Blood bot](/integrations/bloodbot) | `<red>bloodBot</red>` | First-blood announcements to Discord and Telegram. Notifies configured channels when teams achieve first, second, or third blood on challenges. |
 | [Analytics](/providers/analytics) | `<red>analytics</red>` | Client-side analytics injection supporting Google Analytics, Cloudflare Web Analytics. |
-| [Konata](/integrations/konata) | - | External CLI + CI actions for deploying challenges to rCTF (challenge sync, Docker publish, Kubernetes rollout). The `<red>instancerConfig</red>` schema shown throughout these docs is what Konata consumes. |
+| [Konata](/integrations/konata) | - | External CLI and CI actions for syncing challenges, publishing Docker images, and running Kubernetes deployments. Konata writes the `<red>instancerConfig</red>` schema used by rCTF. |

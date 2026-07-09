@@ -24,7 +24,7 @@ order: 3
 
 Server-to-server exchange. The external service's backend trades the single-use code from the browser redirect for a regular rCTF auth token. Call this from a trusted environment - the client secret must not be exposed to the browser.
 
-The code is consumed atomically: the first call deletes it from Redis, so a replay or any concurrent second exchange always fails.
+The first call deletes the code from Redis atomically, which prevents both replays and concurrent exchanges.
 
 :::note[Failures all look identical]
 

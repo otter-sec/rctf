@@ -42,7 +42,7 @@ BadBody,
 
 ::route-meta{def="SubmitDynamicScoresRouteV2"}
 
-Publishes per-team scores for a `dynamic` challenge. The endpoint is authenticated through an HMAC signature derived from the challenge's per-instance webhook secret (the `<red>scoring.source.secret</red>` value set on the challenge); no user auth token is involved. The operator guide for this endpoint, including the team-identifier patterns and the recommended publisher snippet, lives at [Scoring](/admin/scoring/#dynamic-scoring-guide).
+Publishes per-team scores for a `dynamic` challenge. The endpoint checks an HMAC signature derived from the challenge's per-instance webhook secret in `<red>scoring.source.secret</red>`. It does not use a user auth token. See [Scoring](/admin/scoring/#dynamic-scoring-guide) for team identifiers and a publisher example.
 
 :::warning[No event-timing gate]
 

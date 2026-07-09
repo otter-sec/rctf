@@ -30,6 +30,6 @@ The `<red>redirectUri</red>` must match what the client was registered with byte
 
 ::response-body{def="AuthorizeExternalAuthRouteV2" response="goodExternalAuthAuthorize" title="Response fields"}
 
-The returned `<red>redirectTo</red>` is the registered `<red>redirectUri</red>` with `code=...` (and, when provided, `state=...`) appended using a `?` or `&` separator as needed. The code lives in Redis for 60 seconds and is consumed by the first `<route>POST /api/v2/external-auth/token</route>` call - a second exchange always fails.
+The returned `<red>redirectTo</red>` appends `code=...` to the registered `<red>redirectUri</red>`, along with `state=...` when the request provides one. It uses `?` or `&` as needed for the registered URI. The code expires from Redis after 60 seconds and is deleted by the first `<route>POST /api/v2/external-auth/token</route>` call.
 
 The `<red>state</red>` value is opaque to rCTF and is passed through verbatim. It is the integrator's responsibility to use it for CSRF protection.

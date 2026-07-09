@@ -57,9 +57,9 @@ The API exposes two unauthenticated endpoints for load balancers and orchestrato
 
 ## Graceful shutdown
 
-On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting new connections, drains in-flight requests, and stops the leaderboard worker. Stopping the worker releases its advisory lock, so a standby takes over within its next poll (≤5s) instead of waiting for Postgres to notice the dropped session. A hard timeout (`<red>shutdownTimeout</red>`, default 30s) forces the process to exit if draining stalls, so give your orchestrator a termination grace period at least that long (the bundled container ships `stopwaitsecs=35{:sh}` in supervisord and `stop_grace_period: 45s{:yaml}` in `compose.yml{:file}`). A second signal skips the drain and exits immediately.
+On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting connections, drains active requests, and releases the leaderboard lock for a standby. The `<red>shutdownTimeout</red>` defaults to 30 seconds, so the orchestrator's termination grace period must be at least that long. A second signal exits immediately.
 
-If a leader dies **without** closing its connection (host crash, network partition), the lock stays held until Postgres reaps the dead session - by default that relies on OS TCP keepalives and can take a long time. For multi-node deployments, tighten `tcp_keepalives_idle{:sh}`/`tcp_keepalives_interval{:sh}`/`tcp_keepalives_count{:sh}` on Postgres so dead peers are noticed and a standby can take over promptly. (Avoid `idle_session_timeout{:sh}`: it also kills healthy idle sessions, including the one holding the migration lock.)
+After a host crash or network partition, Postgres holds the leaderboard lock until it detects the dead connection. Multi-node deployments should shorten the Postgres `tcp_keepalives_idle{:sh}`, `tcp_keepalives_interval{:sh}`, and `tcp_keepalives_count{:sh}` settings. Do not use `idle_session_timeout{:sh}`, which can also kill healthy sessions holding advisory locks.
 
 ## Deployment templates
 

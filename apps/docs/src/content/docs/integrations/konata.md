@@ -161,7 +161,7 @@ Overrides for the rendered challenge description and endpoint block. The default
 | `<red>endpoints_text.ctfd</red>` | Endpoints template used when syncing to CTFd. The default is plain `socat`/`nc`/`ncat --ssl`/`http(s)` lines. |
 | `<red>ctfd_attribution</red>` | Suffix appended to the description on CTFd syncs (defaults to `**Author**: {{ challenge.author }}`). |
 
-`<red>endpoints_text</red>` is per-provider because rCTF and CTFd render markdown differently. Each provider sees its own rendered endpoints, and then `<red>challenge_description</red>` is run once per provider with that provider's `<red>endpoints_rendered</red>` in scope. To override just one side, set only that key. The other keeps its default.
+Endpoint templates are separate because rCTF and CTFd format connection details differently. You can override either provider without replacing the other one's default.
 
 ```yaml
 templates:
@@ -638,7 +638,7 @@ $ <red>kona</red> compress ./challenge/dist <dim>--password</dim> "$FLAG" <dim>-
 | `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<src>.{tar.gz,zip,7z}` in the current directory, based on the selected or forced archive format. |
 | `<dim>-p</dim>`, `<dim>--password</dim>` | Encrypts the archive. Passing a password forces `<green>7z</green>` output, even when `<dim>--format</dim>` is `<green>tar_gz</green>` or `<green>zip</green>`. |
 
-Generated archives are **deterministic**. File mtimes are zeroed (fixed to `1980-01-01` for zip and 7z, `0` for tar.gz), uid/gid become `0`, uname/gname become `<green>kona</green>`, permissions are normalized to `0777`, the gzip header drops its own filename and mtime, and entries are sorted by archive path. Compressing the same set of files always produces a byte-identical archive (and therefore an identical hash), so attachment dedup and CI cache hits stay stable across machines, runs, and users. Konata applies the same normalization to attachments it builds internally during `sync`.
+Generated archives are deterministic. Konata normalizes file metadata and entry order, so the same inputs produce the same archive bytes across machines and runs. It applies the same rules to attachments built during `sync`.
 
 ## CI integration
 

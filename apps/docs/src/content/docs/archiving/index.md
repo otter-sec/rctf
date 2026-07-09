@@ -4,7 +4,7 @@ description: Generate a read-only static snapshot of a finished rCTF instance fo
 order: 8
 ---
 
-The `apps/export/{:dir}` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/{:dir}`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `<red>isArchived</red>` set to `true{:ts}`, and non-`<route>GET</route>` requests return `<response>405 Method Not Allowed</response>`, so the archive remains functional without a database or API server.
+The `apps/export/{:dir}` tool turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
 
 ## CLI
 

@@ -43,7 +43,7 @@ aside: true
 
 :::
 
-These admin API pages cover challenge data, uploads, teams, pending email verifications, submission audit rows, runtime settings, admin bot service work, and external-auth client registration. Most user facing admin routes need a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token instead. The end-user side of the external-auth flow lives under [External auth](/api/external-auth/).
+These admin API pages cover challenges, uploads, teams, email verification, submission logs, runtime settings, admin bot work, and external auth clients. Most user-facing routes require a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token. See [External auth](/api/external-auth/) for the user-facing half of the external auth flow.
 
 Permissions, captcha actions, and rate limit conventions are documented in the [API overview](/api/).
 

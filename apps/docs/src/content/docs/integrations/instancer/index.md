@@ -14,7 +14,7 @@ Treat challenge images as hostile. Set resource limits, keep containers or pods 
 
 ## Pick a backend
 
-This page covers the parts that are the same for both providers, namely the architecture, the common challenge fields, and the participant lifecycle. The provider-specific deployment guides live one level deeper:
+Both providers share the same challenge fields and participant lifecycle, but each backend has its own deployment guide.
 
 - [Docker instancer](/integrations/instancer/docker) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
 - [Kubernetes instancer](/integrations/instancer/kubernetes) is a Go operator driving GKE, Traefik, and Terraform.
@@ -167,7 +167,7 @@ Participant lifecycle routes are under `<route>/api/v2/integrations/challs/:id/i
 | `<route>PATCH</route>`  | Extends an instance when the challenge is extendable. |
 | `<route>DELETE</route>` | Stops an instance.                                    |
 
-The returned status is one of `<green>stopped</green>`, `<green>starting</green>`, `<green>running</green>`, `<green>stopping</green>`, or `<green>errored</green>`. Docker only emits `<green>stopping</green>` through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
+The returned status is `<green>stopped</green>`, `<green>starting</green>`, `<green>running</green>`, `<green>stopping</green>`, or `<green>errored</green>`.
 
 Captcha can protect create and extend actions:
 

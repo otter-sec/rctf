@@ -4,7 +4,7 @@ description: Let external services sign users in with their rCTF account.
 order: 7
 ---
 
-External apps (scoring backends, instancers, dashboards, anything that lives next to rCTF) can sign users in via a "Sign in with rCTF" flow. The user visits the external service, clicks a button, lands on an rCTF consent page, approves, and is redirected back authorized.
+Scoring backends, instancers, dashboards, and other external apps can let users sign in with their rCTF account. After the user approves the app on rCTF, they are sent back with an authorization code.
 
 :::warning[This is NOT OAuth2]
 The flow looks OAuth2-shaped, but it's not. The wire-level field names (`client_id`, `redirect_uri`, `code`, `state`) match what integrators expect. But there are no scopes, no refresh tokens, no PKCE, no `id_token`/OIDC discovery, no token introspection or revocation. The issued access token is a regular rCTF auth token - identical to one minted on login - and grants full account access to the signing-in user.
@@ -31,7 +31,9 @@ Deleting an app makes future `<route>/api/v2/external-auth/token</route>` exchan
 4. External app POSTs to `<route>/api/v2/external-auth/token</route>`
 5. External app uses the access token in `Authorization: Bearer <accessToken>` against any rCTF endpoint
 
-The `code` is single-use. It lives in Redis for 60 seconds, and the first /token call atomically deletes it - any second exchange fails. The `redirect_uri` is bound to the registered URI for the client and checked byte-for-byte at /authorize; the /token call only needs the secret and the code. Mismatches on any field (client id, secret, code) all return the same generic `badExternalAuthRequest` so the endpoint can't be probed.
+The `code` stays valid for 60 seconds and can only be used once, since the first `/token` call deletes it from Redis. Before issuing one, `/authorize` checks `redirect_uri` byte for byte against the URI registered for the client.
+
+Exchanging the code only requires the client secret and the code itself. An invalid client ID, secret, or code returns the same `badExternalAuthRequest` response.
 
 ## Endpoints
 

@@ -31,7 +31,7 @@ Use one of these everywhere it's possible. A shared remote without per-connectio
 
 kCTF has its own [documentation](https://google.github.io/kctf/), so this section focuses on the things that aren't immediately obvious, especially for first-time users:
 
-- When deploying kCTF, you can control which (sub)domain the challenges live under. The `$ <red>kctf</red> cluster create` command has a `<dim>--domain-name</dim>` flag for this. Expect to either use Google nameservers if you want to host challenges under `*.example.com`, or set up a subdomain with `NS` records pointing to Google so challenges are available under `*.subdomain.example.com`.
+- Set the challenge domain with `<dim>--domain-name</dim>` when you run `$ <red>kctf</red> cluster create`. To use `*.example.com`, use Google nameservers for the domain. To use `*.subdomain.example.com`, add `NS` records that delegate the subdomain to Google.
 - By default, the created nodes are spot (preemptible) instances. This means the nodes rotate every 24 hours, with brief downtime each time. To avoid this, resize the cluster without the spot instance flag (e.g., `$ <red>kctf</red> cluster resize <dim>--min-nodes</dim> 1 <dim>--max-nodes</dim> 3 <dim>--num-nodes</dim> 1 <dim>--machine-type</dim> n2-standard-4`), at slightly higher cost.
 - If a health check fails, the challenge restarts automatically, which can look like a connectivity issue from the outside. Run `$ <red>kctf</red> chal status` to see what's actually going on.
 - Watch your GCP project's quotas. The dashboard shows which limits have been hit or are getting close. Deploying a lot of challenges can fail because of insufficient IP addresses or other quota constraints. Setting up kCTF early is a practical way to verify your quotas are sufficient, and it may improve your account's standing for automatic quota increase approvals.
@@ -78,12 +78,12 @@ rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript h
 
 ## Keeping challenges in sync
 
-Updating a challenge is where most operational pain comes from. Touching the source code without updating the published attachment leaves teams solving against stale handouts. Rebuilding the Docker image but forgetting to roll the running deployment leaves the flag pointing at the old binary. Tweaking `<red>instancerConfig</red>` in the admin UI without bumping the image causes new instances to come up with mismatched assets. Each of these is easy to miss in the moment and hard to debug after the fact.
+Challenge updates become difficult to debug when source, attachments, images, and `<red>instancerConfig</red>` are updated separately. Keep them in one deployment workflow so participants do not end up with mismatched versions.
 
 :::tip[Use Konata + CI as the single source of truth]
 Commit every challenge's `kona.yml{:file}` alongside the source, and let [Konata](/integrations/konata) drive deployment from CI on every push to `main`. With the [Konata GitHub Action](/integrations/konata#ci-integration), one commit can rebuild and push the Docker image, re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the running deployment, all from the same source tree, in the right order.
 :::
 
-Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile{:file}` export, a `$ <red>make</red> handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/integrations/konata#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
+Generate attachments from the challenge build and reference the output through `<red>attachments.files</red>`. Konata archives that output on each sync, while rCTF skips the upload when its contents have not changed.
 
-The [SekaiCTF 2026 challenge repository](https://github.com/project-sekai-ctf/sekaictf-2026) is the current working reference for this workflow end-to-end. It includes challenge sources, `kona.yaml{:file}` files, static Kubernetes deployments, k8s-instancer configs, dynamic scoring, and a `.github/workflows/sync.yaml{:file}` workflow that ships every change through Konata.
+The [SekaiCTF 2026 challenge repository](https://github.com/project-sekai-ctf/sekaictf-2026) shows this workflow with Konata, Kubernetes, instanced challenges, and dynamic scoring.

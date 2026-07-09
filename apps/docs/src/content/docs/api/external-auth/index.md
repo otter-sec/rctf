@@ -16,9 +16,9 @@ aside: true
 
 :::
 
-These routes power the "Sign in with rCTF" flow for external services. The user-facing consent page lives at `<route>/external-auth/authorize</route>`; the API routes here are what that page (and the external service's backend) call.
+These routes power the "Sign in with rCTF" flow for external services. Users approve access at `<route>/external-auth/authorize</route>`, while that page and the external service call the APIs documented here.
 
-The admin-side routes for registering and revoking external-auth clients are documented in [Admin](/api/admin/). The operator walkthrough lives at [External apps](/admin/external-auth/).
+See [Admin](/api/admin/) for the routes that register and revoke clients. [External apps](/admin/external-auth/) walks operators through the complete setup.
 
 :::warning[Not OAuth2]
 
@@ -45,4 +45,4 @@ Every failure mode (unknown client, wrong secret, mismatched redirect URI, missi
 
 ### Code lifetime
 
-Authorization codes live in Redis for 60 seconds and are single-use - the first `<route>POST /api/v2/external-auth/token</route>` call atomically deletes the code, so a second exchange always fails. There is no per-app token registry: deleting a client through the admin routes blocks future token exchanges but does not revoke access tokens that were already issued.
+Authorization codes expire from Redis after 60 seconds and can only be used once. The first `<route>POST /api/v2/external-auth/token</route>` call deletes the code atomically, preventing a second exchange. Deleting a client blocks future exchanges but does not revoke access tokens already issued to that client.
