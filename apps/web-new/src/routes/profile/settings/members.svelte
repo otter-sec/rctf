@@ -82,6 +82,7 @@
             onchange={handleChange}
             validate={isValidEmail}
             disabled={memberForm.submitting || deleting !== null}
+            aria-label="Add team member email"
             placeholder="Add more..."
             emptyPlaceholder="teammate@example.com"
           />

@@ -8,6 +8,7 @@
     disabled: boolean
     rows?: number
     placeholder?: string
+    label?: string
     invalid?: boolean
     oninput: (value: string) => void
     onblur?: () => void
@@ -19,6 +20,7 @@
     disabled,
     rows = 16,
     placeholder,
+    label,
     invalid = false,
     oninput,
     onblur,
@@ -61,6 +63,7 @@
     {value}
     readonly={disabled || undefined}
     {placeholder}
+    aria-label={label}
     aria-invalid={invalid || undefined}
     spellcheck="false"
     autocomplete="off"
