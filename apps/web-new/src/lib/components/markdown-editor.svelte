@@ -7,6 +7,7 @@
     disabled?: boolean
     rows?: number
     placeholder?: string
+    label?: string
     invalid?: boolean
     oninput: (value: string) => void
     onblur?: () => void
@@ -17,6 +18,7 @@
     disabled = false,
     rows = 12,
     placeholder,
+    label,
     invalid = false,
     oninput,
     onblur,
@@ -55,6 +57,7 @@
         {disabled}
         {rows}
         {placeholder}
+        {label}
         {invalid}
         {oninput}
         {onblur}

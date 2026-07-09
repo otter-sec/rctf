@@ -65,9 +65,10 @@
 
 <QueryClientProvider client={data.queryClient}>
   <app-shell>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <Navigation />
 
-    <main>
+    <main id="main-content" tabindex="-1">
       {@render children()}
     </main>
 
@@ -91,5 +92,23 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    outline: none;
+  }
+
+  .skip-link {
+    position: fixed;
+    inset-block-start: var(--space-3xs);
+    inset-inline-start: var(--space-3xs);
+    z-index: var(--layer-toast);
+    padding: var(--space-3xs) var(--space-2xs);
+    color: var(--foreground-l0);
+    background: var(--background-l1);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+
+    &:not(:focus-visible) {
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 </style>
