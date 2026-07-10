@@ -12,7 +12,7 @@ For events we run or help operate (including Malta CTF, idek CTF, DiceCTF, Sekai
 
 ## Configuration
 
-Email config includes the provider, a sender address, and an optional logo URL for email templates:
+Email config includes the provider and a sender address:
 
 ```yaml
 email:
@@ -21,7 +21,6 @@ email:
     options:
       smtpUrl: smtp://user:password@mail.example.com:587
   from: noreply@example.com
-  logoUrl: https://example.com/logo.png # Optional
 ```
 
 :::note

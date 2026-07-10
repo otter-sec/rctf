@@ -1,7 +1,10 @@
 import path from 'node:path'
 import { config } from '@rctf/config'
+import type { DatabaseClient } from '@rctf/db'
 import mustache from 'mustache'
+import type { TypedRedis } from '../cache/scripts'
 import { emailProvider } from '../providers'
+import { getResolvedSettings } from './settings'
 
 export type EmailKind = 'register' | 'recover' | 'update'
 
@@ -15,17 +18,25 @@ const emailTXT = await Bun.file(
 ).text()
 
 export const sendVerificationEmail = async (
+  db: DatabaseClient,
   to: string,
   kind: EmailKind,
-  token: string
+  token: string,
+  redis?: TypedRedis
 ) => {
   if (!emailProvider || !config.email) {
     throw new Error('Email provider is not set.')
   }
 
+  const { ctfName, logoLightUrl, logoDarkUrl } = await getResolvedSettings(
+    db,
+    redis
+  )
+
   const emailView = {
-    ctf_name: config.ctfName,
-    logo_url: config.email.logoUrl,
+    ctf_name: ctfName,
+    logo_light_url: logoLightUrl ?? logoDarkUrl,
+    logo_dark_url: logoDarkUrl ?? logoLightUrl,
     origin: config.origin,
     token: encodeURIComponent(token),
     register: kind === 'register',
@@ -33,13 +44,13 @@ export const sendVerificationEmail = async (
     update: kind === 'update',
   }
   const subject = {
-    register: `Email verification for ${config.ctfName}`,
-    recover: `Account recovery for ${config.ctfName}`,
-    update: `Update your ${config.ctfName} email`,
+    register: `[${ctfName}] Verify your email`,
+    recover: `[${ctfName}] Recover your account`,
+    update: `[${ctfName}] Update your email`,
   }[kind]
 
   await emailProvider.send({
-    from: `${config.ctfName} <${config.email.from}>`,
+    from: `${ctfName} <${config.email.from}>`,
     to: to,
     subject,
     html: mustache.render(emailHTML, emailView),

@@ -161,7 +161,13 @@ const prepareRegistration = async (
       division: division,
     })
 
-    await sendVerificationEmail(body.email, 'register', verification.token)
+    await sendVerificationEmail(
+      db,
+      body.email,
+      'register',
+      verification.token,
+      redis
+    )
     return { hasResult: true, response: res.goodVerifySent() }
   }
 
@@ -251,6 +257,6 @@ export const recoverUser = async (
   // v2 change: send team token, its lifetime is infinite
   const teamToken = await createToken(TokenKind.Team, user.id)
 
-  await sendVerificationEmail(email, 'recover', teamToken)
+  await sendVerificationEmail(db, email, 'recover', teamToken, redis)
   return res.goodVerifySent()
 }

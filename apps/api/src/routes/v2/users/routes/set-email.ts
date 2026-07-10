@@ -22,7 +22,13 @@ usersGroup.route(SetEmailRouteV2, async ({ ctx, res, body, user }) => {
       userId: user.id,
       email: body.email,
     })
-    await sendVerificationEmail(body.email, 'update', verificationToken)
+    await sendVerificationEmail(
+      ctx.var.db,
+      body.email,
+      'update',
+      verificationToken,
+      ctx.var.redis
+    )
     return res.goodVerifySent()
   }
 

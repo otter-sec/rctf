@@ -105,7 +105,6 @@ export const loadEnvConfig = (): ConfigLayer => {
 
   const email = optionalObjectFrom([
     ['from', getString('RCTF_EMAIL_FROM')],
-    ['logoUrl', getString('RCTF_EMAIL_LOGO_URL')],
   ])
 
   const uploadProvider = optionalObjectFrom([

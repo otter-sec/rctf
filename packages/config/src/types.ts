@@ -123,7 +123,6 @@ export const ServerConfigSchema = z.object({
     z.object({
       provider: ProviderConfigSchema,
       from: z.string(),
-      logoUrl: z.optional(z.string()),
     })
   ),
 
