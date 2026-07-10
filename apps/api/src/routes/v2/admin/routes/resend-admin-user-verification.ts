@@ -8,6 +8,7 @@ adminGroup.route(
     const result = await resendPendingTeamVerification(
       ctx.var.db,
       params.id,
+      undefined,
       ctx.var.redis
     )
 
