@@ -13,6 +13,7 @@
   import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { hasPermissions } from '$lib/utils/permissions'
   import type { Attachment } from 'svelte/attachments'
   import ChallengeDetailsRow from '../../../challenges/details/details-row.svelte'
@@ -67,7 +68,7 @@
   }
 
   let revokeTarget = $state<{ userId: string; userName: string } | null>(null)
-  let revokingUserId = $state<string | null>(null)
+  const revokeAction = createAsyncAction<string>()
 
   function requestRevoke(solve: { userId: string; userName: string }) {
     revokeTarget = { userId: solve.userId, userName: solve.userName }
@@ -79,25 +80,23 @@
     if (!target || !challengeId) return
     const id = challengeId
 
-    revokingUserId = target.userId
-    try {
-      const response = await apiRequest(DeleteChallengeSolveRouteV2, {
-        challengeId: id,
-        userId: target.userId,
-      })
-      if (response.kind === GoodChallengeSolveDeleteV2.kind) {
-        toast.success(`Revoked ${target.userName}'s solve.`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.challengeSolvesInfinite(id) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
-        queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-      } else {
-        showApiError(response)
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to revoke solve')
-    } finally {
-      revokingUserId = null
-    }
+    await revokeAction.run(
+      async () => {
+        const response = await apiRequest(DeleteChallengeSolveRouteV2, {
+          challengeId: id,
+          userId: target.userId,
+        })
+        if (response.kind === GoodChallengeSolveDeleteV2.kind) {
+          toast.success(`Revoked ${target.userName}'s solve.`)
+          queryClient.invalidateQueries({ queryKey: queryKeys.challengeSolvesInfinite(id) })
+          queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
+          queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: target.userId, errorMessage: 'Failed to revoke solve' }
+    )
   }
 
   $effect(() => {
@@ -156,10 +155,10 @@
                       variant="destructive"
                       size="icon-sm"
                       aria-label="Revoke {solve.userName}'s solve"
-                      disabled={revokingUserId !== null}
+                      disabled={revokeAction.pending}
                       onclick={() => requestRevoke(solve)}
                     >
-                      {#if revokingUserId === solve.userId}<Spinner />{:else}<IconTrash />{/if}
+                      {#if revokeAction.key === solve.userId}<Spinner />{:else}<IconTrash />{/if}
                     </Button>
                   {/if}
                 </solve-trailing>

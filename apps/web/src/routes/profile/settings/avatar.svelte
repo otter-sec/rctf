@@ -7,6 +7,7 @@
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { queryKeys } from '$lib/query/keys'
   import { toast } from '$lib/toast'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
 
   type Props = {
     user: UserProfile
@@ -16,25 +17,23 @@
   let { user, clientConfig }: Props = $props()
 
   const queryClient = useQueryClient()
-  let loading = $state(false)
+  const avatarAction = createAsyncAction()
 
   async function submitAvatar(args: { avatar?: File }, successMessage: string): Promise<boolean> {
-    loading = true
-    try {
-      const response = await apiRequest(UpdateAvatarRoute, args)
-      if (response.kind === GoodAvatarUpdated.kind) {
-        toast.success(successMessage)
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-        return true
-      }
-      showApiError(response)
-      return false
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Avatar update failed')
-      return false
-    } finally {
-      loading = false
-    }
+    const result = await avatarAction.run(
+      async () => {
+        const response = await apiRequest(UpdateAvatarRoute, args)
+        if (response.kind === GoodAvatarUpdated.kind) {
+          toast.success(successMessage)
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          return true
+        }
+        showApiError(response)
+        return false
+      },
+      { errorMessage: 'Avatar update failed' }
+    )
+    return result ?? false
   }
 
   const uploadAvatar = (file: File) => submitAvatar({ avatar: file }, 'Avatar updated!')
@@ -44,7 +43,7 @@
 <AvatarUpload
   name={user.name}
   avatarUrl={user.avatarUrl}
-  {loading}
+  loading={avatarAction.pending}
   onUpload={uploadAvatar}
   onRemove={removeAvatar}
 >

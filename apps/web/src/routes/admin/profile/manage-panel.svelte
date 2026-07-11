@@ -30,6 +30,7 @@
   import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { buildLoginUrl } from '$lib/utils/auth'
   import { copyText } from '$lib/utils/clipboard'
   import { hasPermissions } from '$lib/utils/permissions'
@@ -63,10 +64,10 @@
   const revealAfterLoading = adminUserQuery.isPending
   const clientConfig = $derived<ClientConfig | undefined>(configQuery.data)
 
-  let pendingAction = $state<ActionKind | null>(null)
-  let savingProfile = $state(false)
-  let avatarLoading = $state(false)
-  const busy = $derived(pendingAction !== null || savingProfile || avatarLoading)
+  const action = createAsyncAction<ActionKind>()
+  const saveAction = createAsyncAction()
+  const avatarAction = createAsyncAction()
+  const busy = $derived(action.pending || saveAction.pending || avatarAction.pending)
 
   const confirmState = createConfirmState()
 
@@ -117,22 +118,20 @@
   }
 
   async function submitAvatar(args: { avatar?: File }, message: string): Promise<boolean> {
-    avatarLoading = true
-    try {
-      const response = await apiRequest(UpdateAdminUserAvatarRouteV2, { id: userId, ...args })
-      if (response.kind === GoodAvatarUpdated.kind) {
-        toast.success(message)
-        invalidateTeam()
-        return true
-      }
-      showApiError(response)
-      return false
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Avatar update failed')
-      return false
-    } finally {
-      avatarLoading = false
-    }
+    const result = await avatarAction.run(
+      async () => {
+        const response = await apiRequest(UpdateAdminUserAvatarRouteV2, { id: userId, ...args })
+        if (response.kind === GoodAvatarUpdated.kind) {
+          toast.success(message)
+          invalidateTeam()
+          return true
+        }
+        showApiError(response)
+        return false
+      },
+      { errorMessage: 'Avatar update failed' }
+    )
+    return result ?? false
   }
 
   const uploadAvatar = (file: File) => submitAvatar({ avatar: file }, 'Avatar updated!')
@@ -140,21 +139,21 @@
 
   async function saveProfile(event: SubmitEvent) {
     event.preventDefault()
-    savingProfile = true
-    try {
-      const response = await apiRequest(UpdateAdminUserRouteV2, {
-        id: userId,
-        data: buildUserUpdate(form),
-      })
-      if (response.kind === GoodAdminUserUpdateV2.kind) {
-        toast.success('Team updated!')
-        invalidateTeam()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      savingProfile = false
-    }
+    await saveAction.run(
+      async () => {
+        const response = await apiRequest(UpdateAdminUserRouteV2, {
+          id: userId,
+          data: buildUserUpdate(form),
+        })
+        if (response.kind === GoodAdminUserUpdateV2.kind) {
+          toast.success('Team updated!')
+          invalidateTeam()
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to update team' }
+    )
   }
 
   async function mintToken(): Promise<string | null> {
@@ -167,54 +166,54 @@
   }
 
   async function copyToken() {
-    pendingAction = 'token'
-    try {
-      const token = await mintToken()
-      if (token) await copyText(token, 'Login token copied to clipboard!')
-    } finally {
-      pendingAction = null
-    }
+    await action.run(
+      async () => {
+        const token = await mintToken()
+        if (token) await copyText(token, 'Login token copied to clipboard!')
+      },
+      { key: 'token', errorMessage: 'Failed to create login token' }
+    )
   }
 
   async function copyLoginUrl() {
-    pendingAction = 'url'
-    try {
-      const token = await mintToken()
-      if (token) await copyText(buildLoginUrl(token), 'Login URL copied to clipboard!')
-    } finally {
-      pendingAction = null
-    }
+    await action.run(
+      async () => {
+        const token = await mintToken()
+        if (token) await copyText(buildLoginUrl(token), 'Login URL copied to clipboard!')
+      },
+      { key: 'url', errorMessage: 'Failed to create login URL' }
+    )
   }
 
   async function setBanned(banned: boolean) {
-    pendingAction = 'ban'
-    try {
-      const response = await apiRequest(UpdateAdminUserRouteV2, { id: userId, data: { banned } })
-      if (response.kind === GoodAdminUserUpdateV2.kind) {
-        toast.success(banned ? 'Team banned.' : 'Team unbanned.')
-        invalidateTeam()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      pendingAction = null
-    }
+    await action.run(
+      async () => {
+        const response = await apiRequest(UpdateAdminUserRouteV2, { id: userId, data: { banned } })
+        if (response.kind === GoodAdminUserUpdateV2.kind) {
+          toast.success(banned ? 'Team banned.' : 'Team unbanned.')
+          invalidateTeam()
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: 'ban', errorMessage: `Failed to ${banned ? 'ban' : 'unban'} team` }
+    )
   }
 
   async function deleteTeam() {
-    pendingAction = 'delete'
-    try {
-      const response = await apiRequest(DeleteAdminUserRouteV2, { id: userId })
-      if (response.kind === GoodAdminUserDeleteV2.kind) {
-        toast.success('Team deleted.')
-        invalidateTeam()
-        await goto('/admin/teams')
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      pendingAction = null
-    }
+    await action.run(
+      async () => {
+        const response = await apiRequest(DeleteAdminUserRouteV2, { id: userId })
+        if (response.kind === GoodAdminUserDeleteV2.kind) {
+          toast.success('Team deleted.')
+          invalidateTeam()
+          await goto('/admin/teams')
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: 'delete', errorMessage: 'Failed to delete team' }
+    )
   }
 
   function viewSubmissions() {
@@ -282,7 +281,7 @@
     <AvatarUpload
       name={adminUser.name}
       avatarUrl={adminUser.avatarUrl}
-      loading={avatarLoading}
+      loading={avatarAction.pending}
       onUpload={uploadAvatar}
       onRemove={removeAvatar}
     />
@@ -341,7 +340,7 @@
         </Field>
 
         <Button type="submit" disabled={busy || !dirty}>
-          {#if savingProfile}
+          {#if saveAction.pending}
             <Spinner />
           {/if}
           Save changes
@@ -352,7 +351,7 @@
     <Section title="Actions">
       <manage-actions>
         <Button variant="secondary" disabled={busy} onclick={requestCopyToken}>
-          {#if pendingAction === 'token'}
+          {#if action.key === 'token'}
             <Spinner />
           {:else}
             <IconKey />
@@ -361,7 +360,7 @@
         </Button>
 
         <Button variant="secondary" disabled={busy} onclick={requestCopyLoginUrl}>
-          {#if pendingAction === 'url'}
+          {#if action.key === 'url'}
             <Spinner />
           {:else}
             <IconCopy />
@@ -375,14 +374,14 @@
         </Button>
 
         <Button variant="secondary" disabled={busy} onclick={requestBanToggle}>
-          {#if pendingAction === 'ban'}
+          {#if action.key === 'ban'}
             <Spinner />
           {/if}
           {adminUser.banned ? 'Unban team' : 'Ban team'}
         </Button>
 
         <Button variant="destructive" disabled={busy} onclick={requestDelete}>
-          {#if pendingAction === 'delete'}
+          {#if action.key === 'delete'}
             <Spinner />
           {:else}
             <IconTrash />

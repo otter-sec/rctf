@@ -6,6 +6,7 @@
   import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { formatFileSize } from '$lib/utils/filesize'
   import type { EditorForm } from '../model/editor-state'
 
@@ -17,7 +18,7 @@
 
   let { files, disabled, onFilesChange }: Props = $props()
 
-  let uploading = $state(false)
+  const uploadAction = createAsyncAction()
   let dragging = $state(false)
   let fileInput = $state<HTMLInputElement | null>(null)
 
@@ -25,21 +26,19 @@
     const items = Array.from(list)
     if (items.length === 0) return
 
-    uploading = true
-    try {
-      const response = await apiRequest(UploadFilesRouteV2, { files: items })
-      if (response.kind === GoodFilesUploadV2.kind) {
-        onFilesChange([...files, ...response.data])
-        const count = response.data.length
-        toast.success(`${count} file${count === 1 ? '' : 's'} uploaded!`)
-      } else {
-        showApiError(response)
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to upload files')
-    } finally {
-      uploading = false
-    }
+    await uploadAction.run(
+      async () => {
+        const response = await apiRequest(UploadFilesRouteV2, { files: items })
+        if (response.kind === GoodFilesUploadV2.kind) {
+          onFilesChange([...files, ...response.data])
+          const count = response.data.length
+          toast.success(`${count} file${count === 1 ? '' : 's'} uploaded!`)
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to upload files' }
+    )
   }
 
   function onPick(event: Event) {
@@ -81,7 +80,7 @@
       ondragover={onDragOver}
       ondragleave={() => (dragging = false)}
     >
-      {#if uploading}
+      {#if uploadAction.pending}
         <Spinner label="Uploading files" />
       {:else}
         <IconFiles />

@@ -335,6 +335,19 @@ describe('create-mode dirty matrix', () => {
       updateForm(create(createEditorState()), 'description', 'x'),
     ],
     ['flag', updateForm(create(createEditorState()), 'flag', 'x')],
+    ['pointsMin', updateForm(create(createEditorState()), 'pointsMin', 25)],
+    ['pointsMax', updateForm(create(createEditorState()), 'pointsMax', 750)],
+    [
+      'tiebreakEligible',
+      updateForm(create(createEditorState()), 'tiebreakEligible', false),
+    ],
+    ['sortWeight', updateForm(create(createEditorState()), 'sortWeight', 10)],
+    ['hidden', updateForm(create(createEditorState()), 'hidden', true)],
+    [
+      'releaseTime',
+      updateForm(create(createEditorState()), 'releaseTime', 1_700_000_000_000),
+    ],
+    ['scoring', updateScoring(create(createEditorState()), dynamicScoring)],
     ['tags', updateForm(create(createEditorState()), 'tags', ['t'])],
     [
       'files',
@@ -366,13 +379,6 @@ describe('create-mode dirty matrix', () => {
       expect(isDirty(state)).toBe(true)
     })
   }
-
-  test('scoring and hidden do not mark a create form dirty', () => {
-    let state = updateScoring(create(createEditorState()), dynamicScoring)
-    expect(isDirty(state)).toBe(false)
-    state = updateForm(state, 'hidden', true)
-    expect(isDirty(state)).toBe(false)
-  })
 })
 
 describe('scoring updates', () => {

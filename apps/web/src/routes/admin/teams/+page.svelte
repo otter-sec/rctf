@@ -30,6 +30,7 @@
   import { toast } from '$lib/toast'
   import Card from '$lib/ui/card.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { copyText } from '$lib/utils/clipboard'
   import { hasPermissions } from '$lib/utils/permissions'
   import type { SortState } from '../admin-table-logic'
@@ -145,11 +146,11 @@
     usersQuery.error?.message ?? verificationsQuery.error?.message ?? 'Something went wrong.'
   )
 
-  let copyingId = $state<string | null>(null)
-  let updatingId = $state<string | null>(null)
-  let deletingId = $state<string | null>(null)
-  let completingId = $state<string | null>(null)
-  let resendingId = $state<string | null>(null)
+  const copyAction = createAsyncAction<string>()
+  const updateAction = createAsyncAction<string>()
+  const deleteAction = createAsyncAction<string>()
+  const completeAction = createAsyncAction<string>()
+  const resendAction = createAsyncAction<string>()
   const confirmState = createConfirmState()
 
   async function copyEmail(email: string) {
@@ -161,17 +162,17 @@
   }
 
   async function mintToken(team: TeamRef) {
-    copyingId = team.id
-    try {
-      const response = await apiRequest(CreateUserTokenRouteV2, { id: team.id })
-      if (response.kind === GoodCreateUserTokenV2.kind) {
-        await copyText(response.data.token, `Login token copied for ${team.name}.`)
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      copyingId = null
-    }
+    await copyAction.run(
+      async () => {
+        const response = await apiRequest(CreateUserTokenRouteV2, { id: team.id })
+        if (response.kind === GoodCreateUserTokenV2.kind) {
+          await copyText(response.data.token, `Login token copied for ${team.name}.`)
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: team.id, errorMessage: `Failed to create a login token for ${team.name}` }
+    )
   }
 
   function requestCopyToken(team: TeamRef) {
@@ -186,21 +187,21 @@
   }
 
   async function setBanned(team: TeamRef, banned: boolean) {
-    updatingId = team.id
-    try {
-      const response = await apiRequest(UpdateAdminUserRouteV2, {
-        id: team.id,
-        data: { banned },
-      })
-      if (response.kind === GoodAdminUserUpdateV2.kind) {
-        toast.success(`${team.name} ${banned ? 'banned' : 'unbanned'}.`)
-        invalidateAdminTeamQueries(queryClient)
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      updatingId = null
-    }
+    await updateAction.run(
+      async () => {
+        const response = await apiRequest(UpdateAdminUserRouteV2, {
+          id: team.id,
+          data: { banned },
+        })
+        if (response.kind === GoodAdminUserUpdateV2.kind) {
+          toast.success(`${team.name} ${banned ? 'banned' : 'unbanned'}.`)
+          invalidateAdminTeamQueries(queryClient)
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: team.id, errorMessage: `Failed to ${banned ? 'ban' : 'unban'} ${team.name}` }
+    )
   }
 
   function requestBan(team: BanRef) {
@@ -219,18 +220,18 @@
   }
 
   async function deleteTeam(team: TeamRef) {
-    deletingId = team.id
-    try {
-      const response = await apiRequest(DeleteAdminUserRouteV2, { id: team.id })
-      if (response.kind === GoodAdminUserDeleteV2.kind) {
-        toast.success(`${team.name} deleted.`)
-        invalidateAdminTeamQueries(queryClient)
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      deletingId = null
-    }
+    await deleteAction.run(
+      async () => {
+        const response = await apiRequest(DeleteAdminUserRouteV2, { id: team.id })
+        if (response.kind === GoodAdminUserDeleteV2.kind) {
+          toast.success(`${team.name} deleted.`)
+          invalidateAdminTeamQueries(queryClient)
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: team.id, errorMessage: `Failed to delete ${team.name}` }
+    )
   }
 
   function requestDelete(team: TeamRef) {
@@ -244,37 +245,40 @@
   }
 
   async function verifyTeam(verification: TeamRef) {
-    completingId = verification.id
-    try {
-      const response = await apiRequest(CompleteAdminUserVerificationRouteV2, {
-        id: verification.id,
-      })
-      if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
-        toast.success(`${verification.name} verified.`)
-        invalidateAdminTeamQueries(queryClient)
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      completingId = null
-    }
+    await completeAction.run(
+      async () => {
+        const response = await apiRequest(CompleteAdminUserVerificationRouteV2, {
+          id: verification.id,
+        })
+        if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
+          toast.success(`${verification.name} verified.`)
+          invalidateAdminTeamQueries(queryClient)
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: verification.id, errorMessage: `Failed to verify ${verification.name}` }
+    )
   }
 
   async function resendVerification(verification: TeamRef) {
-    resendingId = verification.id
-    try {
-      const response = await apiRequest(ResendAdminUserVerificationRouteV2, {
-        id: verification.id,
-      })
-      if (response.kind === GoodAdminUserVerificationResendV2.kind) {
-        toast.success(`Verification email resent to ${verification.name}.`)
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
-      } else {
-        showApiError(response)
+    await resendAction.run(
+      async () => {
+        const response = await apiRequest(ResendAdminUserVerificationRouteV2, {
+          id: verification.id,
+        })
+        if (response.kind === GoodAdminUserVerificationResendV2.kind) {
+          toast.success(`Verification email resent to ${verification.name}.`)
+          queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
+        } else {
+          showApiError(response)
+        }
+      },
+      {
+        key: verification.id,
+        errorMessage: `Failed to resend verification for ${verification.name}`,
       }
-    } finally {
-      resendingId = null
-    }
+    )
   }
 </script>
 
@@ -319,11 +323,11 @@
         isFetchingNextPage={usersQuery.isFetchingNextPage}
         onLoadMore={() => usersQuery.fetchNextPage()}
         {canManage}
-        {copyingId}
-        {updatingId}
-        {deletingId}
-        {completingId}
-        {resendingId}
+        copyingId={copyAction.key}
+        updatingId={updateAction.key}
+        deletingId={deleteAction.key}
+        completingId={completeAction.key}
+        resendingId={resendAction.key}
         onCopyEmail={copyEmail}
         onManage={manage}
         onCopyToken={requestCopyToken}

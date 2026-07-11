@@ -14,6 +14,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { getRedirectPath } from '$lib/utils/redirect'
   import { onMount } from 'svelte'
   import ButtonCtftime from '../button-ctftime.svelte'
@@ -26,10 +27,10 @@
     onSuccess: response => handleLoginSuccess(response.data.authToken),
   })
 
-  let mutationPending = $state(false)
+  const ctftimeLoginAction = createAsyncAction()
   let loginLinkSupplied = $state(false)
   let replacingSession = $state(false)
-  const isPending = $derived(form.submitting || mutationPending)
+  const isPending = $derived(form.submitting || ctftimeLoginAction.pending)
 
   function handleLoginSuccess(authToken: string) {
     setToken(authToken)
@@ -39,23 +40,21 @@
   }
 
   async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
-    mutationPending = true
-    try {
-      const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
-      if (response.kind === GoodLogin.kind) {
-        handleLoginSuccess(response.data.authToken)
-      } else if (response.kind === BadUnknownUser.kind) {
-        sessionStorage.setItem('ctftimeToken', data.ctftimeToken)
-        sessionStorage.setItem('ctftimeName', data.ctftimeName)
-        goto('/register')
-      } else {
-        showApiError(response)
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed')
-    } finally {
-      mutationPending = false
-    }
+    await ctftimeLoginAction.run(
+      async () => {
+        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        if (response.kind === GoodLogin.kind) {
+          handleLoginSuccess(response.data.authToken)
+        } else if (response.kind === BadUnknownUser.kind) {
+          sessionStorage.setItem('ctftimeToken', data.ctftimeToken)
+          sessionStorage.setItem('ctftimeName', data.ctftimeName)
+          goto('/register')
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Login failed' }
+    )
   }
 
   function handleSubmit(event: SubmitEvent) {

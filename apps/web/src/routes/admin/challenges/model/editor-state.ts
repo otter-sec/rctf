@@ -140,21 +140,7 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
 
 export function isDirty(state: EditorState): boolean {
   const { form, originalForm } = state
-  if (!originalForm) {
-    return !!(
-      form.name ||
-      form.category ||
-      form.author ||
-      form.description ||
-      form.flag ||
-      form.files.length ||
-      form.tags.length ||
-      form.adminBotConfig.enabled ||
-      form.adminBotConfig.code ||
-      form.instancerConfig !== null
-    )
-  }
-  return JSON.stringify(form) !== JSON.stringify(originalForm)
+  return JSON.stringify(form) !== JSON.stringify(originalForm ?? defaultForm())
 }
 
 const EDIT_MODES: ReadonlySet<EditorMode> = new Set(['editing', 'creating'])

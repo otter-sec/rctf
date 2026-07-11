@@ -16,6 +16,7 @@
   import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import StatusCard from '$lib/ui/status-card.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { hasPermissions } from '$lib/utils/permissions'
   import { toChallengeInfos } from '../../../profile/analytics/analytics-data'
   import ProfileAnalytics from '../../../profile/analytics/analytics.svelte'
@@ -59,7 +60,7 @@
     userQuery.isPending ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready'
   )
 
-  let revokingId = $state<string | null>(null)
+  const revokeAction = createAsyncAction<string>()
   let revokeTarget = $state<{ id: string; name: string } | null>(null)
 
   function requestRevoke(challengeId: string, name: string) {
@@ -76,22 +77,22 @@
     const target = revokeTarget
     revokeTarget = null
     if (!target) return
-    revokingId = target.id
-    try {
-      const response = await apiRequest(DeleteChallengeSolveRouteV2, {
-        challengeId: target.id,
-        userId,
-      })
-      if (response.kind === GoodChallengeSolveDeleteV2.kind) {
-        toast.success('Solve revoked.')
-        queryClient.invalidateQueries({ queryKey: queryKeys.userById(userId) })
-        queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      revokingId = null
-    }
+    await revokeAction.run(
+      async () => {
+        const response = await apiRequest(DeleteChallengeSolveRouteV2, {
+          challengeId: target.id,
+          userId,
+        })
+        if (response.kind === GoodChallengeSolveDeleteV2.kind) {
+          toast.success('Solve revoked.')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userById(userId) })
+          queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: target.id, errorMessage: 'Failed to revoke solve' }
+    )
   }
 </script>
 
@@ -134,7 +135,7 @@
             ctfStartTime={clientConfig.startTime}
             onRevoke={canRevoke ? requestRevoke : undefined}
             onViewSubmissions={canViewSubmissions ? viewChallengeSubmissions : undefined}
-            {revokingId}
+            revokingId={revokeAction.key}
           />
         {:else if tab === 'analytics'}
           <ProfileAnalytics

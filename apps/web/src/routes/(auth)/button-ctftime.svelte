@@ -2,9 +2,9 @@
   import { CtftimeCallbackRoute, GoodCtftimeToken } from '@rctf/types'
   import { apiRequest, showApiError } from '$lib/api'
   import ctftimeLogo from '$lib/assets/ctftime.svg'
-  import { toast } from '$lib/toast'
   import Button from '$lib/ui/button.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
 
   type CtftimeData = {
     ctftimeToken: string
@@ -21,7 +21,7 @@
   let { clientId, onCtftimeDone, disabled = false }: Props = $props()
 
   let oauthState: string | null = null
-  let pending = $state(false)
+  const exchangeAction = createAsyncAction()
 
   function openPopup() {
     const state = Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -65,19 +65,17 @@
     const ctftimeCode = event.data.ctftimeCode
     if (typeof ctftimeCode !== 'string') return
 
-    pending = true
-    try {
-      const response = await apiRequest(CtftimeCallbackRoute, { ctftimeCode })
-      if (response.kind === GoodCtftimeToken.kind) {
-        onCtftimeDone(response.data)
-      } else {
-        showApiError(response)
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'CTFtime login failed')
-    } finally {
-      pending = false
-    }
+    await exchangeAction.run(
+      async () => {
+        const response = await apiRequest(CtftimeCallbackRoute, { ctftimeCode })
+        if (response.kind === GoodCtftimeToken.kind) {
+          onCtftimeDone(response.data)
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'CTFtime login failed' }
+    )
   }
 </script>
 
@@ -89,10 +87,10 @@
     variant="outline"
     size="lg"
     onclick={openPopup}
-    disabled={disabled || pending}
+    disabled={disabled || exchangeAction.pending}
     aria-label="Login with CTFtime"
   >
-    {#if pending}
+    {#if exchangeAction.pending}
       <Spinner />
       <span>Connecting...</span>
     {:else}

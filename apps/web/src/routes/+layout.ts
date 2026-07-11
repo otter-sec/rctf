@@ -1,6 +1,6 @@
-import { setApiFetch } from '$lib/api'
+import { setApiFetch, setAuthChangeHandler } from '$lib/api'
 import { clientConfigQueryOptions } from '$lib/query/config'
-import { createQueryClient } from '$lib/query/core'
+import { createQueryClient, resetSessionQueries } from '$lib/query/core'
 import { userSelfQueryOptions } from '$lib/query/user'
 import type { LayoutLoad } from './$types'
 
@@ -9,6 +9,7 @@ export const prerender = false
 export const csr = true
 
 const queryClient = createQueryClient()
+setAuthChangeHandler(() => void resetSessionQueries(queryClient))
 
 export const load: LayoutLoad = async ({ fetch }) => {
   setApiFetch(fetch)

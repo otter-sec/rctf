@@ -1,5 +1,6 @@
 import { BadNotStarted } from '@rctf/types'
-import { QueryClient } from '@tanstack/svelte-query'
+import { QueryClient, type Query } from '@tanstack/svelte-query'
+import { queryKeys } from '$lib/query/keys'
 
 export class ApiError extends Error {
   constructor(
@@ -42,4 +43,18 @@ export function createQueryClient() {
       },
     },
   })
+}
+
+function isSessionScoped(query: Query): boolean {
+  return query.queryKey[0] !== queryKeys.clientConfig[0]
+}
+
+export async function resetSessionQueries(
+  queryClient: QueryClient
+): Promise<void> {
+  queryClient.getMutationCache().clear()
+  await queryClient.resetQueries(
+    { predicate: isSessionScoped },
+    { cancelRefetch: true }
+  )
 }

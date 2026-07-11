@@ -17,6 +17,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { copyText } from '$lib/utils/clipboard'
   import { clampSelected } from './settings-model'
 
@@ -35,8 +36,8 @@
   const revealAfterLoading = clientsQuery.isPending
 
   let creating = $state(false)
-  let submitting = $state(false)
-  let deleting = $state(false)
+  const createAction = createAsyncAction()
+  const deleteAction = createAsyncAction()
   let name = $state('')
   let redirectUri = $state('')
   let secretReveal = $state<{ name: string; secret: string } | null>(null)
@@ -72,48 +73,48 @@
       toast.error('Redirect URI must be an absolute HTTP or HTTPS URL.')
       return
     }
-    submitting = true
-    try {
-      const response = await apiRequest(CreateExternalAuthClientRouteV2, {
-        name: trimmedName,
-        redirectUri: trimmedRedirect,
-      })
-      if (response.kind === GoodAdminExternalAuthClientCreate.kind) {
-        const { secret, ...client } = response.data
-        queryClient.setQueryData(
-          queryKeys.adminExternalAuthClients,
-          (old: Client[] | undefined) => [...(old ?? []), client]
-        )
-        invalidate()
-        creating = false
-        selected = clients.length
-        secretReveal = { name: client.name, secret }
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      submitting = false
-    }
+    await createAction.run(
+      async () => {
+        const response = await apiRequest(CreateExternalAuthClientRouteV2, {
+          name: trimmedName,
+          redirectUri: trimmedRedirect,
+        })
+        if (response.kind === GoodAdminExternalAuthClientCreate.kind) {
+          const { secret, ...client } = response.data
+          queryClient.setQueryData(
+            queryKeys.adminExternalAuthClients,
+            (old: Client[] | undefined) => [...(old ?? []), client]
+          )
+          invalidate()
+          creating = false
+          selected = clients.length
+          secretReveal = { name: client.name, secret }
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to register external app' }
+    )
   }
 
   async function confirmDelete() {
     const target = deleteTarget
     if (!target) return
-    deleting = true
-    try {
-      const response = await apiRequest(DeleteExternalAuthClientRouteV2, {
-        id: target.id,
-      })
-      if (response.kind === GoodAdminExternalAuthClientDelete.kind) {
-        toast.success('App deleted.')
-        deleteTarget = null
-        invalidate()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      deleting = false
-    }
+    await deleteAction.run(
+      async () => {
+        const response = await apiRequest(DeleteExternalAuthClientRouteV2, {
+          id: target.id,
+        })
+        if (response.kind === GoodAdminExternalAuthClientDelete.kind) {
+          toast.success('App deleted.')
+          deleteTarget = null
+          invalidate()
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to delete external app' }
+    )
   }
 
   const dateFormat = new Intl.DateTimeFormat('en-US', {
@@ -197,8 +198,8 @@
               <Button type="button" variant="ghost" onclick={() => (creating = false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={submitting}>
-                {#if submitting}<Spinner />{/if}
+              <Button type="submit" disabled={createAction.pending}>
+                {#if createAction.pending}<Spinner />{/if}
                 Register
               </Button>
             </form-actions>
@@ -271,8 +272,8 @@
 >
   <dialog-actions>
     <Button variant="ghost" onclick={() => (deleteTarget = null)}>Cancel</Button>
-    <Button variant="destructive" onclick={confirmDelete} disabled={deleting}>
-      {#if deleting}<Spinner />{/if}
+    <Button variant="destructive" onclick={confirmDelete} disabled={deleteAction.pending}>
+      {#if deleteAction.pending}<Spinner />{/if}
       Delete app
     </Button>
   </dialog-actions>

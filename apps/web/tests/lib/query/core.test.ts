@@ -1,3 +1,4 @@
+import { queryKeys } from '$lib/query/keys'
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
 mock.module('$app/environment', () => ({ browser: false }))
@@ -35,5 +36,31 @@ describe('unwrapData', () => {
     expect(caught).toBeInstanceOf(core.ApiError)
     expect((caught as InstanceType<typeof core.ApiError>).kind).toBe('badThing')
     expect((caught as InstanceType<typeof core.ApiError>).message).toBe('nope')
+  })
+})
+
+describe('resetSessionQueries', () => {
+  test('clears session queries and mutations while retaining client config', async () => {
+    const queryClient = core.createQueryClient()
+    queryClient.setQueryData(queryKeys.clientConfig, { ctfName: 'rCTF' })
+    queryClient.setQueryData(queryKeys.userSelf, { id: 'user-a' })
+    queryClient.setQueryData(queryKeys.challengeInstance('challenge-a'), {
+      credentials: 'secret',
+    })
+    queryClient.getMutationCache().build(queryClient, {
+      mutationKey: ['session-mutation'],
+      mutationFn: async () => 'done',
+    })
+
+    await core.resetSessionQueries(queryClient)
+
+    expect(queryClient.getQueryData<unknown>(queryKeys.clientConfig)).toEqual({
+      ctfName: 'rCTF',
+    })
+    expect(queryClient.getQueryData(queryKeys.userSelf)).toBeUndefined()
+    expect(
+      queryClient.getQueryData(queryKeys.challengeInstance('challenge-a'))
+    ).toBeUndefined()
+    expect(queryClient.getMutationCache().getAll()).toHaveLength(0)
   })
 })

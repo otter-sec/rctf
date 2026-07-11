@@ -25,6 +25,7 @@
   import Button from '$lib/ui/button.svelte'
   import Progress from '$lib/ui/progress.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { copyText } from '$lib/utils/clipboard'
   import { formatEndpoint } from '$lib/utils/instancer'
   import { formatCountdown } from '$lib/utils/time'
@@ -82,9 +83,8 @@
     return 'running'
   })
 
-  let pendingAction = $state<string | null>(null)
-  const pending = $derived(pendingAction !== null)
-  const actionsDisabled = $derived(pending || status === InstanceStatus.STOPPING)
+  const instanceAction = createAsyncAction<string>()
+  const actionsDisabled = $derived(instanceAction.pending || status === InstanceStatus.STOPPING)
 
   const instanceKey = $derived(queryKeys.challengeInstance(challengeId))
 
@@ -102,51 +102,51 @@
   })
 
   async function start() {
-    pendingAction = 'start'
-    try {
-      const res = await apiRequest(CreateInstanceRouteV2, { id: challengeId })
-      if (res.kind === GoodInstanceStatus.kind) {
-        queryClient.setQueryData(instanceKey, res.data)
-        void queryClient.invalidateQueries({ queryKey: instanceKey })
-        toast.success('Instance started')
-      } else {
-        showApiError(res)
-      }
-    } finally {
-      pendingAction = null
-    }
+    await instanceAction.run(
+      async () => {
+        const res = await apiRequest(CreateInstanceRouteV2, { id: challengeId })
+        if (res.kind === GoodInstanceStatus.kind) {
+          queryClient.setQueryData(instanceKey, res.data)
+          void queryClient.invalidateQueries({ queryKey: instanceKey })
+          toast.success('Instance started')
+        } else {
+          showApiError(res)
+        }
+      },
+      { key: 'start', errorMessage: 'Failed to start instance' }
+    )
   }
 
   async function stop() {
-    pendingAction = 'stop'
-    try {
-      const res = await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
-      if (res.kind === GoodInstanceStatus.kind) {
-        queryClient.setQueryData(instanceKey, res.data)
-        void queryClient.invalidateQueries({ queryKey: instanceKey })
-        toast.success('Instance stopped')
-      } else {
-        showApiError(res)
-      }
-    } finally {
-      pendingAction = null
-    }
+    await instanceAction.run(
+      async () => {
+        const res = await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
+        if (res.kind === GoodInstanceStatus.kind) {
+          queryClient.setQueryData(instanceKey, res.data)
+          void queryClient.invalidateQueries({ queryKey: instanceKey })
+          toast.success('Instance stopped')
+        } else {
+          showApiError(res)
+        }
+      },
+      { key: 'stop', errorMessage: 'Failed to stop instance' }
+    )
   }
 
   async function extend() {
-    pendingAction = 'extend'
-    try {
-      const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
-      if (res.kind === GoodInstanceStatus.kind) {
-        queryClient.setQueryData(instanceKey, res.data)
-        void queryClient.invalidateQueries({ queryKey: instanceKey })
-        toast.success('Instance extended')
-      } else {
-        showApiError(res)
-      }
-    } finally {
-      pendingAction = null
-    }
+    await instanceAction.run(
+      async () => {
+        const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
+        if (res.kind === GoodInstanceStatus.kind) {
+          queryClient.setQueryData(instanceKey, res.data)
+          void queryClient.invalidateQueries({ queryKey: instanceKey })
+          toast.success('Instance extended')
+        } else {
+          showApiError(res)
+        }
+      },
+      { key: 'extend', errorMessage: 'Failed to extend instance' }
+    )
   }
 
   async function submitResolvedFlag(flag: string) {
@@ -164,28 +164,28 @@
   }
 
   async function runAction(actionId: string) {
-    pendingAction = actionId
-    try {
-      const res = await apiRequest(RunInstanceActionRouteV2, {
-        id: challengeId,
-        action: actionId,
-      })
-      if (res.kind === GoodInstancerActionResult.kind) {
-        if (res.data.message) {
-          toast.success(res.data.message)
+    await instanceAction.run(
+      async () => {
+        const res = await apiRequest(RunInstanceActionRouteV2, {
+          id: challengeId,
+          action: actionId,
+        })
+        if (res.kind === GoodInstancerActionResult.kind) {
+          if (res.data.message) {
+            toast.success(res.data.message)
+          }
+          if (res.data.submitFlag) {
+            await submitResolvedFlag(res.data.submitFlag)
+          }
+          void queryClient.invalidateQueries({ queryKey: instanceKey })
+        } else if (res.kind === BadInstancerError.kind) {
+          toast.error(res.data.message)
+        } else {
+          showApiError(res)
         }
-        if (res.data.submitFlag) {
-          await submitResolvedFlag(res.data.submitFlag)
-        }
-        void queryClient.invalidateQueries({ queryKey: instanceKey })
-      } else if (res.kind === BadInstancerError.kind) {
-        toast.error(res.data.message)
-      } else {
-        showApiError(res)
-      }
-    } finally {
-      pendingAction = null
-    }
+      },
+      { key: actionId, errorMessage: 'Failed to run instance action' }
+    )
   }
 
   const hasActionRow = $derived(
@@ -216,8 +216,8 @@
   {:else if view === 'stopped'}
     <instancer-empty>
       <instancer-message>No instance running.</instancer-message>
-      <Button onclick={start} disabled={pending}>
-        {#if pendingAction === 'start'}<Spinner />{/if}
+      <Button onclick={start} disabled={instanceAction.pending}>
+        {#if instanceAction.key === 'start'}<Spinner />{/if}
         Start instance
       </Button>
       <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} />
@@ -269,19 +269,19 @@
               onclick={() => runAction(action.id)}
               disabled={actionsDisabled}
             >
-              {#if pendingAction === action.id}<Spinner />{/if}
+              {#if instanceAction.key === action.id}<Spinner />{/if}
               {action.label}
             </Button>
           {/each}
           {#if instancerExtendable}
             <Button variant="secondary" onclick={extend} disabled={actionsDisabled}>
-              {#if pendingAction === 'extend'}<Spinner />{/if}
+              {#if instanceAction.key === 'extend'}<Spinner />{/if}
               Extend
             </Button>
           {/if}
           {#if instancerStoppable}
             <Button variant="destructive" onclick={stop} disabled={actionsDisabled}>
-              {#if pendingAction === 'stop'}<Spinner />{/if}
+              {#if instanceAction.key === 'stop'}<Spinner />{/if}
               Stop
             </Button>
           {/if}
