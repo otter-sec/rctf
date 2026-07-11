@@ -17,13 +17,7 @@
     ctfStartTime?: number | null
   }
 
-  let {
-    open = $bindable(),
-    families,
-    filterFor,
-    timeFilter,
-    ctfStartTime = null,
-  }: Props = $props()
+  let { open = $bindable(), families, filterFor, timeFilter, ctfStartTime = null }: Props = $props()
 
   let activeId = $state<string | 'time' | null>(null)
 
