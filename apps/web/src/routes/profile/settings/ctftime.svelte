@@ -14,6 +14,7 @@
   import Button from '$lib/ui/button.svelte'
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import ButtonCtftime from '../../(auth)/button-ctftime.svelte'
 
   type Props = {
@@ -25,8 +26,8 @@
 
   const queryClient = useQueryClient()
 
-  let linking = $state(false)
-  let unlinking = $state(false)
+  const linkAction = createAsyncAction()
+  const unlinkAction = createAsyncAction()
 
   const canDeleteCtftime = $derived(!!user.ctftimeId && !!user.email)
 
@@ -35,33 +36,33 @@
   }
 
   async function linkCtftime(ctftimeToken: string) {
-    linking = true
-    try {
-      const response = await apiRequest(SetCtftimeRoute, { ctftimeToken })
-      if (response.kind === GoodCtftimeAuthSet.kind) {
-        toast.success('CTFtime account linked!')
-        invalidateUser()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      linking = false
-    }
+    await linkAction.run(
+      async () => {
+        const response = await apiRequest(SetCtftimeRoute, { ctftimeToken })
+        if (response.kind === GoodCtftimeAuthSet.kind) {
+          toast.success('CTFtime account linked!')
+          invalidateUser()
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to link CTFtime account' }
+    )
   }
 
   async function unlinkCtftime() {
-    unlinking = true
-    try {
-      const response = await apiRequest(DeleteCtftimeRoute, {})
-      if (response.kind === GoodCtftimeRemoved.kind) {
-        toast.success('CTFtime account unlinked!')
-        invalidateUser()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      unlinking = false
-    }
+    await unlinkAction.run(
+      async () => {
+        const response = await apiRequest(DeleteCtftimeRoute, {})
+        if (response.kind === GoodCtftimeRemoved.kind) {
+          toast.success('CTFtime account unlinked!')
+          invalidateUser()
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to unlink CTFtime account' }
+    )
   }
 </script>
 
@@ -81,8 +82,13 @@
         </ctftime-linked>
 
         {#if canDeleteCtftime}
-          <Button type="button" variant="outline" onclick={unlinkCtftime} disabled={unlinking}>
-            {#if unlinking}
+          <Button
+            type="button"
+            variant="outline"
+            onclick={unlinkCtftime}
+            disabled={unlinkAction.pending}
+          >
+            {#if unlinkAction.pending}
               <Spinner />
             {/if}
             Unlink CTFtime
@@ -99,7 +105,7 @@
         <ButtonCtftime
           clientId={clientConfig.ctftime.clientId}
           onCtftimeDone={data => linkCtftime(data.ctftimeToken)}
-          disabled={linking}
+          disabled={linkAction.pending}
         />
       {/if}
     </ctftime-settings>

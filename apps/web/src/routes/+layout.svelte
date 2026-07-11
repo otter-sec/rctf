@@ -13,6 +13,7 @@
   import Brainrot from '$lib/components/brainrot.svelte'
   import Navigation from '$lib/components/navigation.svelte'
   import RootEdgeFades from '$lib/components/root-edge-fades.svelte'
+  import { resetSessionQueries } from '$lib/query/core'
   import ToastHost from '$lib/ui/toast-host.svelte'
   import { initAnalytics } from '$lib/utils/analytics'
   import { initFadeFallback } from '$lib/utils/fade-fallback'
@@ -23,7 +24,15 @@
 
   onMount(() => {
     initAnalytics(data.clientConfig)
-    return initFadeFallback()
+    const cleanupFadeFallback = initFadeFallback()
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'token') void resetSessionQueries(data.queryClient)
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      cleanupFadeFallback?.()
+      window.removeEventListener('storage', handleStorage)
+    }
   })
 
   function onAnimationEnd(event: AnimationEvent) {

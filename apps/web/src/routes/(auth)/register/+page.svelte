@@ -21,6 +21,7 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { buildLoginUrl } from '$lib/utils/auth'
   import { onMount } from 'svelte'
   import ButtonCtftime from '../button-ctftime.svelte'
@@ -34,7 +35,7 @@
   let ctftimeToken = $state<string | null>(null)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
-  let mutationPending = $state(false)
+  const ctftimeLoginAction = createAsyncAction()
 
   const form = useApiForm(RegisterRouteV2, {
     onSuccess: response => {
@@ -46,7 +47,7 @@
     },
   })
 
-  const isPending = $derived(form.submitting || mutationPending)
+  const isPending = $derived(form.submitting || ctftimeLoginAction.pending)
 
   function handleRegisterSuccess(authToken: string, teamToken: string) {
     setToken(authToken)
@@ -66,23 +67,21 @@
 
   async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
     form.clearErrors()
-    mutationPending = true
-    try {
-      const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
-      if (response.kind === GoodLogin.kind) {
-        setToken(response.data.authToken)
-        toast.success('Logged in successfully!')
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-        goto('/')
-      } else {
-        ctftimeToken = data.ctftimeToken
-        form.setData({ name: data.ctftimeName, ctftimeToken: data.ctftimeToken })
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'CTFtime login failed')
-    } finally {
-      mutationPending = false
-    }
+    await ctftimeLoginAction.run(
+      async () => {
+        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        if (response.kind === GoodLogin.kind) {
+          setToken(response.data.authToken)
+          toast.success('Logged in successfully!')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          goto('/')
+        } else {
+          ctftimeToken = data.ctftimeToken
+          form.setData({ name: data.ctftimeName, ctftimeToken: data.ctftimeToken })
+        }
+      },
+      { errorMessage: 'CTFtime login failed' }
+    )
   }
 
   function cancelCtftime() {

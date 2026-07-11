@@ -48,17 +48,21 @@
 
   const maxScrollY = $derived(Math.max(0, scrollHeight - clientHeight))
   const maxScrollX = $derived(Math.max(0, scrollWidth - clientWidth))
-  const showY = $derived(maxScrollY > 1 && trackHeight > 0)
+  const showY = $derived(maxScrollY > 1)
   const showX = $derived(maxScrollX > 1)
 
   const thumbHeight = $derived(
-    scrollHeight > 0 ? Math.max(MIN_THUMB, (clientHeight / scrollHeight) * trackHeight) : MIN_THUMB
+    trackHeight > 0 && scrollHeight > 0
+      ? Math.min(trackHeight, Math.max(MIN_THUMB, (clientHeight / scrollHeight) * trackHeight))
+      : 0
   )
   const thumbY = $derived(
     maxScrollY > 0 ? (scrollTop / maxScrollY) * (trackHeight - thumbHeight) : 0
   )
   const thumbWidth = $derived(
-    scrollWidth > 0 ? Math.max(MIN_THUMB, (clientWidth / scrollWidth) * trackWidth) : MIN_THUMB
+    trackWidth > 0 && scrollWidth > 0
+      ? Math.min(trackWidth, Math.max(MIN_THUMB, (clientWidth / scrollWidth) * trackWidth))
+      : 0
   )
   const thumbX = $derived(
     maxScrollX > 0 ? (scrollLeft / maxScrollX) * (trackWidth - thumbWidth) : 0
@@ -97,10 +101,14 @@
     const track = event.currentTarget as HTMLElement
     const rect = track.getBoundingClientRect()
     if (axis === 'y') {
-      const ratio = (event.clientY - rect.top - thumbHeight / 2) / (trackHeight - thumbHeight)
+      const range = trackHeight - thumbHeight
+      if (range <= 0) return
+      const ratio = (event.clientY - rect.top - thumbHeight / 2) / range
       node.scrollTop = ratio * maxScrollY
     } else {
-      const ratio = (event.clientX - rect.left - thumbWidth / 2) / (trackWidth - thumbWidth)
+      const range = trackWidth - thumbWidth
+      if (range <= 0) return
+      const ratio = (event.clientX - rect.left - thumbWidth / 2) / range
       node.scrollLeft = ratio * maxScrollX
     }
   }

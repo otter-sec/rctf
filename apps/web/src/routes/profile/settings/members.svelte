@@ -14,6 +14,7 @@
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { diffMemberChange, isValidEmail } from './members-logic'
 
   type Props = {
@@ -28,7 +29,7 @@
   const members = $derived(membersQuery.data ?? [])
   const memberEmails = $derived(members.map(member => member.email))
 
-  let deleting = $state<string | null>(null)
+  const deleteAction = createAsyncAction<string>()
 
   function invalidateMembers() {
     queryClient.invalidateQueries({ queryKey: queryKeys.members })
@@ -43,18 +44,18 @@
   })
 
   async function deleteMember(id: string) {
-    deleting = id
-    try {
-      const response = await apiRequest(DeleteMemberRoute, { id })
-      if (response.kind === GoodMemberDelete.kind) {
-        toast.success('Team member removed!')
-        invalidateMembers()
-      } else {
-        showApiError(response)
-      }
-    } finally {
-      deleting = null
-    }
+    await deleteAction.run(
+      async () => {
+        const response = await apiRequest(DeleteMemberRoute, { id })
+        if (response.kind === GoodMemberDelete.kind) {
+          toast.success('Team member removed!')
+          invalidateMembers()
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: id, errorMessage: 'Failed to remove team member' }
+    )
   }
 
   function handleChange(next: string[]) {
@@ -81,7 +82,7 @@
             value={memberEmails}
             onchange={handleChange}
             validate={isValidEmail}
-            disabled={memberForm.submitting || deleting !== null}
+            disabled={memberForm.submitting || deleteAction.pending}
             aria-label="Add team member email"
             placeholder="Add more..."
             emptyPlaceholder="teammate@example.com"

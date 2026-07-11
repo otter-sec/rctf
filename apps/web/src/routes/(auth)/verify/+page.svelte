@@ -11,6 +11,7 @@
   import Button from '$lib/ui/button.svelte'
   import Card from '$lib/ui/card.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { buildLoginUrl } from '$lib/utils/auth'
   import TeamTokenCard from '../team-token-card.svelte'
 
@@ -27,12 +28,14 @@
   let verified = $state(false)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
-  let isVerifying = $state(false)
+  const verifyAction = createAsyncAction()
 
   const verifyInfoError = $derived(
     !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
   )
-  const isVerifyDisabled = $derived(isVerifying || verifyInfoQuery.isPending || !!verifyInfoError)
+  const isVerifyDisabled = $derived(
+    verifyAction.pending || verifyInfoQuery.isPending || !!verifyInfoError
+  )
 
   const copy = $derived.by(() => {
     switch (verifyInfo?.kind) {
@@ -72,33 +75,35 @@
       return
     }
     error = null
-    isVerifying = true
-    try {
-      const response = await apiRequest(VerifyRouteV2, { verifyToken })
-      if (response.kind === GoodRegisterV2.kind) {
-        setToken(response.data.authToken)
-        registeredTeamToken = response.data.teamToken
-        registeredLoginUrl = buildLoginUrl(response.data.teamToken)
-        toast.success('Verified successfully!')
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-      } else if (response.kind === GoodVerify.kind) {
-        setToken(response.data.authToken)
-        verified = true
-        toast.success('Verified successfully!')
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-        redirectTimer = setTimeout(() => goto('/'), 500)
-      } else if (response.kind === GoodEmailSet.kind) {
-        emailSet = true
-        toast.success('Email verified!')
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-      } else {
-        error = response.message
+    await verifyAction.run(
+      async () => {
+        const response = await apiRequest(VerifyRouteV2, { verifyToken })
+        if (response.kind === GoodRegisterV2.kind) {
+          setToken(response.data.authToken)
+          registeredTeamToken = response.data.teamToken
+          registeredLoginUrl = buildLoginUrl(response.data.teamToken)
+          toast.success('Verified successfully!')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+        } else if (response.kind === GoodVerify.kind) {
+          setToken(response.data.authToken)
+          verified = true
+          toast.success('Verified successfully!')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          redirectTimer = setTimeout(() => goto('/'), 500)
+        } else if (response.kind === GoodEmailSet.kind) {
+          emailSet = true
+          toast.success('Email verified!')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+        } else {
+          error = response.message
+        }
+      },
+      {
+        onError: err => {
+          error = err instanceof Error ? err.message : 'Verification failed'
+        },
       }
-    } catch (err) {
-      error = err instanceof Error ? err.message : 'Verification failed'
-    } finally {
-      isVerifying = false
-    }
+    )
   }
 </script>
 
@@ -129,7 +134,7 @@
         <p role="alert">{verifyInfoError ?? error}</p>
       {/if}
       <Button onclick={handleVerify} disabled={isVerifyDisabled}>
-        {#if isVerifying}
+        {#if verifyAction.pending}
           <Spinner />
         {/if}
         {copy.button}

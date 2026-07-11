@@ -5,6 +5,7 @@
   import Button from '$lib/ui/button.svelte'
   import Dialog from '$lib/ui/dialog.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import { downloadBlob } from '$lib/utils/download'
   import type { CategoryGroup } from '../model/transforms'
   import {
@@ -47,7 +48,7 @@
   let options = $state<ScreenshotOptions>({ ...DEFAULT_OPTIONS })
   let exportSettings = $state<ExportSettings>({ ...DEFAULT_EXPORT_SETTINGS })
   let previewRef = $state<HTMLElement | null>(null)
-  let isExporting = $state(false)
+  const exportAction = createAsyncAction()
 
   async function handleExport() {
     const container = previewRef?.querySelector<HTMLElement>('[data-screenshot-container]')
@@ -56,23 +57,25 @@
       return
     }
 
-    isExporting = true
-    try {
-      const { domToPng, domToJpeg, domToWebp } = await import('modern-screenshot')
-      const exportFn = { png: domToPng, jpeg: domToJpeg, webp: domToWebp }[exportSettings.format]
-      const dataUrl = await exportFn(container, { scale: exportSettings.scale })
+    await exportAction.run(
+      async () => {
+        const { domToPng, domToJpeg, domToWebp } = await import('modern-screenshot')
+        const exportFn = { png: domToPng, jpeg: domToJpeg, webp: domToWebp }[exportSettings.format]
+        const dataUrl = await exportFn(container, { scale: exportSettings.scale })
 
-      // Fetch into a blob first; webkit chokes on very large data URLs in anchors.
-      const blob = await (await fetch(dataUrl)).blob()
-      downloadBlob(buildFilename(exportSettings.format), blob)
+        // Fetch into a blob first; webkit chokes on very large data URLs in anchors.
+        const blob = await (await fetch(dataUrl)).blob()
+        downloadBlob(buildFilename(exportSettings.format), blob)
 
-      toast.success('Screenshot exported')
-    } catch (error) {
-      console.error('Screenshot export failed:', error)
-      toast.error('Failed to export screenshot')
-    } finally {
-      isExporting = false
-    }
+        toast.success('Screenshot exported')
+      },
+      {
+        onError: error => {
+          console.error('Screenshot export failed:', error)
+          toast.error('Failed to export screenshot')
+        },
+      }
+    )
   }
 </script>
 
@@ -92,8 +95,8 @@
             <ScreenshotOptionsPanel {options} {exportSettings} hasSelf={selfTeam !== null} />
           </sidebar-scroll>
           <export-bar>
-            <Button onclick={handleExport} disabled={isExporting}>
-              {#if isExporting}
+            <Button onclick={handleExport} disabled={exportAction.pending}>
+              {#if exportAction.pending}
                 <Spinner label="Exporting" />
                 Exporting…
               {:else}

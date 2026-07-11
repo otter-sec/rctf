@@ -37,6 +37,12 @@ export function showApiError(response: {
 
 let apiFetch: typeof globalThis.fetch | null = null
 
+let authChangeHandler: (() => void) | null = null
+
+export function setAuthChangeHandler(handler: () => void): void {
+  authChangeHandler = handler
+}
+
 export function setApiFetch(fetchFn: typeof globalThis.fetch): void {
   apiFetch = fetchFn
 }
@@ -74,15 +80,15 @@ function getToken(): string | null {
 }
 
 export function setToken(token: string): void {
-  if (browser) {
-    localStorage.setItem('token', token)
-  }
+  if (!browser || getToken() === token) return
+  localStorage.setItem('token', token)
+  authChangeHandler?.()
 }
 
 export function clearToken(): void {
-  if (browser) {
-    localStorage.removeItem('token')
-  }
+  if (!browser || getToken() === null) return
+  localStorage.removeItem('token')
+  authChangeHandler?.()
 }
 
 export function isAuthenticated(): boolean {
