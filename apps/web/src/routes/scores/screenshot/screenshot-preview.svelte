@@ -75,7 +75,9 @@
       .filter((team): team is ScreenshotTeam => team !== undefined)
   )
 
-  const visibleGraphIds = $derived(getVisibleGraphIds(teamIds, options.graphTeamCount))
+  const visibleGraphIds = $derived(
+    getVisibleGraphIds(teamIds, selfId, options.graphTeamCount, options.showSelf)
+  )
   const graphVisibleTeamIds = $derived(new Set(visibleGraphIds))
   const graphContextTeamIds = $derived(
     deriveContextTeamIds(options, visibleGraphIds, displayTeamIds, selfId) ?? new Set<string>()
