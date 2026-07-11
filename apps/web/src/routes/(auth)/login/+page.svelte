@@ -3,7 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { apiRequest, setToken, showApiError } from '$lib/api'
+  import { apiRequest, isAuthenticated, setToken, showApiError } from '$lib/api'
   import ArchivedNotice from '$lib/components/archived-notice.svelte'
   import { useApiForm } from '$lib/forms/use-api-form.svelte'
   import { useClientConfig } from '$lib/query/config'
@@ -27,33 +27,15 @@
   })
 
   let mutationPending = $state(false)
+  let loginLinkSupplied = $state(false)
+  let replacingSession = $state(false)
   const isPending = $derived(form.submitting || mutationPending)
 
-  function handleLoginSuccess(authToken: string, replace = false) {
+  function handleLoginSuccess(authToken: string) {
     setToken(authToken)
     toast.success('Logged in successfully!')
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-    goto(getRedirectPath(page.url.searchParams.get('next'), page.url.origin), {
-      replaceState: replace,
-    })
-  }
-
-  async function loginWithUrlToken(token: string) {
-    mutationPending = true
-    try {
-      const response = await apiRequest(LoginRoute, { teamToken: token })
-      if (response.kind === GoodLogin.kind) {
-        handleLoginSuccess(response.data.authToken, true)
-      } else {
-        form.setData({ teamToken: token })
-        form.clearErrors()
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed')
-      form.setData({ teamToken: token })
-    } finally {
-      mutationPending = false
-    }
+    goto(getRedirectPath(page.url.searchParams.get('next'), page.url.origin))
   }
 
   async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
@@ -90,10 +72,22 @@
   }
 
   onMount(() => {
-    const urlToken = page.url.searchParams.get('token')
-    if (urlToken) {
-      loginWithUrlToken(urlToken)
-    }
+    const cleanUrl = new URL(page.url)
+    const token = cleanUrl.searchParams.get('token')
+    if (token === null) return
+
+    cleanUrl.searchParams.delete('token')
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`
+    )
+    if (!token) return
+
+    replacingSession = isAuthenticated()
+    loginLinkSupplied = true
+    form.setData({ teamToken: token })
+    form.clearErrors()
   })
 </script>
 
@@ -108,6 +102,13 @@
 {:else if clientConfig}
   <Card title="Login" description="Log in to {clientConfig.ctfName}">
     <auth-page>
+      {#if loginLinkSupplied}
+        <p role="status">
+          {replacingSession
+            ? 'This link contains a team token. Click Login to replace your current session.'
+            : 'This link contains a team token. Click Login to confirm that you want to sign in.'}
+        </p>
+      {/if}
       <form onsubmit={handleSubmit}>
         <Field label="Team token" error={form.errors.teamToken ?? form.errors._form}>
           {#snippet children({ id, describedBy })}
