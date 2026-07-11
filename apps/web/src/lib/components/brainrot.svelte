@@ -1,130 +1,51 @@
 <script lang="ts">
-  import { buttonVariants, Section } from '$lib/components'
+  import {
+    activate,
+    ACTIVATED_MAX_Z,
+    advanceBuffer,
+    bringToFront as bringToFrontOf,
+    closeWindow as closeWindowOf,
+    dragTo,
+    INITIAL_MAX_Z,
+    type Drag,
+    type VideoWindow,
+  } from '$lib/components/brainrot-logic'
   import { IconX } from '$lib/icons'
-  import { cn } from '$lib/utils'
 
-  const KONAMI_CODE = 'BRAINROT'
-  let inputBuffer = $state('')
-
-  type VideoWindow = {
-    id: number
-    url: string
-    title: string
-    x: number
-    y: number
-    z: number
-    w: number
-    h: number
-  }
-
+  let buffer = $state('')
   let windows = $state<VideoWindow[]>([])
-  let maxZ = $state(100)
-  let dragging = $state<{
-    id: number
-    offsetX: number
-    offsetY: number
-  } | null>(null)
+  let maxZ = $state(INITIAL_MAX_Z)
+  let dragging = $state<Drag | null>(null)
 
-  const videoConfigs = [
-    // Thanks https://stimming.club/
-    {
-      url: 'https://www.youtube.com/embed/ChBg4aowzX8',
-      title: 'Subway Surfers',
-      x: 40,
-      y: 80,
-      w: 480,
-      h: 320,
-    },
-    {
-      url: 'https://www.youtube.com/embed/Q4MOP8s9KyY',
-      title: 'Soap Cutting',
-      x: 560,
-      y: 80,
-      w: 480,
-      h: 320,
-    },
-    {
-      url: 'https://www.youtube.com/embed/REuKymvrrqk',
-      title: 'Minecraft',
-      x: 300,
-      y: 200,
-      w: 640,
-      h: 400,
-    },
-  ]
-
-  function handleKeydown(e: KeyboardEvent) {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return
-    }
-
-    const key = e.key.toUpperCase()
-    if (key.length === 1 && /[A-Z]/.test(key)) {
-      inputBuffer += key
-
-      if (inputBuffer.length > KONAMI_CODE.length) {
-        inputBuffer = inputBuffer.slice(-KONAMI_CODE.length)
-      }
-
-      if (inputBuffer === KONAMI_CODE) {
-        activateBrainrot()
-        inputBuffer = ''
+  function onKeydown(event: KeyboardEvent) {
+    const targetIsTextField =
+      event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
+    const result = advanceBuffer(buffer, event.key, targetIsTextField)
+    buffer = result.buffer
+    if (result.activated) {
+      const spawned = activate(windows)
+      if (spawned !== windows) {
+        windows = spawned
+        maxZ = ACTIVATED_MAX_Z
       }
     }
-  }
-
-  function activateBrainrot() {
-    if (windows.length > 0) {
-      return
-    }
-
-    windows = videoConfigs.map((config, i) => ({
-      id: i,
-      ...config,
-      z: 100 + i,
-    }))
-    maxZ = 100 + videoConfigs.length
-  }
-
-  function closeWindow(id: number) {
-    windows = windows.filter(w => w.id !== id)
   }
 
   function bringToFront(id: number) {
-    const win = windows.find(w => w.id === id)
-    if (win) {
-      maxZ++
-      win.z = maxZ
-    }
+    const result = bringToFrontOf(windows, id, maxZ)
+    windows = result.windows
+    maxZ = result.maxZ
   }
 
-  function startDrag(e: MouseEvent, id: number) {
+  function startDrag(event: MouseEvent, id: number) {
     const win = windows.find(w => w.id === id)
-    if (!win) {
-      return
-    }
-
+    if (!win) return
     bringToFront(id)
-    dragging = {
-      id,
-      offsetX: e.clientX - win.x,
-      offsetY: e.clientY - win.y,
-    }
+    dragging = { id, offsetX: event.clientX - win.x, offsetY: event.clientY - win.y }
   }
 
-  function onMouseMove(e: MouseEvent) {
-    if (!dragging) {
-      return
-    }
-
-    const { id, offsetX, offsetY } = dragging
-    const win = windows.find(w => w.id === id)
-    if (!win) {
-      return
-    }
-
-    win.x = e.clientX - offsetX
-    win.y = e.clientY - offsetY
+  function onMouseMove(event: MouseEvent) {
+    windows = dragTo(windows, dragging, event.clientX, event.clientY)
   }
 
   function onMouseUp() {
@@ -132,37 +53,106 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} onmousemove={onMouseMove} onmouseup={onMouseUp} />
+<svelte:window
+  onkeydown={onKeydown}
+  onmousemove={dragging ? onMouseMove : undefined}
+  onmouseup={dragging ? onMouseUp : undefined}
+/>
 
 {#each windows as win (win.id)}
-  <Section.Root
-    class="fixed flex flex-col shadow-lg"
-    style="left: {win.x}px; top: {win.y}px; z-index: {win.z}; width: {win.w}px; height: {win.h}px;"
+  <brainrot-window
+    style:left="{win.x}px"
+    style:top="{win.y}px"
+    style:width="{win.w}px"
+    style:height="{win.h}px"
+    style:z-index={win.z}
     onmousedown={() => bringToFront(win.id)}
+    role="presentation"
   >
-    <Section.Header
-      class="flex cursor-grab items-center justify-between select-none active:cursor-grabbing"
-      onmousedown={e => startDrag(e, win.id)}
-    >
+    <brainrot-bar onmousedown={(event: MouseEvent) => startDrag(event, win.id)} role="presentation">
       <span>{win.title}</span>
       <button
-        class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-my-2 -me-2')}
-        onmousedown={e => e.stopPropagation()}
-        onclick={() => closeWindow(win.id)}
+        type="button"
+        aria-label="Close {win.title}"
+        onmousedown={event => event.stopPropagation()}
+        onclick={() => (windows = closeWindowOf(windows, win.id))}
       >
-        <IconX />
+        <IconX aria-hidden="true" />
       </button>
-    </Section.Header>
-    <Section.Content class="min-h-0 flex-1 p-0">
-      <iframe
-        class="block size-full"
-        src="{win.url}?autoplay=1&mute=1&loop=1"
-        title={win.title}
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        referrerpolicy="strict-origin-when-cross-origin"
-        allowfullscreen
-      ></iframe>
-    </Section.Content>
-  </Section.Root>
+    </brainrot-bar>
+    <iframe
+      src="{win.url}?autoplay=1&mute=1&loop=1"
+      title={win.title}
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen
+    ></iframe>
+  </brainrot-window>
 {/each}
+
+<style>
+  brainrot-window {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--background-l1);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px var(--gray-a8);
+  }
+
+  brainrot-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+    padding-block: var(--space-3xs);
+    padding-inline: var(--space-2xs);
+    color: var(--foreground-l0);
+    background: var(--background-l3);
+    cursor: grab;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3xs);
+    color: var(--foreground-l1);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground-l0);
+      background: var(--background-l5);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: -1px;
+    }
+  }
+
+  iframe {
+    display: block;
+    flex: 1;
+    min-block-size: 0;
+    inline-size: 100%;
+    border: none;
+  }
+</style>

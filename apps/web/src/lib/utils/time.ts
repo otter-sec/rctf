@@ -1,5 +1,3 @@
-import { format } from 'date-fns'
-
 export type Duration = {
   days: number
   hours: number
@@ -7,8 +5,6 @@ export type Duration = {
   seconds: number
 }
 
-// like date-fns', but it keeps the whole span in days instead of rolling 30+
-// days into a `months` field we never render
 export function intervalToDuration(ms: number): Duration {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000))
   return {
@@ -19,23 +15,20 @@ export function intervalToDuration(ms: number): Duration {
   }
 }
 
-function formatTime(diff: number): string {
-  const { days, hours, minutes, seconds } = intervalToDuration(diff)
-
+function formatDuration(ms: number): string {
+  const { days, hours, minutes, seconds } = intervalToDuration(ms)
   const parts: string[] = []
   if (days > 0) parts.push(`${days}d`)
   if (hours > 0) parts.push(`${hours}h`)
   if (minutes > 0) parts.push(`${minutes}m`)
-  if (parts.length === 0) parts.push(`${seconds}s`)
-
-  return parts.join(', ')
+  return parts.length > 0 ? parts.join(', ') : `${seconds}s`
 }
 
 export function formatFirstBloodTime(
   timestamp: number,
   ctfStartTime: number
 ): string {
-  return formatTime(timestamp - ctfStartTime)
+  return formatDuration(timestamp - ctfStartTime)
 }
 
 export function formatRelativeToFirstBlood(
@@ -45,7 +38,7 @@ export function formatRelativeToFirstBlood(
   if (!firstBloodTime) {
     return ''
   }
-  return `+${formatTime(timestamp - firstBloodTime)}`
+  return `+${formatDuration(timestamp - firstBloodTime)}`
 }
 
 export function formatCtfOffset(
@@ -55,36 +48,55 @@ export function formatCtfOffset(
   if (startTime === null || startTime === undefined) return ''
 
   const diff = timestamp - startTime
-  return `T${diff < 0 ? '-' : '+'}${formatTime(Math.abs(diff))}`
+  return `T${diff < 0 ? '-' : '+'}${formatDuration(Math.abs(diff))}`
 }
 
+const localTimeFormat = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  hourCycle: 'h12',
+})
+
 export function formatLocalTime(timestamp: number): string {
-  return format(timestamp, 'MMM d, h:mm a')
+  return localTimeFormat.format(timestamp)
+}
+
+function formatOffsetMinutes(totalMinutes: number): string {
+  if (totalMinutes === 0) return '0h'
+  const sign = totalMinutes < 0 ? '-' : '+'
+  const absMinutes = Math.abs(totalMinutes)
+  const hours = Math.floor(absMinutes / 60)
+  const minutes = absMinutes % 60
+  if (minutes === 0) return `${sign}${hours}h`
+  return `${sign}${hours}h ${minutes}m`
 }
 
 export function formatRelativeHours(
   timestamp: number,
   startTime: number
 ): string {
-  const hours = Math.round((timestamp - startTime) / 3_600_000)
-  return hours === 0 ? '0h' : `+${hours}h`
+  return formatOffsetMinutes(
+    Math.round((timestamp - startTime) / 3_600_000) * 60
+  )
 }
 
 export function formatRelativeHoursMinutes(
   timestamp: number,
   startTime: number
 ): string {
-  const totalMinutes = Math.round((timestamp - startTime) / 60_000)
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  if (hours === 0 && minutes === 0) return '0h'
-  if (minutes === 0) return `+${hours}h`
-  return `+${hours}h ${minutes}m`
+  return formatOffsetMinutes(Math.round((timestamp - startTime) / 60_000))
 }
 
 export function formatCountdown(ms: number): string {
   const mins = Math.floor(ms / 60_000)
   const secs = Math.floor((ms % 60_000) / 1000)
   return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+export function formatClockTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }

@@ -1,5 +1,5 @@
 import type { ClientConfig } from '@rctf/types'
-import { loadScriptOnce } from './script-loader'
+import { loadScriptOnce } from '$lib/utils/script-loader'
 
 interface AnalyticsHandler {
   init: (options: Record<string, string>) => Promise<void>
@@ -8,7 +8,6 @@ interface AnalyticsHandler {
 let analyticsInitPromise: Promise<void> | null = null
 const ANALYTICS_SCRIPT_URL = '/api/v2/integrations/analytics/script'
 
-// Google Analytics (GA4)
 const googleHandler: AnalyticsHandler = {
   async init(options) {
     const siteTag = options.siteTag
@@ -18,16 +17,16 @@ const googleHandler: AnalyticsHandler = {
 
     await loadScriptOnce(ANALYTICS_SCRIPT_URL)
 
-    window.dataLayer = window.dataLayer || []
+    const dataLayer = window.dataLayer ?? []
+    window.dataLayer = dataLayer
     window.gtag = function () {
-      window.dataLayer.push(arguments)
+      dataLayer.push(arguments)
     }
     window.gtag('js', new Date())
     window.gtag('config', siteTag)
   },
 }
 
-// Cloudflare Web Analytics
 const cloudflareHandler: AnalyticsHandler = {
   async init(options) {
     const token = options.token

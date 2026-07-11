@@ -1,86 +1,116 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
   import { isAuthenticated } from '$lib/api'
-  import { Button, Card } from '$lib/components'
-  import { queryKeys, useClientConfig } from '$lib/query'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import { intervalToDuration } from '$lib/utils/time'
 
   const queryClient = useQueryClient()
-  const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived(clientConfigQuery.data)
+  const configQuery = useClientConfig()
+  const startTime = $derived(configQuery.data?.startTime ?? 0)
 
-  const startTime = $derived(clientConfig?.startTime ?? 0)
-
-  let timeLeft = $state(0)
+  let now = $state(Date.now())
+  let invalidated = false
 
   $effect(() => {
     if (startTime <= 0) return
-    let invalidated = false
-
-    const updateTimeLeft = () => {
-      const remaining = startTime - Date.now()
-      timeLeft = Math.max(0, remaining)
-
-      if (remaining <= 0 && !invalidated) {
+    const interval = setInterval(() => {
+      now = Date.now()
+      if (!invalidated && now >= startTime) {
         invalidated = true
         queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
         queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
         queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
       }
-    }
-
-    updateTimeLeft()
-    const interval = setInterval(updateTimeLeft, 1000)
+    }, 1000)
     return () => clearInterval(interval)
   })
 
-  const days = $derived(Math.floor(timeLeft / (1000 * 60 * 60 * 24)))
-  const hours = $derived(Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)))
-  const minutes = $derived(Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)))
-  const seconds = $derived(Math.floor((timeLeft % (1000 * 60)) / 1000))
+  const duration = $derived(intervalToDuration(Math.max(0, startTime - now)))
+  const pad = (value: number) => String(value).padStart(2, '0')
 </script>
 
-<div class="flex flex-1 items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl">CTF not started</Card.Title>
-        <Card.Description>The competition has not started yet. Check back soon!</Card.Description>
-      </Card.Header>
-      <Card.Content class="flex flex-col gap-4">
-        <div class="flex justify-center gap-2">
-          {#if days > 0}
-            <div class="flex flex-col items-center">
-              <span class="text-foreground-l0 text-2xl tabular-nums">{days}</span>
-              <span class="text-foreground-l4 text-xs">days</span>
-            </div>
-            <span class="text-foreground-l4 text-2xl">:</span>
-          {/if}
-          <div class="flex flex-col items-center">
-            <span class="text-foreground-l0 text-2xl tabular-nums"
-              >{String(hours).padStart(2, '0')}</span
-            >
-            <span class="text-foreground-l4 text-xs">hours</span>
-          </div>
-          <span class="text-foreground-l4 text-2xl">:</span>
-          <div class="flex flex-col items-center">
-            <span class="text-foreground-l0 text-2xl tabular-nums"
-              >{String(minutes).padStart(2, '0')}</span
-            >
-            <span class="text-foreground-l4 text-xs">mins</span>
-          </div>
-          <span class="text-foreground-l4 text-2xl">:</span>
-          <div class="flex flex-col items-center">
-            <span class="text-foreground-l0 text-2xl tabular-nums"
-              >{String(seconds).padStart(2, '0')}</span
-            >
-            <span class="text-foreground-l4 text-xs">secs</span>
-          </div>
-        </div>
+<ctf-not-started>
+  <Card title="CTF not started" description="The competition has not started yet. Check back soon!">
+    <countdown-display>
+      {#if duration.days > 0}
+        <countdown-segment>
+          <segment-value>{duration.days}</segment-value>
+          <segment-label>days</segment-label>
+        </countdown-segment>
+        <segment-separator>:</segment-separator>
+      {/if}
+      <countdown-segment>
+        <segment-value>{pad(duration.hours)}</segment-value>
+        <segment-label>hours</segment-label>
+      </countdown-segment>
+      <segment-separator>:</segment-separator>
+      <countdown-segment>
+        <segment-value>{pad(duration.minutes)}</segment-value>
+        <segment-label>mins</segment-label>
+      </countdown-segment>
+      <segment-separator>:</segment-separator>
+      <countdown-segment>
+        <segment-value>{pad(duration.seconds)}</segment-value>
+        <segment-label>secs</segment-label>
+      </countdown-segment>
+    </countdown-display>
+    {#if !isAuthenticated()}
+      <Button href="/login">Login</Button>
+    {/if}
+  </Card>
+</ctf-not-started>
 
-        {#if !isAuthenticated()}
-          <Button href="/login" class="w-full">Login</Button>
-        {/if}
-      </Card.Content>
-    </Card.Root>
-  </div>
-</div>
+<style>
+  ctf-not-started {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-s);
+
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
+
+    :global(a) {
+      inline-size: 100%;
+    }
+  }
+
+  countdown-display {
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    gap: var(--space-2xs);
+  }
+
+  countdown-segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3xs);
+  }
+
+  segment-value {
+    display: block;
+    font-size: var(--step-2);
+    color: var(--foreground-l0);
+    font-variant-numeric: tabular-nums;
+  }
+
+  segment-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--foreground-l4);
+  }
+
+  segment-separator {
+    display: block;
+    font-size: var(--step-2);
+    color: var(--foreground-l4);
+  }
+</style>

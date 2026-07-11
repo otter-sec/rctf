@@ -11,8 +11,9 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
-import { CaptchaError, getCaptchaCode } from '$lib/utils'
-import { toast } from 'svelte-sonner'
+import { toast } from '$lib/toast'
+import { CaptchaError, getCaptchaCode } from '$lib/utils/captcha'
+import { prettifyError } from 'zod/mini'
 
 export function showApiError(response: {
   kind: string
@@ -31,8 +32,13 @@ export function showApiError(response: {
     return
   }
 
-  // should never happen, but you never know
   toast.error(response.message)
+}
+
+let apiFetch: typeof globalThis.fetch | null = null
+
+export function setApiFetch(fetchFn: typeof globalThis.fetch): void {
+  apiFetch = fetchFn
 }
 
 let cachedClientConfig: ClientConfig | null = null
@@ -137,22 +143,38 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
   const parsed = definition.schema.safeParse(envelope)
   if (!parsed.success) {
     throw new Error(
-      `Failed to validate API response for ${route.method} ${route.path}: ${parsed.error}`
+      `Failed to validate API response for ${route.method} ${route.path}:\n${prettifyError(parsed.error)}`
     )
   }
 
   return parsed.data as RouteResponse<TRoute>
 }
 
+const parseSection = (
+  route: AnyRouteDefinition,
+  label: 'params' | 'query' | 'body',
+  source: Record<string, unknown>
+) => {
+  const schema = route[label]
+  if (!schema) return undefined
+  const result = schema.safeParse(source)
+  if (!result.success) {
+    throw new Error(
+      `Invalid ${label} for ${route.method} ${route.path}:\n${prettifyError(result.error)}`
+    )
+  }
+  return result.data
+}
+
 const pickArgs = <TRoute extends AnyRouteDefinition>(
   route: TRoute,
   args: InlineArgs<TRoute> | undefined
 ) => {
-  const inlineSource = args || {}
+  const inlineSource = (args ?? {}) as Record<string, unknown>
   return {
-    params: route.params ? route.params.parse(inlineSource) : undefined,
-    query: route.query ? route.query.parse(inlineSource) : undefined,
-    body: route.body ? route.body.parse(inlineSource) : undefined,
+    params: parseSection(route, 'params', inlineSource),
+    query: parseSection(route, 'query', inlineSource),
+    body: parseSection(route, 'body', inlineSource),
   }
 }
 
@@ -200,7 +222,10 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
         cachedClientConfig
       )
       if (captchaCode) {
-        finalBody = { ...finalBody, captchaCode }
+        const captchaField = route.path.startsWith('/v1/')
+          ? 'recaptchaCode'
+          : 'captchaCode'
+        finalBody = { ...finalBody, [captchaField]: captchaCode }
       }
     } catch (err) {
       if (err instanceof CaptchaError) {
@@ -235,7 +260,7 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
     }
   }
 
-  const res = await fetch(url, {
+  const res = await (apiFetch ?? fetch)(url, {
     method: route.method,
     headers,
     cache: 'no-store',

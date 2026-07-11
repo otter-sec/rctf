@@ -1,98 +1,91 @@
 <script lang="ts">
-  import { ALL_REGIONS } from '@rctf/util'
-  import { Command, Popover } from '$lib/components'
-  import { IconCheck, IconSelector } from '$lib/icons'
-  import { cn, countryCodeToFlagFilename } from '$lib/utils'
-  import { tick } from 'svelte'
+  import {
+    buildRegionItems,
+    fromComboboxValue,
+    NO_COUNTRY_VALUE,
+    toComboboxValue,
+    type RegionItem,
+  } from '$lib/components/flag-picker-items'
+  import { IconCheck } from '$lib/icons'
+  import Combobox from '$lib/ui/combobox.svelte'
+  import { countryCodeToFlagFilename } from '$lib/utils/flags'
 
-  interface Props {
-    value: string | null | undefined
-    onValueChange?: (value: string | null) => void
+  type Props = {
+    value?: string | null
+    placeholder?: string
+    id?: string
+    describedBy?: string
     disabled?: boolean
-    class?: string
   }
 
-  let { value = $bindable(), onValueChange, disabled = false, class: className }: Props = $props()
+  let {
+    value = $bindable(null),
+    placeholder = 'Select country...',
+    id,
+    describedBy,
+    disabled = false,
+  }: Props = $props()
 
-  let open = $state(false)
-  let triggerRef = $state<HTMLButtonElement>(null!)
+  const items = buildRegionItems('No country')
 
-  const selectedRegion = $derived(ALL_REGIONS.find(c => c.code === value))
-  const flagFilename = $derived(value ? countryCodeToFlagFilename(value) : null)
+  const comboValue = $derived(toComboboxValue(value))
 
-  function closeAndFocusTrigger() {
-    open = false
-    tick().then(() => {
-      triggerRef.focus()
-    })
-  }
-
-  function handleSelect(code: string | null) {
-    value = code
-    onValueChange?.(code)
-    closeAndFocusTrigger()
+  function handleChange(next: string | null) {
+    value = fromComboboxValue(next)
   }
 </script>
 
-{#snippet regionItem(code: string, name: string)}
-  {@const regionFlagFilename = countryCodeToFlagFilename(code)}
-  <Command.Item value={name} onSelect={() => handleSelect(code)}>
-    <IconCheck class={cn('size-4', value !== code && 'text-transparent')} />
-    <img src="/flags/{regionFlagFilename}" alt="{code} flag" class="h-6 w-auto shrink-0" />
-    <span class="truncate">{name}</span>
-  </Command.Item>
+{#snippet selectedFlag()}
+  <img src="/flags/{countryCodeToFlagFilename(value!)}" alt="" />
 {/snippet}
 
-<Popover.Root bind:open>
-  <Popover.Trigger bind:ref={triggerRef}>
-    {#snippet child({ props })}
-      <button
-        {...props}
-        type="button"
-        role="combobox"
-        aria-expanded={open}
-        {disabled}
-        class={cn(
-          'border-background-l4 bg-background-l2 hover:bg-background-l3 flex h-9 w-full items-center justify-between rounded-md border px-3 py-2 text-sm whitespace-nowrap',
-          'focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
-          'disabled:pointer-events-none disabled:opacity-50',
-          className
-        )}
-      >
-        {#if selectedRegion && flagFilename}
-          <span class="flex items-center gap-2">
-            <img
-              src="/flags/{flagFilename}"
-              alt="{selectedRegion.code} flag"
-              class="h-6 w-auto shrink-0"
-            />
-            <span class="truncate text-base md:text-sm">{selectedRegion.name}</span>
-          </span>
-        {:else}
-          <span class="text-foreground-l3">Select country...</span>
-        {/if}
-        <IconSelector class="text-foreground-l3 size-4 shrink-0" />
-      </button>
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content class="w-70 p-0" align="start">
-    <Command.Root>
-      <Command.Input placeholder="Search country..." />
-      <Command.List class="max-h-75">
-        <Command.Empty>No country found.</Command.Empty>
-        <Command.Group>
-          <Command.Item value="none" onSelect={() => handleSelect(null)}>
-            <IconCheck class={cn('size-4', value !== null && 'text-transparent')} />
-            <span class="text-foreground-l3">No country</span>
-          </Command.Item>
-        </Command.Group>
-        <Command.Separator />
-        <Command.Group>
-          {#each ALL_REGIONS as region (region.code)}
-            {@render regionItem(region.code, region.name)}
-          {/each}
-        </Command.Group>
-      </Command.List>
-    </Command.Root>
-  </Popover.Content>
-</Popover.Root>
+<Combobox
+  {items}
+  value={comboValue}
+  onValueChange={handleChange}
+  {placeholder}
+  {id}
+  {describedBy}
+  {disabled}
+  emptyText="No country found"
+  prefix={value ? selectedFlag : undefined}
+>
+  {#snippet item({ item, selected }: { item: RegionItem; selected: boolean })}
+    <flag-check data-selected={selected ? '' : undefined}>
+      <IconCheck />
+    </flag-check>
+    {#if item.value !== NO_COUNTRY_VALUE}
+      <img src="/flags/{countryCodeToFlagFilename(item.value)}" alt="" />
+    {/if}
+    <span>{item.label}</span>
+  {/snippet}
+</Combobox>
+
+<style>
+  flag-check {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--foreground-accent);
+
+    &:not([data-selected]) {
+      visibility: hidden;
+    }
+
+    :global(svg) {
+      inline-size: 1em;
+      block-size: 1em;
+    }
+  }
+
+  img {
+    flex-shrink: 0;
+    block-size: 1.25rem;
+    inline-size: auto;
+  }
+
+  span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+</style>

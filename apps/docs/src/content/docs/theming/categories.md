@@ -42,9 +42,9 @@ order: 2
   }
 </style>
 
-Each category is configured in `apps/web-new/src/lib/utils/categories.ts{:file}`, where its entry pairs a display name and icon with one of the ten colors in `CategoryColor{:ts}`, such as `'red'{:ts}` or `'teal'{:ts}`.
+Each category is configured in `apps/web/src/lib/utils/categories.ts{:file}`, where its entry pairs a display name and icon with one of the ten colors in `CategoryColor{:ts}`, such as `'red'{:ts}` or `'teal'{:ts}`.
 
-To apply that color, set `data-category-color={config.color}{:svelte}` on the element wrapping the category UI. A matching selector in `apps/web-new/src/styles/color.css{:file}` assigns the appropriate `--category-*{:css}` tokens, which then inherit into child elements using values such as `var(--category-foreground-l0){:css}`.
+To apply that color, set `data-category-color={config.color}{:svelte}` on the element wrapping the category UI. A matching selector in `apps/web/src/styles/color.css{:file}` assigns the appropriate `--category-*{:css}` tokens, which then inherit into child elements using values such as `var(--category-foreground-l0){:css}`.
 
 ## Default categories
 
@@ -166,7 +166,7 @@ Each hue defines two backgrounds, a hover background, and two foregrounds in `co
 
 4. **Add a hue (if using a new color)**
 
-   The `color{:ts}` must be a member of the `CategoryColor{:ts}` union. Reusing an existing hue skips this step entirely. To introduce a new hue, add it to the union in `categories.ts{:file}`, then define the five ramp variables for it in `apps/web-new/src/styles/color.css{:file}` following the pattern above. Finish with a `[data-category-color='<hue>']{:css}` block that points the generic `--category-*{:css}` tokens at the new ramp.
+   The `color{:ts}` must be a member of the `CategoryColor{:ts}` union. Reusing an existing hue skips this step entirely. To introduce a new hue, add it to the union in `categories.ts{:file}`, then define the five ramp variables for it in `apps/web/src/styles/color.css{:file}` following the pattern above. Finish with a `[data-category-color='<hue>']{:css}` block that points the generic `--category-*{:css}` tokens at the new ramp.
 
 :::
 

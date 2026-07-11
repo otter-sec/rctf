@@ -1,50 +1,77 @@
 <script lang="ts">
-  import { useClientConfig } from '$lib/query'
-  import { intervalToDuration } from '$lib/utils'
-  import { onDestroy } from 'svelte'
+  import { useClientConfig } from '$lib/query/config'
+  import { intervalToDuration } from '$lib/utils/time'
 
-  const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived(clientConfigQuery.data)
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
 
   const startTime = $derived(clientConfig?.startTime ?? 0)
   const endTime = $derived(clientConfig?.endTime ?? 0)
 
   let now = $state(Date.now())
-  const interval = setInterval(() => {
-    now = Date.now()
-  }, 1000)
-
-  onDestroy(() => clearInterval(interval))
-
   const hasStarted = $derived(now >= startTime)
   const hasEnded = $derived(now >= endTime)
-  const targetTime = $derived(hasStarted ? endTime : startTime)
-  const isArchived = $derived(clientConfig?.isArchived ?? false)
+
+  $effect(() => {
+    if (hasEnded) return
+    const interval = setInterval(() => (now = Date.now()), 1000)
+    return () => clearInterval(interval)
+  })
+
   const label = $derived(
-    isArchived ? 'Archived' : hasEnded ? 'CTF ended' : hasStarted ? 'to CTF end' : 'to CTF start'
+    clientConfig?.isArchived
+      ? 'Archived'
+      : hasEnded
+        ? 'CTF ended'
+        : hasStarted
+          ? 'to CTF end'
+          : 'to CTF start'
   )
 
-  const countdownText = $derived.by(() => {
+  const text = $derived.by(() => {
     if (hasEnded) return '--:--:--'
-
-    const diff = Math.max(0, targetTime - now)
-    const { days, hours, minutes, seconds } = intervalToDuration(diff)
-
-    const hh = hours.toString().padStart(2, '0')
-    const mm = minutes.toString().padStart(2, '0')
-    const ss = seconds.toString().padStart(2, '0')
-
-    return days > 0 ? `${days}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`
+    const targetTime = hasStarted ? endTime : startTime
+    const { days, hours, minutes, seconds } = intervalToDuration(Math.max(0, targetTime - now))
+    const pad = (value: number) => String(value).padStart(2, '0')
+    const clock = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    return days > 0 ? `${days}d ${clock}` : clock
   })
 </script>
 
 {#if clientConfig && (startTime > 0 || endTime > 0)}
-  <div
-    class="bg-background-l2 hidden h-12 min-w-32 flex-col items-center justify-center rounded-lg px-5 lg:flex"
-  >
-    <span class="text-foreground-l0 text-base leading-tight whitespace-nowrap tabular-nums">
-      {countdownText}
-    </span>
-    <span class="text-foreground-l3 text-xs leading-tight">{label}</span>
-  </div>
+  <nav-countdown>
+    <countdown-time>{text}</countdown-time>
+    <countdown-label>{label}</countdown-label>
+  </nav-countdown>
 {/if}
+
+<style>
+  nav-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    block-size: 3rem;
+    min-inline-size: 8rem;
+    padding-inline: var(--space-s);
+    background: var(--background-l2);
+    border-radius: var(--radius-lg);
+
+    @media (width < 64rem) {
+      display: none;
+    }
+  }
+
+  countdown-time {
+    display: block;
+    color: var(--foreground-l0);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  countdown-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--foreground-l3);
+  }
+</style>

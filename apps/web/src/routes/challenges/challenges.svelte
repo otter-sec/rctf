@@ -1,155 +1,279 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
+  import { afterNavigate, pushState, replaceState } from '$app/navigation'
   import { page } from '$app/state'
-  import { Drawer, EmptyState, Resizable } from '$lib/components'
-  import { IconFlag3Filled } from '$lib/icons'
-  import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
+  import {
+    deriveBloodIds,
+    deriveSolvedIds,
+    invalidateAfterSolve,
+    useChallenges,
+  } from '$lib/query/challenges'
+  import { useCurrentUser } from '$lib/query/user'
+  import Dialog from '$lib/ui/dialog.svelte'
+  import Splitter from '$lib/ui/splitter.svelte'
+  import { handlePaneArrowKey } from '$lib/utils/pane-keynav'
   import { tick } from 'svelte'
-  import ChallengeDetails from './challenges-details.svelte'
-  import ChallengeList from './challenges-list.svelte'
+  import { SvelteSet } from 'svelte/reactivity'
+  import ChallengeDetails from './details/details.svelte'
+  import ChallengesList from './list/list.svelte'
+  import { getDeepLinkId, resolveClose, type CloseSource } from './model/drawer-history'
+
+  type ChallengeListProps = {
+    challenges: Challenge[]
+    solvedIds: ReadonlySet<string>
+    bloodIds: { gold: Set<string>; silver: Set<string>; bronze: Set<string> }
+    selectedId: string | null
+    onSelect: (challenge: Challenge) => void
+    deepLinkTarget: string | null
+  }
+  type ChallengeDetailProps = {
+    challenge: Challenge | null
+    isSolved: boolean
+    onSolve: (challengeId: string) => void
+    tab: string
+    onTabChange: (tab: string) => void
+  }
+
+  const DESKTOP_MIN_WIDTH = 768
+  const WIDE_MIN_WIDTH = 1280
 
   const queryClient = useQueryClient()
   const challengesQuery = useChallenges()
   const userQuery = useCurrentUser()
 
   const challenges = $derived(challengesQuery.data ?? [])
-  const solves = $derived(userQuery.data?.solves ?? [])
+  const challengeIds = $derived(new Set(challenges.map(c => c.id)))
+  const selfSolves = $derived(userQuery.data?.solves)
 
-  let localSolvedIds = $state(new Set<string>())
-  const solvedIds = $derived(new Set([...solves.map(s => s.id), ...localSolvedIds]))
+  const localSolvedIds = new SvelteSet<string>()
+  const solvedIds = $derived(deriveSolvedIds(selfSolves, localSolvedIds))
+  const bloodIds = $derived(deriveBloodIds(selfSolves))
 
-  const bloodIds = $derived({
-    first: new Set(solves.filter(s => s.bloodIndex === 0).map(s => s.id)),
-    second: new Set(solves.filter(s => s.bloodIndex === 1).map(s => s.id)),
-    third: new Set(solves.filter(s => s.bloodIndex === 2).map(s => s.id)),
-  })
-
-  let selectedChallengeId = $state<string | null>(null)
-  let hasInitializedFromUrl = $state(false)
-
-  $effect(() => {
-    if (!hasInitializedFromUrl && challenges.length > 0) {
-      const urlChallengeId = page.url.searchParams.get('challenge')
-      if (urlChallengeId) {
-        const exists = challenges.some(c => c.id === urlChallengeId)
-        if (exists) {
-          selectedChallengeId = urlChallengeId
-          tick().then(() => {
-            const el = document.getElementById(`chall-${urlChallengeId}`)
-            el?.scrollIntoView({ behavior: 'instant', block: 'center' })
-          })
-        }
-      }
-      hasInitializedFromUrl = true
-    }
-  })
-
-  let drawerOpen = $state(false)
+  let selectedId = $state<string | null>(null)
+  let detailsTab = $state('details')
+  let deepLinkTarget = $state<string | null>(null)
   let innerWidth = $state(0)
+  let routerReady = $state(false)
+  let pendingDrawerId = $state<string | null>(null)
+
+  const isMobile = $derived(innerWidth > 0 && innerWidth < DESKTOP_MIN_WIDTH)
+  const listMinSize = $derived(innerWidth < WIDE_MIN_WIDTH ? 40 : 20)
 
   const selectedChallenge = $derived(
-    selectedChallengeId ? (challenges.find(c => c.id === selectedChallengeId) ?? null) : null
+    selectedId ? (challenges.find(c => c.id === selectedId) ?? null) : null
+  )
+  const selectedIsSolved = $derived(selectedChallenge ? solvedIds.has(selectedChallenge.id) : false)
+
+  const drawerOpen = $derived(
+    isMobile && selectedId !== null && page.state.challengeDrawer === true
   )
 
-  const listMinSize = $derived(innerWidth < 1280 ? 40 : 20)
-  const isMobile = $derived(innerWidth < 768)
+  function challengeUrl(id: string): string {
+    const url = new URL(page.url)
+    url.searchParams.set('challenge', id)
+    return `${url.pathname}${url.search}`
+  }
 
-  let wasMobile = $state(false)
-  $effect(() => {
-    if (!isMobile) {
-      drawerOpen = false
-    } else if (!wasMobile && isMobile && selectedChallengeId) {
-      drawerOpen = true
+  function openDrawer(id: string) {
+    pushState(challengeUrl(id), { challengeDrawer: true })
+  }
+
+  function closeDrawer(source: CloseSource) {
+    if (resolveClose(source, page.state.challengeDrawer === true) === 'history-back') {
+      history.back()
     }
-    wasMobile = isMobile
-  })
+  }
 
   function handleSelect(challenge: Challenge) {
-    selectedChallengeId = challenge.id
-    const url = new URL(window.location.href)
-    url.searchParams.set('challenge', challenge.id)
-    history.replaceState(history.state, '', url)
-    if (isMobile) {
-      drawerOpen = true
+    selectedId = challenge.id
+    if (!isMobile) {
+      replaceState(challengeUrl(challenge.id), { ...page.state })
+    } else if (page.state.challengeDrawer === true) {
+      replaceState(challengeUrl(challenge.id), { challengeDrawer: true })
+    } else {
+      openDrawer(challenge.id)
     }
+  }
+
+  function handleDrawerOpenChange(open: boolean) {
+    if (!open) closeDrawer('backdrop')
   }
 
   function handleSolve(challengeId: string) {
-    localSolvedIds.add(challengeId)
-    localSolvedIds = new Set(localSolvedIds)
-
-    // FIXME(es3n1n): Small delay to allow the server's leaderboard worker to update the cache
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: queryKeys.challenges })
-      queryClient.refetchQueries({ queryKey: queryKeys.userSelf })
-      queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-    }, 500)
+    invalidateAfterSolve(queryClient, challengeId, id => localSolvedIds.add(id))
   }
 
-  const selectedIsSolved = $derived(selectedChallenge ? solvedIds.has(selectedChallenge.id) : false)
+  function scrollToRow(id: string, attempts = 60) {
+    const el = document.getElementById(`chall-${id}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'instant', block: 'center' })
+    } else if (attempts > 0) {
+      requestAnimationFrame(() => scrollToRow(id, attempts - 1))
+    }
+  }
+
+  let latched = $state(false)
+  $effect(() => {
+    if (latched || challenges.length === 0 || innerWidth === 0) return
+
+    const id = getDeepLinkId(page.url, challengeIds)
+    if (id) {
+      selectedId = id
+      deepLinkTarget = id
+      pendingDrawerId = isMobile ? id : null
+      void tick().then(() => scrollToRow(id))
+    }
+    latched = true
+  })
+
+  afterNavigate(() => {
+    routerReady = true
+    if (pendingDrawerId && isMobile && page.state.challengeDrawer !== true) {
+      const id = pendingDrawerId
+      pendingDrawerId = null
+      openDrawer(id)
+    }
+  })
+
+  let wasMobile = $state(false)
+  $effect(() => {
+    const mobile = isMobile
+    if (wasMobile === mobile) return
+    wasMobile = mobile
+    if (!mobile) {
+      if (page.state.challengeDrawer === true) closeDrawer('resize-to-desktop')
+    } else if (routerReady && selectedId && page.state.challengeDrawer !== true) {
+      openDrawer(selectedId)
+    }
+  })
+
+  const listProps = $derived<ChallengeListProps>({
+    challenges,
+    solvedIds,
+    bloodIds,
+    selectedId: selectedChallenge?.id ?? null,
+    onSelect: handleSelect,
+    deepLinkTarget,
+  })
+  const detailProps = $derived<ChallengeDetailProps>({
+    challenge: selectedChallenge,
+    isSolved: selectedIsSolved,
+    onSolve: handleSolve,
+    tab: detailsTab,
+    onTabChange: tab => (detailsTab = tab),
+  })
 </script>
 
 <svelte:window bind:innerWidth />
 
-{#if challenges.length === 0}
-  <div class="flex h-[calc(100dvh-72px)] items-center justify-center">
-    <EmptyState
-      icon={IconFlag3Filled}
-      title="No challenges yet"
-      subtitle="Check back soon for challenges!"
-    />
-  </div>
+{#snippet listPane(props: ChallengeListProps)}
+  <challenges-list-slot>
+    <ChallengesList {...props} />
+  </challenges-list-slot>
+{/snippet}
+
+{#snippet detailPane(props: ChallengeDetailProps)}
+  <challenges-detail-slot>
+    {#key props.challenge?.id}
+      <ChallengeDetails {...props} />
+    {/key}
+  </challenges-detail-slot>
+{/snippet}
+
+{#if isMobile}
+  <challenges-page data-form="mobile">
+    <pane-surface data-side="list">{@render listPane(listProps)}</pane-surface>
+    <Dialog
+      open={drawerOpen}
+      onOpenChange={handleDrawerOpenChange}
+      title={selectedChallenge?.name ?? 'Challenge details'}
+      titleHidden
+      presentation="drawer"
+      flush
+    >
+      <drawer-body tabindex="-1">{@render detailPane(detailProps)}</drawer-body>
+    </Dialog>
+  </challenges-page>
 {:else}
-  <div class="hidden h-[calc(100dvh-72px)] md:block">
-    <Resizable.PaneGroup direction="horizontal" class="gap-2">
-      <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
-        <div class="bg-background-l1 h-full rounded-r-3xl">
-          <ChallengeList
-            {challenges}
-            {solvedIds}
-            {bloodIds}
-            selectedId={selectedChallenge?.id ?? null}
-            onSelect={handleSelect}
-          />
-        </div>
-      </Resizable.Pane>
-
-      <Resizable.Handle withHandle />
-
-      <Resizable.Pane defaultSize={60} minSize={40}>
-        <div class="bg-background-l1 h-full rounded-l-3xl">
-          <ChallengeDetails
-            challenge={selectedChallenge}
-            isSolved={selectedIsSolved}
-            onSolve={handleSolve}
-          />
-        </div>
-      </Resizable.Pane>
-    </Resizable.PaneGroup>
-  </div>
-
-  <div class="flex h-[calc(100dvh-72px)] flex-col md:hidden">
-    <div class="bg-background-l1 h-full">
-      <ChallengeList
-        {challenges}
-        {solvedIds}
-        {bloodIds}
-        selectedId={selectedChallenge?.id ?? null}
-        onSelect={handleSelect}
-      />
-    </div>
-
-    <Drawer.Root bind:open={drawerOpen}>
-      <Drawer.Content class="h-full">
-        <div class="flex-1 overflow-auto">
-          <ChallengeDetails
-            challenge={selectedChallenge}
-            isSolved={selectedIsSolved}
-            onSolve={handleSolve}
-          />
-        </div>
-      </Drawer.Content>
-    </Drawer.Root>
-  </div>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <challenges-page data-form="desktop" onkeydown={handlePaneArrowKey}>
+    <Splitter
+      panels={[
+        { id: 'list', minSize: listMinSize, maxSize: 50 },
+        { id: 'detail', minSize: 40 },
+      ]}
+      defaultSize={[40, 60]}
+    >
+      {#snippet a()}
+        <pane-surface data-side="list">{@render listPane(listProps)}</pane-surface>
+      {/snippet}
+      {#snippet b()}
+        <pane-surface data-side="detail">{@render detailPane(detailProps)}</pane-surface>
+      {/snippet}
+    </Splitter>
+  </challenges-page>
 {/if}
+
+<style>
+  challenges-page {
+    display: flex;
+    block-size: calc(100dvh - var(--header-height));
+    min-block-size: 0;
+    --splitter-handle-size: 0.5rem;
+
+    &[data-form='mobile'] {
+      flex-direction: column;
+
+      pane-surface[data-side='list'] {
+        flex: 1;
+        min-block-size: 0;
+        border-start-end-radius: 0;
+      }
+    }
+  }
+
+  pane-surface {
+    display: flex;
+    flex-direction: column;
+    block-size: 100%;
+    overflow: hidden;
+    background: var(--background-l1);
+
+    &[data-side='list'] {
+      border-start-end-radius: var(--radius-3xl);
+      border-end-end-radius: var(--radius-3xl);
+    }
+
+    &[data-side='detail'] {
+      border-start-start-radius: var(--radius-3xl);
+      border-end-start-radius: var(--radius-3xl);
+    }
+  }
+
+  challenges-list-slot,
+  challenges-detail-slot {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  challenges-detail-slot {
+    align-items: center;
+    justify-content: center;
+  }
+
+  drawer-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: none;
+  }
+
+  :global([data-presentation='drawer']) {
+    --dialog-drawer-max-size: 85dvh;
+  }
+</style>
