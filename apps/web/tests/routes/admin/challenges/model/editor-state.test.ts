@@ -212,6 +212,19 @@ describe('save flow', () => {
     expect(state.form.name).toBe('changed')
   })
 
+  test('SAVE_ERROR returns a failed creation to creating so it can be retried', () => {
+    let state = create(createEditorState())
+    state = updateForm(state, 'name', 'brand new')
+    state = save(state)
+
+    state = saveError(state)
+
+    expect(state.mode).toBe('creating')
+    expect(state.challenge).toBeNull()
+    expect(state.form.name).toBe('brand new')
+    expect(save(state).mode).toBe('saving')
+  })
+
   test('wasCreating is captured across saving and reset by success', () => {
     let state = create(createEditorState())
     state = updateForm(state, 'name', 'brand new')
