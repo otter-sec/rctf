@@ -42,6 +42,29 @@ interface CaptchaHandler {
 }
 
 const captchaStates: Record<string, CaptchaState> = {}
+const captchaQueues = new Map<string, Promise<void>>()
+
+async function serializeCaptcha<T>(
+  provider: string,
+  task: () => Promise<T>
+): Promise<T> {
+  const previous = captchaQueues.get(provider) ?? Promise.resolve()
+  const result = previous.then(task)
+  const tail = result.then(
+    () => undefined,
+    () => undefined
+  )
+  captchaQueues.set(provider, tail)
+
+  try {
+    return await result
+  } finally {
+    if (captchaQueues.get(provider) === tail) {
+      captchaQueues.delete(provider)
+    }
+  }
+}
+
 const getState = (provider: string): CaptchaState => {
   const existing = captchaStates[provider]
   if (existing) return existing
@@ -199,10 +222,12 @@ export const requestCaptchaCode = async (
   }
 
   try {
-    await loadScriptOnce(handler.scriptUrl)
-    const state = getState(info.provider)
-    await handler.init(state, info.siteKey)
-    return await handler.execute(state)
+    return await serializeCaptcha(info.provider, async () => {
+      await loadScriptOnce(handler.scriptUrl)
+      const state = getState(info.provider)
+      await handler.init(state, info.siteKey)
+      return await handler.execute(state)
+    })
   } catch (err) {
     if (err instanceof CaptchaError) {
       throw err
