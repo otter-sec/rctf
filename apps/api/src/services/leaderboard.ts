@@ -4,7 +4,7 @@ import { challenges, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
 import { ChallengeScoringKind } from '@rctf/types'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import {
   leaderboardOrderSql,
   userIsPublicRankedSql,
@@ -19,6 +19,7 @@ import { preparedPerDb } from '../lib/prepared'
 import { scoreProvider } from '../providers'
 import {
   challengeIsPublicSql,
+  getChallenge,
   getLeaderboardChallengeData,
   nonBannedUserJoin,
   scoringKindOf,
@@ -788,6 +789,58 @@ const refreshDynamicContribs = async (
   return { changed, needsRebuild: false }
 }
 
+type LeaderboardEntryRow = Pick<
+  typeof users.$inferSelect,
+  'id' | 'name' | 'division' | 'score' | 'globalRank' | 'divisionRank'
+>
+
+const leaderboardEntrySelection = {
+  id: users.id,
+  name: users.name,
+  score: users.score,
+  division: users.division,
+  divisionRank: users.divisionRank,
+  globalRank: users.globalRank,
+}
+
+const hydrateLeaderboardEntries = async (
+  db: DatabaseClient,
+  entries: LeaderboardEntryRow[]
+) => {
+  if (entries.length === 0) {
+    return []
+  }
+
+  const {
+    solves: userSolves,
+    dynamicScores,
+    userInfo,
+  } = await getLeaderboardChallengeData(
+    db,
+    entries.map(entry => entry.id)
+  )
+
+  return entries.map(entry => {
+    const info = userInfo.get(entry.id)
+    return {
+      id: entry.id,
+      name: entry.name,
+      division: entry.division,
+      score: entry.score,
+      divisionPlace: entry.divisionRank ?? 0,
+      globalPlace: entry.globalRank ?? null,
+      avatarUrl: info?.avatarUrl ?? null,
+      countryCode: info?.countryCode ?? null,
+      statusText: info?.statusText ?? null,
+      solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
+        id: solve.challengeId,
+        solveTime: solve.solveTime,
+      })),
+      dynamicScores: dynamicScores.get(entry.id) ?? [],
+    }
+  })
+}
+
 export const searchLeaderboard = async (
   db: DatabaseClient,
   search: string,
@@ -810,14 +863,7 @@ export const searchLeaderboard = async (
       .where(whereClause)
       .then(takeUnique),
     db
-      .select({
-        id: users.id,
-        name: users.name,
-        division: users.division,
-        score: users.score,
-        globalRank: users.globalRank,
-        divisionRank: users.divisionRank,
-      })
+      .select(leaderboardEntrySelection)
       .from(users)
       .where(whereClause)
       .orderBy(
@@ -828,52 +874,10 @@ export const searchLeaderboard = async (
       .offset(offset),
   ])
 
-  const total = totalRow?.count ?? 0
-  if (matchingUsers.length === 0) {
-    return { total, leaderboard: [] }
-  }
-
-  const userIds = matchingUsers.map(u => u.id)
-  const {
-    solves: userSolves,
-    dynamicScores,
-    userInfo,
-  } = await getLeaderboardChallengeData(db, userIds)
-
   return {
-    total,
-    leaderboard: matchingUsers.map(entry => {
-      const info = userInfo.get(entry.id)
-      return {
-        id: entry.id,
-        name: entry.name,
-        division: entry.division,
-        score: entry.score,
-        divisionPlace: entry.divisionRank ?? 0,
-        globalPlace: entry.globalRank ?? null,
-        avatarUrl: info?.avatarUrl ?? null,
-        countryCode: info?.countryCode ?? null,
-        statusText: info?.statusText ?? null,
-        solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
-          id: solve.challengeId,
-          solveTime: solve.solveTime,
-        })),
-        dynamicScores: dynamicScores.get(entry.id) ?? [],
-      }
-    }),
+    total: totalRow?.count ?? 0,
+    leaderboard: await hydrateLeaderboardEntries(db, matchingUsers),
   }
-}
-
-const leaderboardEntrySelection = {
-  id: users.id,
-  name: users.name,
-  score: users.score,
-  division: users.division,
-  divisionRank: users.divisionRank,
-  globalRank: users.globalRank,
-  avatarUrl: users.avatarUrl,
-  countryCode: users.countryCode,
-  statusText: users.statusText,
 }
 
 const divisionWhereClause = and(
@@ -930,34 +934,88 @@ export const getLeaderboardWithTotal = async (
       : Promise.resolve([]),
   ])
 
-  const total = totalRow?.count ?? 0
+  return {
+    total: totalRow?.count ?? 0,
+    leaderboard: await hydrateLeaderboardEntries(db, leaderboard),
+  }
+}
 
-  const teamIds = leaderboard.map(e => e.id)
-  const { solves: userSolves, dynamicScores } =
-    teamIds.length > 0
-      ? await getLeaderboardChallengeData(db, teamIds)
-      : {
-          solves: new Map<string, never[]>(),
-          dynamicScores: new Map<string, never[]>(),
-        }
+export const getChallengeLeaderboardWithTotal = async (
+  db: DatabaseClient,
+  challengeId: string,
+  limit: number,
+  offset: number,
+  division?: string,
+  search?: string
+) => {
+  const challenge = await getChallenge(db, challengeId)
+  if (!challenge) {
+    return { total: 0, leaderboard: [] }
+  }
+
+  const whereClause = and(
+    userIsPublicRankedSql,
+    division ? eq(users.division, division) : undefined,
+    search ? userNameSearchFilter(search) : undefined
+  )
+  const solveJoin = and(
+    eq(solves.userid, users.id),
+    eq(solves.challengeid, challengeId)
+  )
+  const orderBy =
+    scoringKindOf(challenge.data) === ChallengeScoringKind.DYNAMIC
+      ? [desc(solves.points), asc(solves.createdat), asc(users.createdAt)]
+      : [asc(solves.createdat), asc(users.createdAt)]
+
+  const [totalRow, leaderboard] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .innerJoin(solves, solveJoin)
+      .where(whereClause)
+      .then(takeUnique),
+    db
+      .select(leaderboardEntrySelection)
+      .from(users)
+      .innerJoin(solves, solveJoin)
+      .where(whereClause)
+      .orderBy(...orderBy)
+      .limit(limit)
+      .offset(offset),
+  ])
 
   return {
-    total,
-    leaderboard: leaderboard.map(entry => ({
-      id: entry.id,
-      name: entry.name,
-      division: entry.division,
-      score: entry.score,
-      divisionPlace: entry.divisionRank ?? 0,
-      globalPlace: entry.globalRank ?? null,
-      avatarUrl: entry.avatarUrl ?? null,
-      countryCode: entry.countryCode ?? null,
-      statusText: entry.statusText ?? null,
-      solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
-        id: solve.challengeId,
-        solveTime: solve.solveTime,
-      })),
-      dynamicScores: dynamicScores.get(entry.id) ?? [],
-    })),
+    total: totalRow?.count ?? 0,
+    leaderboard: await hydrateLeaderboardEntries(db, leaderboard),
   }
+}
+
+type LeaderboardFilters = {
+  limit: number
+  offset: number
+  division?: string
+  search?: string
+  challenge?: string
+}
+
+export const getLeaderboardWithFilters = (
+  db: DatabaseClient,
+  { limit, offset, division, search, challenge }: LeaderboardFilters
+) => {
+  if (challenge) {
+    return getChallengeLeaderboardWithTotal(
+      db,
+      challenge,
+      limit,
+      offset,
+      division,
+      search
+    )
+  }
+
+  if (search) {
+    return searchLeaderboard(db, search, limit, offset, division)
+  }
+
+  return getLeaderboardWithTotal(db, limit, offset, division)
 }

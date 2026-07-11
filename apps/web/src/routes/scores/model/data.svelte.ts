@@ -35,6 +35,7 @@ export function createScoresData(config: ScoresDataConfig) {
   const leaderboardQuery = useLeaderboardWithGraph(() => ({
     division: config.division(),
     search: config.search(),
+    challenge: config.focusedChallengeId() ?? undefined,
   }))
   const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
@@ -90,20 +91,6 @@ export function createScoresData(config: ScoresDataConfig) {
       ? null
       : (leaderboardQuery.error ?? challengesQuery.error ?? null)
   )
-
-  // FIXME(es3n1n): Challenge focus can only know which teams solved a challenge
-  // once every leaderboard page is loaded, so we chain-fetch the whole board
-  // while a focus is active. Tracked by the filed API ask for a server-side
-  // solver filter (GET /leaderboard?solvedChallenge=<id>).
-  $effect(() => {
-    if (
-      config.focusedChallengeId() &&
-      leaderboardQuery.hasNextPage &&
-      !leaderboardQuery.isFetchingNextPage
-    ) {
-      void leaderboardQuery.fetchNextPage()
-    }
-  })
 
   return {
     get entries() {

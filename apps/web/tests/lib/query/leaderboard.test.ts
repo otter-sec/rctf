@@ -124,13 +124,20 @@ describe('excludeSanityChallenges', () => {
 })
 
 describe('leaderboardWithGraph query key', () => {
-  test('distinct division/search combos produce distinct cache keys', () => {
+  test('distinct division/search/challenge combos produce distinct cache keys', () => {
     const keys = [
       queryKeys.leaderboardWithGraph({}),
       queryKeys.leaderboardWithGraph({ division: 'open' }),
       queryKeys.leaderboardWithGraph({ division: 'students' }),
       queryKeys.leaderboardWithGraph({ search: 'otter' }),
       queryKeys.leaderboardWithGraph({ division: 'open', search: 'otter' }),
+      queryKeys.leaderboardWithGraph({ challenge: 'challenge-a' }),
+      queryKeys.leaderboardWithGraph({ challenge: 'challenge-b' }),
+      queryKeys.leaderboardWithGraph({
+        division: 'open',
+        search: 'otter',
+        challenge: 'challenge-a',
+      }),
     ].map(hashKey)
     expect(new Set(keys).size).toBe(keys.length)
   })
@@ -141,6 +148,7 @@ describe('leaderboardWithGraph query key', () => {
         queryKeys.leaderboardWithGraph({
           division: undefined,
           search: undefined,
+          challenge: undefined,
         })
       )
     ).toBe(hashKey(queryKeys.leaderboardWithGraph({})))

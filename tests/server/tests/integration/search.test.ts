@@ -264,6 +264,75 @@ describe('leaderboard search', () => {
     )
   })
 
+  test('with-graph challenge filter returns only solvers and remains paginated', async () => {
+    const firstResponse = await request(
+      app,
+      `/api/v2/leaderboard/with-graph?limit=2&offset=0&challenge=${encodeURIComponent(challengeId)}`,
+      { method: 'GET' }
+    )
+    const firstPage = await expectResponse(
+      firstResponse,
+      GoodLeaderboardWithGraph
+    )
+    const secondResponse = await request(
+      app,
+      `/api/v2/leaderboard/with-graph?limit=2&offset=2&challenge=${encodeURIComponent(challengeId)}`,
+      { method: 'GET' }
+    )
+    const secondPage = await expectResponse(
+      secondResponse,
+      GoodLeaderboardWithGraph
+    )
+
+    expect(firstPage.data.total).toBe(3)
+    expect(secondPage.data.total).toBe(3)
+    expect(firstPage.data.leaderboard).toHaveLength(2)
+    expect(secondPage.data.leaderboard).toHaveLength(1)
+    expect(
+      [...firstPage.data.leaderboard, ...secondPage.data.leaderboard].map(
+        entry => entry.name
+      )
+    ).toEqual(expect.arrayContaining(['AlphaTeam', 'BetaTeam', 'AlphaTeem']))
+    for (const page of [firstPage, secondPage]) {
+      expect(page.data.graph.map(entry => entry.id)).toEqual(
+        page.data.leaderboard.map(entry => entry.id)
+      )
+      expect(
+        page.data.leaderboard.every(entry =>
+          entry.solves.some(solve => solve.id === challengeId)
+        )
+      ).toBe(true)
+    }
+  })
+
+  test('with-graph challenge filter composes with name search', async () => {
+    const res = await request(
+      app,
+      `/api/v2/leaderboard/with-graph?limit=100&offset=0&challenge=${encodeURIComponent(challengeId)}&search=Alpha`,
+      { method: 'GET' }
+    )
+    const body = await expectResponse(res, GoodLeaderboardWithGraph)
+
+    expect(body.data.total).toBe(2)
+    expect(body.data.leaderboard.map(entry => entry.name)).toEqual([
+      'AlphaTeam',
+      'AlphaTeem',
+    ])
+  })
+
+  test('with-graph challenge filter does not expose unavailable challenges', async () => {
+    const res = await request(
+      app,
+      `/api/v2/leaderboard/with-graph?limit=100&offset=0&challenge=${crypto.randomUUID()}`,
+      { method: 'GET' }
+    )
+    const body = await expectResponse(res, GoodLeaderboardWithGraph)
+
+    expect(body.data.total).toBe(0)
+    expect(body.data.leaderboard).toHaveLength(0)
+    expect(body.data.graph).toHaveLength(0)
+  })
+
   test('with-graph search with no results returns empty graph', async () => {
     const res = await request(
       app,

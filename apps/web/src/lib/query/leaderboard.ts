@@ -35,6 +35,7 @@ export type LeaderboardWithGraphPage = LeaderboardWithGraphData & {
 export type LeaderboardFilters = {
   division?: string
   search?: string
+  challenge?: string
 }
 
 export type LeaderboardParams = {
@@ -67,15 +68,16 @@ export function excludeSanityChallenges<T extends { category: string }>(
 
 export function useLeaderboardWithGraph(filters: () => LeaderboardFilters) {
   return createInfiniteQuery(() => {
-    const { division, search } = filters()
+    const { division, search, challenge } = filters()
     return {
-      queryKey: queryKeys.leaderboardWithGraph({ division, search }),
+      queryKey: queryKeys.leaderboardWithGraph({ division, search, challenge }),
       queryFn: async ({ pageParam }) => {
         const response = await apiRequest(GetLeaderboardWithGraphRoute, {
           limit: INFINITE_PAGE_SIZE,
           offset: pageParam,
           ...(division !== undefined ? { division } : {}),
           ...(search !== undefined ? { search } : {}),
+          ...(challenge !== undefined ? { challenge } : {}),
         })
         return {
           ...unwrapData(response, GoodLeaderboardWithGraph),
