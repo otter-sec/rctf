@@ -5,8 +5,6 @@ import { createTooltipTiming, resolveHoverTarget } from './hover-state'
 export interface HoverControllerDeps {
   scrollRoot: () => HTMLElement | null
   isScrolling: () => boolean
-  scrollTop: () => number
-  scrollLeft: () => number
   entries: () => unknown
   startTime: () => number
 }
@@ -35,13 +33,9 @@ export function createHoverController(deps: HoverControllerDeps) {
   })
   $effect(() => () => tooltipTiming.dispose())
 
-  let horizontalScrolling = $state(false)
-
   let lastPointer: { x: number; y: number } | null = null
 
-  const displayedTooltip = $derived(
-    deps.isScrolling() || horizontalScrolling ? null : activeTooltip
-  )
+  const displayedTooltip = $derived(deps.isScrolling() ? null : activeTooltip)
 
   function clearTooltip() {
     tooltipTiming.clear()
@@ -88,7 +82,7 @@ export function createHoverController(deps: HoverControllerDeps) {
     if (hoverPatch.teamId !== undefined) hoveredTeamId = hoverPatch.teamId
     if (hoverPatch.solveHighlight !== undefined) solveHighlight = null
 
-    const scrolling = deps.isScrolling() || horizontalScrolling
+    const scrolling = deps.isScrolling()
     if (cell && (scrolling || !tooltipTiming.isCurrent(cell))) {
       hoveredTeamId = null
       solveHighlight = null
@@ -133,25 +127,15 @@ export function createHoverController(deps: HoverControllerDeps) {
   })
 
   $effect(() => {
-    void deps.scrollTop()
-    void deps.scrollLeft()
-    void deps.isScrolling()
-    untrack(refreshHoverFromPoint)
-  })
-
-  let horizontalSettleTimer = 0
-  $effect(() => {
-    void deps.scrollLeft()
+    const scrolling = deps.isScrolling()
     untrack(() => {
-      horizontalScrolling = true
-      window.clearTimeout(horizontalSettleTimer)
-      horizontalSettleTimer = window.setTimeout(() => {
-        horizontalScrolling = false
+      if (scrolling) {
+        clearHover()
+      } else {
         refreshHoverFromPoint()
-      }, 150)
+      }
     })
   })
-  $effect(() => () => window.clearTimeout(horizontalSettleTimer))
 
   return {
     get hoveredColumnId() {

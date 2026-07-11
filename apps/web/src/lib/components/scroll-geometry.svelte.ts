@@ -20,17 +20,25 @@ export function createScrollGeometry(
   $effect(() => {
     const node = getNode()
     if (!node) return
-    const update = () => {
+
+    const updateOffset = () => {
       scrollTop = node.scrollTop
       scrollLeft = node.scrollLeft
+    }
+    const updateSize = () => {
       scrollHeight = node.scrollHeight
       scrollWidth = node.scrollWidth
       clientHeight = node.clientHeight
       clientWidth = node.clientWidth
     }
-    update()
-    node.addEventListener('scroll', update, { passive: true })
-    const observer = new ResizeObserver(update)
+    const measure = () => {
+      updateOffset()
+      updateSize()
+    }
+
+    measure()
+    node.addEventListener('scroll', updateOffset, { passive: true })
+    const observer = new ResizeObserver(measure)
     observer.observe(node)
 
     let observedChild: Element | null = null
@@ -44,11 +52,11 @@ export function createScrollGeometry(
     observeChild()
     const childWatcher = new MutationObserver(() => {
       observeChild()
-      update()
+      measure()
     })
     childWatcher.observe(node, { childList: true })
     return () => {
-      node.removeEventListener('scroll', update)
+      node.removeEventListener('scroll', updateOffset)
       observer.disconnect()
       childWatcher.disconnect()
     }
