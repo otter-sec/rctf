@@ -12,7 +12,7 @@ For events we run or help operate (including Malta CTF, idek CTF, DiceCTF, Sekai
 
 ## Configuration
 
-Email config includes the provider and a sender address:
+Email config includes the provider, a sender address, and an optional email-specific logo URL:
 
 ```yaml
 email:
@@ -21,7 +21,10 @@ email:
     options:
       smtpUrl: smtp://user:password@mail.example.com:587
   from: noreply@example.com
+  logoUrl: https://example.com/email-logo.png # Optional
 ```
+
+When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `RCTF_EMAIL_LOGO_URL{:sh}` environment variable.
 
 :::note
 Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.

@@ -17,6 +17,44 @@ const emailTXT = await Bun.file(
   path.join(__dirname, '/../../templates/email.txt')
 ).text()
 
+export const formatEmailSender = (
+  displayName: string,
+  address: string
+): string => {
+  const escapedDisplayName = displayName
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/(["\\])/g, '\\$1')
+
+  return `"${escapedDisplayName}" <${address}>`
+}
+
+export const resolveEmailLogoUrls = (
+  emailLogoUrl: string | undefined,
+  resolvedLightUrl: string | null,
+  resolvedDarkUrl: string | null,
+  configuredLightUrl: string,
+  configuredDarkUrl: string
+) => {
+  if (emailLogoUrl) {
+    return { lightUrl: emailLogoUrl, darkUrl: emailLogoUrl }
+  }
+
+  const lightUrl =
+    resolvedLightUrl ||
+    configuredLightUrl ||
+    resolvedDarkUrl ||
+    configuredDarkUrl ||
+    null
+  const darkUrl =
+    resolvedDarkUrl ||
+    configuredDarkUrl ||
+    resolvedLightUrl ||
+    configuredLightUrl ||
+    null
+
+  return { lightUrl, darkUrl }
+}
+
 export const sendVerificationEmail = async (
   db: DatabaseClient,
   to: string,
@@ -32,11 +70,18 @@ export const sendVerificationEmail = async (
     db,
     redis
   )
+  const emailLogoUrls = resolveEmailLogoUrls(
+    config.email.logoUrl,
+    logoLightUrl,
+    logoDarkUrl,
+    config.logoLightUrl,
+    config.logoDarkUrl
+  )
 
   const emailView = {
     ctf_name: ctfName,
-    logo_light_url: logoLightUrl ?? logoDarkUrl,
-    logo_dark_url: logoDarkUrl ?? logoLightUrl,
+    logo_light_url: emailLogoUrls.lightUrl,
+    logo_dark_url: emailLogoUrls.darkUrl,
     origin: config.origin,
     token: encodeURIComponent(token),
     register: kind === 'register',
@@ -50,7 +95,7 @@ export const sendVerificationEmail = async (
   }[kind]
 
   await emailProvider.send({
-    from: `${ctfName} <${config.email.from}>`,
+    from: formatEmailSender(ctfName, config.email.from),
     to: to,
     subject,
     html: mustache.render(emailHTML, emailView),
