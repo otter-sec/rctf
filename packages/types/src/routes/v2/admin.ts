@@ -56,6 +56,7 @@ import {
   ChallengePointsSchema,
   ChallengeScoringSchema,
   FileFieldSchema,
+  HttpUrl,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
   searchFilter,
@@ -683,7 +684,7 @@ export const CreateExternalAuthClientRouteV2 = defineRoute({
       'osec-dashboard'
     ).check(z.describe('Display name for the OAuth client.')),
     redirectUri: example(
-      z.string().check(z.minLength(1)).check(z.maxLength(1024)),
+      HttpUrl.check(z.maxLength(1024)),
       'https://app.osec.io/callback'
     ).check(z.describe('Allowed OAuth redirect URI.')),
   }),

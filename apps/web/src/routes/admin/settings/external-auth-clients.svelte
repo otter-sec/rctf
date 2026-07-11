@@ -4,6 +4,7 @@
     DeleteExternalAuthClientRouteV2,
     GoodAdminExternalAuthClientCreate,
     GoodAdminExternalAuthClientDelete,
+    isHttpUrl,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
@@ -65,6 +66,10 @@
     const trimmedRedirect = redirectUri.trim()
     if (!trimmedName || !trimmedRedirect) {
       toast.error('Name and redirect URI are required.')
+      return
+    }
+    if (!isHttpUrl(trimmedRedirect)) {
+      toast.error('Redirect URI must be an absolute HTTP or HTTPS URL.')
       return
     }
     submitting = true
@@ -163,6 +168,7 @@
               {#snippet children({ id, describedBy })}
                 <Input
                   {id}
+                  type="url"
                   aria-describedby={describedBy}
                   bind:value={name}
                   placeholder="My scoring backend"
