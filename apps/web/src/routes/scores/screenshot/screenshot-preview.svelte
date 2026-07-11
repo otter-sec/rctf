@@ -307,11 +307,23 @@
     :global(:root[data-theme='dark']) & {
       display: none;
     }
+
+    @media (prefers-color-scheme: dark) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
+    }
   }
 
   logo-dark {
     :global(:root[data-theme='light']) & {
       display: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
     }
   }
 
