@@ -27,7 +27,7 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
-  import { hasPermissions } from '$lib/utils/permissions'
+  import { ADMIN_PANEL_PERMISSIONS, hasAnyPermission, hasPermissions } from '$lib/utils/permissions'
   import { createRovingFocus } from '$lib/utils/roving'
 
   const rovingFocus = createRovingFocus()
@@ -39,7 +39,10 @@
   const user = $derived(userQuery.data)
 
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const isAdmin = $derived(hasPermissions(user, Permissions.challsRead))
+  const canReadChallenges = $derived(hasPermissions(user, Permissions.challsRead))
+  const canManageUsers = $derived(hasPermissions(user, Permissions.usersWrite))
+  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const isAdmin = $derived(hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS))
 
   const lightLogo = $derived(clientConfig?.logoLightUrl || wordmarkLight)
   const darkLogo = $derived(clientConfig?.logoDarkUrl || wordmarkDark)
@@ -48,27 +51,38 @@
     user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'
   )
 
-  const adminMenuItems = [
-    {
-      value: 'admin-challenges',
-      label: 'Manage challenges',
-      icon: IconFlagBannerFold,
-      href: '/admin/challenges',
-    },
-    { value: 'admin-teams', label: 'Manage teams', icon: IconUserGear, href: '/admin/teams' },
-    {
-      value: 'admin-submissions',
-      label: 'Submissions',
-      icon: IconTableFilled,
-      href: '/admin/submissions',
-    },
-    {
-      value: 'admin-settings',
-      label: 'Settings',
-      icon: IconGear,
-      href: '/admin/settings',
-    },
-  ]
+  const adminMenuItems = $derived(
+    [
+      {
+        value: 'admin-challenges',
+        label: 'Manage challenges',
+        icon: IconFlagBannerFold,
+        href: '/admin/challenges',
+        show: canReadChallenges,
+      },
+      {
+        value: 'admin-teams',
+        label: 'Manage teams',
+        icon: IconUserGear,
+        href: '/admin/teams',
+        show: canManageUsers,
+      },
+      {
+        value: 'admin-submissions',
+        label: 'Submissions',
+        icon: IconTableFilled,
+        href: '/admin/submissions',
+        show: canReadChallenges && canManageUsers,
+      },
+      {
+        value: 'admin-settings',
+        label: 'Settings',
+        icon: IconGear,
+        href: '/admin/settings',
+        show: canManageSettings || canManageUsers,
+      },
+    ].filter(item => item.show)
+  )
 
   const userMenuItems = $derived([
     {

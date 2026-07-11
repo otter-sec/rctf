@@ -63,8 +63,11 @@ export const adminChallengesQueryOptions = queryOptions({
   },
 })
 
-export function useAdminChallenges() {
-  return createQuery(() => adminChallengesQueryOptions)
+export function useAdminChallenges(enabled: () => boolean = () => true) {
+  return createQuery(() => ({
+    ...adminChallengesQueryOptions,
+    enabled: enabled(),
+  }))
 }
 
 export function adminChallengeQueryOptions(id: string | null) {
@@ -93,8 +96,14 @@ export function adminUserQueryOptions(id: string | null) {
   })
 }
 
-export function useAdminUser(id: () => string | null) {
-  return createQuery(() => adminUserQueryOptions(id()))
+export function useAdminUser(
+  id: () => string | null,
+  enabled: () => boolean = () => true
+) {
+  return createQuery(() => ({
+    ...adminUserQueryOptions(id()),
+    enabled: enabled() && !!id(),
+  }))
 }
 
 export function useAdminUsersInfinite(
@@ -170,8 +179,11 @@ export const adminSettingsQueryOptions = queryOptions({
   },
 })
 
-export function useAdminSettings() {
-  return createQuery(() => adminSettingsQueryOptions)
+export function useAdminSettings(enabled: () => boolean = () => true) {
+  return createQuery(() => ({
+    ...adminSettingsQueryOptions,
+    enabled: enabled(),
+  }))
 }
 
 export const adminExternalAuthClientsQueryOptions = queryOptions({

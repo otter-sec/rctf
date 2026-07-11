@@ -11,8 +11,10 @@ describe('decideAdminGate', () => {
     expect(decideAdminGate(undefined)).toBe('loggedOut')
   })
 
-  test('no perms when the challsRead bit is missing', () => {
-    expect(decideAdminGate({ perms: Permissions.usersWrite })).toBe('noPerms')
+  test('accepts each permission that owns an admin page', () => {
+    expect(decideAdminGate({ perms: Permissions.challsRead })).toBe('ok')
+    expect(decideAdminGate({ perms: Permissions.usersWrite })).toBe('ok')
+    expect(decideAdminGate({ perms: Permissions.settingsWrite })).toBe('ok')
   })
 
   test('no perms when perms is zero or nullish', () => {
@@ -20,8 +22,17 @@ describe('decideAdminGate', () => {
     expect(decideAdminGate({ perms: null })).toBe('noPerms')
   })
 
-  test('ok when the challsRead bit is set', () => {
-    expect(decideAdminGate({ perms: Permissions.challsRead })).toBe('ok')
+  test('rejects permissions that do not own an admin page', () => {
+    expect(decideAdminGate({ perms: Permissions.leaderboardRead })).toBe(
+      'noPerms'
+    )
+    expect(decideAdminGate({ perms: Permissions.challsWrite })).toBe('noPerms')
+    expect(decideAdminGate({ perms: Permissions.challsSolveWrite })).toBe(
+      'noPerms'
+    )
+  })
+
+  test('ok when multiple admin permission bits are set', () => {
     expect(
       decideAdminGate({
         perms: Permissions.challsRead | Permissions.usersWrite,

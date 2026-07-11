@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SubmissionSortBy } from '@rctf/types'
+  import { Permissions, SubmissionSortBy } from '@rctf/types'
   import { page } from '$app/state'
   import type { MultiFilter } from '$lib/filters/core'
   import FilterBar from '$lib/filters/filter-bar.svelte'
@@ -17,10 +17,12 @@
     useAdminUsersInfinite,
   } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
+  import { useCurrentUser } from '$lib/query/user'
   import Card from '$lib/ui/card.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
+  import { hasPermissions } from '$lib/utils/permissions'
   import { nextSort } from '../admin-table-logic'
   import AdminTable from '../admin-table.svelte'
   import { createSubmissionValueFilterFamilies } from './submissions-families'
@@ -44,7 +46,11 @@
   import SubmissionsRow from './table/submissions-row.svelte'
 
   const configQuery = useClientConfig()
-  const challengesQuery = useAdminChallenges()
+  const currentUserQuery = useCurrentUser()
+  const canReadChallenges = $derived(hasPermissions(currentUserQuery.data, Permissions.challsRead))
+  const canReadUsers = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canReadSubmissions = $derived(canReadChallenges && canReadUsers)
+  const challengesQuery = useAdminChallenges(() => canReadSubmissions)
 
   const ctfName = $derived(configQuery.data?.ctfName)
   const ctfStartTime = $derived(configQuery.data?.startTime)
@@ -56,8 +62,9 @@
   const hasFilters = $derived(hasSubmissionFilters(filters))
   const fingerprint = $derived(submissionQueryFingerprint(filters, sort))
 
-  const submissionsQuery = useAdminSubmissionsInfinite(() =>
-    buildSubmissionsBody(filters, sort, ctfStartTime)
+  const submissionsQuery = useAdminSubmissionsInfinite(
+    () => buildSubmissionsBody(filters, sort, ctfStartTime),
+    () => canReadSubmissions
   )
 
   const revealAfterLoading = submissionsQuery.isPending
@@ -69,7 +76,7 @@
   const teamSearch = $derived(filters.team.search.trim())
   const teamSuggestionsQuery = useAdminUsersInfinite(
     () => ({ limit: 16, search: teamSearch.length >= 2 ? teamSearch : undefined }),
-    () => teamSearch.length >= 2
+    () => canReadSubmissions && teamSearch.length >= 2
   )
   const teamSuggestions = $derived(
     teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []
@@ -125,7 +132,10 @@
 
   const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
   const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
-  const deepLinkTeamQuery = useAdminUser(() => deepLinkTeamId)
+  const deepLinkTeamQuery = useAdminUser(
+    () => deepLinkTeamId,
+    () => canReadSubmissions
+  )
   let deepLinkLatch = createDeepLinkLatch()
 
   $effect(() => {
@@ -161,7 +171,13 @@
 </svelte:head>
 
 <submissions-page>
-  {#if submissionsQuery.isPending}
+  {#if currentUserQuery.data && !canReadSubmissions}
+    <page-status>
+      <Card title="Access denied">
+        <p>Your account does not have permission to view submissions.</p>
+      </Card>
+    </page-status>
+  {:else if submissionsQuery.isPending}
     <page-status>
       <Spinner />
     </page-status>

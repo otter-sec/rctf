@@ -20,6 +20,7 @@ import {
   getMaxSolveCount,
   upsertChallenge,
 } from '../../../../apps/api/src/services/challenges'
+import { getChallengeLeaderboardWithTotal } from '../../../../apps/api/src/services/leaderboard'
 import {
   applyDecayPointsForChallenge,
   upsertDynamicSolves,
@@ -430,6 +431,52 @@ describe('getChallengeScoresWithPosition', () => {
     expect(result.scores).toEqual([])
     expect(result.total).toBe(0)
     expect(result.myPosition).toBeNull()
+  })
+})
+
+describe('getChallengeLeaderboardWithTotal dynamic ordering', () => {
+  test('uses the canonical points update time and user ID tiebreakers', async () => {
+    const db = getDb()
+    const { user: alice } = await generateRealTestUser()
+    const { user: bob } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await db.update(users).set({ globalRank: 1 }).where(eq(users.id, alice.id))
+    await db.update(users).set({ globalRank: 2 }).where(eq(users.id, bob.id))
+
+    await db.insert(solves).values([
+      {
+        id: crypto.randomUUID(),
+        challengeid: challengeId,
+        userid: alice.id,
+        createdat: '2026-01-01T00:00:00.000Z',
+        points: 500,
+        pointsUpdatedAt: '2026-01-01T00:00:02.000Z',
+        source: 'feed',
+      },
+      {
+        id: crypto.randomUUID(),
+        challengeid: challengeId,
+        userid: bob.id,
+        createdat: '2026-01-01T00:00:01.000Z',
+        points: 500,
+        pointsUpdatedAt: '2026-01-01T00:00:01.000Z',
+        source: 'feed',
+      },
+    ])
+
+    const result = await getChallengeLeaderboardWithTotal(
+      db,
+      challengeId,
+      100,
+      0
+    )
+
+    expect(result.total).toBe(2)
+    expect(result.leaderboard.map(entry => entry.id)).toEqual([
+      bob.id,
+      alice.id,
+    ])
   })
 })
 

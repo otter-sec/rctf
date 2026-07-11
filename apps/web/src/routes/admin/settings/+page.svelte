@@ -41,16 +41,17 @@
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
+  const user = $derived(userQuery.data)
+  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const canManageApps = $derived(hasPermissions(user, Permissions.usersWrite))
+
   const configQuery = useClientConfig()
-  const settingsQuery = useAdminSettings()
+  const settingsQuery = useAdminSettings(() => canManageSettings)
 
   const revealAfterLoading = settingsQuery.isPending
 
-  const user = $derived(userQuery.data)
   const ctfName = $derived(configQuery.data?.ctfName)
   const defaults = $derived(settingsQuery.data?.defaults)
-  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
-  const canManageApps = $derived(hasPermissions(user, Permissions.usersWrite))
 
   let form = $state<SettingsFormState | null>(null)
   let sponsorSelected = $state(0)
@@ -221,7 +222,13 @@
   </group-header>
 {/snippet}
 
-{#if !canManageSettings && user}
+{#if canManageApps && !canManageSettings}
+  <settings-page>
+    <settings-form>
+      <ExternalAuthClients />
+    </settings-form>
+  </settings-page>
+{:else if !canManageSettings && user}
   <settings-status>
     <StatusCard
       icon={IconWarningCircle}

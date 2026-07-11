@@ -1,5 +1,7 @@
-import { Permissions } from '@rctf/types'
-import { hasPermissions } from '$lib/utils/permissions'
+import {
+  ADMIN_PANEL_PERMISSIONS,
+  hasAnyPermission,
+} from '$lib/utils/permissions'
 
 export type AdminGate = 'loggedOut' | 'noPerms' | 'ok'
 
@@ -9,5 +11,5 @@ export function decideAdminGate(
   if (user === null || user === undefined) {
     return 'loggedOut'
   }
-  return hasPermissions(user, Permissions.challsRead) ? 'ok' : 'noPerms'
+  return hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS) ? 'ok' : 'noPerms'
 }
