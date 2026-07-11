@@ -58,12 +58,14 @@
   })
   const headerOffset = $derived(isDesktop ? SCORE_HEADER_HEIGHT_PX : 0)
 
+  const getItemKey = (index: number) => data.entries[index]?.id ?? index
+
   const virtual = createVirtualizer(() => ({
     count: data.entries.length,
     rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
     overscan: SCORE_VIRTUAL_OVERSCAN,
     scrollMargin: headerOffset,
-    getItemKey: index => data.entries[index]?.id ?? index,
+    getItemKey,
   }))
 
   const contentWidth = $derived(
@@ -127,8 +129,6 @@
   const hover = createHoverController({
     scrollRoot: () => scrollRoot,
     isScrolling: () => virtual.isScrolling,
-    scrollTop: () => geometry.scrollTop,
-    scrollLeft: () => geometry.scrollLeft,
     entries: () => data.entries,
     startTime: () => startTime,
   })
@@ -234,6 +234,7 @@
   style:--score-content-width={`${contentWidth}px`}
   data-fade-scope
   data-self-edge={selfEdge ?? undefined}
+  data-scrolling={virtual.isScrolling || undefined}
 >
   <mobile-graph>
     {@render graphPanel()}
@@ -399,6 +400,10 @@
 
     &[data-self-edge='bottom'] {
       --score-fade-inset-bottom: var(--score-row-height-full);
+    }
+
+    &[data-scrolling] virtual-row {
+      pointer-events: none;
     }
   }
 

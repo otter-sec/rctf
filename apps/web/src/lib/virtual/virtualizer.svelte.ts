@@ -5,6 +5,7 @@ import {
   Virtualizer,
   type VirtualItem,
 } from '@tanstack/virtual-core'
+import { flushSync } from 'svelte'
 import type { Attachment } from 'svelte/attachments'
 
 const DEFAULT_OVERSCAN = 10
@@ -47,7 +48,13 @@ export function createVirtualizer(
     observeElementRect,
     observeElementOffset,
     scrollToFn: elementScroll,
-    onChange: inst => mirror(inst),
+    onChange: (inst, sync) => {
+      if (sync) {
+        flushSync(() => mirror(inst))
+      } else {
+        mirror(inst)
+      }
+    },
   })
 
   function mirror(inst: Virtualizer<HTMLElement, Element>) {
