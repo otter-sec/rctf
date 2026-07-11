@@ -24,7 +24,11 @@
     IconSignIn,
     IconWarningCircle,
   } from '$lib/icons'
-  import { useAdminBotHistory, useAdminBotStatus } from '$lib/query/challenges'
+  import {
+    didAdminBotJobBecomeTerminal,
+    useAdminBotHistory,
+    useAdminBotStatus,
+  } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
   import { useCurrentUser } from '$lib/query/user'
@@ -87,10 +91,18 @@
   let historyLogsRequestId = 0
   const historyLogEntries = $derived(historyLogs ? parseAdminBotLogs(historyLogs) : [])
 
-  const statusUpdatedAt = $derived(statusQuery.dataUpdatedAt)
+  let previousJob: { id: string; status: AdminBotJobStatus } | null = null
   $effect(() => {
-    void statusUpdatedAt
-    if (!isAuthenticated) return
+    if (!isAuthenticated) {
+      previousJob = null
+      return
+    }
+
+    const currentJob = job ? { id: job.id, status: job.status } : null
+    const refreshHistory = didAdminBotJobBecomeTerminal(previousJob, currentJob)
+    previousJob = currentJob
+    if (!refreshHistory) return
+
     void queryClient.invalidateQueries({
       queryKey: queryKeys.challengeAdminBotHistory(challengeId),
       exact: true,
