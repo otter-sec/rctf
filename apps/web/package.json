@@ -32,7 +32,7 @@
     "@zag-js/toast": "1.41.2",
     "@zag-js/tooltip": "1.41.2",
     "@zag-js/tree-view": "1.41.2",
-    "dompurify": "3.4.3",
+    "dompurify": "3.4.11",
     "marked": "17.0.4",
     "modern-screenshot": "4.6.8",
     "shiki": "4.3.0",

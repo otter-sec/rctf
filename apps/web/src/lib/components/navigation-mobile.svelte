@@ -25,7 +25,7 @@
   import Dialog from '$lib/ui/dialog.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
-  import { hasPermissions } from '$lib/utils/permissions'
+  import { ADMIN_PANEL_PERMISSIONS, hasAnyPermission, hasPermissions } from '$lib/utils/permissions'
 
   const queryClient = useQueryClient()
   const configQuery = useClientConfig()
@@ -34,7 +34,10 @@
   const user = $derived(userQuery.data)
 
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const isAdmin = $derived(hasPermissions(user, Permissions.challsRead))
+  const canReadChallenges = $derived(hasPermissions(user, Permissions.challsRead))
+  const canManageUsers = $derived(hasPermissions(user, Permissions.usersWrite))
+  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const isAdmin = $derived(hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS))
 
   const lightLogo = $derived(clientConfig?.logoLightUrl || wordmarkLight)
   const darkLogo = $derived(clientConfig?.logoDarkUrl || wordmarkDark)
@@ -74,28 +77,28 @@
         activePath: '/admin/challenges',
         label: 'Manage challenges',
         icon: IconFlagBannerFold,
-        show: isAdmin,
+        show: isAdmin && canReadChallenges,
       },
       {
         href: '/admin/teams',
         activePath: '/admin/teams',
         label: 'Manage teams',
         icon: IconUserGear,
-        show: isAdmin,
+        show: isAdmin && canManageUsers,
       },
       {
         href: '/admin/submissions',
         activePath: '/admin/submissions',
         label: 'Submissions',
         icon: IconTableFilled,
-        show: isAdmin,
+        show: isAdmin && canReadChallenges && canManageUsers,
       },
       {
         href: '/admin/settings',
         activePath: '/admin/settings',
         label: 'Settings',
         icon: IconGear,
-        show: isAdmin,
+        show: isAdmin && (canManageSettings || canManageUsers),
       },
     ].filter(item => item.show)
   )

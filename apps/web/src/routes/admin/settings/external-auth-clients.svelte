@@ -168,7 +168,7 @@
               {#snippet children({ id, describedBy })}
                 <Input
                   {id}
-                  type="url"
+                  type="text"
                   aria-describedby={describedBy}
                   bind:value={name}
                   placeholder="My scoring backend"
@@ -184,6 +184,7 @@
               {#snippet children({ id, describedBy })}
                 <Input
                   {id}
+                  type="url"
                   aria-describedby={describedBy}
                   bind:value={redirectUri}
                   placeholder="https://example.com/callback"

@@ -964,8 +964,8 @@ export const getChallengeLeaderboardWithTotal = async (
   )
   const orderBy =
     scoringKindOf(challenge.data) === ChallengeScoringKind.DYNAMIC
-      ? [desc(solves.points), asc(solves.createdat), asc(users.createdAt)]
-      : [asc(solves.createdat), asc(users.createdAt)]
+      ? [desc(solves.points), asc(solves.pointsUpdatedAt), asc(solves.userid)]
+      : [asc(solves.createdat), asc(solves.userid)]
 
   const [totalRow, leaderboard] = await Promise.all([
     db
