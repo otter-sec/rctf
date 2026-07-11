@@ -290,7 +290,7 @@ export function saveError(state: EditorState): EditorState {
   if (state.mode !== 'saving') {
     return state
   }
-  return { ...state, mode: 'editing' }
+  return { ...state, mode: state.wasCreating ? 'creating' : 'editing' }
 }
 
 export function del(state: EditorState): EditorState {
