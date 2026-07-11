@@ -1,79 +1,114 @@
 <script lang="ts">
-  import { Card, Markdown } from '$lib/components'
-  import { parseMarkdown } from '$lib/utils/markdown'
+  import Markdown from '$lib/components/markdown.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import type { PageProps } from './$types'
 
-  let { data } = $props()
+  const { data }: PageProps = $props()
 </script>
 
-<div class="flex flex-col gap-4">
-  <Card.Root>
-    <Card.Content>
-      <Markdown content={data.clientConfig.homeContent} class="max-w-none" />
-    </Card.Content>
-  </Card.Root>
+<home-page>
+  <Card>
+    <Markdown content={data.clientConfig.homeContent} />
+  </Card>
 
   {#if data.clientConfig.sponsors.length > 0}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl">Sponsors</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
-            {@const content = {
-              icon: sponsor.icon,
-              name: sponsor.name,
-              description: sponsor.description,
-            }}
-            {#if sponsor.url}
-              <a
-                href={sponsor.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="bg-background-l2 hover:bg-background-l3 flex flex-col gap-6 rounded-md p-4 transition-colors"
-              >
-                {#if content.icon}
-                  <img
-                    src={content.icon}
-                    alt={content.name}
-                    class="h-auto w-full p-2 dark:invert"
-                  />
-                {/if}
-                <div class="flex flex-col gap-1">
-                  <h3 class="font-medium">{content.name}</h3>
-                  <div class="prose max-w-none">
-                    {@html parseMarkdown(content.description)}
-                  </div>
-                </div>
-              </a>
-            {:else}
-              <article class="bg-background-l2 flex flex-col gap-6 rounded-md p-4">
-                {#if content.icon}
-                  <img
-                    src={content.icon}
-                    alt={content.name}
-                    class="h-auto w-full p-2 dark:invert"
-                  />
-                {/if}
-                <div class="flex flex-col gap-1">
-                  <h3 class="font-medium">{content.name}</h3>
-                  <div class="prose max-w-none">
-                    {@html parseMarkdown(content.description)}
-                  </div>
-                </div>
-              </article>
+    <Card title="Sponsors">
+      <sponsor-grid>
+        {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
+          <svelte:element
+            this={sponsor.url ? 'a' : 'article'}
+            href={sponsor.url}
+            target={sponsor.url ? '_blank' : undefined}
+            rel={sponsor.url ? 'noopener noreferrer' : undefined}
+          >
+            {#if sponsor.icon}
+              <img src={sponsor.icon} alt={sponsor.name} />
             {/if}
-          {/each}
-        </div>
-      </Card.Content>
-    </Card.Root>
+            <h3>{sponsor.name}</h3>
+            <Markdown content={sponsor.description} />
+          </svelte:element>
+        {/each}
+      </sponsor-grid>
+    </Card>
   {/if}
 
-  <div class="text-foreground-l5 py-4 text-center text-sm">
-    Powered by <a
-      href="https://rctf.osec.io"
-      target="_blank"
-      class="text-foreground-l5 hover:text-foreground-l3 underline underline-offset-3">rCTF</a
-    >
-  </div>
-</div>
+  <footer>
+    Powered by
+    <a href="https://rctf.osec.io" target="_blank" rel="noopener noreferrer">rCTF</a>
+  </footer>
+</home-page>
+
+<style>
+  home-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    inline-size: 100%;
+    max-inline-size: calc(var(--measure) + 2rem);
+    margin-inline: auto;
+    padding-inline: 1rem;
+
+    @media (width >= 48rem) {
+      max-inline-size: calc(var(--measure) + 4.5rem);
+      padding-inline: 2.25rem;
+    }
+  }
+
+  sponsor-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-s);
+
+    a,
+    article {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding: var(--space-s);
+      border-radius: var(--radius-md);
+      background: var(--background-l2);
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:hover {
+      background: var(--background-l3);
+    }
+
+    img {
+      inline-size: 100%;
+      block-size: auto;
+      max-block-size: 8rem;
+      object-fit: contain;
+      padding: var(--space-2xs);
+
+      :global(:root[data-theme='dark']) & {
+        filter: invert(1);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :global(:root:not([data-theme])) & {
+          filter: invert(1);
+        }
+      }
+    }
+
+    h3 {
+      font-size: var(--step-1);
+      font-weight: var(--font-weight-medium);
+    }
+  }
+
+  footer {
+    padding-block: var(--space-s);
+    text-align: center;
+    font-size: var(--step--1);
+    color: var(--foreground-l4);
+
+    a {
+      --underline: currentColor;
+    }
+  }
+</style>

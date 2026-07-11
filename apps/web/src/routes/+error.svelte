@@ -1,44 +1,34 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card } from '$lib/components'
-  import { IconAlertTriangleFilled, IconHomeFilled } from '$lib/icons'
+  import { IconWarning } from '$lib/icons'
+  import Button from '$lib/ui/button.svelte'
+  import StatusCard from '$lib/ui/status-card.svelte'
+
+  const detail = $derived(
+    page.error?.message ? `${page.error.message} · ${page.status}` : `Error ${page.status}`
+  )
 </script>
 
-<div class="flex flex-1 items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="flex items-center gap-2 text-xl">
-          <IconAlertTriangleFilled class="text-foreground-warning size-6" />
-          {page.status === 404 ? 'Page not found' : 'Something went wrong'}
-        </Card.Title>
-        <Card.Description>
-          {#if page.status === 404}
-            The page you're looking for doesn't exist.
-          {:else}
-            An error occurred while loading this page.
-          {/if}
-        </Card.Description>
-      </Card.Header>
-      <Card.Content>
-        {#if page.error?.message}
-          <div
-            class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert"
-          >
-            {page.error.message}
-          </div>
-        {/if}
+<error-page>
+  <StatusCard
+    icon={IconWarning}
+    tone="danger"
+    title={page.status === 404 ? 'Page not found' : 'Something went wrong'}
+    subtitle={page.status === 404
+      ? "The page you're looking for doesn't exist."
+      : 'An error occurred while loading this page.'}
+    {detail}
+  >
+    <Button href="/">Go to home</Button>
+  </StatusCard>
+</error-page>
 
-        <p class="text-foreground-l3 mb-4 text-sm">
-          Error code: {page.status}
-        </p>
-
-        <Button href="/" class="w-full">
-          <IconHomeFilled class="size-4" />
-          Go to home
-        </Button>
-      </Card.Content>
-    </Card.Root>
-  </div>
-</div>
+<style>
+  error-page {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-s);
+  }
+</style>

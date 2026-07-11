@@ -1,96 +1,104 @@
 <script lang="ts">
-  import { GoodEmailSet, GoodRegisterV2, GoodVerify } from '@rctf/types'
+  import { GoodEmailSet, GoodRegisterV2, GoodVerify, VerifyRouteV2 } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { setToken } from '$lib/api'
-  import { Button, Card, Spinner } from '$lib/components'
-  import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
-  import { toast } from 'svelte-sonner'
+  import { apiRequest, setToken } from '$lib/api'
+  import { useVerifyInfo } from '$lib/query/auth'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { buildLoginUrl } from '$lib/utils/auth'
   import TeamTokenCard from '../team-token-card.svelte'
 
   const queryClient = useQueryClient()
-  const verifyMutation = useVerifyMutation()
-  const clientConfigQuery = useClientConfig()
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
 
   const verifyToken = $derived(page.url.searchParams.get('token'))
   const verifyInfoQuery = useVerifyInfo(() => verifyToken)
   const verifyInfo = $derived(verifyInfoQuery.data)
-
-  const clientConfig = $derived(clientConfigQuery.data)
-  const verifyInfoError = $derived(
-    !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
-  )
 
   let error = $state<string | null>(null)
   let emailSet = $state(false)
   let verified = $state(false)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
-  const isVerifying = $derived(verifyMutation.isPending)
+  let isVerifying = $state(false)
+
+  const verifyInfoError = $derived(
+    !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
+  )
   const isVerifyDisabled = $derived(isVerifying || verifyInfoQuery.isPending || !!verifyInfoError)
 
-  const title = $derived.by(() => {
-    if (!verifyInfo) return 'Verify email'
-    switch (verifyInfo.kind) {
+  const copy = $derived.by(() => {
+    switch (verifyInfo?.kind) {
       case 'register':
-        return `Registering as ${verifyInfo.name}`
+        return {
+          title: `Registering as ${verifyInfo.name}`,
+          description: `Click below to complete your registration with email ${verifyInfo.email}`,
+          button: 'Complete registration',
+        }
       case 'team':
-        return `Logging in as ${verifyInfo.name}`
+        return {
+          title: `Logging in as ${verifyInfo.name}`,
+          description: 'Click below to log in to your account',
+          button: 'Log in',
+        }
       case 'update':
-        return `Setting email to ${verifyInfo.email} for ${verifyInfo.name}`
+        return {
+          title: `Setting email to ${verifyInfo.email} for ${verifyInfo.name}`,
+          description: 'Click below to confirm your new email address',
+          button: 'Confirm email',
+        }
+      default:
+        return {
+          title: 'Verify email',
+          description: 'Click the button below to verify your email and continue',
+          button: 'Verify email',
+        }
     }
   })
 
-  const description = $derived.by(() => {
-    if (!verifyInfo) return 'Click the button below to verify your email and continue'
-    switch (verifyInfo.kind) {
-      case 'register':
-        return `Click below to complete your registration with email ${verifyInfo.email}`
-      case 'team':
-        return 'Click below to log in to your account'
-      case 'update':
-        return 'Click below to confirm your new email address'
-    }
-  })
+  let redirectTimer: ReturnType<typeof setTimeout> | undefined
+  $effect(() => () => clearTimeout(redirectTimer))
 
-  function handleVerify() {
+  async function handleVerify() {
     if (!verifyToken) {
       error = 'No verification token provided.'
       return
     }
-
     error = null
-
-    verifyMutation.mutate(
-      { verifyToken },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodRegisterV2.kind) {
-            setToken(response.data.authToken)
-            registeredTeamToken = response.data.teamToken
-            registeredLoginUrl = `${window.location.origin}/login?token=${encodeURIComponent(response.data.teamToken)}`
-            toast.success('Verified successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-          } else if (response.kind === GoodVerify.kind) {
-            setToken(response.data.authToken)
-            verified = true
-            toast.success('Verified successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-            setTimeout(() => goto('/'), 500)
-          } else if (response.kind === GoodEmailSet.kind) {
-            emailSet = true
-            toast.success('Email verified!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-          } else {
-            error = response.message
-          }
-        },
-        onError: err => {
-          error = err.message
-        },
+    isVerifying = true
+    try {
+      const response = await apiRequest(VerifyRouteV2, { verifyToken })
+      if (response.kind === GoodRegisterV2.kind) {
+        setToken(response.data.authToken)
+        registeredTeamToken = response.data.teamToken
+        registeredLoginUrl = buildLoginUrl(response.data.teamToken)
+        toast.success('Verified successfully!')
+        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+      } else if (response.kind === GoodVerify.kind) {
+        setToken(response.data.authToken)
+        verified = true
+        toast.success('Verified successfully!')
+        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+        redirectTimer = setTimeout(() => goto('/'), 500)
+      } else if (response.kind === GoodEmailSet.kind) {
+        emailSet = true
+        toast.success('Email verified!')
+        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+      } else {
+        error = response.message
       }
-    )
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'Verification failed'
+    } finally {
+      isVerifying = false
+    }
   }
 </script>
 
@@ -103,60 +111,30 @@
 {#if registeredTeamToken && registeredLoginUrl}
   <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
 {:else if emailSet}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">Email verified</Card.Title>
-    </Card.Header>
-    <Card.Content class="prose">
+  <Card title="Email verified">
+    <auth-page>
       <p>Your email has been verified. You can now close this tab.</p>
-    </Card.Content>
-  </Card.Root>
+    </auth-page>
+  </Card>
 {:else if verified}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">Verified</Card.Title>
-    </Card.Header>
-    <Card.Content class="prose">
+  <Card title="Verified">
+    <auth-page>
       <p>Redirecting you to the home page...</p>
-    </Card.Content>
-  </Card.Root>
+    </auth-page>
+  </Card>
 {:else}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">{title}</Card.Title>
-      <Card.Description>{description}</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      {#if verifyInfoError || error}
-        <div
-          class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-          role="alert"
-        >
-          {verifyInfoError ?? error}
-        </div>
+  <Card title={copy.title} description={copy.description}>
+    <auth-page>
+      {#if verifyInfoError ?? error}
+        <p role="alert">{verifyInfoError ?? error}</p>
       {/if}
-
-      <Button onclick={handleVerify} disabled={isVerifyDisabled} class="w-full">
+      <Button onclick={handleVerify} disabled={isVerifyDisabled}>
         {#if isVerifying}
-          <Spinner class="size-4" />
+          <Spinner />
         {/if}
-        {#if verifyInfo?.kind === 'register'}
-          Complete registration
-        {:else if verifyInfo?.kind === 'team'}
-          Log in
-        {:else if verifyInfo?.kind === 'update'}
-          Confirm email
-        {:else}
-          Verify email
-        {/if}
+        {copy.button}
       </Button>
-    </Card.Content>
-    <Card.Footer>
-      <p class="text-foreground-l3 text-sm">
-        Wrong link? <a href="/login" class="text-foreground-prose-link hover:underline"
-          >Back to login</a
-        >.
-      </p>
-    </Card.Footer>
-  </Card.Root>
+      <footer-note>Wrong link? <a href="/login">Back to login</a>.</footer-note>
+    </auth-page>
+  </Card>
 {/if}

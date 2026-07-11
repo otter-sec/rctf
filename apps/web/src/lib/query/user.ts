@@ -1,15 +1,18 @@
 import {
+  GetMembersRoute,
   GetUserRouteV2,
   GetUserSelfRouteV2,
+  GoodMemberData,
   GoodUserDataV2,
   GoodUserSelfDataV2,
 } from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest, isAuthenticated } from '$lib/api'
-import { ApiError } from './core'
+import { unwrapData } from '$lib/query/core'
+import { queryKeys } from '$lib/query/keys'
 
 export const userSelfQueryOptions = queryOptions({
-  queryKey: ['user', 'self'] as const,
+  queryKey: queryKeys.userSelf,
   queryFn: async () => {
     if (!isAuthenticated()) {
       return null
@@ -24,22 +27,35 @@ export const userSelfQueryOptions = queryOptions({
   refetchInterval: 30 * 1000,
 })
 
-export const userByIdQueryOptions = (id: string) =>
-  queryOptions({
-    queryKey: ['user', id] as const,
-    queryFn: async () => {
-      const response = await apiRequest(GetUserRouteV2, { id })
-      if (response.kind === GoodUserDataV2.kind) {
-        return response.data
-      }
-      throw new ApiError(response.kind, response.message)
-    },
-  })
-
 export function useCurrentUser() {
   return createQuery(() => userSelfQueryOptions)
 }
 
-export function useUserProfile(id: () => string) {
+export function userByIdQueryOptions(id: string) {
+  return queryOptions({
+    queryKey: queryKeys.userById(id),
+    queryFn: async () => {
+      const response = await apiRequest(GetUserRouteV2, { id })
+      return unwrapData(response, GoodUserDataV2)
+    },
+  })
+}
+
+export function useUserById(id: () => string) {
   return createQuery(() => userByIdQueryOptions(id()))
+}
+
+export function membersQueryOptions(enabled: boolean) {
+  return queryOptions({
+    queryKey: queryKeys.members,
+    queryFn: async () => {
+      const response = await apiRequest(GetMembersRoute)
+      return unwrapData(response, GoodMemberData)
+    },
+    enabled,
+  })
+}
+
+export function useMembers(enabled: () => boolean) {
+  return createQuery(() => membersQueryOptions(enabled()))
 }

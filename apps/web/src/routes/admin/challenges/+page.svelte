@@ -1,42 +1,62 @@
 <script lang="ts">
-  import { Card, Spinner } from '$lib/components'
-  import { useAdminChallenges, useClientConfig } from '$lib/query'
-  import AdminChallenges from './admin-challenges.svelte'
+  import { useAdminChallenges } from '$lib/query/admin'
+  import { useClientConfig } from '$lib/query/config'
+  import Card from '$lib/ui/card.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import AdminChallenges from './challenges.svelte'
 
-  const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived(clientConfigQuery.data)
+  const configQuery = useClientConfig()
+  const ctfName = $derived(configQuery.data?.ctfName)
 
   const challengesQuery = useAdminChallenges()
   const challenges = $derived(challengesQuery.data)
   const isPending = $derived(challengesQuery.isPending)
-  const error = $derived(challengesQuery.error?.message)
+  const error = $derived(challengesQuery.error)
+
+  const revealAfterLoading = challengesQuery.isPending
 </script>
 
 <svelte:head>
-  {#if clientConfig}
-    <title>Admin | {clientConfig.ctfName}</title>
+  {#if ctfName}
+    <title>Challenges | {ctfName}</title>
   {/if}
 </svelte:head>
 
 {#if challenges}
-  <AdminChallenges />
+  <admin-challenges-reveal data-reveal={revealAfterLoading || undefined}>
+    <AdminChallenges />
+  </admin-challenges-reveal>
 {:else if isPending}
-  <div class="flex flex-1 items-center justify-center">
-    <Spinner class="size-4" />
-  </div>
-{:else}
-  <div class="flex flex-1 items-center justify-center p-4">
-    <div class="w-full max-w-md">
-      <Card.Root>
-        <Card.Header>
-          <Card.Title class="text-xl">Admin Challenges</Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <p class="text-foreground-l3">
-            {error ?? 'Unknown error'}
-          </p>
-        </Card.Content>
-      </Card.Root>
-    </div>
-  </div>
+  <page-status>
+    <Spinner />
+  </page-status>
+{:else if error}
+  <page-status>
+    <Card title="Challenges">
+      <p>{error.message}</p>
+    </Card>
+  </page-status>
 {/if}
+
+<style>
+  admin-challenges-reveal {
+    display: block;
+  }
+
+  page-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-l);
+
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
+
+    p {
+      color: var(--foreground-l3);
+    }
+  }
+</style>

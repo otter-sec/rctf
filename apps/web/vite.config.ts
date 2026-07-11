@@ -1,11 +1,12 @@
 import { sveltekit } from '@sveltejs/kit/vite'
-import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
-const DEV_API_URL = 'http://127.0.0.1:3000'
+const DEV_API_URL = 'http://localhost:3000'
+// const DEV_API_URL = 'https://2026.ctf.sekai.team'
+// const DEV_API_URL = 'https://rctf-new-dev.es3n1n.io'
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [sveltekit()],
   server: {
     proxy: {
       '/api': {

@@ -1,325 +1,279 @@
 <script lang="ts">
   import {
     AdminTeamSortBy,
+    CompleteAdminUserVerificationRouteV2,
+    CreateUserTokenRouteV2,
+    DeleteAdminUserRouteV2,
     GoodAdminUserDeleteV2,
     GoodAdminUserUpdateV2,
     GoodAdminUserVerificationCompleteV2,
     GoodAdminUserVerificationResendV2,
     GoodCreateUserTokenV2,
     Permissions,
+    ResendAdminUserVerificationRouteV2,
     SortOrder,
+    UpdateAdminUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
-  import { showApiError } from '$lib/api'
-  import { Card, Spinner } from '$lib/components'
+  import { apiRequest, showApiError } from '$lib/api'
+  import { clearFilter, createFilter, type MultiFilter } from '$lib/filters/core'
+  import type { ValueFilterFamily } from '$lib/filters/ui'
   import {
-    queryKeys,
+    invalidateAdminTeamQueries,
+    useAdminUsersInfinite,
     useAdminUserVerifications,
-    useClientConfig,
-    useCompleteAdminUserVerificationMutation,
-    useCreateUserTokenMutation,
-    useCurrentUser,
-    useDeleteAdminUserMutation,
-    useInfiniteAdminUsers,
-    useResendAdminUserVerificationMutation,
-    useUpdateAdminUserMutation,
-  } from '$lib/query'
-  import { hasPermissions } from '$lib/utils'
-  import { toast } from 'svelte-sonner'
-  import TeamConfirmDialogs from './team-confirm-dialogs.svelte'
+  } from '$lib/query/admin'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { useCurrentUser } from '$lib/query/user'
+  import { toast } from '$lib/toast'
+  import Card from '$lib/ui/card.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { copyText } from '$lib/utils/clipboard'
+  import { hasPermissions } from '$lib/utils/permissions'
+  import type { SortState } from '../admin-table-logic'
+  import { createConfirmState } from '../confirm-state.svelte'
+  import ConfirmDialog from '../profile/confirm-dialog.svelte'
+  import { divisionFilterFamily, statusFilterFamily } from './teams-families'
   import {
-    createTeamFilters,
-    PAGE_SIZE,
     pendingVerificationMatchesFilters,
     registeredRowsMayMatch,
     sortTeamRows,
-    teamFilterParams,
-    type AdminTeam,
-    type PendingTeamRow,
-    type PendingVerification,
-    type RegisteredTeamRow,
-    type SortBy,
+    teamFingerprint,
+    teamQueryParams,
+    type DivisionOption,
+    type TeamFilters,
+    type TeamRow,
+    type TeamStatusValue,
   } from './teams-model'
   import TeamsTable from './teams-table.svelte'
 
-  let sortBy = $state<SortBy>(AdminTeamSortBy.CREATED_AT)
-  let sortOrder = $state<SortOrder>(SortOrder.DESC)
-  let filters = $state(createTeamFilters())
+  type TeamRef = { id: string; name: string }
+  type BanRef = TeamRef & { banned: boolean }
+
+  const queryClient = useQueryClient()
+  const configQuery = useClientConfig()
+  const currentUserQuery = useCurrentUser()
+
+  const clientConfig = $derived(configQuery.data)
+  const divisions = $derived<Record<string, string>>(clientConfig?.divisions ?? {})
+  const divisionOptions = $derived<DivisionOption[]>(
+    Object.entries(divisions).map(([value, label]) => ({ value, label }))
+  )
+
+  const canWrite = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canManage = $derived(
+    canWrite && hasPermissions(currentUserQuery.data, Permissions.challsRead)
+  )
+
+  let sort = $state<SortState<AdminTeamSortBy>>({
+    by: AdminTeamSortBy.CREATED_AT,
+    order: SortOrder.DESC,
+  })
+  let statusFilter = $state<MultiFilter<TeamStatusValue>>(createFilter())
+  let divisionFilter = $state<MultiFilter<DivisionOption>>(createFilter())
+  let search = $state('')
   let debouncedSearch = $state('')
 
-  const clientConfigQuery = useClientConfig()
-  const queryClient = useQueryClient()
-  const clientConfig = $derived(clientConfigQuery.data)
-  const userQuery = useCurrentUser()
-  const user = $derived(userQuery.data)
-  const hasWritePerms = $derived(hasPermissions(user, Permissions.usersWrite))
-  const hasTeamDetailsPerms = $derived(
-    hasWritePerms && hasPermissions(user, Permissions.challsRead)
-  )
-  const shouldFetchRegisteredRows = $derived(registeredRowsMayMatch(filters.status))
-  const queryFilters = $derived({
-    ...filters,
-    search: debouncedSearch,
-  })
-  const divisionOptions = $derived(
-    Object.entries(clientConfig?.divisions ?? {}).map(([value, label]) => ({
-      value,
-      label,
-    }))
-  )
-
   $effect(() => {
-    const search = filters.search
-    const timeout = setTimeout(() => {
-      debouncedSearch = search
-    }, 400)
-
+    const next = search
+    const timeout = setTimeout(() => (debouncedSearch = next), 400)
     return () => clearTimeout(timeout)
   })
 
-  const usersQuery = useInfiniteAdminUsers(
-    () => PAGE_SIZE,
-    () => teamFilterParams(queryFilters, sortBy, sortOrder),
-    () => shouldFetchRegisteredRows
+  const filters = $derived<TeamFilters>({
+    status: statusFilter,
+    division: divisionFilter,
+    search: debouncedSearch,
+  })
+  const hasActiveFilters = $derived(
+    statusFilter.selected.length > 0 || divisionFilter.selected.length > 0
   )
-  const allTeams = $derived(
-    shouldFetchRegisteredRows
-      ? ((usersQuery.data?.pages.flatMap(page => page.users) ?? []) as AdminTeam[])
+  const shouldFetchRegistered = $derived(canWrite && registeredRowsMayMatch(statusFilter))
+
+  const families = [
+    statusFilterFamily(statusFilter),
+    divisionFilterFamily(divisionFilter, () => divisionOptions),
+  ]
+  function filterFor(family: ValueFilterFamily): MultiFilter<unknown> {
+    return (family.id === 'status' ? statusFilter : divisionFilter) as MultiFilter<unknown>
+  }
+  function clearAllFilters() {
+    clearFilter(statusFilter)
+    clearFilter(divisionFilter)
+  }
+
+  const usersQuery = useAdminUsersInfinite(
+    () => teamQueryParams(filters, debouncedSearch, sort),
+    () => shouldFetchRegistered
+  )
+  const verificationsQuery = useAdminUserVerifications(() => canWrite)
+
+  const revealAfterLoading = usersQuery.isPending
+
+  const registeredRows = $derived<TeamRow[]>(
+    shouldFetchRegistered
+      ? (usersQuery.data?.pages.flatMap(page => page.users) ?? []).map(team => ({
+          kind: 'registered',
+          team,
+        }))
       : []
   )
-  const pendingVerificationsQuery = useAdminUserVerifications(() => hasWritePerms)
-  const pendingVerifications = $derived(
-    (pendingVerificationsQuery.data?.verifications ?? []) as PendingVerification[]
-  )
-  const pendingRows = $derived.by(() =>
-    hasWritePerms
-      ? pendingVerifications
+  const pendingRows = $derived<TeamRow[]>(
+    canWrite
+      ? (verificationsQuery.data?.verifications ?? [])
           .filter(verification =>
-            pendingVerificationMatchesFilters(verification, queryFilters, clientConfig?.divisions)
+            pendingVerificationMatchesFilters(verification, filters, divisions)
           )
-          .map(verification => ({ kind: 'pending', verification }) satisfies PendingTeamRow)
+          .map(verification => ({ kind: 'pending', verification }))
       : []
   )
-  const tableRows = $derived.by(() =>
-    sortTeamRows(
-      [
-        ...allTeams.map(team => ({ kind: 'registered', team }) satisfies RegisteredTeamRow),
-        ...pendingRows,
-      ],
-      sortBy,
-      sortOrder
-    )
+  const rows = $derived(sortTeamRows([...registeredRows, ...pendingRows], sort.by, sort.order))
+  const fingerprint = $derived(teamFingerprint(sort, filters, debouncedSearch))
+
+  const showError = $derived(
+    (!!usersQuery.error && !usersQuery.data && shouldFetchRegistered) ||
+      (!!verificationsQuery.error && !verificationsQuery.data)
   )
-  const showQueryError = $derived(!!usersQuery.error && !usersQuery.data)
-  const showInitialLoading = $derived(
-    (usersQuery.isPending && shouldFetchRegisteredRows && !usersQuery.data) ||
-      (pendingVerificationsQuery.isPending && hasWritePerms && !usersQuery.data)
+  const showLoading = $derived(
+    !clientConfig ||
+      (shouldFetchRegistered && usersQuery.isPending && !usersQuery.data) ||
+      (canWrite && verificationsQuery.isPending && !verificationsQuery.data)
+  )
+  const errorMessage = $derived(
+    usersQuery.error?.message ?? verificationsQuery.error?.message ?? 'Something went wrong.'
   )
 
-  const createTokenMutation = useCreateUserTokenMutation()
-  const updateUserMutation = useUpdateAdminUserMutation()
-  const deleteUserMutation = useDeleteAdminUserMutation()
-  const completeVerificationMutation = useCompleteAdminUserVerificationMutation()
-  const resendVerificationMutation = useResendAdminUserVerificationMutation()
-
-  let copyingTeamId = $state<string | null>(null)
-  let updatingTeamId = $state<string | null>(null)
-  let deletingTeamId = $state<string | null>(null)
-  let completingVerificationId = $state<string | null>(null)
-  let resendingVerificationId = $state<string | null>(null)
-  let banDialogTeam = $state<{
-    id: string
-    name: string
-    banned: boolean
-  } | null>(null)
-  let deleteDialogTeam = $state<{ id: string; name: string } | null>(null)
-
-  function refreshTeamQueries(teamId?: string) {
-    queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-    if (teamId) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminUser(teamId) })
-    }
-    queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-    queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
-  }
-
-  function refreshVerificationQueries() {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.adminUserVerifications,
-    })
-    refreshTeamQueries()
-  }
-
-  async function handleCopyToken(team: { id: string; name: string }) {
-    copyingTeamId = team.id
-    createTokenMutation.mutate(
-      { id: team.id },
-      {
-        onSuccess: async response => {
-          if (response.kind === GoodCreateUserTokenV2.kind) {
-            try {
-              await navigator.clipboard.writeText(response.data.token)
-              toast.success(`Login token copied for ${team.name}`)
-            } catch {
-              toast.error('Failed to copy token')
-            }
-          } else {
-            showApiError(response)
-          }
-          copyingTeamId = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          copyingTeamId = null
-        },
-      }
-    )
-  }
-
-  function openManageTeam(teamId: string) {
-    goto(`/admin/profile/${teamId}`)
-  }
-
-  function openBanDialog(team: { id: string; name: string; banned: boolean }) {
-    banDialogTeam = team
-  }
-
-  function closeBanDialog() {
-    banDialogTeam = null
-  }
-
-  function handleBanAction(team: { id: string; name: string; banned: boolean }) {
-    if (team.banned) {
-      handleToggleBan(team)
-      return
-    }
-
-    openBanDialog(team)
-  }
-
-  function handleToggleBan(
-    team: { id: string; name: string; banned: boolean },
-    onSuccess?: () => void
-  ) {
-    updatingTeamId = team.id
-    updateUserMutation.mutate(
-      {
-        id: team.id,
-        data: {
-          banned: !team.banned,
-        },
-      },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodAdminUserUpdateV2.kind) {
-            toast.success(`${team.name} ${team.banned ? 'unbanned' : 'banned'}`)
-            refreshTeamQueries(team.id)
-            onSuccess?.()
-          } else {
-            showApiError(response)
-          }
-          updatingTeamId = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          updatingTeamId = null
-        },
-      }
-    )
-  }
-
-  function handleConfirmBan() {
-    if (!banDialogTeam) return
-    handleToggleBan(banDialogTeam, closeBanDialog)
-  }
-
-  function openDeleteDialog(team: { id: string; name: string }) {
-    deleteDialogTeam = team
-  }
-
-  function closeDeleteDialog() {
-    deleteDialogTeam = null
-  }
-
-  function handleDeleteTeam() {
-    if (!deleteDialogTeam) return
-
-    const team = deleteDialogTeam
-    deletingTeamId = team.id
-    deleteUserMutation.mutate(
-      { id: team.id },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodAdminUserDeleteV2.kind) {
-            toast.success(`${team.name} deleted`)
-            refreshTeamQueries(team.id)
-            closeDeleteDialog()
-          } else {
-            showApiError(response)
-          }
-          deletingTeamId = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          deletingTeamId = null
-        },
-      }
-    )
-  }
-
-  function handleCompleteVerification(verification: { id: string; name: string }) {
-    completingVerificationId = verification.id
-    completeVerificationMutation.mutate(
-      { id: verification.id },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
-            toast.success(`${verification.name} verified`)
-            refreshVerificationQueries()
-          } else {
-            showApiError(response)
-          }
-          completingVerificationId = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          completingVerificationId = null
-        },
-      }
-    )
-  }
-
-  function handleResendVerification(verification: { id: string; name: string }) {
-    resendingVerificationId = verification.id
-    resendVerificationMutation.mutate(
-      { id: verification.id },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodAdminUserVerificationResendV2.kind) {
-            toast.success(`Verification email resent to ${verification.name}`)
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.adminUserVerifications,
-            })
-          } else {
-            showApiError(response)
-          }
-          resendingVerificationId = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          resendingVerificationId = null
-        },
-      }
-    )
-  }
+  let copyingId = $state<string | null>(null)
+  let updatingId = $state<string | null>(null)
+  let deletingId = $state<string | null>(null)
+  let completingId = $state<string | null>(null)
+  let resendingId = $state<string | null>(null)
+  const confirmState = createConfirmState()
 
   async function copyEmail(email: string) {
+    await copyText(email, 'Email copied.')
+  }
+
+  function manage(id: string) {
+    goto(`/admin/profile/${id}`)
+  }
+
+  async function mintToken(team: TeamRef) {
+    copyingId = team.id
     try {
-      await navigator.clipboard.writeText(email)
-      toast.success('Email copied')
-    } catch {
-      toast.error('Failed to copy email')
+      const response = await apiRequest(CreateUserTokenRouteV2, { id: team.id })
+      if (response.kind === GoodCreateUserTokenV2.kind) {
+        await copyText(response.data.token, `Login token copied for ${team.name}.`)
+      } else {
+        showApiError(response)
+      }
+    } finally {
+      copyingId = null
+    }
+  }
+
+  function requestCopyToken(team: TeamRef) {
+    confirmState.request({
+      title: 'Copy login token',
+      message:
+        'This token grants full, non-expiring access to the account. Anyone with it can log in as this team until the account is deleted.',
+      confirmLabel: 'Copy token',
+      destructive: false,
+      run: () => mintToken(team),
+    })
+  }
+
+  async function setBanned(team: TeamRef, banned: boolean) {
+    updatingId = team.id
+    try {
+      const response = await apiRequest(UpdateAdminUserRouteV2, {
+        id: team.id,
+        data: { banned },
+      })
+      if (response.kind === GoodAdminUserUpdateV2.kind) {
+        toast.success(`${team.name} ${banned ? 'banned' : 'unbanned'}.`)
+        invalidateAdminTeamQueries(queryClient)
+      } else {
+        showApiError(response)
+      }
+    } finally {
+      updatingId = null
+    }
+  }
+
+  function requestBan(team: BanRef) {
+    if (team.banned) {
+      setBanned(team, false)
+      return
+    }
+    confirmState.request({
+      title: 'Ban team',
+      message:
+        'Banning removes the team from the leaderboard but keeps the account and its solve history.',
+      confirmLabel: 'Ban team',
+      destructive: true,
+      run: () => setBanned(team, true),
+    })
+  }
+
+  async function deleteTeam(team: TeamRef) {
+    deletingId = team.id
+    try {
+      const response = await apiRequest(DeleteAdminUserRouteV2, { id: team.id })
+      if (response.kind === GoodAdminUserDeleteV2.kind) {
+        toast.success(`${team.name} deleted.`)
+        invalidateAdminTeamQueries(queryClient)
+      } else {
+        showApiError(response)
+      }
+    } finally {
+      deletingId = null
+    }
+  }
+
+  function requestDelete(team: TeamRef) {
+    confirmState.request({
+      title: 'Delete team',
+      message: 'This removes the team and its solves from the database. This cannot be undone.',
+      confirmLabel: 'Delete team',
+      destructive: true,
+      run: () => deleteTeam(team),
+    })
+  }
+
+  async function verifyTeam(verification: TeamRef) {
+    completingId = verification.id
+    try {
+      const response = await apiRequest(CompleteAdminUserVerificationRouteV2, {
+        id: verification.id,
+      })
+      if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
+        toast.success(`${verification.name} verified.`)
+        invalidateAdminTeamQueries(queryClient)
+      } else {
+        showApiError(response)
+      }
+    } finally {
+      completingId = null
+    }
+  }
+
+  async function resendVerification(verification: TeamRef) {
+    resendingId = verification.id
+    try {
+      const response = await apiRequest(ResendAdminUserVerificationRouteV2, {
+        id: verification.id,
+      })
+      if (response.kind === GoodAdminUserVerificationResendV2.kind) {
+        toast.success(`Verification email resent to ${verification.name}.`)
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
+      } else {
+        showApiError(response)
+      }
+    } finally {
+      resendingId = null
     }
   }
 </script>
@@ -330,73 +284,106 @@
   {/if}
 </svelte:head>
 
-<div class="flex h-[calc(100dvh-72px)] w-full flex-col overflow-hidden px-4 pt-0 pb-4 md:px-9">
-  <div class="min-h-0 flex-1">
-    {#if showInitialLoading}
-      <div class="flex h-full items-center justify-center">
-        <Spinner class="size-6" />
-      </div>
-    {:else if pendingVerificationsQuery.error && !usersQuery.data}
-      <div class="flex h-full items-center justify-center">
-        <Card.Root class="max-w-md">
-          <Card.Header>
-            <Card.Title>Error</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <p class="text-foreground-l3">{pendingVerificationsQuery.error.message}</p>
-          </Card.Content>
-        </Card.Root>
-      </div>
-    {:else if showQueryError}
-      <div class="flex h-full items-center justify-center">
-        <Card.Root class="max-w-md">
-          <Card.Header>
-            <Card.Title>Error</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <p class="text-foreground-l3">{usersQuery.error?.message}</p>
-          </Card.Content>
-        </Card.Root>
-      </div>
-    {:else}
+<teams-page>
+  {#if !canWrite}
+    <teams-status>
+      <Card title="Team management unavailable">
+        <p>Your account needs the manage-teams permission to view registered teams.</p>
+      </Card>
+    </teams-status>
+  {:else if showLoading}
+    <teams-status>
+      <Spinner />
+    </teams-status>
+  {:else if showError}
+    <teams-status>
+      <Card title="Failed to load teams">
+        <p>{errorMessage}</p>
+      </Card>
+    </teams-status>
+  {:else}
+    <teams-reveal data-reveal={revealAfterLoading || undefined}>
       <TeamsTable
-        rows={tableRows}
-        bind:filters
-        bind:sortBy
-        bind:sortOrder
-        {clientConfig}
-        {divisionOptions}
-        {shouldFetchRegisteredRows}
+        {rows}
+        bind:sort
+        bind:search
+        {families}
+        {filterFor}
+        {hasActiveFilters}
+        onClearAll={clearAllFilters}
+        fetching={usersQuery.isFetching && !usersQuery.isFetchingNextPage}
+        {fingerprint}
+        {divisions}
+        startTime={clientConfig?.startTime}
         hasNextPage={usersQuery.hasNextPage ?? false}
-        isFetching={usersQuery.isFetching && !usersQuery.isFetchingNextPage}
         isFetchingNextPage={usersQuery.isFetchingNextPage}
-        {hasWritePerms}
-        {hasTeamDetailsPerms}
-        {copyingTeamId}
-        {updatingTeamId}
-        {deletingTeamId}
-        {completingVerificationId}
-        {resendingVerificationId}
         onLoadMore={() => usersQuery.fetchNextPage()}
+        {canManage}
+        {copyingId}
+        {updatingId}
+        {deletingId}
+        {completingId}
+        {resendingId}
         onCopyEmail={copyEmail}
-        onCopyToken={handleCopyToken}
-        onManageTeam={openManageTeam}
-        onBanAction={handleBanAction}
-        onDeleteTeam={openDeleteDialog}
-        onCompleteVerification={handleCompleteVerification}
-        onResendVerification={handleResendVerification}
+        onManage={manage}
+        onCopyToken={requestCopyToken}
+        onBan={requestBan}
+        onDelete={requestDelete}
+        onResend={resendVerification}
+        onVerify={verifyTeam}
       />
-    {/if}
-  </div>
-</div>
+    </teams-reveal>
+  {/if}
+</teams-page>
 
-<TeamConfirmDialogs
-  {banDialogTeam}
-  {deleteDialogTeam}
-  {updatingTeamId}
-  {deletingTeamId}
-  onCloseBan={closeBanDialog}
-  onConfirmBan={handleConfirmBan}
-  onCloseDelete={closeDeleteDialog}
-  onConfirmDelete={handleDeleteTeam}
+<ConfirmDialog
+  open={confirmState.current !== null}
+  onOpenChange={(open: boolean) => {
+    if (!open) confirmState.cancel()
+  }}
+  title={confirmState.current?.title ?? ''}
+  message={confirmState.current?.message ?? ''}
+  confirmLabel={confirmState.current?.confirmLabel ?? 'Confirm'}
+  destructive={confirmState.current?.destructive ?? false}
+  onConfirm={confirmState.confirm}
 />
+
+<style>
+  teams-reveal {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  teams-page {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    block-size: calc(100dvh - var(--header-height));
+    max-block-size: calc(100dvh - var(--header-height));
+    padding: 0 1rem 1rem;
+    overflow: hidden;
+
+    @media (width >= 48rem) {
+      padding-inline: 2.25rem;
+    }
+  }
+
+  teams-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-l);
+
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
+
+    p {
+      color: var(--foreground-l3);
+    }
+  }
+</style>

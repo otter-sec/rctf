@@ -1,17 +1,17 @@
 <script lang="ts">
-  import type { ClientConfig, PublicUserProfile, UserProfile } from '@rctf/types'
+  import type { PublicUserProfile, UserProfile } from '@rctf/types'
   import { ALL_REGIONS } from '@rctf/util'
-  import { Avatar } from '$lib/components'
-  import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
+  import Avatar from '$lib/ui/avatar.svelte'
+  import { countryCodeToFlagFilename } from '$lib/utils/flags'
 
-  interface Props {
+  type Props = {
     user: UserProfile | PublicUserProfile
-    clientConfig: ClientConfig
+    divisions: Record<string, string>
   }
 
-  let { user, clientConfig }: Props = $props()
+  let { user, divisions }: Props = $props()
 
-  const divisionLabel = $derived(clientConfig.divisions[user.division] ?? user.division)
+  const divisionLabel = $derived(divisions[user.division] ?? user.division)
   const flagFilename = $derived(
     user.countryCode ? countryCodeToFlagFilename(user.countryCode) : null
   )
@@ -20,78 +20,191 @@
   )
 </script>
 
-<div class="flex flex-col gap-2 px-9 py-2 sm:flex-row sm:items-start sm:justify-between">
-  <div class="flex min-w-0 gap-4">
-    {#key user.avatarUrl}
-      <Avatar.Root class="size-16 shrink-0 rounded-lg sm:size-20">
-        {#if user.avatarUrl}
-          <Avatar.Image src={user.avatarUrl} alt={user.name} class="rounded-lg" />
+<profile-header>
+  <header-layout>
+    <profile-identity>
+      <profile-avatar>
+        {#key user.avatarUrl}
+          <Avatar src={user.avatarUrl} name={user.name} />
+        {/key}
+      </profile-avatar>
+
+      <profile-body>
+        <profile-name>{user.name}</profile-name>
+
+        <dl>
+          <dt>Division</dt>
+          <dd>{divisionLabel}</dd>
+
+          <dt>Country</dt>
+          {#if flagFilename && countryName}
+            <dd data-value="country">
+              <img src="/flags/{flagFilename}" alt="{user.countryCode} flag" />
+              <span>{countryName}</span>
+            </dd>
+          {:else}
+            <dd data-value="unspecified">(unspecified)</dd>
+          {/if}
+
+          <dt>Status</dt>
+          {#if user.statusText}
+            <dd>{user.statusText}</dd>
+          {:else}
+            <dd data-value="unspecified">(unspecified)</dd>
+          {/if}
+
+          {#if user.ctftimeId}
+            <dt>CTFtime</dt>
+            <dd>
+              <a
+                href="https://ctftime.org/team/{user.ctftimeId}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Team #{user.ctftimeId}
+              </a>
+            </dd>
+          {/if}
+        </dl>
+      </profile-body>
+    </profile-identity>
+
+    {#if user.globalPlace !== null || user.divisionPlace !== null}
+      <profile-ranks>
+        {#if user.globalPlace !== null}
+          <profile-rank>
+            <rank-place>#{user.globalPlace}</rank-place>
+            <rank-label>global</rank-label>
+          </profile-rank>
         {/if}
-        <Avatar.Fallback class="rounded-lg text-xl sm:text-2xl"
-          >{getInitials(user.name)}</Avatar.Fallback
-        >
-      </Avatar.Root>
-    {/key}
-
-    <div class="flex min-w-0 flex-col gap-1.5">
-      <span class="text-foreground-l0 truncate text-lg/tight sm:text-xl/tight">{user.name}</span>
-
-      <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm sm:gap-x-4">
-        <span class="text-foreground-l4">Division</span>
-        <span class="text-foreground-l2">{divisionLabel}</span>
-
-        <span class="text-foreground-l4">Country</span>
-        {#if flagFilename && countryName}
-          <span class="text-foreground-l2 flex items-center gap-1.5">
-            <img
-              src="/flags/{flagFilename}"
-              alt="{user.countryCode} flag"
-              class="h-4 w-auto shrink-0"
-            />
-            <span class="truncate">{countryName}</span>
-          </span>
-        {:else}
-          <span class="text-foreground-l5">(unspecified)</span>
+        {#if user.divisionPlace !== null}
+          <profile-rank>
+            <rank-place>#{user.divisionPlace}</rank-place>
+            <rank-label>division</rank-label>
+          </profile-rank>
         {/if}
+      </profile-ranks>
+    {/if}
+  </header-layout>
+</profile-header>
 
-        <span class="text-foreground-l4">Status</span>
-        {#if user.statusText}
-          <span class="text-foreground-l2 truncate">{user.statusText}</span>
-        {:else}
-          <span class="text-foreground-l5">(unspecified)</span>
-        {/if}
+<style>
+  profile-header {
+    container-type: inline-size;
+    display: block;
+  }
 
-        {#if user.ctftimeId}
-          <span class="text-foreground-l4">CTFtime</span>
-          <a
-            href="https://ctftime.org/team/{user.ctftimeId}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-foreground-prose-link hover:underline"
-          >
-            Team #{user.ctftimeId}
-          </a>
-        {/if}
-      </div>
-    </div>
-  </div>
+  header-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
 
-  {#if user.globalPlace !== null || user.divisionPlace !== null}
-    <div
-      class="flex shrink-0 justify-between text-sm tabular-nums sm:flex-col sm:items-end sm:gap-0.5"
-    >
-      {#if user.globalPlace !== null}
-        <div class="flex gap-1">
-          <span class="text-foreground-l2">#{user.globalPlace}</span>
-          <span class="text-foreground-l4">global</span>
-        </div>
-      {/if}
-      {#if user.divisionPlace !== null}
-        <div class="flex gap-1">
-          <span class="text-foreground-l2">#{user.divisionPlace}</span>
-          <span class="text-foreground-l4">division</span>
-        </div>
-      {/if}
-    </div>
-  {/if}
-</div>
+  profile-identity {
+    display: flex;
+    min-inline-size: 0;
+    gap: var(--space-xs);
+  }
+
+  profile-avatar {
+    display: contents;
+
+    --avatar-size: 4rem;
+  }
+
+  profile-body {
+    display: flex;
+    min-inline-size: 0;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  profile-name {
+    overflow: hidden;
+    color: var(--foreground-l0);
+    font-size: var(--step-1);
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.125rem var(--space-s);
+    margin: 0;
+    font-size: var(--step--1);
+
+    dt {
+      color: var(--foreground-l4);
+    }
+
+    dd {
+      min-inline-size: 0;
+      margin: 0;
+      overflow: hidden;
+      color: var(--foreground-l2);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    dd[data-value='unspecified'] {
+      color: var(--foreground-l5);
+    }
+
+    dd[data-value='country'] {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3xs);
+
+      img {
+        block-size: 1rem;
+        inline-size: auto;
+        flex-shrink: 0;
+      }
+    }
+
+    a {
+      color: var(--foreground-prose-link);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  profile-ranks {
+    display: flex;
+    flex-shrink: 0;
+    justify-content: space-between;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  profile-rank {
+    display: flex;
+    gap: var(--space-3xs);
+  }
+
+  rank-place {
+    color: var(--foreground-l2);
+  }
+
+  rank-label {
+    color: var(--foreground-l4);
+  }
+
+  @container (min-inline-size: 30rem) {
+    header-layout {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    profile-ranks {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.125rem;
+    }
+  }
+</style>

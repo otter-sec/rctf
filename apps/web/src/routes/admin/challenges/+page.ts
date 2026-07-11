@@ -1,4 +1,4 @@
-import { adminChallengesQueryOptions } from '$lib/query'
+import { adminChallengesQueryOptions } from '$lib/query/admin'
 import type { PageLoad } from './$types'
 
 export const load: PageLoad = async ({ parent }) => {

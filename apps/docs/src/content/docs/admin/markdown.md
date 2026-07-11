@@ -6,7 +6,7 @@ order: 6
 
 rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. [`marked`](https://marked.js.org/) does the rendering with two custom extensions (alerts and timer), and the output then runs through [DOMPurify](https://github.com/cure53/DOMPurify) for sanitization before it hits the page.
 
-The renderer is defined in `apps/web-new/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web-new/src/lib/components/markdown.svelte{:file}`.
+The renderer is defined in `apps/web/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web/src/lib/components/markdown.svelte{:file}`.
 
 ## Alerts
 

@@ -42,7 +42,7 @@ order: 1
   }
 </style>
 
-The rCTF palette is based on [Radix Colors](https://www.radix-ui.com/colors), with its color values and theme tokens collected in `apps/web-new/src/styles/color.css{:file}`.
+The rCTF palette is based on [Radix Colors](https://www.radix-ui.com/colors), with its color values and theme tokens collected in `apps/web/src/styles/color.css{:file}`.
 
 Color tokens define both theme values with `light-dark(){:css}`, and the browser chooses between them through `color-scheme{:css}`. A `light` or `dark` value on the `<html>{:html}` element's `data-theme{:html}` attribute overrides the system preference. If the attribute is missing, the page follows `prefers-color-scheme{:css}`.
 

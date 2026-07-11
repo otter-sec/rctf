@@ -1,56 +1,27 @@
 import {
   AdminTeamSortBy,
   AdminTeamStatus,
-  FilterAdminUsersRouteV2,
-  GetAdminUserRouteV2,
-  GetAdminUserVerificationsRouteV2,
   SortOrder,
-  type RouteBody,
-  type RouteQuery,
+  type FilterAdminUsersRouteV2,
+  type GetAdminUserVerificationsRouteV2,
   type RouteResponseData,
 } from '@rctf/types'
+import { filterFingerprint, type MultiFilter } from '$lib/filters/core'
+import { addFilterParams } from '$lib/filters/query'
+import { normalizeSearchText, searchMatches } from '$lib/filters/ui'
+import type { AdminUsersQueryParams } from '$lib/query/keys'
+import type {
+  SortState,
+  SortOrder as TableSortOrder,
+} from '../admin-table-logic'
 
-type AdminUsersQuery = RouteQuery<typeof FilterAdminUsersRouteV2>
-type AdminUsersBody = RouteBody<typeof FilterAdminUsersRouteV2>
-type AdminUsersFilterValue<TKey extends keyof AdminUsersBody> =
-  NonNullable<AdminUsersBody[TKey]> extends {
-    include?: (infer TValue)[] | null
-  }
-    ? TValue
-    : never
-
-export type PendingVerification = RouteResponseData<
-  typeof GetAdminUserVerificationsRouteV2
->['verifications'][number]
 export type AdminTeam = RouteResponseData<
   typeof FilterAdminUsersRouteV2
 >['users'][number]
-export type AdminTeamDetails = RouteResponseData<typeof GetAdminUserRouteV2>
-export type AdminTeamSolve = AdminTeamDetails['solves'][number]
-export type SortBy = NonNullable<AdminUsersQuery['sortBy']>
-export type FilterMode = 'include' | 'exclude'
-export type TeamStatusFilter =
-  | AdminUsersFilterValue<'status'>
-  | typeof UNVERIFIED_TEAM_STATUS
-export type TeamDisplayStatus = TeamStatusFilter
-export type MultiFilter<T> = {
-  mode: FilterMode
-  selected: T[]
-}
-export type DivisionFilterOption = {
-  value: AdminUsersFilterValue<'division'>
-  label: string
-}
-export type TeamFilters = {
-  search: string
-  status: MultiFilter<TeamStatusFilter>
-  division: MultiFilter<DivisionFilterOption>
-}
-export type TeamQueryParams = Pick<
-  AdminUsersQuery,
-  'search' | 'sortBy' | 'sortOrder'
-> &
-  AdminUsersBody
+export type PendingVerification = RouteResponseData<
+  typeof GetAdminUserVerificationsRouteV2
+>['verifications'][number]
+
 export type RegisteredTeamRow = { kind: 'registered'; team: AdminTeam }
 export type PendingTeamRow = {
   kind: 'pending'
@@ -58,169 +29,43 @@ export type PendingTeamRow = {
 }
 export type TeamRow = RegisteredTeamRow | PendingTeamRow
 
+export const UNVERIFIED = 'unverified' as const
+
+export type TeamStatusValue = AdminTeamStatus | typeof UNVERIFIED
+
+export type DivisionOption = { value: string; label: string }
+
+export type TeamFilters = {
+  status: MultiFilter<TeamStatusValue>
+  division: MultiFilter<DivisionOption>
+  search: string
+}
+
+export type StatusTone = 'success' | 'danger' | 'accent' | 'warning'
+
 export const PAGE_SIZE = 100
 export const ROW_HEIGHT = 48
-export const UNVERIFIED_TEAM_STATUS = 'unverified' as const
-export const TEAM_STATUS_FILTERS = [
+
+export const TEAM_STATUS_VALUES: readonly TeamStatusValue[] = [
   AdminTeamStatus.ACTIVE,
   AdminTeamStatus.BANNED,
   AdminTeamStatus.ADMIN,
-  UNVERIFIED_TEAM_STATUS,
-] as const
+  UNVERIFIED,
+]
 
-export function createFilter<T>(): MultiFilter<T> {
-  return {
-    mode: 'include',
-    selected: [],
-  }
-}
-
-export function createTeamFilters(): TeamFilters {
-  return {
-    search: '',
-    status: createFilter<TeamStatusFilter>(),
-    division: createFilter<DivisionFilterOption>(),
-  }
-}
-
-export function hasTeamFilters(filters: TeamFilters) {
-  return (
-    filters.search.trim().length > 0 ||
-    filters.status.selected.length > 0 ||
-    filters.division.selected.length > 0
-  )
-}
-
-export function clearFilter<T>(filter: MultiFilter<T>) {
-  filter.mode = 'include'
-  filter.selected = []
-}
-
-export function clearTeamFilters(filters: TeamFilters) {
-  filters.search = ''
-  clearFilter(filters.status)
-  clearFilter(filters.division)
-}
-
-export function setFilterMode<T>(filter: MultiFilter<T>, mode: FilterMode) {
-  filter.mode = mode
-}
-
-export function toggleFilterOption<T>(
-  filter: MultiFilter<T>,
-  option: T,
-  keyFor: (option: T) => string
-) {
-  const key = keyFor(option)
-  filter.selected = filter.selected.some(current => keyFor(current) === key)
-    ? filter.selected.filter(current => keyFor(current) !== key)
-    : [...filter.selected, option]
-}
-
-export function filterOperatorLabel(mode: FilterMode, count: number) {
-  if (mode === 'exclude') return 'is not'
-  return count > 1 ? 'is any of' : 'is'
-}
-
-function filterFingerprint<T>(
-  filter: MultiFilter<T>,
-  keyFor: (option: T) => string
-) {
-  return `${filter.mode}:${filter.selected.map(keyFor).sort().join(',')}`
-}
-
-export function teamFilterFingerprint(filters: TeamFilters) {
-  return [
-    filters.search.trim(),
-    filterFingerprint(filters.status, status => status),
-    filterFingerprint(filters.division, division => division.value),
-  ].join(':')
-}
-
-function isRegisteredStatus(
-  status: TeamStatusFilter
-): status is AdminUsersFilterValue<'status'> {
-  return status !== UNVERIFIED_TEAM_STATUS
-}
-
-function selectedRegisteredStatuses(
-  statusFilter: MultiFilter<TeamStatusFilter>
-) {
-  return statusFilter.selected.filter(isRegisteredStatus)
-}
-
-export function registeredRowsMayMatch(
-  statusFilter: MultiFilter<TeamStatusFilter>
-) {
-  if (statusFilter.selected.length === 0) return true
-
-  const registeredStatuses = selectedRegisteredStatuses(statusFilter)
-  if (statusFilter.mode === 'include') return registeredStatuses.length > 0
-
-  const excludedStatuses = new Set(registeredStatuses)
-  return Object.values(AdminTeamStatus).some(
-    status => !excludedStatuses.has(status)
-  )
-}
-
-type RouteSearchFilter<TValue extends string> =
-  | { include: TValue[]; exclude?: never }
-  | { include?: never; exclude: TValue[] }
-
-function routeSearchFilter<TOption, TValue extends string>(
-  filter: MultiFilter<TOption>,
-  keyFor: (option: TOption) => TValue
-): RouteSearchFilter<TValue> | undefined {
-  if (filter.selected.length === 0) return undefined
-
-  const value = filter.selected.map(keyFor)
-  if (filter.mode === 'exclude') {
-    return { exclude: value }
-  }
-  return { include: value }
-}
-
-export function teamFilterParams(
-  filters: TeamFilters,
-  sortBy: SortBy,
-  sortOrder: SortOrder
-): TeamQueryParams {
-  const params: TeamQueryParams = { sortBy, sortOrder }
-  const search = filters.search.trim()
-  const registeredStatuses = selectedRegisteredStatuses(filters.status)
-  const status = routeSearchFilter(
-    { mode: filters.status.mode, selected: registeredStatuses },
-    status => status
-  )
-  const division = routeSearchFilter(
-    filters.division,
-    division => division.value
-  )
-
-  if (search) params.search = search
-  if (status) params.status = status
-  if (division) params.division = division
-
-  return params
-}
-
-export function defaultSortOrder(sortBy: SortBy): SortOrder {
-  switch (sortBy) {
-    case AdminTeamSortBy.SCORE:
-    case AdminTeamSortBy.SOLVES:
-      return SortOrder.DESC
-    default:
-      return SortOrder.ASC
-  }
-}
-
-export function teamStatus(team: Pick<AdminTeam, 'banned' | 'perms'>) {
+export function deriveTeamStatus(
+  team: Pick<AdminTeam, 'perms' | 'banned'>
+): AdminTeamStatus {
   if (team.perms > 0) return AdminTeamStatus.ADMIN
   if (team.banned) return AdminTeamStatus.BANNED
   return AdminTeamStatus.ACTIVE
 }
 
-export function teamStatusLabel(status: TeamDisplayStatus | string) {
+export function teamRowStatus(row: TeamRow): TeamStatusValue {
+  return row.kind === 'registered' ? deriveTeamStatus(row.team) : UNVERIFIED
+}
+
+export function statusLabel(status: TeamStatusValue): string {
   switch (status) {
     case AdminTeamStatus.ACTIVE:
       return 'Active'
@@ -228,106 +73,59 @@ export function teamStatusLabel(status: TeamDisplayStatus | string) {
       return 'Banned'
     case AdminTeamStatus.ADMIN:
       return 'Admin'
-    case UNVERIFIED_TEAM_STATUS:
+    case UNVERIFIED:
       return 'Unverified'
-    default:
-      return status
   }
 }
 
-export function statusTone(status: TeamDisplayStatus) {
+export function statusTone(status: TeamStatusValue): StatusTone {
   switch (status) {
     case AdminTeamStatus.ACTIVE:
       return 'success'
-    case AdminTeamStatus.ADMIN:
-      return 'accent'
     case AdminTeamStatus.BANNED:
       return 'danger'
-    case UNVERIFIED_TEAM_STATUS:
+    case AdminTeamStatus.ADMIN:
+      return 'accent'
+    case UNVERIFIED:
       return 'warning'
   }
 }
 
-export function pendingVerificationMatchesFilters(
-  verification: PendingVerification,
-  filters: TeamFilters,
-  divisions: Record<string, string> | undefined
-) {
-  if (filters.status.selected.length > 0) {
-    const selected = filters.status.selected.includes(UNVERIFIED_TEAM_STATUS)
-    if (filters.status.mode === 'include' ? !selected : selected) return false
-  }
-
-  if (filters.division.selected.length > 0) {
-    const selected = filters.division.selected.some(
-      division => division.value === verification.division
-    )
-    if (filters.division.mode === 'include' ? !selected : selected) return false
-  }
-
-  const search = filters.search.trim().toLowerCase()
-  if (!search) return true
-
-  const divisionLabel =
-    divisions?.[verification.division] ?? verification.division
-  return [
-    verification.name,
-    verification.email,
-    verification.division,
-    divisionLabel,
-    'unverified',
-  ]
-    .filter(Boolean)
-    .some(value => value.toLowerCase().includes(search))
-}
-
-export function teamRowName(row: TeamRow) {
+export function teamRowName(row: TeamRow): string {
   return row.kind === 'registered' ? row.team.name : row.verification.name
 }
 
-export function teamRowEmail(row: TeamRow) {
+export function teamRowEmail(row: TeamRow): string | null {
   return row.kind === 'registered' ? row.team.email : row.verification.email
 }
 
-export function teamRowDivision(row: TeamRow) {
+export function teamRowDivision(row: TeamRow): string {
   return row.kind === 'registered'
     ? row.team.division
     : row.verification.division
 }
 
-export function teamRowStatus(row: TeamRow): TeamDisplayStatus {
-  return row.kind === 'registered'
-    ? teamStatus(row.team)
-    : UNVERIFIED_TEAM_STATUS
-}
-
-export function teamRowCreatedAt(row: TeamRow) {
+export function teamRowCreatedAt(row: TeamRow): number {
   return row.kind === 'registered'
     ? new Date(row.team.createdAt).getTime()
     : row.verification.createdAt
 }
 
-export function rowTime(row: TeamRow) {
+export function rowDisplayTime(row: TeamRow): number {
   return row.kind === 'registered'
     ? new Date(row.team.createdAt).getTime()
     : row.verification.expiresAt
 }
 
-export function sortTeamRows(
-  rows: TeamRow[],
-  sortBy: SortBy,
-  sortOrder: SortOrder
-) {
-  const direction = sortOrder === SortOrder.ASC ? 1 : -1
-
-  return [...rows].sort((a, b) => {
-    const result = compareTeamRows(a, b, sortBy)
-    if (result !== 0) return result * direction
-    return teamRowName(a).localeCompare(teamRowName(b))
-  })
+function rowScore(row: TeamRow): number {
+  return row.kind === 'registered' ? row.team.score : -1
 }
 
-function compareTeamRows(a: TeamRow, b: TeamRow, sortBy: SortBy) {
+function rowSolves(row: TeamRow): number {
+  return row.kind === 'registered' ? row.team.solveCount : -1
+}
+
+function compareRows(a: TeamRow, b: TeamRow, sortBy: AdminTeamSortBy): number {
   switch (sortBy) {
     case AdminTeamSortBy.TEAM:
       return teamRowName(a).localeCompare(teamRowName(b))
@@ -336,8 +134,8 @@ function compareTeamRows(a: TeamRow, b: TeamRow, sortBy: SortBy) {
     case AdminTeamSortBy.DIVISION:
       return teamRowDivision(a).localeCompare(teamRowDivision(b))
     case AdminTeamSortBy.STATUS:
-      return teamStatusLabel(teamRowStatus(a)).localeCompare(
-        teamStatusLabel(teamRowStatus(b))
+      return statusLabel(teamRowStatus(a)).localeCompare(
+        statusLabel(teamRowStatus(b))
       )
     case AdminTeamSortBy.SCORE:
       return rowScore(a) - rowScore(b)
@@ -348,14 +146,135 @@ function compareTeamRows(a: TeamRow, b: TeamRow, sortBy: SortBy) {
   }
 }
 
-function rowScore(row: TeamRow) {
-  return row.kind === 'registered' ? row.team.score : -1
+export function sortTeamRows(
+  rows: readonly TeamRow[],
+  sortBy: AdminTeamSortBy,
+  order: TableSortOrder
+): TeamRow[] {
+  const direction = order === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    const result = compareRows(a, b, sortBy)
+    if (result !== 0) return result * direction
+    return teamRowName(a).localeCompare(teamRowName(b))
+  })
 }
 
-function rowSolves(row: TeamRow) {
-  return row.kind === 'registered' ? row.team.solveCount : -1
+function registeredStatuses(
+  filter: MultiFilter<TeamStatusValue>
+): AdminTeamStatus[] {
+  return filter.selected.filter(
+    (value): value is AdminTeamStatus => value !== UNVERIFIED
+  )
 }
 
-export function selectedCountLabel(label: string, count: number) {
-  return `${count} ${label}${count === 1 ? '' : label.endsWith('s') ? 'es' : 's'}`
+export function registeredRowsMayMatch(
+  filter: MultiFilter<TeamStatusValue>
+): boolean {
+  if (filter.selected.length === 0) return true
+
+  const statuses = registeredStatuses(filter)
+  if (filter.mode === 'include') return statuses.length > 0
+
+  const excluded = new Set(statuses)
+  return Object.values(AdminTeamStatus).some(status => !excluded.has(status))
+}
+
+export function serverStatusValues(values: string[]): string[] {
+  return values.filter(value => value !== UNVERIFIED)
+}
+
+function matchesStatus(
+  filter: MultiFilter<TeamStatusValue>,
+  isUnverifiedRow: boolean
+): boolean {
+  if (filter.selected.length === 0) return true
+  const selected = filter.selected.includes(UNVERIFIED)
+  const included = isUnverifiedRow ? selected : !selected
+  return filter.mode === 'include' ? included : !included
+}
+
+function matchesDivision(
+  filter: MultiFilter<DivisionOption>,
+  division: string
+): boolean {
+  if (filter.selected.length === 0) return true
+  const selected = filter.selected.some(option => option.value === division)
+  return filter.mode === 'include' ? selected : !selected
+}
+
+export function pendingVerificationMatchesFilters(
+  verification: PendingVerification,
+  filters: TeamFilters,
+  divisions: Record<string, string> | undefined
+): boolean {
+  if (!matchesStatus(filters.status, true)) return false
+  if (!matchesDivision(filters.division, verification.division)) return false
+
+  const search = normalizeSearchText(filters.search)
+  if (!search) return true
+
+  const divisionLabel =
+    divisions?.[verification.division] ?? verification.division
+  return searchMatches(
+    search,
+    verification.name,
+    verification.email,
+    verification.division,
+    divisionLabel,
+    'unverified'
+  )
+}
+
+export const SORT_DEFAULTS: Record<AdminTeamSortBy, TableSortOrder> = {
+  [AdminTeamSortBy.TEAM]: 'asc',
+  [AdminTeamSortBy.STATUS]: 'asc',
+  [AdminTeamSortBy.DIVISION]: 'asc',
+  [AdminTeamSortBy.EMAIL]: 'asc',
+  [AdminTeamSortBy.SCORE]: 'desc',
+  [AdminTeamSortBy.SOLVES]: 'desc',
+  [AdminTeamSortBy.CREATED_AT]: 'desc',
+}
+
+export function teamQueryParams(
+  filters: TeamFilters,
+  search: string,
+  sort: SortState<AdminTeamSortBy>
+): AdminUsersQueryParams {
+  const params: AdminUsersQueryParams = {
+    limit: PAGE_SIZE,
+    sortBy: sort.by,
+    sortOrder: sort.order as SortOrder,
+  }
+  const trimmed = search.trim()
+  if (trimmed) params.search = trimmed
+
+  addFilterParams(
+    params as Record<string, unknown>,
+    'status',
+    filters.status,
+    value => value,
+    serverStatusValues
+  )
+  addFilterParams(
+    params as Record<string, unknown>,
+    'division',
+    filters.division,
+    option => option.value
+  )
+
+  return params
+}
+
+export function teamFingerprint(
+  sort: SortState<AdminTeamSortBy>,
+  filters: TeamFilters,
+  search: string
+): string {
+  return [
+    sort.by,
+    sort.order,
+    filterFingerprint(filters.status, value => value),
+    filterFingerprint(filters.division, option => option.value),
+    search.trim(),
+  ].join(':')
 }

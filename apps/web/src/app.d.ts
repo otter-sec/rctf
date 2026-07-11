@@ -1,9 +1,13 @@
 declare global {
-  namespace App {}
+  namespace App {
+    interface PageState {
+      challengeDrawer?: boolean
+    }
+  }
 
   interface Window {
-    dataLayer: IArguments[]
-    gtag: (...args: unknown[]) => void
+    dataLayer?: unknown[]
+    gtag?: (...args: unknown[]) => void
   }
 }
 

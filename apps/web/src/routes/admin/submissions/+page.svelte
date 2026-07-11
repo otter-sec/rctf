@@ -1,477 +1,283 @@
 <script lang="ts">
-  import { SubmissionSortBy, SubmissionSortOrder } from '@rctf/types'
+  import { SubmissionSortBy } from '@rctf/types'
   import { page } from '$app/state'
-  import { Card, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
-  import { IconClockFilled, IconTableFilled } from '$lib/icons'
-  import {
-    useAdminChallenges,
-    useAdminUser,
-    useClientConfig,
-    useInfiniteAdminSubmissions,
-    useInfiniteAdminUsers,
-  } from '$lib/query'
-  import {
-    createDataAttrTooltipHandlers,
-    createHoverTooltip,
-    formatCtfOffset,
-    formatLocalTime,
-    useInfiniteVirtualScroll,
-  } from '$lib/utils'
-  import { createSubmissionValueFilterFamilies } from './filters/families'
-  import SubmissionsFilterBar from './filters/filter-bar.svelte'
+  import type { MultiFilter } from '$lib/filters/core'
+  import FilterBar from '$lib/filters/filter-bar.svelte'
   import {
     normalizeSearchText,
-    PAGE_SIZE,
-    rootFilterFamilyMatchesSearch,
-    rootSearchMatchesForFamily,
-    ROW_HEIGHT,
     searchMatches,
     uniqueTeamOptions,
-    type RootFilterOptionMatch,
-    type TimeFilterFamily,
-    type VirtualRow,
-  } from './filters/ui'
+    type ValueFilterFamily,
+  } from '$lib/filters/ui'
+  import { IconTableFilled } from '$lib/icons'
   import {
+    useAdminChallenges,
+    useAdminSubmissionsInfinite,
+    useAdminUser,
+    useAdminUsersInfinite,
+  } from '$lib/query/admin'
+  import { useClientConfig } from '$lib/query/config'
+  import Card from '$lib/ui/card.svelte'
+  import EmptyState from '$lib/ui/empty-state.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { getCategoryConfig } from '$lib/utils/categories'
+  import { nextSort } from '../admin-table-logic'
+  import AdminTable from '../admin-table.svelte'
+  import { createSubmissionValueFilterFamilies } from './submissions-families'
+  import {
+    applyDeepLinkFilters,
+    buildSubmissionsBody,
+    clearSubmissionFilters,
+    createDeepLinkLatch,
     createSubmissionFilters,
     hasSubmissionFilters,
-    resolveTimeRangeFilter,
-    submissionFilterFingerprint,
-    submissionFilterParams,
-  } from './submissions-filters'
-  import { type SortBy, type Submission } from './submissions-utils'
-  import SubmissionDetailRow from './table/detail-row.svelte'
-  import SubmissionsTableHeader from './table/header.svelte'
-  import SubmissionTableRow from './table/row.svelte'
+    initialSubmissionSort,
+    SUBMISSION_SORT_DEFAULTS,
+    submissionQueryFingerprint,
+    type ChallengeOption,
+    type Submission,
+    type SubmissionFilters,
+    type SubmissionSort,
+  } from './submissions-model'
+  import SubmissionsDetailRow from './table/submissions-detail-row.svelte'
+  import SubmissionsHeader from './table/submissions-header.svelte'
+  import SubmissionsRow from './table/submissions-row.svelte'
 
-  let sortBy = $state<SortBy>(SubmissionSortBy.CREATED_AT)
-  let sortOrder = $state<SubmissionSortOrder>(SubmissionSortOrder.DESC)
-  let filters = $state(createSubmissionFilters())
-  let rootFilterSearch = $state('')
-  let expandedSubmissionId = $state<string | null>(null)
-  let tableHeaderRef = $state<HTMLElement | null>(null)
-  let listScrollMargin = $state(0)
-  let tableViewportWidth = $state(0)
-  const rowTooltip = createHoverTooltip<string>()
-  const rowTooltipHandlers = createDataAttrTooltipHandlers(rowTooltip.hover)
-
-  // Deep-link: /admin/submissions?team=<id>&challenge=<id> pre-filters submissions.
-  const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
-  const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
-  const deepLinkTeamQuery = useAdminUser(() => deepLinkTeamId)
-  let appliedDeepLink = $state<string | null>(null)
-
-  $effect(() => {
-    const teamId = deepLinkTeamId
-    const challengeId = deepLinkChallengeId
-    if (!teamId && !challengeId) return
-
-    const key = `${teamId ?? ''}:${challengeId ?? ''}`
-    if (appliedDeepLink === key) return
-
-    const team = teamId ? deepLinkTeamQuery.data : null
-    const challenge = challengeId
-      ? (challengesQuery.data ?? []).find(c => c.id === challengeId)
-      : null
-    if (teamId && !team) return
-    if (challengeId && !challenge) return
-
-    appliedDeepLink = key
-    if (team) {
-      filters.team.mode = 'include'
-      filters.team.selected = [{ id: team.id, name: team.name, avatarUrl: team.avatarUrl }]
-    }
-    if (challenge) {
-      filters.challenge.mode = 'include'
-      filters.challenge.selected = [
-        { id: challenge.id, name: challenge.name, category: challenge.category },
-      ]
-    }
-  })
-
-  const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
-  const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
-  const isRootFilterSearchActive = $derived(normalizedRootFilterSearch.length > 0)
-  const clientConfigQuery = useClientConfig()
+  const configQuery = useClientConfig()
   const challengesQuery = useAdminChallenges()
-  const teamSuggestionsQuery = useInfiniteAdminUsers(
-    () => 16,
-    () => {
-      const search = filters.team.search.trim()
-      return search.length >= 2 ? { search } : {}
-    },
-    () => true
-  )
-  const rootTeamSuggestionsQuery = useInfiniteAdminUsers(
-    () => 16,
-    () => (trimmedRootFilterSearch ? { search: trimmedRootFilterSearch } : {}),
-    () => isRootFilterSearchActive
-  )
-  const clientConfig = $derived(clientConfigQuery.data)
-  const trimmedChallengeSearch = $derived(filters.challenge.search.trim().toLowerCase())
+
+  const ctfName = $derived(configQuery.data?.ctfName)
+  const ctfStartTime = $derived(configQuery.data?.startTime)
+
+  let filters = $state<SubmissionFilters>(createSubmissionFilters())
+  let sort = $state<SubmissionSort>(initialSubmissionSort())
+  let expandedId = $state<string | null>(null)
+
   const hasFilters = $derived(hasSubmissionFilters(filters))
-  const queryFingerprint = $derived(
-    `${sortBy}:${sortOrder}:${submissionFilterFingerprint(filters)}`
+  const fingerprint = $derived(submissionQueryFingerprint(filters, sort))
+
+  const submissionsQuery = useAdminSubmissionsInfinite(() =>
+    buildSubmissionsBody(filters, sort, ctfStartTime)
   )
-  const allChallengeOptions = $derived(
+
+  const revealAfterLoading = submissionsQuery.isPending
+  const submissions = $derived(
+    (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
+  )
+  const showError = $derived(!!submissionsQuery.error && !submissionsQuery.data)
+
+  const teamSearch = $derived(filters.team.search.trim())
+  const teamSuggestionsQuery = useAdminUsersInfinite(
+    () => ({ limit: 16, search: teamSearch.length >= 2 ? teamSearch : undefined }),
+    () => teamSearch.length >= 2
+  )
+  const teamSuggestions = $derived(
+    teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []
+  )
+  const teamOptions = $derived(uniqueTeamOptions([...filters.team.selected, ...teamSuggestions]))
+
+  const allChallengeOptions = $derived<ChallengeOption[]>(
     (challengesQuery.data ?? []).map(challenge => ({
       id: challenge.id,
       name: challenge.name,
       category: challenge.category,
     }))
   )
-  const challengeOptions = $derived(
-    allChallengeOptions.filter(challenge => {
-      if (!trimmedChallengeSearch) return true
-      return searchMatches(trimmedChallengeSearch, challenge.name, challenge.category)
-    })
-  )
-  const categoryOptions = $derived.by(() => {
-    const categories = Array.from(
-      new Set(
-        (challengesQuery.data ?? []).map(challenge => challenge.category.trim()).filter(Boolean)
+  const challengeOptions = $derived.by(() => {
+    const query = normalizeSearchText(filters.challenge.search)
+    if (!query) return allChallengeOptions
+    return allChallengeOptions.filter(challenge =>
+      searchMatches(
+        query,
+        `${challenge.name} ${challenge.category} ${getCategoryConfig(challenge.category).name}`
       )
     )
-
-    return categories
+  })
+  const categoryOptions = $derived.by(() => {
+    const categories = new Set(
+      (challengesQuery.data ?? []).map(challenge => challenge.category.trim()).filter(Boolean)
+    )
+    return [...categories]
       .sort((a, b) => a.localeCompare(b))
-      .map(category => ({
-        value: category,
-        label: category,
-      }))
+      .map(category => ({ value: category, label: category }))
   })
   const divisionOptions = $derived(
-    Object.entries(clientConfig?.divisions ?? {}).map(([value, label]) => ({
+    Object.entries(configQuery.data?.divisions ?? {}).map(([value, label]) => ({
       value,
       label,
     }))
   )
-  const teamOptions = $derived.by(() =>
-    uniqueTeamOptions([
-      ...filters.team.selected,
-      ...(teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
-    ])
-  )
-  const rootTeamOptions = $derived.by(() =>
-    uniqueTeamOptions([
-      ...filters.team.selected,
-      ...(rootTeamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
-    ])
-  )
 
-  const valueFilterFamilies = $derived.by(() =>
+  const families = $derived(
     createSubmissionValueFilterFamilies({
       filters,
       challengeOptions,
       allChallengeOptions,
       teamOptions,
-      rootTeamOptions,
       categoryOptions,
       divisionOptions,
-      challengesPending: () => challengesQuery.isPending,
+      challengesLoading: () => challengesQuery.isPending,
       teamOptionsLoading: () => teamSuggestionsQuery.isFetching && teamOptions.length === 0,
     })
   )
-  const timeFilterFamily = {
-    id: 'time',
-    label: 'Time',
-    icon: IconClockFilled,
-    searchTerms: ['date', 'range', 'ctf', 'relative'],
-  } satisfies TimeFilterFamily
-  const rootValueFilterFamilyMatches = $derived(
-    valueFilterFamilies.filter(family =>
-      rootFilterFamilyMatchesSearch(family, normalizedRootFilterSearch)
-    )
-  )
-  const rootTimeFilterFamilyMatches = $derived(
-    rootFilterFamilyMatchesSearch(timeFilterFamily, normalizedRootFilterSearch)
-  )
-  const rootFilterOptionMatches = $derived.by((): RootFilterOptionMatch[] => {
-    if (!isRootFilterSearchActive) return []
+  const filterFor = (family: ValueFilterFamily): MultiFilter<unknown> =>
+    filters[family.id as keyof SubmissionFilters] as MultiFilter<unknown>
 
-    return valueFilterFamilies.flatMap(family =>
-      rootSearchMatchesForFamily(family, normalizedRootFilterSearch)
-    )
-  })
-  const hasRootFilterSearchMatches = $derived(
-    rootValueFilterFamilyMatches.length > 0 ||
-      rootTimeFilterFamilyMatches ||
-      rootFilterOptionMatches.length > 0
-  )
-  const rootFilterScrollKey = $derived(
-    [
-      normalizedRootFilterSearch,
-      rootValueFilterFamilyMatches.length,
-      rootTimeFilterFamilyMatches,
-      rootFilterOptionMatches.length,
-      rootTeamSuggestionsQuery.isFetching,
-    ].join(':')
-  )
-  const timeRangeValidation = $derived(
-    resolveTimeRangeFilter(filters.time, clientConfig?.startTime)
-  )
-  const timeRangeError = $derived(timeRangeValidation.error)
-  const timeRangeSummary = $derived(formatTimeRange())
-
-  const submissionsQuery = useInfiniteAdminSubmissions(
-    () => submissionFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
-    () => PAGE_SIZE
-  )
-  const allSubmissions = $derived(
-    (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
-  )
-  const showQueryError = $derived(!!submissionsQuery.error && !submissionsQuery.data)
-  const expandedSubmissionIndex = $derived(
-    expandedSubmissionId
-      ? allSubmissions.findIndex(submission => submission.id === expandedSubmissionId)
-      : -1
-  )
-  const visibleRowCount = $derived(allSubmissions.length + (expandedSubmissionIndex === -1 ? 0 : 1))
-  const pinnedToolbarWidth = $derived(tableViewportWidth ? `${tableViewportWidth}px` : '100%')
-  const scroll = useInfiniteVirtualScroll({
-    rowHeight: ROW_HEIGHT,
-    overscan: 6,
-    onLoadMore: () => submissionsQuery.fetchNextPage(),
-  })
+  const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
+  const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
+  const deepLinkTeamQuery = useAdminUser(() => deepLinkTeamId)
+  let deepLinkLatch = createDeepLinkLatch()
 
   $effect(() => {
-    scroll.state.count = visibleRowCount + (submissionsQuery.hasNextPage ? 1 : 0)
-    scroll.state.loadMoreCount = visibleRowCount
-    scroll.state.hasNextPage = submissionsQuery.hasNextPage ?? false
-    scroll.state.isFetching = submissionsQuery.isFetchingNextPage
-    scroll.state.scrollMargin = listScrollMargin
+    const team = deepLinkTeamId
+      ? deepLinkTeamQuery.data
+        ? {
+            id: deepLinkTeamQuery.data.id,
+            name: deepLinkTeamQuery.data.name,
+            avatarUrl: deepLinkTeamQuery.data.avatarUrl,
+          }
+        : null
+      : undefined
+    const challenge = deepLinkChallengeId
+      ? (allChallengeOptions.find(option => option.id === deepLinkChallengeId) ?? null)
+      : undefined
+
+    deepLinkLatch = applyDeepLinkFilters(filters, deepLinkLatch, { team, challenge })
   })
 
-  $effect(() => {
-    const header = tableHeaderRef
-    if (!header) {
-      listScrollMargin = 0
-      return
-    }
-
-    const resizeObserver = new ResizeObserver(entries => {
-      listScrollMargin = Math.round(entries[0]?.contentRect.height ?? 0)
-    })
-    resizeObserver.observe(header)
-    listScrollMargin = Math.round(header.getBoundingClientRect().height)
-
-    return () => resizeObserver.disconnect()
-  })
-
-  $effect(() => {
-    const viewport = scroll.state.viewportRef
-    if (!viewport) {
-      tableViewportWidth = 0
-      return
-    }
-
-    const resizeObserver = new ResizeObserver(entries => {
-      tableViewportWidth = Math.round(entries[0]?.contentRect.width ?? 0)
-    })
-    resizeObserver.observe(viewport)
-    tableViewportWidth = Math.round(viewport.getBoundingClientRect().width)
-
-    return () => resizeObserver.disconnect()
-  })
-
-  $effect(() => {
-    if (expandedSubmissionId && expandedSubmissionIndex === -1) {
-      expandedSubmissionId = null
-    }
-  })
-
-  $effect(() => {
-    queryFingerprint
-    expandedSubmissionId = null
-    const viewport = scroll.state.viewportRef
-    if (viewport) viewport.scrollTop = 0
-  })
-
-  $effect(() => {
-    if (scroll.isScrolling) rowTooltip.close()
-  })
-
-  function formatTimeRange() {
-    if (timeRangeError) return 'Invalid time range'
-
-    const startLabel =
-      filters.time.mode === 'relative'
-        ? formatRelativeTimeRangeEndpoint(timeRangeValidation.createdAfter)
-        : formatDateTimeInput(filters.time.start)
-    const endLabel =
-      filters.time.mode === 'relative'
-        ? formatRelativeTimeRangeEndpoint(timeRangeValidation.createdBefore)
-        : formatDateTimeInput(filters.time.end)
-
-    if (startLabel && endLabel) return `${startLabel} to ${endLabel}`
-    if (startLabel) return `After ${startLabel}`
-    if (endLabel) return `Before ${endLabel}`
-    return ''
+  function onSort(column: SubmissionSortBy) {
+    sort = nextSort(sort, column, SUBMISSION_SORT_DEFAULTS)
   }
 
-  function formatDateTimeInput(value: string) {
-    if (!value.trim()) return ''
-    const time = new Date(value).getTime()
-    return Number.isFinite(time) ? formatLocalTime(time) : 'Invalid time'
-  }
-
-  function formatRelativeTimeRangeEndpoint(value: string | undefined) {
-    if (!value || clientConfig?.startTime === null || clientConfig?.startTime === undefined) {
-      return ''
-    }
-
-    return formatCtfOffset(new Date(value).getTime(), clientConfig.startTime)
-  }
-
-  function setSort(nextSortBy: SortBy) {
-    if (sortBy === nextSortBy) {
-      sortOrder =
-        sortOrder === SubmissionSortOrder.ASC ? SubmissionSortOrder.DESC : SubmissionSortOrder.ASC
-      return
-    }
-
-    sortBy = nextSortBy
-    sortOrder =
-      nextSortBy === SubmissionSortBy.CREATED_AT
-        ? SubmissionSortOrder.DESC
-        : SubmissionSortOrder.ASC
-  }
-
-  function toggleSubmission(submissionId: string) {
-    expandedSubmissionId = expandedSubmissionId === submissionId ? null : submissionId
-  }
-
-  function isDetailRowIndex(index: number) {
-    return expandedSubmissionIndex !== -1 && index === expandedSubmissionIndex + 1
-  }
-
-  function submissionIndexForVirtualRow(index: number) {
-    return expandedSubmissionIndex !== -1 && index > expandedSubmissionIndex ? index - 1 : index
+  function toggleExpanded(id: string) {
+    expandedId = expandedId === id ? null : id
   }
 </script>
 
-{#snippet loadingRow(row: VirtualRow)}
-  <div
-    class="absolute top-0 left-0 flex w-full items-center justify-center"
-    style:height={`${row.size}px`}
-    style:transform={`translate3d(0, ${row.start - listScrollMargin}px, 0)`}
-  >
-    {#if submissionsQuery.hasNextPage}
-      <Spinner class="text-foreground-l3 size-5" />
-    {/if}
-  </div>
-{/snippet}
-
-{#snippet virtualRows()}
-  <div
-    role="presentation"
-    class="relative contain-[layout_style] backface-hidden"
-    class:pointer-events-none={scroll.isScrolling}
-    style:height={`${scroll.totalSize}px`}
-    {...rowTooltipHandlers}
-  >
-    <!-- Keep this unkeyed so virtual rows are recycled during large scroll jumps. -->
-    {#each scroll.virtualItems as row}
-      {#if row.index >= visibleRowCount}
-        {@render loadingRow(row)}
-      {:else if isDetailRowIndex(row.index)}
-        <SubmissionDetailRow
-          {row}
-          submission={allSubmissions[expandedSubmissionIndex]!}
-          {listScrollMargin}
-          onClose={() => (expandedSubmissionId = null)}
-        />
-      {:else}
-        {@const index = submissionIndexForVirtualRow(row.index)}
-        <SubmissionTableRow
-          {row}
-          submission={allSubmissions[index]!}
-          {index}
-          {expandedSubmissionId}
-          {listScrollMargin}
-          ctfStartTime={clientConfig?.startTime}
-          onToggle={toggleSubmission}
-        />
-      {/if}
-    {/each}
-  </div>
-{/snippet}
-
-{#snippet submissionsTable()}
-  <ScrollArea
-    bind:viewportRef={scroll.state.viewportRef}
-    class="bg-background-l1 h-full overflow-hidden rounded-lg border-2"
-    orientation="both"
-    type="always"
-    fadeSize={0}
-    scrollbarYClasses="z-40"
-    scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
-  >
-    <div class="min-h-full w-full min-w-296 text-sm">
-      <div class="flex min-h-full flex-col">
-        <div bind:this={tableHeaderRef} class="bg-background-l1 sticky top-0 z-50">
-          <SubmissionsFilterBar
-            bind:filters
-            bind:rootFilterSearch
-            {pinnedToolbarWidth}
-            valueFamilies={valueFilterFamilies}
-            timeFamily={timeFilterFamily}
-            rootValueFamilyMatches={rootValueFilterFamilyMatches}
-            rootTimeFamilyMatches={rootTimeFilterFamilyMatches}
-            rootOptionMatches={rootFilterOptionMatches}
-            {rootFilterScrollKey}
-            isRootSearchActive={isRootFilterSearchActive}
-            hasRootSearchMatches={hasRootFilterSearchMatches}
-            isSearchingTeams={rootTeamSuggestionsQuery.isFetching}
-            {hasFilters}
-            {timeRangeSummary}
-            {timeRangeError}
-          />
-          <SubmissionsTableHeader {sortBy} {sortOrder} onSort={setSort} />
-        </div>
-        {#if allSubmissions.length === 0}
-          <EmptyState
-            icon={IconTableFilled}
-            title={hasFilters ? 'No matching submissions' : 'No submissions'}
-            subtitle={hasFilters
-              ? 'Adjust or clear the filters to broaden the audit trail.'
-              : 'Submission IPs will appear here once teams submit flags or admin bot jobs'}
-            class="min-h-80 flex-1"
-          />
-        {:else}
-          {@render virtualRows()}
-        {/if}
-      </div>
-    </div>
-  </ScrollArea>
-{/snippet}
-
 <svelte:head>
-  {#if clientConfig}
-    <title>Submissions | {clientConfig.ctfName}</title>
+  {#if ctfName}
+    <title>Submissions | {ctfName}</title>
   {/if}
 </svelte:head>
 
-<div class="h-[calc(100dvh-72px)] w-full overflow-hidden px-4 pt-0 pb-4 md:px-9">
+<submissions-page>
   {#if submissionsQuery.isPending}
-    <div class="flex h-full items-center justify-center">
-      <Spinner class="size-6" />
-    </div>
-  {:else if showQueryError}
-    <div class="flex h-full items-center justify-center">
-      <Card.Root class="max-w-md">
-        <Card.Header>
-          <Card.Title>Error</Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <p class="text-foreground-l3">{submissionsQuery.error?.message}</p>
-        </Card.Content>
-      </Card.Root>
-    </div>
+    <page-status>
+      <Spinner />
+    </page-status>
+  {:else if showError}
+    <page-status>
+      <Card title="Submissions">
+        <p>{submissionsQuery.error?.message}</p>
+      </Card>
+    </page-status>
   {:else}
-    {@render submissionsTable()}
-  {/if}
-</div>
+    <submissions-reveal data-reveal={revealAfterLoading || undefined}>
+      <AdminTable
+        rows={submissions}
+        rowHeight={48}
+        headerHeight={42}
+        overscan={6}
+        {fingerprint}
+        hasNextPage={submissionsQuery.hasNextPage ?? false}
+        isFetchingNextPage={submissionsQuery.isFetchingNextPage}
+        onLoadMore={() => submissionsQuery.fetchNextPage()}
+        filtered={hasFilters}
+        bind:expandedId
+        expandable
+        rowId={submission => submission.id}
+        minTableWidth={1180}
+      >
+        {#snippet toolbar()}
+          <submissions-toolbar>
+            <FilterBar
+              {families}
+              {filterFor}
+              timeFilter={filters.time}
+              ctfStartTime={ctfStartTime ?? null}
+              hasActiveFilters={hasFilters}
+              onClearAll={() => clearSubmissionFilters(filters)}
+              fetching={submissionsQuery.isFetching}
+            />
+          </submissions-toolbar>
+        {/snippet}
 
-<Tooltip.Hover controller={rowTooltip}>
-  {#snippet children(label)}{label}{/snippet}
-</Tooltip.Hover>
+        {#snippet header()}
+          <SubmissionsHeader {sort} {onSort} />
+        {/snippet}
+
+        {#snippet row(submission, index)}
+          <SubmissionsRow
+            {submission}
+            {index}
+            expanded={expandedId === submission.id}
+            {ctfStartTime}
+            onToggle={toggleExpanded}
+          />
+        {/snippet}
+
+        {#snippet detailRow(submission)}
+          <SubmissionsDetailRow {submission} onClose={() => (expandedId = null)} />
+        {/snippet}
+
+        {#snippet emptyState(filtered)}
+          <EmptyState
+            icon={IconTableFilled}
+            title={filtered ? 'No matching submissions' : 'No submissions'}
+            subtitle={filtered
+              ? 'Adjust or clear the filters to broaden the audit trail.'
+              : 'Submission IPs will appear here once teams submit flags or admin bot jobs'}
+          />
+        {/snippet}
+      </AdminTable>
+    </submissions-reveal>
+  {/if}
+</submissions-page>
+
+<style>
+  submissions-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-2xs);
+    border-block-end: 2px solid var(--border);
+  }
+
+  submissions-reveal {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  submissions-page {
+    display: flex;
+    flex-direction: column;
+    block-size: calc(100dvh - var(--header-height));
+    min-block-size: 0;
+    inline-size: 100%;
+    padding: 0 1rem 1rem;
+    overflow: hidden;
+
+    @media (width >= 48rem) {
+      padding-inline: 2.25rem;
+    }
+  }
+
+  page-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-l);
+
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
+
+    p {
+      color: var(--foreground-l3);
+    }
+  }
+</style>

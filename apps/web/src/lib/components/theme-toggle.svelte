@@ -1,69 +1,65 @@
 <script lang="ts">
-  import { Tooltip } from '$lib/components'
-  import { IconMoonFilled, IconSunHighFilled } from '$lib/icons'
-  import { onMount } from 'svelte'
-
-  let theme = $state<'light' | 'dark'>('dark')
-
-  onMount(() => {
-    const stored = localStorage.getItem('theme')
-    if (stored === 'dark' || stored === 'light') {
-      theme = stored
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      theme = 'dark'
-    }
-    document.documentElement.setAttribute('data-theme', theme)
-  })
+  import { IconMoonStars, IconSun } from '$lib/icons'
 
   function toggle() {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-
-    document.documentElement.classList.add('**:transition-none!')
-    document.documentElement.setAttribute('data-theme', newTheme)
-    document.documentElement.offsetHeight
-
-    requestAnimationFrame(() => {
-      document.documentElement.classList.remove('**:transition-none!')
-    })
-
-    localStorage.setItem('theme', newTheme)
-    theme = newTheme
+    const root = document.documentElement
+    const dark =
+      root.dataset.theme === 'dark' ||
+      (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches)
+    const theme = dark ? 'light' : 'dark'
+    root.dataset.theme = theme
+    localStorage.setItem('theme', theme)
   }
 </script>
 
-<svelte:head>
-  {@html `<script>
-    (function() {
-      const stored = localStorage?.getItem('theme') ?? '';
-      const theme = ['dark', 'light'].includes(stored)
-        ? stored
-        : window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light';
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-    })();
-  </script>`}
-</svelte:head>
+<button type="button" onclick={toggle} aria-label="Toggle theme">
+  <sun-icon><IconSun /></sun-icon>
+  <moon-icon><IconMoonStars /></moon-icon>
+</button>
 
-<Tooltip.Root disableCloseOnTriggerClick>
-  <Tooltip.Trigger>
-    {#snippet child({ props })}
-      <button
-        {...props}
-        onclick={toggle}
-        aria-label="Toggle theme"
-        class="bg-background-l2 hover:bg-background-l4 focus-visible:ring-ring/50 flex items-center justify-center rounded-lg px-4 py-3 outline-none focus-visible:ring-[3px]"
-      >
-        {#if theme === 'dark'}
-          <IconSunHighFilled class="text-foreground-l2 size-6" />
-        {:else}
-          <IconMoonFilled class="text-foreground-l2 size-6" />
-        {/if}
-      </button>
-    {/snippet}
-  </Tooltip.Trigger>
-  <Tooltip.Content sideOffset={8}>
-    {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-  </Tooltip.Content>
-</Tooltip.Root>
+<style>
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 1.5rem;
+    color: var(--foreground-l2);
+    background: var(--background-l2);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--background-l3);
+    }
+  }
+
+  sun-icon,
+  moon-icon {
+    display: contents;
+  }
+
+  moon-icon {
+    :global(:root[data-theme='dark']) & {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
+    }
+  }
+
+  sun-icon {
+    :global(:root[data-theme='light']) & {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
+    }
+  }
+</style>

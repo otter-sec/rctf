@@ -1,6 +1,5 @@
-import { ProtectedAction } from '@rctf/types'
-import type { ClientConfig } from '@rctf/types'
-import { loadScriptOnce } from './script-loader'
+import type { ClientConfig, ProtectedAction } from '@rctf/types'
+import { loadScriptOnce } from '$lib/utils/script-loader'
 
 export class CaptchaError extends Error {
   constructor(message: string) {
@@ -39,20 +38,21 @@ interface CaptchaState {
 interface CaptchaHandler {
   scriptUrl: string
   init: (state: CaptchaState, siteKey: string) => Promise<void>
-  execute: (state: CaptchaState, siteKey: string) => Promise<string>
+  execute: (state: CaptchaState) => Promise<string>
 }
 
 const captchaStates: Record<string, CaptchaState> = {}
 const getState = (provider: string): CaptchaState => {
-  if (!captchaStates[provider]) {
-    captchaStates[provider] = {
-      container: null,
-      widgetId: null,
-      resolve: null,
-      reject: null,
-    }
+  const existing = captchaStates[provider]
+  if (existing) return existing
+  const state: CaptchaState = {
+    container: null,
+    widgetId: null,
+    resolve: null,
+    reject: null,
   }
-  return captchaStates[provider]
+  captchaStates[provider] = state
+  return state
 }
 
 const createContainer = (): HTMLDivElement => {
@@ -202,7 +202,7 @@ export const requestCaptchaCode = async (
     await loadScriptOnce(handler.scriptUrl)
     const state = getState(info.provider)
     await handler.init(state, info.siteKey)
-    return await handler.execute(state, info.siteKey)
+    return await handler.execute(state)
   } catch (err) {
     if (err instanceof CaptchaError) {
       throw err
@@ -220,12 +220,4 @@ export const getCaptchaCode = async (
   return isCaptchaProtected(action, config)
     ? await requestCaptchaCode(action, config)
     : undefined
-}
-
-export const getCaptchaProvider = (
-  config: ClientConfig | undefined | null
-): string | null => {
-  const info = getCaptchaInfo(config)
-  if (!info) return null
-  return info.provider
 }
