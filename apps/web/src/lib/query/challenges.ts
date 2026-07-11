@@ -207,6 +207,28 @@ export function useChallengeInstance(
   return createQuery(() => challengeInstanceQueryOptions(id(), enabled()))
 }
 
+type AdminBotJobSnapshot = {
+  id: string
+  status: AdminBotJobStatus
+}
+
+const isAdminBotJobActive = (status: AdminBotJobStatus | undefined) =>
+  status === AdminBotJobStatus.QUEUED || status === AdminBotJobStatus.RUNNING
+
+const isAdminBotJobTerminal = (status: AdminBotJobStatus | undefined) =>
+  status === AdminBotJobStatus.COMPLETED || status === AdminBotJobStatus.FAILED
+
+export function didAdminBotJobBecomeTerminal(
+  previous: AdminBotJobSnapshot | null,
+  current: AdminBotJobSnapshot | null
+): boolean {
+  return (
+    previous?.id === current?.id &&
+    isAdminBotJobActive(previous?.status) &&
+    isAdminBotJobTerminal(current?.status)
+  )
+}
+
 export function adminBotStatusQueryOptions(
   id: string | null,
   enabled: boolean
@@ -220,13 +242,8 @@ export function adminBotStatusQueryOptions(
       return unwrapData(response, GoodAdminBotJobStatus).job
     },
     enabled: enabled && !!id,
-    refetchInterval: query => {
-      const status = query.state.data?.status
-      return status === AdminBotJobStatus.QUEUED ||
-        status === AdminBotJobStatus.RUNNING
-        ? 3000
-        : false
-    },
+    refetchInterval: query =>
+      isAdminBotJobActive(query.state.data?.status) ? 3000 : false,
   })
 }
 

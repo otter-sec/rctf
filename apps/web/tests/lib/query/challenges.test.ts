@@ -1,3 +1,4 @@
+import { AdminBotJobStatus } from '@rctf/types'
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
 mock.module('$app/environment', () => ({ browser: false }))
@@ -98,4 +99,61 @@ describe('getNextOffset', () => {
       expect(challenges.getNextOffset(lastOffset, count, total)).toBe(expected)
     }
   )
+})
+
+describe('didAdminBotJobBecomeTerminal', () => {
+  const job = (id: string, status: AdminBotJobStatus) => ({ id, status })
+
+  test.each([
+    [AdminBotJobStatus.QUEUED, AdminBotJobStatus.COMPLETED],
+    [AdminBotJobStatus.QUEUED, AdminBotJobStatus.FAILED],
+    [AdminBotJobStatus.RUNNING, AdminBotJobStatus.COMPLETED],
+    [AdminBotJobStatus.RUNNING, AdminBotJobStatus.FAILED],
+  ])('detects %s -> %s for the same job', (previous, current) => {
+    expect(
+      challenges.didAdminBotJobBecomeTerminal(
+        job('job-1', previous),
+        job('job-1', current)
+      )
+    ).toBe(true)
+  })
+
+  test.each([
+    [AdminBotJobStatus.QUEUED, AdminBotJobStatus.QUEUED],
+    [AdminBotJobStatus.QUEUED, AdminBotJobStatus.RUNNING],
+    [AdminBotJobStatus.RUNNING, AdminBotJobStatus.RUNNING],
+    [AdminBotJobStatus.COMPLETED, AdminBotJobStatus.COMPLETED],
+    [AdminBotJobStatus.FAILED, AdminBotJobStatus.FAILED],
+  ])('ignores non-terminal transition %s -> %s', (previous, current) => {
+    expect(
+      challenges.didAdminBotJobBecomeTerminal(
+        job('job-1', previous),
+        job('job-1', current)
+      )
+    ).toBe(false)
+  })
+
+  test('ignores a terminal status belonging to a different job', () => {
+    expect(
+      challenges.didAdminBotJobBecomeTerminal(
+        job('job-1', AdminBotJobStatus.RUNNING),
+        job('job-2', AdminBotJobStatus.COMPLETED)
+      )
+    ).toBe(false)
+  })
+
+  test('ignores initial and missing jobs', () => {
+    expect(
+      challenges.didAdminBotJobBecomeTerminal(
+        null,
+        job('job-1', AdminBotJobStatus.COMPLETED)
+      )
+    ).toBe(false)
+    expect(
+      challenges.didAdminBotJobBecomeTerminal(
+        job('job-1', AdminBotJobStatus.RUNNING),
+        null
+      )
+    ).toBe(false)
+  })
 })
