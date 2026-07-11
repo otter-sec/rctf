@@ -127,9 +127,11 @@ export function getDisplayTeamIds(
 
 export function getVisibleGraphIds(
   teamIds: readonly string[],
-  graphTeamCount: number
+  selfId: string | null,
+  graphTeamCount: number,
+  showSelf: boolean
 ): string[] {
-  return teamIds.slice(0, graphTeamCount)
+  return getDisplayTeamIds(teamIds, selfId, graphTeamCount, showSelf)
 }
 
 /** Teams the graph should dim, driven by the active emphasis mode. Returns

@@ -157,8 +157,30 @@ describe('getDisplayTeamIds', () => {
 })
 
 describe('getVisibleGraphIds', () => {
+  const teamIds = ['a', 'b', 'c', 'd']
+
   test('slices to the graphed team count', () => {
-    expect(getVisibleGraphIds(['a', 'b', 'c', 'd'], 2)).toEqual(['a', 'b'])
+    expect(getVisibleGraphIds(teamIds, null, 2, true)).toEqual(['a', 'b'])
+  })
+
+  test('appends self when shown outside the graph slice', () => {
+    expect(getVisibleGraphIds(teamIds, 'd', 2, true)).toEqual(['a', 'b', 'd'])
+  })
+
+  test('does not append self when the self row is hidden', () => {
+    expect(getVisibleGraphIds(teamIds, 'd', 2, false)).toEqual(['a', 'b'])
+  })
+
+  test('self-only emphasis keeps the appended self series visible', () => {
+    const visibleGraphIds = getVisibleGraphIds(teamIds, 'd', 2, true)
+    const context = deriveContextTeamIds(
+      makeOptions({ emphasizeSelfOnly: true }),
+      visibleGraphIds,
+      ['a', 'b', 'd'],
+      'd'
+    )
+
+    expect(context).toEqual(new Set(['a', 'b']))
   })
 })
 
