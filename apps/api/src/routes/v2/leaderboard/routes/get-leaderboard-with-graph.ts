@@ -1,16 +1,17 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardWithGraphRoute } from '@rctf/types'
 import { getGraphForEntries } from '../../../../cache/leaderboard'
-import {
-  getLeaderboardWithTotal,
-  searchLeaderboard,
-} from '../../../../services/leaderboard'
+import { getLeaderboardWithFilters } from '../../../../services/leaderboard'
 import { rateLimitSearch } from '../../../../services/rate-limit'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
   GetLeaderboardWithGraphRoute,
-  async ({ ctx, res, query: { limit, offset, division, search } }) => {
+  async ({
+    ctx,
+    res,
+    query: { limit, offset, division, search, challenge },
+  }) => {
     // NOTE: Handling manually because the value is loaded from config
     if (
       limit > config.leaderboard.graphWithListLimit ||
@@ -32,28 +33,15 @@ leaderboardGroup.route(
       if (timeLeft) {
         return res.badRateLimit({ timeLeft })
       }
-
-      const { total, leaderboard } = await searchLeaderboard(
-        ctx.var.db,
-        search,
-        limit,
-        offset,
-        division
-      )
-      const graph = await getGraphForEntries(
-        ctx.var.db,
-        ctx.var.redis,
-        leaderboard
-      )
-      return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
     }
 
-    const { total, leaderboard } = await getLeaderboardWithTotal(
-      ctx.var.db,
+    const { total, leaderboard } = await getLeaderboardWithFilters(ctx.var.db, {
       limit,
       offset,
-      division
-    )
+      division,
+      search,
+      challenge,
+    })
     const graph = await getGraphForEntries(
       ctx.var.db,
       ctx.var.redis,

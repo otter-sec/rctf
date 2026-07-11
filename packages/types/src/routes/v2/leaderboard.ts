@@ -114,6 +114,17 @@ export const GetLeaderboardWithGraphRoute = defineRoute({
         .check(z.maxLength(100))
         .check(z.describe('Filter teams by name substring (2-100 characters).'))
     ),
+    challenge: z.optional(
+      z
+        .string()
+        .check(z.minLength(1))
+        .check(z.maxLength(255))
+        .check(
+          z.describe(
+            'Restrict results to teams that solved or scored in this challenge.'
+          )
+        )
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
