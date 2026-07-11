@@ -129,20 +129,20 @@
   let deepLinkLatch = createDeepLinkLatch()
 
   $effect(() => {
-    const team = deepLinkTeamId
-      ? deepLinkTeamQuery.data
+    const team =
+      deepLinkTeamQuery.data?.id === deepLinkTeamId
         ? {
             id: deepLinkTeamQuery.data.id,
             name: deepLinkTeamQuery.data.name,
             avatarUrl: deepLinkTeamQuery.data.avatarUrl,
           }
         : null
-      : undefined
-    const challenge = deepLinkChallengeId
-      ? (allChallengeOptions.find(option => option.id === deepLinkChallengeId) ?? null)
-      : undefined
+    const challenge = allChallengeOptions.find(option => option.id === deepLinkChallengeId) ?? null
 
-    deepLinkLatch = applyDeepLinkFilters(filters, deepLinkLatch, { team, challenge })
+    deepLinkLatch = applyDeepLinkFilters(filters, deepLinkLatch, {
+      team: { id: deepLinkTeamId, option: team },
+      challenge: { id: deepLinkChallengeId, option: challenge },
+    })
   })
 
   function onSort(column: SubmissionSortBy) {

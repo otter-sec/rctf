@@ -45,16 +45,29 @@ function submissionWith(overrides: Partial<Submission>): Submission {
 
 describe('applyDeepLinkFilters', () => {
   const team = { id: 'team-1', name: 'otter-sec', avatarUrl: null }
+  const secondTeam = { id: 'team-2', name: 'ottr-sec', avatarUrl: null }
   const challenge = { id: 'baby-rev', name: 'baby-rev', category: 'rev' }
+  const secondChallenge = { id: 'baby-pwn', name: 'baby-pwn', category: 'pwn' }
+
+  const targets = (
+    teamId: string | null,
+    teamOption: typeof team | null,
+    challengeId: string | null,
+    challengeOption: typeof challenge | null
+  ) => ({
+    team: { id: teamId, option: teamOption },
+    challenge: { id: challengeId, option: challengeOption },
+  })
 
   test('applies team and challenge as include filters when both resolve', () => {
     const filters = createSubmissionFilters()
-    const latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {
-      team,
-      challenge,
-    })
+    const latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, team, challenge.id, challenge)
+    )
 
-    expect(latch).toEqual({ team: true, challenge: true })
+    expect(latch).toEqual({ teamId: team.id, challengeId: challenge.id })
     expect(filters.team).toEqual({
       mode: 'include',
       selected: [team],
@@ -69,17 +82,22 @@ describe('applyDeepLinkFilters', () => {
 
   test('applies each side once and never re-applies on a subsequent call', () => {
     const filters = createSubmissionFilters()
-    let latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {
-      team,
-      challenge,
-    })
+    let latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, team, challenge.id, challenge)
+    )
 
     filters.team.selected = []
     filters.challenge.mode = 'exclude'
 
-    latch = applyDeepLinkFilters(filters, latch, { team, challenge })
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(team.id, team, challenge.id, challenge)
+    )
 
-    expect(latch).toEqual({ team: true, challenge: true })
+    expect(latch).toEqual({ teamId: team.id, challengeId: challenge.id })
     expect(filters.team.selected).toEqual([])
     expect(filters.challenge.mode).toBe('exclude')
   })
@@ -87,25 +105,107 @@ describe('applyDeepLinkFilters', () => {
   test('latches each side independently as it resolves', () => {
     const filters = createSubmissionFilters()
 
-    let latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {
-      challenge,
-    })
-    expect(latch).toEqual({ team: false, challenge: true })
+    let latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, null, challenge.id, challenge)
+    )
+    expect(latch).toEqual({ teamId: null, challengeId: challenge.id })
     expect(filters.team.selected).toEqual([])
     expect(filters.challenge.selected).toEqual([challenge])
 
-    latch = applyDeepLinkFilters(filters, latch, { team })
-    expect(latch).toEqual({ team: true, challenge: true })
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(team.id, team, challenge.id, challenge)
+    )
+    expect(latch).toEqual({ teamId: team.id, challengeId: challenge.id })
     expect(filters.team.selected).toEqual([team])
   })
 
   test('does nothing while neither side has resolved', () => {
     const filters = createSubmissionFilters()
-    const latch = applyDeepLinkFilters(filters, createDeepLinkLatch(), {})
+    const latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, null, challenge.id, null)
+    )
 
-    expect(latch).toEqual({ team: false, challenge: false })
+    expect(latch).toEqual({ teamId: null, challengeId: null })
     expect(filters.team.selected).toEqual([])
     expect(filters.challenge.selected).toEqual([])
+  })
+
+  test('replaces applied filters when deep-link IDs change', () => {
+    const filters = createSubmissionFilters()
+    let latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, team, challenge.id, challenge)
+    )
+
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(secondTeam.id, secondTeam, secondChallenge.id, secondChallenge)
+    )
+
+    expect(latch).toEqual({
+      teamId: secondTeam.id,
+      challengeId: secondChallenge.id,
+    })
+    expect(filters.team.selected).toEqual([secondTeam])
+    expect(filters.challenge.selected).toEqual([secondChallenge])
+  })
+
+  test('resets a latch while a changed deep link is unresolved', () => {
+    const filters = createSubmissionFilters()
+    let latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, team, challenge.id, challenge)
+    )
+
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(secondTeam.id, null, secondChallenge.id, null)
+    )
+    expect(latch).toEqual({ teamId: null, challengeId: null })
+
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(secondTeam.id, secondTeam, secondChallenge.id, secondChallenge)
+    )
+    expect(filters.team.selected).toEqual([secondTeam])
+    expect(filters.challenge.selected).toEqual([secondChallenge])
+  })
+
+  test('removing URL parameters resets latches so the same IDs can be reapplied', () => {
+    const filters = createSubmissionFilters()
+    let latch = applyDeepLinkFilters(
+      filters,
+      createDeepLinkLatch(),
+      targets(team.id, team, challenge.id, challenge)
+    )
+
+    latch = applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(null, null, null, null)
+    )
+    expect(latch).toEqual({ teamId: null, challengeId: null })
+
+    filters.team.selected = []
+    filters.challenge.selected = []
+    applyDeepLinkFilters(
+      filters,
+      latch,
+      targets(team.id, team, challenge.id, challenge)
+    )
+    expect(filters.team.selected).toEqual([team])
+    expect(filters.challenge.selected).toEqual([challenge])
   })
 })
 

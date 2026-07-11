@@ -276,31 +276,48 @@ export function ipInfoUrl(ip: string): string {
   return `https://check-host.net/ip-info?host=${encodeURIComponent(ip)}&lang=en`
 }
 
-export type DeepLinkLatch = { team: boolean; challenge: boolean }
+export type DeepLinkLatch = {
+  teamId: string | null
+  challengeId: string | null
+}
+
+type DeepLinkTarget<T> = {
+  id: string | null
+  option: T | null
+}
 
 export function createDeepLinkLatch(): DeepLinkLatch {
-  return { team: false, challenge: false }
+  return { teamId: null, challengeId: null }
 }
 
 export function applyDeepLinkFilters(
   filters: SubmissionFilters,
   latch: DeepLinkLatch,
-  resolved: { team?: TeamOption | null; challenge?: ChallengeOption | null }
+  targets: {
+    team: DeepLinkTarget<TeamOption>
+    challenge: DeepLinkTarget<ChallengeOption>
+  }
 ): DeepLinkLatch {
-  let { team, challenge } = latch
+  let teamId = latch.teamId === targets.team.id ? latch.teamId : null
+  let challengeId =
+    latch.challengeId === targets.challenge.id ? latch.challengeId : null
 
-  if (!team && resolved.team) {
+  if (targets.team.id && targets.team.option && teamId !== targets.team.id) {
     filters.team.mode = 'include'
-    filters.team.selected = [resolved.team]
-    team = true
+    filters.team.selected = [targets.team.option]
+    teamId = targets.team.id
   }
-  if (!challenge && resolved.challenge) {
+  if (
+    targets.challenge.id &&
+    targets.challenge.option &&
+    challengeId !== targets.challenge.id
+  ) {
     filters.challenge.mode = 'include'
-    filters.challenge.selected = [resolved.challenge]
-    challenge = true
+    filters.challenge.selected = [targets.challenge.option]
+    challengeId = targets.challenge.id
   }
 
-  return { team, challenge }
+  return { teamId, challengeId }
 }
 
 function formatDetailValue(value: unknown): string {
