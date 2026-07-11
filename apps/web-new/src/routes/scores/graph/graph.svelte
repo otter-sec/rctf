@@ -137,9 +137,7 @@
     })
   })
 
-  const nearestSeries = $derived<Series[]>(
-    scaledSeries.map(s => ({ id: s.id, points: s.scaled }))
-  )
+  const nearestSeries = $derived<Series[]>(scaledSeries.map(s => ({ id: s.id, points: s.scaled })))
 
   const nearest = $derived.by(() => {
     if (!hover || nearestSeries.length === 0) return null

@@ -244,7 +244,8 @@
               <button
                 type="button"
                 aria-label="Copy {endpoint.label}"
-                onclick={() => copyText(endpoint.copyValue, 'Copied to clipboard', 'Failed to copy')}
+                onclick={() =>
+                  copyText(endpoint.copyValue, 'Copied to clipboard', 'Failed to copy')}
               >
                 <IconCopy />
               </button>
