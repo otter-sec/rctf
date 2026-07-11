@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import type { TypedRedis } from '../cache/scripts'
-import { type EmailKind, sendVerificationEmail } from './emails'
+import { sendVerificationEmail, type EmailKind } from './emails'
 import {
   deletePendingRegistrationVerification,
   getPendingRegistrationVerification,
