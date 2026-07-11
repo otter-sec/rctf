@@ -117,6 +117,32 @@ describe('buildProfileGraphData line splitting', () => {
       { time: 200, score: 800 },
     ])
   })
+
+  test('uses the latest dynamic sample at or before each total sample', () => {
+    const data = buildProfileGraphData(
+      input({
+        splitDynamicScore: true,
+        graphData: {
+          points: [
+            { time: 100, score: 500 },
+            { time: 200, score: 800 },
+            { time: 300, score: 1000 },
+          ],
+          dynamicPoints: [
+            { time: 50, score: 50 },
+            { time: 150, score: 200 },
+            { time: 250, score: 350 },
+          ],
+        },
+      })
+    )
+
+    expect(data.staticLine).toEqual([
+      { time: 100, score: 450 },
+      { time: 200, score: 600 },
+      { time: 300, score: 650 },
+    ])
+  })
 })
 
 describe('buildProfileGraphData solve dots', () => {
@@ -187,6 +213,67 @@ describe('buildProfileGraphData solve dots', () => {
     )
 
     expect(data.solveDots[0]).toMatchObject({ scoreBefore: 450, score: 500 })
+  })
+
+  test('preserves exact-time behavior for multiple solves at one timestamp', () => {
+    const data = buildProfileGraphData(
+      input({
+        splitDynamicScore: true,
+        graphData: {
+          points: [
+            { time: 100, score: 400 },
+            { time: 200, score: 600 },
+          ],
+        },
+        solves: [
+          solve({ id: 'a', createdAt: 200, points: 50 }),
+          solve({ id: 'b', createdAt: 200, points: 25 }),
+        ],
+      })
+    )
+
+    expect(data.solveDots).toMatchObject([
+      { scoreBefore: 550, score: 600 },
+      { scoreBefore: 575, score: 600 },
+    ])
+  })
+
+  test('handles dense score and solve series without repeated linear scans', () => {
+    const count = 10_000
+    const data = buildProfileGraphData(
+      input({
+        splitDynamicScore: true,
+        graphData: {
+          points: Array.from({ length: count }, (_, index) => ({
+            time: index * 2,
+            score: index * 3,
+          })),
+          dynamicPoints: Array.from({ length: count }, (_, index) => ({
+            time: index * 2,
+            score: index,
+          })),
+        },
+        solves: Array.from({ length: count }, (_, index) =>
+          solve({
+            id: `solve-${index}`,
+            createdAt: index * 2,
+            points: 1,
+          })
+        ),
+      })
+    )
+
+    expect(data.staticLine).toHaveLength(count)
+    expect(data.solveDots).toHaveLength(count)
+    expect(data.staticLine.at(-1)).toEqual({
+      time: (count - 1) * 2,
+      score: (count - 1) * 2,
+    })
+    expect(data.solveDots.at(-1)).toMatchObject({
+      time: (count - 1) * 2,
+      scoreBefore: (count - 1) * 2 - 1,
+      score: (count - 1) * 2,
+    })
   })
 
   test('carries category display fields onto each dot', () => {

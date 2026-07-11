@@ -52,20 +52,38 @@ function sortByTime(points: GraphLinePoint[]): GraphLinePoint[] {
 }
 
 export function scoreAt(time: number, points: GraphLinePoint[]): number {
+  let low = 0
+  let high = points.length - 1
   let score = 0
-  for (const point of points) {
-    if (point.time > time) break
-    score = point.score
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2)
+    const point = points[middle]!
+    if (point.time <= time) {
+      score = point.score
+      low = middle + 1
+    } else {
+      high = middle - 1
+    }
   }
+
   return score
 }
 
 function exactScoreAt(time: number, points: GraphLinePoint[]): number | null {
-  for (const point of points) {
-    if (point.time === time) return point.score
-    if (point.time > time) break
+  let low = 0
+  let high = points.length
+
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2)
+    if (points[middle]!.time < time) {
+      low = middle + 1
+    } else {
+      high = middle
+    }
   }
-  return null
+
+  return points[low]?.time === time ? points[low]!.score : null
 }
 
 function buildDynamicLine(
@@ -83,6 +101,29 @@ function buildDynamicLine(
     }))
   }
   return []
+}
+
+function buildStaticLine(
+  totalLine: GraphLinePoint[],
+  dynamicLine: GraphLinePoint[]
+): GraphLinePoint[] {
+  let dynamicIndex = 0
+  let dynamicScore = 0
+
+  return totalLine.map(point => {
+    while (
+      dynamicIndex < dynamicLine.length &&
+      dynamicLine[dynamicIndex]!.time <= point.time
+    ) {
+      dynamicScore = dynamicLine[dynamicIndex]!.score
+      dynamicIndex += 1
+    }
+
+    return {
+      time: point.time,
+      score: Math.max(point.score - dynamicScore, 0),
+    }
+  })
 }
 
 function staticScoreBefore(
@@ -175,10 +216,7 @@ export function buildProfileGraphData(
     splitDynamicScore
   )
   const staticLine = splitDynamicScore
-    ? totalLine.map(point => ({
-        time: point.time,
-        score: Math.max(point.score - scoreAt(point.time, dynamicLine), 0),
-      }))
+    ? buildStaticLine(totalLine, dynamicLine)
     : []
 
   const hasTotalLine = totalLine.length > 1
