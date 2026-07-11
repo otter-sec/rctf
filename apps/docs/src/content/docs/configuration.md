@@ -79,10 +79,10 @@ The following environment variables are supported. They override values from con
 
 ### Email
 
-| Variable                   | Type          | Description                 |
-| -------------------------- | ------------- | --------------------------- |
-| `RCTF_EMAIL_FROM{:sh}`     | `string{:ts}` | Email sender address        |
-| `RCTF_EMAIL_LOGO_URL{:sh}` | `string{:ts}` | Logo URL in email templates |
+| Variable                    | Type          | Description                 |
+| --------------------------- | ------------- | --------------------------- |
+| `RCTF_EMAIL_FROM{:sh}`      | `string{:ts}` | Email sender address        |
+| `RCTF_EMAIL_LOGO_URL{:sh}`  | `string{:ts}` | Logo URL in email templates |
 
 ### Leaderboard
 
@@ -335,14 +335,14 @@ email:
     options:
       smtpUrl: smtp://user:pass@mail.example.com:587
   from: noreply@example.com
-  logoUrl: https://example.com/logo.png
+  logoUrl: https://example.com/email-logo.png
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>email.provider</red>` | `object{:ts}` | - | Email provider config |
 | `<red>email.from</red>` | `string{:ts}` | - | Sender email address (required if email enabled) |
-| `<red>email.logoUrl</red>` | `string{:ts}` | - | Logo URL for email templates (optional) |
+| `<red>email.logoUrl</red>` | `string{:ts}` | - | Logo URL for email templates. Falls back to the top-level light and dark logos when unset. |
 
 See [Email Providers](/providers/emails) for provider-specific options.
 

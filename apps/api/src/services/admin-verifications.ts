@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { sendVerificationEmail } from './emails'
+import type { TypedRedis } from '../cache/scripts'
+import { sendVerificationEmail, type EmailKind } from './emails'
 import {
   deletePendingRegistrationVerification,
   getPendingRegistrationVerification,
@@ -53,12 +54,17 @@ export const completePendingTeamVerification = async (
   return { success: true, userId: result.userId }
 }
 
-type VerificationEmailSender = typeof sendVerificationEmail
+type VerificationEmailSender = (
+  to: string,
+  kind: EmailKind,
+  token: string
+) => Promise<void>
 
 export const resendPendingTeamVerification = async (
   db: DatabaseClient,
   verificationId: string,
-  sendEmail: VerificationEmailSender = sendVerificationEmail
+  sendEmail?: VerificationEmailSender,
+  redis?: TypedRedis
 ): Promise<ResendPendingVerificationResult> => {
   const pending = await getPendingRegistrationVerification(db, verificationId)
   if (!pending) {
@@ -69,6 +75,10 @@ export const resendPendingTeamVerification = async (
     return { success: false, error: 'badEndpoint' }
   }
 
-  await sendEmail(pending.email, 'register', pending.token)
+  const send =
+    sendEmail ??
+    ((to: string, kind: EmailKind, token: string) =>
+      sendVerificationEmail(db, to, kind, token, redis))
+  await send(pending.email, 'register', pending.token)
   return { success: true, verificationId: pending.id }
 }

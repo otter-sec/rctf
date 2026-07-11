@@ -6,19 +6,16 @@
   xmlns:v="urn:schemas-microsoft-com:vml"
 >
   <head>
-    <title>
-      {{ #register }} Email verification for {{ ctf_name }} {{ /register }} {{
-      #recover }} Account recovery for {{ ctf_name }} {{ /recover }} {{ #update
-      }} Update your {{ ctf_name }} email {{ /update }}
-    </title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="x-apple-disable-message-reformatting" />
     <meta
       name="format-detection"
       content="telephone=no,address=no,email=no,date=no,url=no"
     />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
 
     <!--[if gte mso 9]>
       <xml>
@@ -28,240 +25,210 @@
         </o:OfficeDocumentSettings>
       </xml>
     <![endif]-->
+
+    <style>
+      table,
+      td {
+        border-collapse: collapse;
+        border-spacing: 0;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      .logo-dark {
+        display: none !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        mso-hide: all !important;
+      }
+      @media (prefers-color-scheme: dark) {
+        .email-bg,
+        .email-card {
+          background-color: #111111 !important;
+        }
+        .email-card,
+        .email-card a {
+          color: #ffffff !important;
+        }
+        .logo-light {
+          display: none !important;
+        }
+        .logo-dark {
+          display: block !important;
+          max-height: none !important;
+          overflow: visible !important;
+        }
+      }
+      [data-ogsc] .email-bg,
+      [data-ogsc] .email-card {
+        background-color: #111111 !important;
+      }
+      [data-ogsc] .email-card,
+      [data-ogsc] .email-card a {
+        color: #ffffff !important;
+      }
+      [data-ogsc] .logo-light {
+        display: none !important;
+      }
+      [data-ogsc] .logo-dark {
+        display: block !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+    </style>
   </head>
 
   <body
-    width="100%"
-    style="
-      margin: 0;
-      padding: 0 !important;
-      background: #111111;
-      mso-line-height-rule: exactly;
-    "
+    class="email-bg"
+    bgcolor="#ffffff"
+    style="margin: 0; padding: 0; background-color: #ffffff"
   >
-    <center style="width: 100%; background: #111111">
-      <!--[if mso | IE]>
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #111111;">
-    <tr>
-    <td>
-    <![endif]-->
+    <table
+      class="email-bg"
+      role="presentation"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      bgcolor="#ffffff"
+      style="width: 100%; background-color: #ffffff"
+    >
+      <tr>
+        <td align="center" style="padding: 20px 10px">
+          <!--[if mso]>
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="680">
+              <tr>
+                <td>
+          <![endif]-->
 
-      <div class="email-container" style="max-width: 680px; margin: 0 auto">
-        <!--[if mso]>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="680" align="center">
+          <table
+            class="email-card"
+            role="presentation"
+            border="0"
+            cellpadding="0"
+            cellspacing="0"
+            width="100%"
+            bgcolor="#ffffff"
+            style="
+              width: 100%;
+              max-width: 680px;
+              background-color: #ffffff;
+              color: #111111;
+              font-family: Arial, Helvetica, sans-serif;
+              font-size: 16px;
+              line-height: 24px;
+            "
+          >
+            {{ #logo_light_url }}
             <tr>
-            <td>
-            <![endif]-->
-        <table
-          border="0"
-          cellpadding="0"
-          cellspacing="0"
-          role="presentation"
-          style="max-width: 680px; width: 100%"
-        >
-          <tr>
-            <td style="padding: 20px 30px; text-align: left" class="sm-px">
-              <a href="{{{ origin }}}" rel="nofollow" target="_blank">
-                {{ #logo_url }}
-                <img
-                  src="{{ logo_url }}"
-                  alt="{{ ctf_name }}"
-                  border="0"
-                  height="64"
-                  style="
-                    font-family: arial, sans-serif;
-                    font-size: 15px;
-                    line-height: 15px;
-                    color: #ffffff;
-                    margin: 0;
-                  "
-                />
-                {{ /logo_url }} {{ ^logo_url }}
-                <h1
-                  style="
-                    font-weight: bold;
-                    font-size: 27px;
-                    line-height: 27px;
-                    color: #ffffff;
-                    margin: 0 0 15px 0;
-                  "
-                >
-                  {{ ctf_name }}
-                </h1>
-                {{ /logo_url }}
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td
-              style="
-                padding: 30px;
-                background-color: #222222;
-                border-radius: 10px;
-              "
-              class="sm-p bar"
-            >
-              <table
-                border="0"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                style="width: 100%"
-              >
-                <tr>
-                  <td
+              <td style="padding: 0 10px 20px">
+                <a href="{{{ origin }}}" target="_blank">
+                  <img
+                    class="logo-light"
+                    src="{{ logo_light_url }}"
+                    alt="{{ ctf_name }}"
+                    border="0"
+                    height="48"
+                    style="display: block; height: 48px; width: auto"
+                  />
+                  <img
+                    class="logo-dark"
+                    src="{{ logo_dark_url }}"
+                    alt=""
+                    border="0"
+                    height="48"
                     style="
-                      padding-bottom: 15px;
-                      font-family: arial, sans-serif;
-                      font-size: 15px;
-                      line-height: 21px;
-                      color: #ffffff;
-                      text-align: left;
+                      display: none;
+                      height: 48px;
+                      width: auto;
+                      max-height: 0;
+                      overflow: hidden;
+                      mso-hide: all;
                     "
-                  >
-                    <h1
+                  />
+                </a>
+              </td>
+            </tr>
+            {{ /logo_light_url }}
+            <tr>
+              <td style="padding: 0 10px">
+                {{ #register }}
+                <p style="margin: 0 0 16px">
+                  Verify your email address to finish registering for {{
+                  ctf_name }}:
+                </p>
+                {{ /register }} {{ #recover }}
+                <p style="margin: 0 0 16px">
+                  Verify your email address to recover your {{ ctf_name }}
+                  account:
+                </p>
+                {{ /recover }} {{ #update }}
+                <p style="margin: 0 0 16px">
+                  Verify this email address to add it to your {{ ctf_name }}
+                  account:
+                </p>
+                {{ /update }}
+
+                <table
+                  role="presentation"
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="margin: 0 0 20px"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      bgcolor="#bc2226"
                       style="
-                        font-weight: bold;
-                        font-size: 27px;
-                        line-height: 27px;
-                        color: #ffffff;
-                        margin: 0 0 15px 0;
+                        background-color: #bc2226;
+                        mso-padding-alt: 12px 18px;
                       "
                     >
-                      {{ #register }} Verify your email for {{ ctf_name }} {{
-                      /register }} {{ #recover }} Recover your account for {{
-                      ctf_name }} {{ /recover }} {{ #update }} Update your {{
-                      ctf_name }} email {{ /update }}
-                    </h1>
-                    {{ #register }}
-                    <p style="margin: 0 0 15px">
-                      Before you and your team start capturing flags, we need a
-                      verified email.
-                    </p>
-                    <p style="margin: 0 0 15px">
-                      Verify your email to register for {{ ctf_name }}.
-                    </p>
-                    {{ /register }} {{ #recover }}
-                    <p style="margin: 0 0 15px">
-                      Before we recover your account, we need to make sure it's
-                      actually you.
-                    </p>
-                    <p style="margin: 0 0 15px">
-                      Verify your email to recover your {{ ctf_name }} account.
-                    </p>
-                    {{ /recover }} {{ #update }}
-                    <p style="margin: 0 0 15px">
-                      Before we update your account, we need to make sure it's
-                      actually you.
-                    </p>
-                    <p style="margin: 0 0 15px">
-                      Verify this email to add it to your {{ ctf_name }}
-                      account.
-                    </p>
-                    {{ /update }}
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <table
-                      align="left"
-                      border="0"
-                      cellpadding="0"
-                      cellspacing="0"
-                      role="presentation"
-                    >
-                      <tr>
-                        <td
-                          class="s-btn s-btn__primary"
-                          style="border-radius: 4px; background: #bc2226"
-                        >
-                          <a
-                            class="s-btn s-btn__primary"
-                            href="{{{ origin }}}/verify?token={{ token }}"
-                            rel="nofollow"
-                            target="_blank"
-                            style="
-                              background: #bc2226;
-                              font-family: arial, sans-serif;
-                              font-size: 17px;
-                              line-height: 17px;
-                              color: #ffffff;
-                              text-align: center;
-                              text-decoration: none;
-                              padding: 13px 17px;
-                              display: block;
-                              border-radius: 4px;
-                              white-space: nowrap;
-                            "
-                          >
-                            {{ #register }} Register for {{ ctf_name }} {{
-                            /register}} {{ #recover }} Recover your account {{
-                            /recover }} {{ #update }} Update your email {{
-                            /update }}
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 30px" class="sm-p">
-              <table
-                align="left"
-                border="0"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                width="100%"
-              >
-                <tr>
-                  <td
-                    style="
-                      padding-bottom: 10px;
-                      font-size: 12px;
-                      line-height: 15px;
-                      font-family: arial, sans-serif;
-                      color: #9199a1;
-                      text-align: left;
-                    "
+                      <a
+                        href="{{{ origin }}}/verify?token={{ token }}"
+                        target="_blank"
+                        style="
+                          display: inline-block;
+                          padding: 12px 18px;
+                          color: #ffffff;
+                          font-family: Arial, Helvetica, sans-serif;
+                          font-size: 16px;
+                          font-weight: bold;
+                          line-height: 20px;
+                          text-decoration: none;
+                          mso-padding-alt: 0;
+                        "
+                        >Verify email</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin: 0 0 8px">
+                  If the button does not work, use this verification link:
+                </p>
+                <p style="margin: 0 0 20px">
+                  <a
+                    href="{{{ origin }}}/verify?token={{ token }}"
+                    style="color: #1155cc; text-decoration: underline"
+                    >Open the verification page</a
                   >
-                    If you didn't attempt this, you can safely ignore this
-                    email.
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    style="
-                      font-size: 12px;
-                      line-height: 15px;
-                      font-family: arial, sans-serif;
-                      color: #9199a1;
-                      text-align: left;
-                    "
-                  >
-                    <span style="color: #9ea3a9">Sent by </span>
-                    <a
-                      href="{{{ origin }}}"
-                      rel="nofollow"
-                      target="_blank"
-                      style="color: #9199a1; text-decoration: underline"
-                      >{{ ctf_name }}</a
-                    >
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </div>
-      <!--[if mso | IE]>
-    </td>
-    </tr>
+                </p>
+                <p style="margin: 0 0 8px">
+                  If you didn't attempt this, you can safely ignore this email.
+                </p>
+                <p style="margin: 0">Sent by {{ ctf_name }} ({{{ origin }}})</p>
+              </td>
+            </tr>
+          </table>
+
+          <!--[if mso]>
+                </td>
+              </tr>
+            </table>
+          <![endif]-->
+        </td>
+      </tr>
     </table>
-    <![endif]-->
-    </center>
   </body>
 </html>
