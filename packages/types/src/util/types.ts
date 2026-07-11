@@ -3,6 +3,21 @@ import { BadEmail, BadName } from '../responses'
 import { normalizeEmail, normalizeName, validateEmail } from '../v1-validators'
 import { example } from './example'
 
+export function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+export const HttpUrl = z.string().check(
+  z.refine(isHttpUrl, {
+    message: 'Enter an absolute HTTP or HTTPS URL',
+  })
+)
+
 export const UserEmail = z
   .pipe(z.string(), z.transform(normalizeEmail))
   .check(

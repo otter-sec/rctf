@@ -4,6 +4,7 @@
     GetExternalAuthClientRouteV2,
     GoodExternalAuthAuthorize,
     GoodExternalAuthClient,
+    isHttpUrl,
   } from '@rctf/types'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
@@ -53,6 +54,10 @@
         loadError = 'The redirect URI does not match what was registered for this integration.'
         return
       }
+      if (!isHttpUrl(response.data.redirectUri)) {
+        loadError = 'This integration has an unsafe redirect URI.'
+        return
+      }
       client = response.data
     } catch (error) {
       loadError = error instanceof Error ? error.message : 'Failed to look up integration.'
@@ -69,7 +74,12 @@
         ...(stateParam ? { state: stateParam } : {}),
       })
       if (response.kind === GoodExternalAuthAuthorize.kind) {
-        window.location.href = response.data.redirectTo
+        if (!isHttpUrl(response.data.redirectTo)) {
+          toast.error('Authorization returned an unsafe redirect URI')
+          approving = false
+          return
+        }
+        window.location.assign(response.data.redirectTo)
         return
       }
       showApiError(response)
@@ -81,13 +91,14 @@
   }
 
   function deny() {
-    if (!redirectUri) {
+    if (!client || !isHttpUrl(client.redirectUri)) {
       goto('/')
       return
     }
-    const separator = redirectUri.includes('?') ? '&' : '?'
-    const stateSuffix = stateParam ? `&state=${encodeURIComponent(stateParam)}` : ''
-    window.location.href = `${redirectUri}${separator}error=access_denied${stateSuffix}`
+    const target = new URL(client.redirectUri)
+    target.searchParams.set('error', 'access_denied')
+    if (stateParam !== null) target.searchParams.set('state', stateParam)
+    window.location.assign(target)
   }
 </script>
 
