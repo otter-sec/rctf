@@ -50,13 +50,45 @@ function checkUnsupportedKeywords(schema: JsonSchema): void {
   }
 }
 
+export function schemaAllowsNull(schema: JsonSchema): boolean {
+  if (schema.nullable) return true
+
+  const types = Array.isArray(schema.type)
+    ? schema.type
+    : schema.type
+      ? [schema.type]
+      : null
+  if (types && !types.includes('null')) return false
+  if (schema.enum && !schema.enum.includes(null)) return false
+  if ('const' in schema && schema.const !== null) return false
+  if (schema.anyOf && !schema.anyOf.some(schemaAllowsNull)) return false
+  if (schema.oneOf && schema.oneOf.filter(schemaAllowsNull).length !== 1) {
+    return false
+  }
+
+  return true
+}
+
+function isMultipleOf(value: number, multiple: number): boolean {
+  if (!Number.isFinite(multiple) || multiple <= 0) return false
+  const quotient = value / multiple
+  const nearestInteger = Math.round(quotient)
+  const tolerance = Number.EPSILON * Math.max(1, Math.abs(quotient)) * 4
+  return Math.abs(quotient - nearestInteger) <= tolerance
+}
+
 export function validateValue(
   schema: JsonSchema,
   value: unknown
 ): ValidationResult {
   checkUnsupportedKeywords(schema)
-  if (value === undefined || value === null) {
+  if (value === undefined) {
     return { valid: true, error: null }
+  }
+  if (value === null) {
+    if (schemaAllowsNull(schema)) return { valid: true, error: null }
+    const typeError = schema.type ? validateType(schema.type, value) : null
+    return { valid: false, error: typeError ?? 'Must not be null' }
   }
 
   if (schema.anyOf) {
@@ -134,7 +166,10 @@ export function validateValue(
         error: `Must be greater than ${schema.exclusiveMinimum}`,
       }
     }
-    if (schema.multipleOf !== undefined && value % schema.multipleOf !== 0) {
+    if (
+      schema.multipleOf !== undefined &&
+      !isMultipleOf(value, schema.multipleOf)
+    ) {
       return {
         valid: false,
         error: `Must be a multiple of ${schema.multipleOf}`,

@@ -199,6 +199,17 @@ describe('validateTree: required-field presence', () => {
     expect(validateTree(schema, { check: null }).size).toBe(0)
   })
 
+  it('accepts null for a required oneOf-nullable key', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        value: { oneOf: [{ type: 'string' }, { type: 'null' }] },
+      },
+      required: ['value'],
+    }
+    expect(validateTree(schema, { value: null }).size).toBe(0)
+  })
+
   it('flags null for a required non-nullable key as missing', () => {
     const schema: JsonSchema = {
       type: 'object',
@@ -321,6 +332,25 @@ describe('validateTree: dns anyOf format branches', () => {
 })
 
 describe('validateTree: type mismatches', () => {
+  it('flags null for an optional non-nullable scalar', () => {
+    const config = validConfig()
+    config.services.web!.cpus = null
+    const findings = validateTree(dockerSchema, config)
+    const finding = findings.get(webId)?.[0]
+    expect(finding?.severity).toBe('invalid')
+    expect(finding?.message).toBe('Must not be null')
+    expect(finding?.fieldPath).toEqual(['services', 'web', 'cpus'])
+  })
+
+  it('flags null for a non-nullable array item', () => {
+    const config = validConfig()
+    config.services.web!.dns = ['1.1.1.1', null]
+    const findings = validateTree(dockerSchema, config)
+    const finding = findings.get(webId)?.[0]
+    expect(finding?.severity).toBe('invalid')
+    expect(finding?.fieldPath).toEqual(['services', 'web', 'dns', '1'])
+  })
+
   it('flags a string sitting under a number schema', () => {
     const config = validConfig()
     config.services.web!.cpus = 'two'

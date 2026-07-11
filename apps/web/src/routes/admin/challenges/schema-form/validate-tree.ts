@@ -4,11 +4,10 @@ import {
   arrayItemSchema,
   getEffectiveSchema,
   getPrimaryType,
-  isNullable,
   isRecordSchema,
   recordValueSchema,
 } from './utils'
-import { validateValue } from './validate'
+import { schemaAllowsNull, validateValue } from './validate'
 
 export interface ValidationFinding {
   severity: FindingSeverity
@@ -79,7 +78,17 @@ function walk(
   owningPath: string[],
   findings: Findings
 ): void {
-  if (value === undefined || value === null) return
+  if (value === undefined) return
+  if (value === null) {
+    if (!schemaAllowsNull(schema)) {
+      addFinding(findings, owningPath, {
+        severity: 'invalid',
+        message: 'Must not be null',
+        fieldPath,
+      })
+    }
+    return
+  }
   const effective = getEffectiveSchema(schema)
   if (isRecordSchema(effective)) {
     walkRecord(effective, value, fieldPath, owningPath, findings)
@@ -185,7 +194,7 @@ function isMissingRequired(
   value: unknown
 ): boolean {
   if (value === undefined) return true
-  if (value === null) return !schema || !isNullable(schema)
+  if (value === null) return !schema || !schemaAllowsNull(schema)
   if (value === '') return true
   return Array.isArray(value) && value.length === 0
 }

@@ -10,10 +10,10 @@ const bad = (schema: JsonSchema, value: unknown) => {
   expect(result.error).toBeString()
 }
 
-describe('validateValue - null/undefined short-circuit', () => {
-  it('treats undefined and null as valid regardless of type', () => {
+describe('validateValue - null/undefined', () => {
+  it('allows an absent optional value but rejects a non-nullable null', () => {
     ok({ type: 'string' }, undefined)
-    ok({ type: 'string' }, null)
+    bad({ type: 'string' }, null)
   })
 })
 
@@ -95,6 +95,12 @@ describe('validateValue - number constraints', () => {
     bad({ type: 'number', multipleOf: 5 }, 7)
     ok({ type: 'number', multipleOf: 5 }, 10)
   })
+
+  it('allows floating-point noise for decimal multipleOf values', () => {
+    ok({ type: 'number', multipleOf: 0.1 }, 0.3)
+    ok({ type: 'number', multipleOf: 0.1 }, -0.3)
+    bad({ type: 'number', multipleOf: 0.1 }, 0.31)
+  })
 })
 
 describe('validateValue - enum', () => {
@@ -136,8 +142,19 @@ describe('validateValue - oneOf', () => {
 })
 
 describe('validateValue - nullable', () => {
-  it('accepts null for a nullable schema', () => {
+  it('accepts null through the nullable flag or a type union', () => {
     ok({ type: 'string', nullable: true }, null)
+    ok({ type: ['string', 'null'] }, null)
+  })
+
+  it('accepts null through anyOf and oneOf branches', () => {
+    ok({ anyOf: [{ type: 'string' }, { type: 'null' }] }, null)
+    ok({ oneOf: [{ type: 'string' }, { type: 'null' }] }, null)
+  })
+
+  it('rejects null when no union branch permits it', () => {
+    bad({ anyOf: [{ type: 'string' }, { type: 'number' }] }, null)
+    bad({ oneOf: [{ type: 'string' }, { type: 'number' }] }, null)
   })
 })
 
