@@ -128,6 +128,7 @@
         showSelfContext={false}
         onToggleTop3={() => {}}
         onToggleSelf={() => {}}
+        interactive={false}
       />
     </graph-panel>
   {/if}
@@ -282,6 +283,8 @@
     overflow: hidden;
     padding: 1.5rem;
     background: var(--background-l0);
+    pointer-events: none;
+    user-select: none;
 
     &[data-shadow] {
       box-shadow: 0 1rem 2rem rgb(0 0 0 / 20%);
@@ -332,6 +335,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 0.375rem;
+    line-height: 1.2;
   }
 
   ctf-name {
@@ -377,6 +381,10 @@
   team-card {
     inline-size: 37.5rem;
     flex-shrink: 0;
+  }
+
+  team-card:not([data-with-matrix]) {
+    flex-grow: 1;
   }
 
   matrix-header-cells {

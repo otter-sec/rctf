@@ -24,6 +24,7 @@
     showSelfContext: boolean
     onToggleTop3: () => void
     onToggleSelf: () => void
+    interactive?: boolean
   }
 
   let {
@@ -39,6 +40,7 @@
     showSelfContext,
     onToggleTop3,
     onToggleSelf,
+    interactive = true,
   }: Props = $props()
 
   const PAD_TOP = 8
@@ -201,8 +203,8 @@
       aria-label={ariaLabel}
       {width}
       {height}
-      onpointermove={handleMove}
-      onpointerleave={handleLeave}
+      onpointermove={interactive ? handleMove : undefined}
+      onpointerleave={interactive ? handleLeave : undefined}
     >
       {#if renderSeries.length > 0}
         <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
@@ -247,9 +249,11 @@
     />
   {/if}
 
-  <graph-controls-slot>
-    <GraphControls {showTop3Context} {showSelfContext} {onToggleTop3} {onToggleSelf} />
-  </graph-controls-slot>
+  {#if interactive}
+    <graph-controls-slot>
+      <GraphControls {showTop3Context} {showSelfContext} {onToggleTop3} {onToggleSelf} />
+    </graph-controls-slot>
+  {/if}
 </graph-root>
 
 <style>
