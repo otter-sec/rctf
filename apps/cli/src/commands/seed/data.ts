@@ -10,9 +10,9 @@ import type {
   UserMember,
 } from '@rctf/db'
 import {
+  ALL_PERMISSIONS,
   ChallengeScoringKind,
   DynamicScoringTransport,
-  Permissions,
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
@@ -100,17 +100,13 @@ const titleCase = (value: string) =>
 const isGeneratedFlagChallenge = (challenge: Challenge) =>
   challenge.data.scoring?.kind !== ChallengeScoringKind.DYNAMIC
 
-const allPermissions = Object.values(Permissions)
-  .filter((value): value is number => typeof value === 'number')
-  .reduce((acc, value) => acc | value, 0)
-
 function buildAdmin(): User {
   return {
     id: 'seed-admin',
     name: ADMIN_NAME,
     email: ADMIN_EMAIL,
     division: 'open',
-    perms: allPermissions,
+    perms: ALL_PERMISSIONS,
     ctftimeId: null,
     createdAt: new Date(Date.now() - DAY).toISOString(),
     avatarUrl: null,

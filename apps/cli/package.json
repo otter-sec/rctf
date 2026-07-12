@@ -1,16 +1,21 @@
 {
-  "name": "@rctf/seed",
+  "name": "@rctf/cli",
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "rctf": "./src/index.ts"
+  },
   "scripts": {
     "start": "bun src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap=linked && cp -R ../api/src/cache/scripts dist/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@rctf/api": "workspace:*",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
-    "@rctf/types": "workspace:*"
+    "@rctf/types": "workspace:*",
+    "citty": "0.2.2"
   },
   "devDependencies": {
     "@types/bun": "1.3.14"

@@ -18,9 +18,8 @@ COPY tests/admin-bot/package.json ./tests/admin-bot/
 COPY tests/admin-bot-e2e/package.json ./tests/admin-bot-e2e/
 COPY apps/admin-bot/package.json ./apps/admin-bot/
 COPY apps/api/package.json ./apps/api/
+COPY apps/cli/package.json ./apps/cli/
 COPY apps/docs/package.json ./apps/docs/
-COPY apps/export/package.json ./apps/export/
-COPY apps/seed/package.json ./apps/seed/
 COPY apps/web/package.json ./apps/web/
 
 FROM build-base AS deps
@@ -33,8 +32,6 @@ RUN bun install \
     --no-cache \
     --filter '!@rctf/admin-bot' \
     --filter '!@rctf/docs' \
-    --filter '!@rctf/export' \
-    --filter '!@rctf/seed' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
@@ -50,12 +47,11 @@ RUN bun install \
     --no-cache \
     --filter '!@rctf/admin-bot' \
     --filter '!@rctf/docs' \
-    --filter '!@rctf/export' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
 
-FROM build-base AS build
+FROM build-base AS build-src
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=package-configs /app/package.json /app/bun.lock ./
@@ -65,8 +61,15 @@ COPY packages ./packages
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
+
+FROM build-src AS build-api
 RUN bun run --filter '@rctf/api' build
+
+FROM build-src AS build-web
 RUN bun run --filter '@rctf/web' build
+
+FROM build-src AS build-cli
+RUN bun run --filter '@rctf/cli' build
 
 FROM runtime-base AS production
 
@@ -74,26 +77,17 @@ RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
 
-COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build-api /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 
-COPY --from=build /app/packages/config/package.json ./packages/config/package.json
-COPY --from=build /app/packages/db/package.json ./packages/db/package.json
-COPY --from=build /app/packages/scoring/package.json ./packages/scoring/package.json
-COPY --from=build /app/packages/types/package.json ./packages/types/package.json
-COPY --from=build /app/packages/util/package.json ./packages/util/package.json
-COPY --from=build /app/packages/config/src ./packages/config/src
-COPY --from=build /app/packages/db/src ./packages/db/src
-COPY --from=build /app/packages/db/migrations ./packages/db/migrations
-COPY --from=build /app/packages/scoring/src ./packages/scoring/src
-COPY --from=build /app/packages/types/src ./packages/types/src
-COPY --from=build /app/packages/util/src ./packages/util/src
-COPY --from=build /app/apps/api/templates ./apps/api/templates
+COPY --from=build-src /app/packages/db/migrations ./packages/db/migrations
+COPY --from=build-src /app/apps/api/templates ./apps/api/templates
 
-COPY --from=build /app/package.json ./
-COPY --from=build /app/apps/api/package.json ./apps/api/
+COPY --from=build-cli /app/apps/cli/dist ./apps/cli/dist
+RUN printf '#!/bin/sh\ncd /app\nexec bun /app/apps/cli/dist/index.js "$@"\n' > /usr/local/bin/rctf \
+    && chmod +x /usr/local/bin/rctf
 
-COPY --from=build /app/apps/web/build ./static
+COPY --from=build-web /app/apps/web/build ./static
 
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js

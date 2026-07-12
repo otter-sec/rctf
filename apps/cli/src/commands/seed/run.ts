@@ -1,15 +1,9 @@
 import { cacheLeaderboardAndGraph } from '@rctf/api/src/cache/leaderboard'
 import { createToken, TokenKind } from '@rctf/api/src/lib/tokens'
 import { calculateLeaderboard } from '@rctf/api/src/services/leaderboard'
-import { createRedis } from '@rctf/api/src/util/redis'
 import { config } from '@rctf/config'
-import { createDatabase } from '@rctf/db'
-import {
-  buildSeedData,
-  SEED_CHALLENGE_CATEGORIES,
-  SEED_CHALLENGE_COUNT,
-  SEED_TEAM_COUNT,
-} from './data'
+import { withDbAndRedis } from '../../lib/context'
+import { buildSeedData } from './data'
 import { resetAndSeedDatabase } from './writer'
 
 const loginUrl = (origin: string, token: string) => {
@@ -18,11 +12,8 @@ const loginUrl = (origin: string, token: string) => {
   return url.toString()
 }
 
-async function main() {
-  const { client, db } = createDatabase(config.database.sql)
-  const redis = await createRedis()
-
-  try {
+export const runSeed = async () => {
+  await withDbAndRedis(async ({ db, redis }) => {
     const data = buildSeedData(config)
 
     await redis.flushdb()
@@ -37,13 +28,5 @@ async function main() {
 
     console.log(`Admin login: ${loginUrl(config.origin, adminToken)}`)
     console.log(`Sample team login: ${loginUrl(config.origin, sampleToken)}`)
-  } finally {
-    await redis.quit().catch(() => {})
-    await client.end({ timeout: 1 }).catch(() => {})
-  }
+  })
 }
-
-main().catch(err => {
-  console.error('Seed failed:', err)
-  process.exit(1)
-})

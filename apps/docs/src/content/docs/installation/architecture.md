@@ -50,10 +50,11 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 | `build-base` | `oven/bun:1.3.14-alpine` (BUILDPLATFORM) | Build-platform scratch for cross-compile-friendly steps. |
 | `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Target-platform base reused by `prod-deps` and `production`. |
 | `package-configs` | `build-base` | Copies every workspace `package.json{:file}` plus `bun.lock{:file}` so dependency layers cache independently of source. |
-| `deps` | `build-base` | Full install (including devDependencies) for the API and web workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, `@rctf/export`, `@rctf/seed`, and the test workspaces. |
+| `deps` | `build-base` | Full install (including devDependencies) for the API, web, and CLI workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, and the test workspaces. |
 | `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
-| `build` | `build-base` | Runs `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/api'</green> build` then `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build` against the full sources. |
-| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, package sources, migrations, email templates, and the SvelteKit static output into `/app/{:dir}`. |
+| `build-src` | `build-base` | Assembles the full sources plus dev `node_modules/{:dir}` as the shared base for the build stages. |
+| `build-api` / `build-web` / `build-cli` | `build-src` | Each runs its workspace's `$ <red>bun</red> run build`. Independent stages, so BuildKit builds all three in parallel. |
+| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
 
 ```dockerfile title="deploy/rctf/Dockerfile"
 FROM oven/bun:1.3.14-alpine AS runtime-base
@@ -67,10 +68,10 @@ RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
 
-COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=build-api /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 # ...
-COPY --from=build /app/apps/web/build ./static
+COPY --from=build-web /app/apps/web/build ./static
 
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js

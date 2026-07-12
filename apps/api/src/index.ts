@@ -21,7 +21,7 @@ import { startLeaderboardWorker, stopWorkers } from './workers'
 const logger = pino({
   level:
     process.env.LOG_LEVEL ??
-    (process.env.NODE_ENV === 'production' ? 'info' : 'trace'),
+    (Bun.env.NODE_ENV === 'production' ? 'info' : 'trace'),
 })
 
 const createApp = () => {

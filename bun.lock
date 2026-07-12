@@ -68,6 +68,26 @@
         "typescript": "5.9.3",
       },
     },
+    "apps/cli": {
+      "name": "@rctf/cli",
+      "version": "0.0.0",
+      "bin": {
+        "rctf": "./src/index.ts",
+      },
+      "dependencies": {
+        "@rctf/api": "workspace:*",
+        "@rctf/config": "workspace:*",
+        "@rctf/db": "workspace:*",
+        "@rctf/types": "workspace:*",
+        "citty": "0.2.2",
+      },
+      "devDependencies": {
+        "@types/bun": "1.3.14",
+      },
+      "peerDependencies": {
+        "typescript": "5.9.3",
+      },
+    },
     "apps/docs": {
       "name": "@rctf/docs",
       "version": "0.0.0",
@@ -97,35 +117,6 @@
         "@types/mdast": "4.0.4",
         "mdast-util-to-hast": "13.2.1",
         "pagefind": "1.5.2",
-      },
-    },
-    "apps/export": {
-      "name": "@rctf/export",
-      "version": "0.0.0",
-      "dependencies": {
-        "@rctf/types": "workspace:*",
-      },
-      "devDependencies": {
-        "@types/bun": "1.3.14",
-      },
-      "peerDependencies": {
-        "typescript": "5.9.3",
-      },
-    },
-    "apps/seed": {
-      "name": "@rctf/seed",
-      "version": "0.0.0",
-      "dependencies": {
-        "@rctf/api": "workspace:*",
-        "@rctf/config": "workspace:*",
-        "@rctf/db": "workspace:*",
-        "@rctf/types": "workspace:*",
-      },
-      "devDependencies": {
-        "@types/bun": "1.3.14",
-      },
-      "peerDependencies": {
-        "typescript": "5.9.3",
       },
     },
     "apps/web": {
@@ -702,17 +693,15 @@
 
     "@rctf/api": ["@rctf/api@workspace:apps/api"],
 
+    "@rctf/cli": ["@rctf/cli@workspace:apps/cli"],
+
     "@rctf/config": ["@rctf/config@workspace:packages/config"],
 
     "@rctf/db": ["@rctf/db@workspace:packages/db"],
 
     "@rctf/docs": ["@rctf/docs@workspace:apps/docs"],
 
-    "@rctf/export": ["@rctf/export@workspace:apps/export"],
-
     "@rctf/scoring": ["@rctf/scoring@workspace:packages/scoring"],
-
-    "@rctf/seed": ["@rctf/seed@workspace:apps/seed"],
 
     "@rctf/types": ["@rctf/types@workspace:packages/types"],
 
@@ -1143,6 +1132,8 @@
     "chromium-bidi": ["chromium-bidi@14.0.0", "", { "dependencies": { "mitt": "^3.0.1", "zod": "^3.24.1" }, "peerDependencies": { "devtools-protocol": "*" } }, "sha512-9gYlLtS6tStdRWzrtXaTMnqcM4dudNegMXJxkR0I/CXObHalYeYcAMPrL19eroNZHtJ8DQmu1E+ZNOYu/IXMXw=="],
 
     "ci-info": ["ci-info@4.4.0", "", {}, "sha512-77PSwercCZU2Fc4sX94eF8k8Pxte6JAwL4/ICZLFjJLqegs7kCuAsqqj/70NQF6TvDpgFjkubQB2FW2ZZddvQg=="],
+
+    "citty": ["citty@0.2.2", "", {}, "sha512-+6vJA3L98yv+IdfKGZHBNiGW5KHn22e/JwID0Strsz8h4S/csAu/OuICwxrg44k5MRiZHWIo8XXuJgQTriRP4w=="],
 
     "cliui": ["cliui@8.0.1", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.1", "wrap-ansi": "^7.0.0" } }, "sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ=="],
 
