@@ -479,7 +479,7 @@ For challenges using the rCTF instancer, add `<red>instancerConfig</red>` / `<re
 challenges:
   - category: misc
     name: pwnable document fabricator
-    author: sy1vi3
+    author: SekaiCTF
     description: |
       yep it's another web challenge.
     attachments:
