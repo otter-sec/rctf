@@ -325,7 +325,7 @@ challenges:
   - category: misc
     name: pwnable document fabricator
     releaseTime: '2026-06-28T08:00:00Z'
-    author: sy1vi3
+    author: SekaiCTF
     description: |
       yep it's another web challenge.
     attachments:
