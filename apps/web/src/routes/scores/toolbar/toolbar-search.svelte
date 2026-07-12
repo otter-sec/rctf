@@ -26,7 +26,7 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
-<search-box>
+<label data-search-box>
   {#if pending}
     <Spinner label="Searching teams" />
   {:else}
@@ -49,10 +49,10 @@
   >
     <IconX />
   </button>
-</search-box>
+</label>
 
 <style>
-  search-box {
+  label[data-search-box] {
     display: flex;
     align-items: center;
     inline-size: 100%;
@@ -62,6 +62,7 @@
     color: var(--foreground-l1);
     background: var(--background-l4);
     border-radius: var(--radius-md);
+    cursor: text;
 
     &:focus-within {
       outline: 2px solid var(--ring);

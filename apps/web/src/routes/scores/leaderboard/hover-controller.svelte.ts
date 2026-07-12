@@ -2,9 +2,10 @@ import { untrack } from 'svelte'
 import { CELL_KIND, resolveCellTooltip, type CellTooltip } from './cell-tooltip'
 import { createTooltipTiming, resolveHoverTarget } from './hover-state'
 
+const SCROLL_IDLE_MS = 150
+
 export interface HoverControllerDeps {
   scrollRoot: () => HTMLElement | null
-  isScrolling: () => boolean
   entries: () => unknown
   startTime: () => number
 }
@@ -35,7 +36,41 @@ export function createHoverController(deps: HoverControllerDeps) {
 
   let lastPointer: { x: number; y: number } | null = null
 
-  const displayedTooltip = $derived(deps.isScrolling() ? null : activeTooltip)
+  let scrolling = $state(false)
+
+  $effect(() => {
+    const root = deps.scrollRoot()
+    if (!root) return
+
+    let idleTimer: number | undefined
+    let frame: number | undefined
+
+    const handleScroll = () => {
+      scrolling = true
+      if (frame === undefined) {
+        frame = requestAnimationFrame(() => {
+          frame = undefined
+          refreshHoverFromPoint()
+        })
+      }
+      if (idleTimer !== undefined) window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(() => {
+        idleTimer = undefined
+        scrolling = false
+        refreshHoverFromPoint()
+      }, SCROLL_IDLE_MS)
+    }
+
+    root.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      root.removeEventListener('scroll', handleScroll)
+      if (idleTimer !== undefined) window.clearTimeout(idleTimer)
+      if (frame !== undefined) cancelAnimationFrame(frame)
+      scrolling = false
+    }
+  })
+
+  const displayedTooltip = $derived(scrolling ? null : activeTooltip)
 
   function clearTooltip() {
     tooltipTiming.clear()
@@ -82,7 +117,6 @@ export function createHoverController(deps: HoverControllerDeps) {
     if (hoverPatch.teamId !== undefined) hoveredTeamId = hoverPatch.teamId
     if (hoverPatch.solveHighlight !== undefined) solveHighlight = null
 
-    const scrolling = deps.isScrolling()
     if (cell && (scrolling || !tooltipTiming.isCurrent(cell))) {
       hoveredTeamId = null
       solveHighlight = null
@@ -123,17 +157,6 @@ export function createHoverController(deps: HoverControllerDeps) {
     untrack(() => {
       clearHover()
       refreshHoverFromPoint()
-    })
-  })
-
-  $effect(() => {
-    const scrolling = deps.isScrolling()
-    untrack(() => {
-      if (scrolling) {
-        clearHover()
-      } else {
-        refreshHoverFromPoint()
-      }
     })
   })
 

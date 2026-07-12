@@ -21,7 +21,7 @@
   import Card from '$lib/ui/card.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import { getCategoryConfig } from '$lib/utils/categories'
+  import { compareCategories, getCategoryConfig } from '$lib/utils/categories'
   import { hasPermissions } from '$lib/utils/permissions'
   import { nextSort } from '../admin-table-logic'
   import AdminTable from '../admin-table.svelte'
@@ -105,7 +105,7 @@
       (challengesQuery.data ?? []).map(challenge => challenge.category.trim()).filter(Boolean)
     )
     return [...categories]
-      .sort((a, b) => a.localeCompare(b))
+      .sort(compareCategories)
       .map(category => ({ value: category, label: category }))
   })
   const divisionOptions = $derived(

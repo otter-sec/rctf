@@ -128,7 +128,6 @@
 
   const hover = createHoverController({
     scrollRoot: () => scrollRoot,
-    isScrolling: () => virtual.isScrolling,
     entries: () => data.entries,
     startTime: () => startTime,
   })
@@ -234,7 +233,6 @@
   style:--score-content-width={`${contentWidth}px`}
   data-fade-scope
   data-self-edge={selfEdge ?? undefined}
-  data-scrolling={virtual.isScrolling || undefined}
 >
   <mobile-graph>
     {@render graphPanel()}
@@ -400,10 +398,6 @@
 
     &[data-self-edge='bottom'] {
       --score-fade-inset-bottom: var(--score-row-height-full);
-    }
-
-    &[data-scrolling] virtual-row {
-      pointer-events: none;
     }
   }
 

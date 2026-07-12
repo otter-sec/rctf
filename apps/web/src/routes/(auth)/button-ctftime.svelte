@@ -88,13 +88,13 @@
     size="lg"
     onclick={openPopup}
     disabled={disabled || exchangeAction.pending}
-    aria-label="Login with CTFtime"
   >
     {#if exchangeAction.pending}
       <Spinner />
       <span>Connecting...</span>
     {:else}
-      <img src={ctftimeLogo} alt="CTFtime" />
+      <img src={ctftimeLogo} alt="" />
+      <span>Connect to CTFtime</span>
     {/if}
   </Button>
 </ctftime-button>
