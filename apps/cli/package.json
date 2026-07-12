@@ -15,6 +15,7 @@
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
     "citty": "0.2.2"
   },
   "devDependencies": {
