@@ -64,5 +64,5 @@ Release-relevant GitHub Actions under `.github/workflows/` and `.github/actions/
 - Anything that needs operator access (config files, environment variables, the database, Redis, or the shared service secrets). Findings that need admin permissions are also out, except the cases listed under the trust model.
 - Social engineering, phishing, and anything that needs physical access.
 - Dependency CVEs without a reachable exploit path in rCTF.
-- Issues confined to development tooling and example configuration (`compose.dev.yml`, README snippets, `apps/seed`, `apps/export`, `tests/`), or to the documentation site itself (`apps/docs`). Insecure deployment or configuration guidance in the docs content is the exception; that is in scope.
+- Issues confined to development tooling and example configuration (`compose.dev.yml`, README snippets, `apps/cli`, `tests/`), or to the documentation site itself (`apps/docs`). Insecure deployment or configuration guidance in the docs content is the exception; that is in scope.
 - Account or email enumeration through registration and recovery responses.

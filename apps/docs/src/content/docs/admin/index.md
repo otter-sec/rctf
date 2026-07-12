@@ -23,27 +23,23 @@ A full admin has all permissions combined for a total of `1 + 2 + 4 + 8 + 16 + 3
 
 ### Creating admin accounts
 
-After registering a normal account, grant admin permissions via the database:
+After registering a normal account, grant admin permissions with the [rctf CLI](/admin/cli):
 
-```sql
--- Full admin (all permissions)
-UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
+```console
+# Full admin (all permissions)
+$ <red>bun</red> rctf user promote admin@example.com
 
--- Challenge editor (read + write challenges)
-UPDATE users SET perms = 3 WHERE email = 'author@example.com';
+# Challenge editor (read + write challenges)
+$ <red>bun</red> rctf user promote author@example.com <dim>--perms</dim> challsRead,challsWrite
 ```
 
 If using Docker:
 
 ```console
-$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 bash
-$ <red>psql</red> <dim>-U</dim> rctf
-UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
+$ <red>docker</red> exec rctf-rctf-1 rctf user promote admin@example.com
 ```
 
-:::warning
-Permission changes take effect once the user cache expires (30 seconds) or when the user updates their profile. You don't need to restart the server.
-:::
+Use `rctf user demote <email>{:sh}` to revoke all permissions and `rctf user list-admins{:sh}` to see who currently has any.
 
 ### Permission bypass
 

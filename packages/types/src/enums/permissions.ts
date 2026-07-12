@@ -6,3 +6,7 @@ export enum Permissions {
   usersWrite = 1 << 4,
   settingsWrite = 1 << 5,
 }
+
+export const ALL_PERMISSIONS = Object.values(Permissions)
+  .filter((value): value is number => typeof value === 'number')
+  .reduce((acc, value) => acc | value, 0)

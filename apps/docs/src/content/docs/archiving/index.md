@@ -4,15 +4,15 @@ description: Generate a read-only static snapshot of a finished rCTF instance fo
 order: 8
 ---
 
-The `apps/export/{:dir}` tool turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
+The `rctf export{:sh}` command of the [rctf CLI](/admin/cli) turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
 
 ## CLI
 
-The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build/{:dir}` exists, then invoke the root script:
+The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build/{:dir}` exists, then invoke the export command:
 
 ```console
 $ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build
-$ <red>bun</red> run export \
+$ <red>bun</red> rctf export \
   <dim>--api-url</dim> https://ctf.example.com \
   <dim>--backend</dim> cloudflare-pages \
   <dim>--output</dim> ./export-output

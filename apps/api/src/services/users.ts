@@ -25,7 +25,18 @@ import {
   GoodRegisterV2,
   SortOrder,
 } from '@rctf/types'
-import { and, asc, count, desc, eq, ne, or, sql, type SQL } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
@@ -734,6 +745,39 @@ export const updateAdminUser = async (
   }
 
   return { success: true }
+}
+
+export const setUserPerms = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  id: string,
+  perms: number
+): Promise<User | undefined> => {
+  const updated = await db
+    .update(users)
+    .set({ perms })
+    .where(eq(users.id, id))
+    .returning()
+    .then(takeUnique)
+
+  if (updated) {
+    await invalidateUserCache(redis, id)
+  }
+
+  return updated
+}
+
+export const getAdminUsers = async (db: DatabaseClient) => {
+  return await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      perms: users.perms,
+    })
+    .from(users)
+    .where(gt(users.perms, 0))
+    .orderBy(asc(users.name))
 }
 
 export const deleteAdminUser = async (

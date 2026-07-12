@@ -9,7 +9,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
  * https://developers.cloudflare.com/turnstile/reference/content-security-policy
  */
 
-const dev = process.env.NODE_ENV === 'development'
+const dev = Bun.env.NODE_ENV === 'development'
 
 const config: Config = {
   preprocess: vitePreprocess(),

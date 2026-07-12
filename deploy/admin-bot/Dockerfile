@@ -18,9 +18,8 @@ COPY tests/admin-bot/package.json ./tests/admin-bot/
 COPY tests/admin-bot-e2e/package.json ./tests/admin-bot-e2e/
 COPY apps/admin-bot/package.json ./apps/admin-bot/
 COPY apps/api/package.json ./apps/api/
+COPY apps/cli/package.json ./apps/cli/
 COPY apps/docs/package.json ./apps/docs/
-COPY apps/export/package.json ./apps/export/
-COPY apps/seed/package.json ./apps/seed/
 COPY apps/web/package.json ./apps/web/
 
 FROM build-base AS deps
@@ -32,12 +31,11 @@ RUN bun install \
     --backend=copyfile \
     --no-cache \
     --filter '!@rctf/api' \
+    --filter '!@rctf/cli' \
     --filter '!@rctf/config' \
     --filter '!@rctf/db' \
     --filter '!@rctf/docs' \
-    --filter '!@rctf/export' \
     --filter '!@rctf/scoring' \
-    --filter '!@rctf/seed' \
     --filter '!@rctf/types' \
     --filter '!@rctf/web' \
     --filter '!server-tests' \
@@ -67,12 +65,11 @@ RUN bun install \
     --backend=copyfile \
     --no-cache \
     --filter '!@rctf/api' \
+    --filter '!@rctf/cli' \
     --filter '!@rctf/config' \
     --filter '!@rctf/db' \
     --filter '!@rctf/docs' \
-    --filter '!@rctf/export' \
     --filter '!@rctf/scoring' \
-    --filter '!@rctf/seed' \
     --filter '!@rctf/types' \
     --filter '!@rctf/web' \
     --filter '!server-tests' \

@@ -24,8 +24,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
   - k8s-operator/ Kubernetes challenge instancer (Go)
   - docker-instancer/ Docker challenge instancer (Python)
   - docs/ Documentation site
-  - export/ Instance archiver tool
-  - seed/ Database seeding utility
+  - cli/ Operational CLI
 - packages/
   - config/ YAML/JSON config loader with Zod validation
   - db/ Drizzle ORM schema and migrations

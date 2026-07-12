@@ -1,7 +1,6 @@
 import { cp, rm } from 'fs/promises'
 import { join } from 'path'
 import { brotliCompressSync } from 'zlib'
-import { Glob } from 'bun'
 
 export type Backend = 'cloudflare-pages' | 'github-pages'
 
