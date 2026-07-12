@@ -255,7 +255,7 @@
       background: color-mix(in oklab, var(--foreground-l0) 8%, transparent);
     }
 
-    &[data-tooltip-cell]:hover {
+    :global(row-content[data-hovered]) &[data-tooltip-cell][data-col-hover] {
       background: color-mix(in oklab, var(--foreground-l0) 12%, transparent);
     }
 
@@ -263,8 +263,7 @@
       opacity: 0.25;
     }
 
-    &[data-tooltip-cell][data-col-hover] cell-circle[data-unsolved],
-    &[data-tooltip-cell]:hover cell-circle[data-unsolved] {
+    &[data-tooltip-cell][data-col-hover] cell-circle[data-unsolved] {
       border-color: var(--foreground-l3);
     }
   }

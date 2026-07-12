@@ -17,6 +17,7 @@
     divisions: Record<string, string>
     showDivision: boolean
     hoveredColumnId: string | null
+    hovered: boolean
   }
 
   let {
@@ -30,6 +31,7 @@
     divisions,
     showDivision,
     hoveredColumnId,
+    hovered,
   }: Props = $props()
 </script>
 
@@ -37,7 +39,7 @@
   <row-team data-current>
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
-  <row-content data-current>
+  <row-content data-current data-hovered={hovered || undefined}>
     <ScoresSolveCells {data} {entry} {viewMode} {sortMode} {focusedChallengeId} {hoveredColumnId} />
   </row-content>
 </self-row>
