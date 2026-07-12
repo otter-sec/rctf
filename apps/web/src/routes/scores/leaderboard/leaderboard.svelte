@@ -281,6 +281,7 @@
           {divisions}
           {showDivision}
           hoveredColumnId={hover.hoveredColumnId}
+          hovered={hover.hoveredRowId === selfRow.entry.id}
         />
       {/if}
 
@@ -313,6 +314,7 @@
           {divisions}
           {showDivision}
           hoveredColumnId={hover.hoveredColumnId}
+          hovered={hover.hoveredRowId === selfRow.entry.id}
         />
       {/if}
     </scores-table>
