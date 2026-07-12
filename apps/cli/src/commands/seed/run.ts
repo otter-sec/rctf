@@ -1,4 +1,5 @@
 import { cacheLeaderboardAndGraph } from '@rctf/api/src/cache/leaderboard'
+import { insertInChunks } from '@rctf/api/src/lib/db-bulk'
 import { createToken, TokenKind } from '@rctf/api/src/lib/tokens'
 import { calculateLeaderboard } from '@rctf/api/src/services/leaderboard'
 import { config } from '@rctf/config'
@@ -16,17 +17,6 @@ import {
 import { withDbAndRedis } from '../../lib/context'
 import { buildSeedData, type SeedData } from './data'
 
-const INSERT_CHUNK_SIZE = 1_000
-
-const insertChunked = async <T>(
-  rows: T[],
-  insert: (chunk: T[]) => Promise<unknown>
-) => {
-  for (let index = 0; index < rows.length; index += INSERT_CHUNK_SIZE) {
-    await insert(rows.slice(index, index + INSERT_CHUNK_SIZE))
-  }
-}
-
 const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
   await db.transaction(async tx => {
     await tx.delete(adminBotJobs)
@@ -38,16 +28,16 @@ const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
     await tx.delete(users)
     await tx.delete(settings)
 
-    await insertChunked(data.users, chunk => tx.insert(users).values(chunk))
-    await insertChunked(data.members, chunk =>
+    await insertInChunks(data.users, chunk => tx.insert(users).values(chunk))
+    await insertInChunks(data.members, chunk =>
       tx.insert(userMembers).values(chunk)
     )
     await tx.insert(challenges).values(data.challenges)
-    await insertChunked(data.solves, chunk => tx.insert(solves).values(chunk))
-    await insertChunked(data.scoreEvents, chunk =>
+    await insertInChunks(data.solves, chunk => tx.insert(solves).values(chunk))
+    await insertInChunks(data.scoreEvents, chunk =>
       tx.insert(scoreEvents).values(chunk)
     )
-    await insertChunked(data.submissions, chunk =>
+    await insertInChunks(data.submissions, chunk =>
       tx.insert(submissions).values(chunk)
     )
     await tx.insert(settings).values(data.settings)
