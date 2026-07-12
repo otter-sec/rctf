@@ -146,7 +146,7 @@ describe('buildProfileGraphData line splitting', () => {
 })
 
 describe('buildProfileGraphData solve dots', () => {
-  test('accumulates a running score with before + points = after', () => {
+  test('anchors dots to the total line with before + points = after', () => {
     const data = buildProfileGraphData(
       input({
         graphData: twoSamples,
@@ -159,11 +159,42 @@ describe('buildProfileGraphData solve dots', () => {
 
     expect(data.solveDots).toHaveLength(2)
     const [first, second] = data.solveDots
-    expect(first).toMatchObject({ scoreBefore: 0, points: 100, score: 100 })
-    expect(second).toMatchObject({ scoreBefore: 100, points: 50, score: 150 })
+    expect(first).toMatchObject({ scoreBefore: 500, points: 100, score: 600 })
+    expect(second).toMatchObject({ scoreBefore: 800, points: 50, score: 850 })
     for (const dot of data.solveDots) {
       expect(dot.scoreBefore + (dot.points ?? 0)).toBe(dot.score)
     }
+  })
+
+  test('a dot lands on the total line when a sample matches the solve time', () => {
+    const data = buildProfileGraphData(
+      input({
+        graphData: twoSamples,
+        solves: [solve({ id: 'a', createdAt: 200, points: 50 })],
+      })
+    )
+
+    expect(data.solveDots[0]).toMatchObject({ scoreBefore: 750, score: 800 })
+  })
+
+  test('later solves do not drift above a decaying total line', () => {
+    const data = buildProfileGraphData(
+      input({
+        graphData: {
+          points: [
+            { time: 100, score: 100 },
+            { time: 200, score: 140 },
+          ],
+        },
+        solves: [
+          solve({ id: 'a', createdAt: 100, points: 60 }),
+          solve({ id: 'b', createdAt: 200, points: 80 }),
+        ],
+      })
+    )
+
+    expect(data.solveDots[1]).toMatchObject({ scoreBefore: 60, score: 140 })
+    expect(data.yMax).toBe(140)
   })
 
   test('prefers awardedPoints over the challenge points value', () => {
@@ -176,13 +207,13 @@ describe('buildProfileGraphData solve dots', () => {
       })
     )
 
-    expect(data.solveDots[0]).toMatchObject({ points: 120, score: 120 })
+    expect(data.solveDots[0]).toMatchObject({ points: 120, score: 620 })
   })
 
-  test('accumulates in the order solves are given (caller must pre-sort)', () => {
+  test('falls back to a running sum when there is no line to anchor to', () => {
     const data = buildProfileGraphData(
       input({
-        graphData: twoSamples,
+        graphData: { points: [] },
         solves: [
           solve({ id: 'a', createdAt: 150, points: 100 }),
           solve({ id: 'b', createdAt: 250, points: 50 }),
@@ -191,6 +222,7 @@ describe('buildProfileGraphData solve dots', () => {
     )
 
     expect(data.solveDots.map(dot => dot.key)).toEqual(['solve-a', 'solve-b'])
+    expect(data.solveDots[0]).toMatchObject({ scoreBefore: 0, score: 100 })
     expect(data.solveDots[1]).toMatchObject({ scoreBefore: 100, score: 150 })
   })
 

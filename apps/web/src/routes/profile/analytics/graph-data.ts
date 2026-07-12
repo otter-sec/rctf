@@ -126,31 +126,34 @@ function buildStaticLine(
   })
 }
 
-function staticScoreBefore(
+function scoreBeforeSolve(
   time: number,
   points: number | null,
-  staticLine: GraphLinePoint[]
+  scoreLine: GraphLinePoint[]
 ): number {
-  const exact = exactScoreAt(time, staticLine)
+  const exact = exactScoreAt(time, scoreLine)
   if (exact !== null && points !== null) {
     return Math.max(exact - points, 0)
   }
-  return scoreAt(time, staticLine)
+  return scoreAt(time, scoreLine)
 }
 
 function buildSolveDots(
   solves: ProfileSolve[],
-  staticLine: GraphLinePoint[],
-  splitDynamicScore: boolean
+  scoreLine: GraphLinePoint[]
 ): GraphSolveDot[] {
   let runningScore = 0
 
   return solves.map(solve => {
     const points = solve.awardedPoints ?? solve.points
     const category = getProfileCategoryDisplay(solve.category)
+    // Anchor each dot to the team's real score line so decay is reflected. Accumulating
+    // each solve's current value instead would ignore that earlier solves have since
+    // decayed, drifting the dots above the line. The running sum is only a fallback for
+    // when there is no line to anchor to.
     const scoreBefore =
-      splitDynamicScore && staticLine.length > 0
-        ? staticScoreBefore(solve.createdAt, points, staticLine)
+      scoreLine.length > 0
+        ? scoreBeforeSolve(solve.createdAt, points, scoreLine)
         : runningScore
     const score = scoreBefore + (points ?? 0)
     runningScore = score
@@ -226,7 +229,10 @@ export function buildProfileGraphData(
     dynamicLine.length > 1 &&
     dynamicLine.some(point => point.score > 0)
 
-  const solveDots = buildSolveDots(solves, staticLine, splitDynamicScore)
+  const solveDots = buildSolveDots(
+    solves,
+    splitDynamicScore ? staticLine : totalLine
+  )
 
   const domainPoints = [
     ...(hasTotalLine ? totalLine : []),
