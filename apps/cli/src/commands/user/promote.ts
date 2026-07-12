@@ -1,4 +1,4 @@
-import { ALL_PERMISSIONS } from '@rctf/types'
+import { ALL_PERMISSIONS, normalizeEmail } from '@rctf/types'
 import { defineCommand } from 'citty'
 import { withDbAndRedis } from '../../lib/context'
 import { formatPerms, parsePermsList } from '../../lib/perms'
@@ -27,7 +27,7 @@ export default defineCommand({
       const { getUserByEmail, setUserPerms } =
         await import('@rctf/api/src/services/users')
 
-      const user = await getUserByEmail(db, args.email)
+      const user = await getUserByEmail(db, normalizeEmail(args.email))
       if (!user) {
         return undefined
       }

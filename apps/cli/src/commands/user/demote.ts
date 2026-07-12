@@ -1,3 +1,4 @@
+import { normalizeEmail } from '@rctf/types'
 import { defineCommand } from 'citty'
 import { withDbAndRedis } from '../../lib/context'
 
@@ -18,7 +19,7 @@ export default defineCommand({
       const { getUserByEmail, setUserPerms } =
         await import('@rctf/api/src/services/users')
 
-      const user = await getUserByEmail(db, args.email)
+      const user = await getUserByEmail(db, normalizeEmail(args.email))
       if (!user) {
         return undefined
       }
