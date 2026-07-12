@@ -290,9 +290,15 @@ const title = asInline(titleLabel)
     mobile.addEventListener('change', progress)
     progress()
 
-    const links = new Map(
-      [...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map(a => [hashId(a.hash), a])
-    )
+    const seen = new Map<string, number>()
+    const links = new Map<Element, HTMLAnchorElement>()
+    for (const a of nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")) {
+      const id = hashId(a.hash)
+      const nth = seen.get(id) ?? 0
+      seen.set(id, nth + 1)
+      const target = document.querySelectorAll(`[id="${CSS.escape(id)}"]`)[nth]
+      if (target) links.set(target, a)
+    }
     const articles = document.querySelectorAll('main article')
     const list = nav.querySelector(':scope > ul')
     const title = nav.querySelector('toc-title')
@@ -307,19 +313,17 @@ const title = asInline(titleLabel)
       details => ({
         details,
         active: details.open,
-        ids: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map(a =>
-          hashId(a.hash)
-        ),
+        anchors: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")],
       })
     )
 
-    const blockOf = new Map<Element, string>()
-    for (const id of links.keys()) {
-      const block = document.getElementById(id)?.closest('prose-content > *, article[data-url]')
-      if (block && !blockOf.has(block)) blockOf.set(block, id)
+    const blockOf = new Map<Element, Element>()
+    for (const target of links.keys()) {
+      const block = target.closest('prose-content > *, article[data-url]')
+      if (block && !blockOf.has(block)) blockOf.set(block, target)
     }
 
-    const sectionOf = new Map<Element, string>()
+    const sectionOf = new Map<Element, Element>()
     for (const article of articles) {
       let current = blockOf.get(article)
       for (const child of article.children) {
@@ -333,7 +337,7 @@ const title = asInline(titleLabel)
     }
 
     const visible = new Set<Element>()
-    let prevActive = new Set<string>()
+    let prevActive = new Set<Element>()
 
     const center = () => {
       const run = [...list.querySelectorAll<HTMLAnchorElement>('a[data-active]')]
@@ -366,15 +370,15 @@ const title = asInline(titleLabel)
         else visible.delete(entry.target)
       }
 
-      const activeIds = new Set<string>()
+      const activeTargets = new Set<Element>()
       for (const block of visible) {
-        const id = sectionOf.get(block)
-        if (id) activeIds.add(id)
+        const target = sectionOf.get(block)
+        if (target) activeTargets.add(target)
       }
 
       let firstActive: HTMLAnchorElement | undefined
-      for (const [id, link] of links) {
-        const on = activeIds.has(id)
+      for (const [target, link] of links) {
+        const on = activeTargets.has(target)
         link.toggleAttribute('data-active', on)
         link.removeAttribute('aria-current')
         if (on) firstActive ??= link
@@ -387,7 +391,7 @@ const title = asInline(titleLabel)
       }
 
       for (const group of groups) {
-        const active = group.ids.some(id => activeIds.has(id))
+        const active = group.anchors.some(a => a.hasAttribute('data-active'))
         if (active !== group.active) {
           group.active = active
           if (active) group.details.open = true
@@ -395,13 +399,13 @@ const title = asInline(titleLabel)
       }
 
       let grew = false
-      for (const id of activeIds) {
-        if (!prevActive.has(id)) {
+      for (const target of activeTargets) {
+        if (!prevActive.has(target)) {
           grew = true
           break
         }
       }
-      prevActive = activeIds
+      prevActive = activeTargets
       if (grew) center()
     })
 

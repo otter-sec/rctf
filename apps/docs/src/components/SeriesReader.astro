@@ -98,32 +98,32 @@
     sync(article, target === article ? '' : link.hash)
   })
 
-  const inBand = new Set<Element>()
-
   const atBottom = () => {
     const max = document.documentElement.scrollHeight - innerHeight
     return max > 0 && scrollY >= max - 2
   }
 
-  const update = () => {
-    const current = atBottom()
-      ? articles[articles.length - 1]
-      : articles.find(article => inBand.has(article))
-    if (current && current.dataset.url !== normalizePath(location.pathname)) {
-      sync(current)
-    }
+  const currentArticle = () => {
+    if (atBottom()) return articles[articles.length - 1]
+    const band = innerHeight * 0.2
+    return articles.find(article => {
+      const rect = article.getBoundingClientRect()
+      return rect.top <= band && rect.bottom > band
+    })
   }
 
-  const observer = new IntersectionObserver(
-    entries => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) inBand.add(entry.target)
-        else inBand.delete(entry.target)
-      }
-      update()
-    },
-    { rootMargin: '-20% 0px -79% 0px' }
-  )
-  for (const article of articles) observer.observe(article)
+  const update = () => {
+    const current = currentArticle()
+    if (!current || current.dataset.url === normalizePath(location.pathname)) {
+      return
+    }
+    const hash =
+      location.hash && hashTarget(location.hash)?.closest('article[data-url]') === current
+        ? location.hash
+        : ''
+    sync(current, hash)
+  }
+
   addEventListener('scroll', update, { passive: true })
+  update()
 </script>
