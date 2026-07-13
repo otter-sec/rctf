@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
@@ -167,6 +168,7 @@ const foldScoreEvents = (
   seed?: ReadonlyMap<string, string[]>
 ): GraphFold => {
   const userPoints = new Map<string, string[]>(seed)
+  const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
   let lastSample = graphNow(endTime)
 
   for (const row of rows) {
@@ -175,6 +177,8 @@ const foldScoreEvents = (
       continue
     }
     lastSample = Math.max(lastSample, eventAt)
+    const aligned = Math.ceil(eventAt / sampleTime) * sampleTime
+    const bucket = eventAt <= endTime ? Math.min(aligned, endTime) : aligned
 
     let points = userPoints.get(row.userid)
     if (!points) {
@@ -183,10 +187,10 @@ const foldScoreEvents = (
     }
 
     const score = lastPointScore(points) + row.pointsDelta
-    if (points[points.length - 2] === eventAt.toString()) {
+    if (points[points.length - 2] === bucket.toString()) {
       points[points.length - 1] = score.toString()
     } else {
-      points.push(eventAt.toString(), score.toString())
+      points.push(bucket.toString(), score.toString())
     }
   }
 

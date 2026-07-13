@@ -301,7 +301,8 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        ['user1', '1699990000,50,1699995000,100']
+        // both events land in the same 30min sample bucket
+        ['user1', '1701000000,100']
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -459,7 +460,7 @@ describe('leaderboard cache', () => {
           ids: ['evt1'],
         }),
         'events',
-        ['user1', '1699995000,75']
+        ['user1', '1701000000,75']
       )
     })
 
@@ -551,12 +552,44 @@ describe('leaderboard cache', () => {
           ids: ['evt3', 'evt4'],
         }),
         'events',
-        [
-          'user1',
-          '1699990000,30,1699995000,70',
-          'user2',
-          '1699990000,20,1699995000,50',
-        ]
+        ['user1', '1701000000,70', 'user2', '1701000000,50']
+      )
+    })
+
+    test('buckets dense score events to the graph sample grid', async () => {
+      const redis = createMockRedis()
+      const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
+      const base = 900 * sampleTime
+      // 40 events one minute apart: far denser than the sample grid
+      const db = createMockDb(
+        Array.from({ length: 40 }, (_, i) => ({
+          id: `evt${i}`,
+          userid: 'user1',
+          pointsDelta: 5,
+          eventAt: new Date(base + 1 + i * 60_000).toISOString(),
+        }))
+      )
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 200,
+            hadAnySolve: true,
+            lastSolve: base + 1 + 39 * 60_000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+        `${base + sampleTime},150,${base + 2 * sampleTime},200`
       )
     })
 
@@ -600,7 +633,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
       expect(redis.rctfReplaceGraph).toHaveBeenCalledTimes(1)
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1699990000,50'
+        '1701000000,50'
       )
 
       await cacheLeaderboardAndGraph(db, redis, data)
@@ -623,10 +656,11 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        ['user1', '1699990000,50,1699995000,75']
+        // the incremental event replaces the seed point in the same bucket
+        ['user1', '1701000000,75']
       )
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1699990000,50,1699995000,75'
+        '1701000000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: new Date(1699995000).toISOString(),
@@ -682,7 +716,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1699990000,75'
+        '1701000000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: eventTime,
@@ -746,7 +780,7 @@ describe('leaderboard cache', () => {
       }
     })
 
-    test('late deliveries keep their true times and idle ticks never regress them', async () => {
+    test('late deliveries land on the grid after the end and idle ticks never regress them', async () => {
       const originalEndTime = config.endTime
       const endTime = 1700000000
       config.endTime = endTime
@@ -772,9 +806,12 @@ describe('leaderboard cache', () => {
         ])
         const data = userData(75, endTime + 5000)
 
+        // in-time bucket clamps to endTime; the late event stays a distinct
+        // point on the next grid line
+        const lateBucket = Math.ceil((endTime + 5000) / 1_800_000) * 1_800_000
         await cacheLeaderboardAndGraph(db, redis, data)
         expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-          `${endTime - 10000},50,${endTime + 5000},75`
+          `${endTime},50,${lateBucket},75`
         )
         expect(Number(redis.store.get('graph-update'))).toBe(endTime + 5000)
 
@@ -784,7 +821,7 @@ describe('leaderboard cache', () => {
         const [entry] = await getGraphForEntries(db, redis, [
           { id: 'user1', name: 'User One', score: 75 },
         ])
-        expect(entry!.points[0]).toEqual({ time: endTime + 5000, score: 75 })
+        expect(entry!.points[0]).toEqual({ time: lateBucket, score: 75 })
       } finally {
         config.endTime = originalEndTime
       }

@@ -13,8 +13,10 @@ const getDb = () => createDatabase(config.database.sql).db
 
 // enough scored users that the old per-row VALUES form
 const SCALE = 15_000
+const GRAPH_SAMPLE = Math.max(1000, config.leaderboard.graphSampleTime)
 const T0 = config.startTime + 1_800_000 * 2
-const T1 = T0 + 1000
+const T1 = T0 + GRAPH_SAMPLE
+const bucketOf = (ms: number) => Math.ceil(ms / GRAPH_SAMPLE) * GRAPH_SAMPLE
 const isoAt = (ms: number) => new Date(ms).toISOString()
 
 const division = () => Object.keys(config.divisions)[0]!
@@ -245,7 +247,9 @@ describe('leaderboard caching at scale', () => {
     await cacheLeaderboardAndGraph(db, redis, data)
 
     expect(await redis.get('graph-source')).toBe('events')
-    expect(await redis.hget('graph-data', real[0]!.id)).toBe(`${T0},25`)
+    expect(await redis.hget('graph-data', real[0]!.id)).toBe(
+      `${bucketOf(T0)},25`
+    )
 
     await redis.hset('graph-data', 'sentinel', 'x')
 
@@ -260,9 +264,11 @@ describe('leaderboard caching at scale', () => {
 
     expect(await redis.hget('graph-data', 'sentinel')).toBe('x')
     expect(await redis.hget('graph-data', real[0]!.id)).toBe(
-      `${T0},25,${T1},50`
+      `${bucketOf(T0)},25,${bucketOf(T1)},50`
     )
-    expect(await redis.hget('graph-data', real[1]!.id)).toBe(`${T0},40`)
+    expect(await redis.hget('graph-data', real[1]!.id)).toBe(
+      `${bucketOf(T0)},40`
+    )
     expect(await redis.get('graph-source')).toBe('events')
   })
 })

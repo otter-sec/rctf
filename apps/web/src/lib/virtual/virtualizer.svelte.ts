@@ -5,7 +5,6 @@ import {
   Virtualizer,
   type VirtualItem,
 } from '@tanstack/virtual-core'
-import { flushSync } from 'svelte'
 import type { Attachment } from 'svelte/attachments'
 
 const DEFAULT_OVERSCAN = 10
@@ -15,7 +14,6 @@ export interface VirtualizerConfig {
   rowHeight: number
   overscan?: number
   scrollMargin?: number
-  getItemKey?: (index: number) => number | string
 }
 
 export interface VirtualList {
@@ -44,18 +42,27 @@ export function createVirtualizer(
     estimateSize: () => rowHeight,
     overscan: initial.overscan ?? DEFAULT_OVERSCAN,
     scrollMargin: initial.scrollMargin ?? 0,
-    getItemKey: initial.getItemKey ?? (index => index),
     observeElementRect,
     observeElementOffset,
     scrollToFn: elementScroll,
+    // scroll events arrive faster than frames!!!
     onChange: (inst, sync) => {
       if (sync) {
-        flushSync(() => mirror(inst))
+        scheduleMirror(inst)
       } else {
         mirror(inst)
       }
     },
   })
+
+  let mirrorFrame: number | undefined
+  function scheduleMirror(inst: Virtualizer<HTMLElement, Element>) {
+    if (mirrorFrame !== undefined) return
+    mirrorFrame = requestAnimationFrame(() => {
+      mirrorFrame = undefined
+      mirror(inst)
+    })
+  }
 
   function mirror(inst: Virtualizer<HTMLElement, Element>) {
     virtualItems = inst.getVirtualItems()
@@ -67,6 +74,10 @@ export function createVirtualizer(
     scrollElement = node
     return () => {
       scrollElement = null
+      if (mirrorFrame !== undefined) {
+        cancelAnimationFrame(mirrorFrame)
+        mirrorFrame = undefined
+      }
     }
   }
 
@@ -78,7 +89,6 @@ export function createVirtualizer(
       count: c.count,
       overscan: c.overscan ?? DEFAULT_OVERSCAN,
       scrollMargin: c.scrollMargin ?? 0,
-      getItemKey: c.getItemKey ?? instance.options.getItemKey,
     })
     instance._willUpdate()
     mirror(instance)

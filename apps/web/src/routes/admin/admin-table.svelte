@@ -87,7 +87,7 @@
     const result = evaluateLoadMore({
       lastVisibleIndex: last.index,
       loadedCount: visibleCount,
-      overscan,
+      prefetchRows: overscan,
       hasNextPage,
       isFetching: isFetchingNextPage,
       latched,

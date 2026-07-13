@@ -9,8 +9,6 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
  * https://developers.cloudflare.com/turnstile/reference/content-security-policy
  */
 
-// SvelteKit's config is also evaluated by Node-based tooling such as the
-// Svelte language server, so avoid relying on Bun's runtime-only global here.
 const dev = process.env.NODE_ENV === 'development'
 
 const config: Config = {

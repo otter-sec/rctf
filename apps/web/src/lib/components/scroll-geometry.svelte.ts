@@ -21,9 +21,15 @@ export function createScrollGeometry(
     const node = getNode()
     if (!node) return
 
+    // scroll events arrive faster than frames!!!
+    let frame: number | undefined
     const updateOffset = () => {
-      scrollTop = node.scrollTop
-      scrollLeft = node.scrollLeft
+      if (frame !== undefined) return
+      frame = requestAnimationFrame(() => {
+        frame = undefined
+        scrollTop = node.scrollTop
+        scrollLeft = node.scrollLeft
+      })
     }
     const updateSize = () => {
       scrollHeight = node.scrollHeight
@@ -59,6 +65,7 @@ export function createScrollGeometry(
       node.removeEventListener('scroll', updateOffset)
       observer.disconnect()
       childWatcher.disconnect()
+      if (frame !== undefined) cancelAnimationFrame(frame)
     }
   })
 

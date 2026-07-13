@@ -1,29 +1,20 @@
 <script module lang="ts">
+  import { monotoneCubicPath, type Point } from '$lib/chart/path'
+
   export interface SparklinePoint {
     time: number
     score: number
   }
-</script>
-
-<script lang="ts">
-  import { monotoneCubicPath, type Point } from '$lib/chart/path'
-
-  interface Props {
-    data: SparklinePoint[]
-    id: string
-    color: string
-  }
-
-  let { data, id, color }: Props = $props()
 
   const WIDTH = 96
   const HEIGHT = 40
   const PAD_X = 2
   const PAD_Y = 4
+  const pathCache = new WeakMap<SparklinePoint[], string>()
 
-  const gradientId = $derived(`spark-${id}`)
-
-  const pathD = $derived.by(() => {
+  function getPath(data: SparklinePoint[]): string {
+    const cached = pathCache.get(data)
+    if (cached !== undefined) return cached
     if (data.length < 2) return ''
 
     let minT = data[0]!.time
@@ -41,7 +32,6 @@
     const sRange = maxS - minS
     const innerW = WIDTH - PAD_X * 2
     const innerH = HEIGHT - PAD_Y * 2
-
     const points: Point[] = data.map(point => ({
       x: PAD_X + ((point.time - minT) / tRange) * innerW,
       y:
@@ -49,8 +39,23 @@
           ? HEIGHT / 2
           : PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
     }))
-    return monotoneCubicPath(points)
-  })
+    const path = monotoneCubicPath(points)
+    pathCache.set(data, path)
+    return path
+  }
+</script>
+
+<script lang="ts">
+  interface Props {
+    data: SparklinePoint[]
+    id: string
+    color: string
+  }
+
+  let { data, id, color }: Props = $props()
+
+  const gradientId = $derived(`spark-${id}`)
+  const pathD = $derived(getPath(data))
 </script>
 
 {#if pathD}

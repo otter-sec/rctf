@@ -64,16 +64,9 @@
     points: { time: number; score: number }[]
   }
 
-  const sortedSeries = $derived(
-    graphData.map(entry => ({
-      ...entry,
-      points: [...entry.points].sort((a, b) => a.time - b.time),
-    }))
-  )
-
   const windowed = $derived.by<WindowedSeries[]>(() => {
     const out: WindowedSeries[] = []
-    for (const entry of sortedSeries) {
+    for (const entry of graphData) {
       if (!visibleTeamIds.has(entry.id)) continue
       const isSelf = entry.id === selfId
       const rank = teamRanks.get(entry.id) ?? 0
@@ -84,7 +77,7 @@
         rank,
         isSelf,
         isContext: contextTeamIds.has(entry.id),
-        points: entry.points,
+        points: [...entry.points].sort((a, b) => a.time - b.time),
       })
     }
     return out

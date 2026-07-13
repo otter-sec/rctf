@@ -1,7 +1,7 @@
 export interface LoadMoreInput {
   lastVisibleIndex: number
   loadedCount: number
-  overscan: number
+  prefetchRows: number
   hasNextPage: boolean
   isFetching: boolean
   latched: boolean
@@ -16,21 +16,22 @@ export function evaluateLoadMore(input: LoadMoreInput): LoadMoreResult {
   const {
     lastVisibleIndex,
     loadedCount,
-    overscan,
+    prefetchRows,
     hasNextPage,
     isFetching,
     latched,
   } = input
 
-  if (latched) {
-    return { shouldFetch: false, latched: isFetching }
+  if (latched && isFetching) {
+    return { shouldFetch: false, latched: true }
   }
 
   if (isFetching || !hasNextPage) {
     return { shouldFetch: false, latched: false }
   }
 
-  const crossed = loadedCount > 0 && lastVisibleIndex >= loadedCount - overscan
+  const crossed =
+    loadedCount > 0 && lastVisibleIndex >= loadedCount - prefetchRows
   if (!crossed) {
     return { shouldFetch: false, latched: false }
   }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import ScoresSparkline from '$lib/chart/sparkline.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
-  import Avatar from '$lib/ui/avatar.svelte'
+  import LazyAvatar from '$lib/ui/lazy-avatar.svelte'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { ScoresData } from '../model/data.svelte'
   import { getVisibleSolveCount } from '../model/transforms'
@@ -52,9 +52,7 @@
 </rank-cluster>
 
 <team-avatar>
-  {#key entry.id}
-    <Avatar src={entry.avatarUrl} name={entry.name} />
-  {/key}
+  <LazyAvatar src={entry.avatarUrl} name={entry.name} />
 </team-avatar>
 
 <team-text>
@@ -68,7 +66,11 @@
         alt="{entry.countryCode} flag"
         title={entry.countryCode}
         data-flag
+        loading="lazy"
         decoding="async"
+        fetchpriority="low"
+        width="20"
+        height="20"
         draggable="false"
       />
     {/if}

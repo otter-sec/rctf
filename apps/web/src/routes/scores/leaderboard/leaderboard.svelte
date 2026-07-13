@@ -8,6 +8,7 @@
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { getCategoryConfig } from '$lib/utils/categories'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
+  import { createSlotRows } from '$lib/virtual/slot-rows.svelte'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
   import ScoresGraph from '../graph/graph.svelte'
   import type { ScoresData } from '../model/data.svelte'
@@ -23,8 +24,10 @@
   import {
     SCORE_DIAGONAL_OVERFLOW_PX,
     SCORE_HEADER_HEIGHT_PX,
+    SCORE_PREFETCH_ROWS,
     SCORE_ROW_GAP_PX,
     SCORE_ROW_HEIGHT_FULL_PX,
+    SCORE_TELEPORT_REFRESH_MS,
     SCORE_VIRTUAL_OVERSCAN,
   } from './constants'
   import { createHoverController } from './hover-controller.svelte'
@@ -61,15 +64,19 @@
   })
   const headerOffset = $derived(isDesktop ? SCORE_HEADER_HEIGHT_PX : 0)
 
-  const getItemKey = (index: number) => data.entries[index]?.id ?? index
-
   const virtual = createVirtualizer(() => ({
-    count: data.entries.length,
+    count: Math.max(data.entries.length, data.total),
     rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
     overscan: SCORE_VIRTUAL_OVERSCAN,
     scrollMargin: headerOffset,
-    getItemKey,
   }))
+
+  const slotRows = createSlotRows({
+    items: () => virtual.virtualItems,
+    isScrolling: () => virtual.isScrolling,
+    count: () => Math.max(data.entries.length, data.total),
+    refreshMs: SCORE_TELEPORT_REFRESH_MS,
+  })
 
   const contentWidth = $derived(
     (urlState.viewMode === 'categories'
@@ -79,8 +86,11 @@
       SCORE_DIAGONAL_OVERFLOW_PX
   )
 
+  const GRAPH_SCROLL_REFRESH_MS = 100
   let lastWindow = { minRank: 0, maxRank: 0 }
+  const windowGate = { at: 0 }
   const liveWindow = $derived.by(() => {
+    const scrolling = virtual.isScrolling
     const next = computeVisibleRankWindow({
       scrollTop: geometry.scrollTop,
       clientHeight: geometry.clientHeight,
@@ -89,11 +99,17 @@
       loadedCount: data.entries.length,
     })
     if (
-      lastWindow.minRank !== next.minRank ||
-      lastWindow.maxRank !== next.maxRank
+      lastWindow.minRank === next.minRank &&
+      lastWindow.maxRank === next.maxRank
     ) {
-      lastWindow = next
+      return lastWindow
     }
+    const now = performance.now()
+    if (scrolling && now - windowGate.at < GRAPH_SCROLL_REFRESH_MS) {
+      return lastWindow
+    }
+    windowGate.at = now
+    lastWindow = next
     return lastWindow
   })
 
@@ -116,11 +132,11 @@
     const loadedCount = data.entries.length
     const hasNextPage = data.hasNextPage
     const isFetching = data.isFetchingNextPage
-    if (!last) return
+    if (!last || data.loadError) return
     const result = evaluateLoadMore({
       lastVisibleIndex: last.index,
       loadedCount,
-      overscan: SCORE_VIRTUAL_OVERSCAN,
+      prefetchRows: SCORE_PREFETCH_ROWS,
       hasNextPage,
       isFetching,
       latched,
@@ -226,8 +242,7 @@
 {/snippet}
 
 {#snippet skeletonRow()}
-  <row-team></row-team>
-  <row-content></row-content>
+  <row-skeleton aria-hidden="true"></row-skeleton>
 {/snippet}
 
 {#snippet graphPanel()}
@@ -303,13 +318,13 @@
       {/if}
 
       <virtual-list style:block-size={`${virtual.totalSize}px`}>
-        {#each virtual.virtualItems as item (item.key)}
+        {#each slotRows.rows as { slot, item } (slot)}
           {@const entry = data.entries[item.index]}
           {@const coveredBySticky = stickySelf && item.index === selfRow?.index}
           <virtual-row
             data-loading={entry || coveredBySticky ? undefined : true}
             data-team-id={entry?.id}
-            style:--row-y={`${item.start - headerOffset}px`}
+            style:translate={`0 ${item.start - headerOffset}px`}
           >
             {#if coveredBySticky}
               <!-- sticky self row -->
@@ -548,6 +563,13 @@
     position: relative;
     inline-size: 100%;
     contain: layout style;
+    /* not one huge repeating-linear-gradient because firefox misrenders giant gradient primitives??? */
+    background-image: linear-gradient(
+      to bottom,
+      var(--background-l2) 0 var(--score-row-height),
+      transparent var(--score-row-height)
+    );
+    background-size: 100% var(--score-row-height-full);
   }
 
   virtual-row {
@@ -557,8 +579,8 @@
     display: flex;
     inline-size: 100%;
     block-size: var(--score-row-height-full);
-    translate: 0 var(--row-y);
     contain: layout style paint;
+    background: var(--background-l0);
 
     &:has(:global(a:focus-visible))::after {
       content: '';
@@ -569,6 +591,24 @@
       border-radius: var(--radius-lg);
       pointer-events: none;
     }
+  }
+
+  @keyframes row-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  row-team,
+  row-content {
+    animation: row-fade-in 150ms ease-out;
+  }
+
+  row-skeleton {
+    display: block;
+    inline-size: 100%;
+    block-size: var(--score-row-height);
+    background: var(--background-l2);
   }
 
   row-team {
@@ -724,6 +764,10 @@
 
     virtual-row {
       inline-size: auto;
+
+      &[data-loading] {
+        inline-size: 100%;
+      }
     }
 
     row-team {

@@ -4,7 +4,7 @@ import { describe, expect, test } from 'bun:test'
 const base: LoadMoreInput = {
   lastVisibleIndex: 95,
   loadedCount: 100,
-  overscan: 10,
+  prefetchRows: 10,
   hasNextPage: true,
   isFetching: false,
   latched: false,
@@ -28,15 +28,28 @@ describe('evaluateLoadMore', () => {
     })
   })
 
-  test('re-arms only after isFetching falls', () => {
-    const settling = { ...base, isFetching: false, latched: true }
-    expect(evaluateLoadMore(settling)).toEqual({
+  test('re-fires as soon as the fetch settles with the viewport still parked past the threshold', () => {
+    const settled = { ...base, isFetching: false, latched: true }
+    expect(evaluateLoadMore(settled)).toEqual({
+      shouldFetch: true,
+      latched: true,
+    })
+  })
+
+  test('releases the latch without firing when the viewport left the threshold', () => {
+    const settled = {
+      ...base,
+      lastVisibleIndex: 50,
+      isFetching: false,
+      latched: true,
+    }
+    expect(evaluateLoadMore(settled)).toEqual({
       shouldFetch: false,
       latched: false,
     })
   })
 
-  test('completes a full fire → fetch → settle → re-fire cycle', () => {
+  test('completes a full fire → fetch → land → re-fire cycle', () => {
     let state = { ...base }
     const fire = evaluateLoadMore(state)
     expect(fire.shouldFetch).toBe(true)
@@ -44,17 +57,16 @@ describe('evaluateLoadMore', () => {
     state = { ...state, isFetching: true, latched: fire.latched }
     expect(evaluateLoadMore(state).shouldFetch).toBe(false)
 
-    state = { ...state, isFetching: false, latched: true }
-    const settle = evaluateLoadMore(state)
-    expect(settle).toEqual({ shouldFetch: false, latched: false })
-
     state = {
       ...state,
+      isFetching: false,
       loadedCount: 200,
       lastVisibleIndex: 195,
-      latched: false,
     }
-    expect(evaluateLoadMore(state).shouldFetch).toBe(true)
+    expect(evaluateLoadMore(state)).toEqual({
+      shouldFetch: true,
+      latched: true,
+    })
   })
 
   test('never fires when there is no next page', () => {
@@ -84,7 +96,7 @@ describe('evaluateLoadMore', () => {
     ).toEqual({ shouldFetch: false, latched: false })
   })
 
-  test('fires when fewer rows than the overscan are loaded', () => {
+  test('fires when fewer rows than the prefetch window are loaded', () => {
     expect(
       evaluateLoadMore({ ...base, loadedCount: 5, lastVisibleIndex: 4 })
     ).toEqual({ shouldFetch: true, latched: true })
@@ -100,5 +112,20 @@ describe('evaluateLoadMore', () => {
     expect(
       evaluateLoadMore({ ...base, loadedCount: 100, lastVisibleIndex: 89 })
     ).toEqual({ shouldFetch: false, latched: false })
+  })
+
+  test('can keep multiple pages buffered ahead of the visible range', () => {
+    const buffered = {
+      ...base,
+      loadedCount: 500,
+      prefetchRows: 300,
+    }
+
+    expect(
+      evaluateLoadMore({ ...buffered, lastVisibleIndex: 200 }).shouldFetch
+    ).toBe(true)
+    expect(
+      evaluateLoadMore({ ...buffered, lastVisibleIndex: 199 }).shouldFetch
+    ).toBe(false)
   })
 })

@@ -160,10 +160,11 @@
         <svg viewBox="0 0 24 24" data-mark="blood" data-medal={cell.blood + 1}>
           <path fill="currentColor" d={BLOOD_PATHS[cell.blood]} />
         </svg>
-      {:else if cell.solved}
-        <cell-circle data-solved></cell-circle>
       {:else}
-        <cell-circle data-unsolved></cell-circle>
+        <cell-circle
+          data-solved={cell.solved || undefined}
+          data-unsolved={!cell.solved || undefined}
+        ></cell-circle>
       {/if}
     </solve-cell>
   {/if}
