@@ -102,7 +102,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
    ```
 
    :::tip[One-shot dev setup]
-   For a fresh local environment, `$ <red>bun</red> run dev:mock` runs the migrations, resets and seeds the database, and starts the development servers. The seed includes an admin, 250 teams, 20 challenges, and sample solves and submissions. The console prints login URLs for the admin and one team.
+   For a fresh local environment, `$ <red>bun</red> run dev:mock` runs the migrations, resets and seeds the database, and starts the development servers. The seed includes an admin, 1000 teams, 38 challenges, and sample solves and submissions. The console prints login URLs for the admin and one team.
    :::
 ::::
 
