@@ -1,6 +1,9 @@
 <script lang="ts">
   import { useClientConfig } from '$lib/query/config'
-  import { useLeaderboardChallenges, useSelfUserGraph } from '$lib/query/leaderboard'
+  import {
+    useLeaderboardChallenges,
+    useSelfUserGraph,
+  } from '$lib/query/leaderboard'
   import { useCurrentUser } from '$lib/query/user'
   import Button from '$lib/ui/button.svelte'
   import Card from '$lib/ui/card.svelte'
@@ -38,7 +41,9 @@
     { value: 'settings', label: 'Settings' },
   ]
 
-  const status = $derived(isLoading ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready')
+  const status = $derived(
+    isLoading ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready'
+  )
 </script>
 
 <svelte:head>

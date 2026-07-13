@@ -52,7 +52,9 @@
   }: Props = $props()
 
   const configQuery = useClientConfig()
-  const lightWordmark = $derived(configQuery.data?.logoLightUrl || wordmarkLight)
+  const lightWordmark = $derived(
+    configQuery.data?.logoLightUrl || wordmarkLight
+  )
   const darkWordmark = $derived(configQuery.data?.logoDarkUrl || wordmarkDark)
 
   const selfId = $derived(selfTeam?.id ?? null)
@@ -76,13 +78,21 @@
   )
 
   const visibleGraphIds = $derived(
-    getVisibleGraphIds(teamIds, selfId, options.graphTeamCount, options.showSelf)
+    getVisibleGraphIds(
+      teamIds,
+      selfId,
+      options.graphTeamCount,
+      options.showSelf
+    )
   )
   const graphVisibleTeamIds = $derived(new Set(visibleGraphIds))
   const graphContextTeamIds = $derived(
-    deriveContextTeamIds(options, visibleGraphIds, displayTeamIds, selfId) ?? new Set<string>()
+    deriveContextTeamIds(options, visibleGraphIds, displayTeamIds, selfId) ??
+      new Set<string>()
   )
-  const graphTeamRanks = $derived(new Map(teams.map(team => [team.id, team.rank])))
+  const graphTeamRanks = $derived(
+    new Map(teams.map(team => [team.id, team.rank]))
+  )
 
   const dateInfo = $derived.by(() => {
     if (startTime === null || endTime === null) return null
@@ -96,7 +106,9 @@
 <screenshot-preview data-shadow={shadow || undefined} data-screenshot-container>
   {#if options.showHeader}
     <preview-header>
-      <logo-light><img src={lightWordmark} alt="Logo" data-wordmark /></logo-light>
+      <logo-light
+        ><img src={lightWordmark} alt="Logo" data-wordmark /></logo-light
+      >
       <logo-dark><img src={darkWordmark} alt="Logo" data-wordmark /></logo-dark>
       <title-block>
         <ctf-name>{ctfName}</ctf-name>
@@ -149,7 +161,9 @@
 
     {#each displayTeams as team (team.id)}
       {@const rankVariant = getRankVariant(team.rank, team.isCurrentUser)}
-      {@const flagFilename = team.countryCode ? countryCodeToFlagFilename(team.countryCode) : null}
+      {@const flagFilename = team.countryCode
+        ? countryCodeToFlagFilename(team.countryCode)
+        : null}
       {@const isSelfSeparator =
         options.showSelf && team.id === selfId && !listedTopIds.has(team.id)}
 
@@ -161,7 +175,10 @@
         </self-separator>
       {/if}
 
-      <preview-row data-rank={rankVariant} data-current={team.isCurrentUser || undefined}>
+      <preview-row
+        data-rank={rankVariant}
+        data-current={team.isCurrentUser || undefined}
+      >
         <team-card data-with-matrix={options.showMatrix || undefined}>
           <team-rank><span>#{team.rank}</span></team-rank>
 
@@ -179,7 +196,10 @@
             <team-name>{team.name}</team-name>
             {#if options.showFlags && flagFilename && team.countryCode}
               <team-meta>
-                <img src="/flags/{flagFilename}" alt="{team.countryCode} flag" />
+                <img
+                  src="/flags/{flagFilename}"
+                  alt="{team.countryCode} flag"
+                />
                 {#if options.showStatuses && team.statusText}
                   <span>&middot;</span>
                   <span>{team.statusText}</span>
@@ -194,13 +214,21 @@
             <score-value>
               <strong>{team.score.toLocaleString()} <span>pts</span></strong>
               {#if options.showSolveCount}
-                <small>{team.solveCount} solve{team.solveCount === 1 ? '' : 's'}</small>
+                <small
+                  >{team.solveCount} solve{team.solveCount === 1
+                    ? ''
+                    : 's'}</small
+                >
               {/if}
             </score-value>
 
             {#if options.showSparklines && team.sparklineData.length > 0}
               <sparkline-slot>
-                <ScoresSparkline data={team.sparklineData} id={team.id} color={team.color} />
+                <ScoresSparkline
+                  data={team.sparklineData}
+                  id={team.id}
+                  color={team.color}
+                />
               </sparkline-slot>
             {/if}
           </score-block>
@@ -209,7 +237,10 @@
         {#if options.showMatrix && categoryGroups.length > 0}
           <matrix-row data-current={team.isCurrentUser || undefined}>
             {#each categoryGroups as group (group.category)}
-              {@const stats = getCategoryStatsForSolves(solvesByTeam.get(team.id) ?? null, group)}
+              {@const stats = getCategoryStatsForSolves(
+                solvesByTeam.get(team.id) ?? null,
+                group
+              )}
               <matrix-cell data-category-color={group.config.color}>
                 {#if stats.total === 0}
                   <svg data-unsolved viewBox="0 0 24 24">
@@ -422,7 +453,8 @@
       flex: 1;
       block-size: 0;
       border: none;
-      border-block-start: 1px solid color-mix(in oklab, var(--foreground-l5) 30%, transparent);
+      border-block-start: 1px solid
+        color-mix(in oklab, var(--foreground-l5) 30%, transparent);
     }
   }
 

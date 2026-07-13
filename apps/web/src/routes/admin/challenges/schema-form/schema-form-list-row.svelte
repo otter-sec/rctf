@@ -28,7 +28,12 @@
   data-invalid={status === 'invalid' ? '' : undefined}
   data-incomplete={status === 'incomplete' ? '' : undefined}
 >
-  <button type="button" class="open" data-empty={label.trim() ? undefined : ''} onclick={onOpen}>
+  <button
+    type="button"
+    class="open"
+    data-empty={label.trim() ? undefined : ''}
+    onclick={onOpen}
+  >
     <row-label>
       {label.trim() || '(unnamed)'}
       {#if status === 'invalid'}
@@ -40,13 +45,21 @@
     {#if status}
       <row-status
         aria-hidden="true"
-        title={status === 'invalid' ? 'Contains errors' : 'Required fields missing'}
+        title={status === 'invalid'
+          ? 'Contains errors'
+          : 'Required fields missing'}
       >
         {status === 'invalid' ? '!' : '●'}
       </row-status>
     {/if}
   </button>
-  <button type="button" class="remove" aria-label={removeLabel} onclick={onRemove} {disabled}>
+  <button
+    type="button"
+    class="remove"
+    aria-label={removeLabel}
+    onclick={onRemove}
+    {disabled}
+  >
     <IconX />
   </button>
 </list-row>

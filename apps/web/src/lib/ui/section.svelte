@@ -12,7 +12,9 @@
 
 <ui-section>
   <section-header>{title}</section-header>
-  <section-content data-flush={flush || undefined}>{@render children()}</section-content>
+  <section-content data-flush={flush || undefined}
+    >{@render children()}</section-content
+  >
 </ui-section>
 
 <style>

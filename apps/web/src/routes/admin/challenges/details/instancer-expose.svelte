@@ -5,7 +5,12 @@
   import Input from '$lib/ui/input.svelte'
   import { type MenuItem } from '$lib/ui/menu.svelte'
   import FieldSelect from './field-select.svelte'
-  import { addExpose, removeExpose, updateExpose, type ExposeConfig } from './instancer-config'
+  import {
+    addExpose,
+    removeExpose,
+    updateExpose,
+    type ExposeConfig,
+  } from './instancer-config'
 
   interface Props {
     expose: ExposeConfig[]
@@ -150,7 +155,9 @@
         </form-field>
 
         <form-field>
-          <field-label>Display title <field-hint>(optional)</field-hint></field-label>
+          <field-label
+            >Display title <field-hint>(optional)</field-hint></field-label
+          >
           <Input
             type="text"
             placeholder="Web interface"
@@ -163,7 +170,9 @@
         <form-field>
           <field-label>Visibility</field-label>
           <FieldSelect
-            label={(current.shouldDisplay ?? true) ? 'Visible to players' : 'Hidden from players'}
+            label={(current.shouldDisplay ?? true)
+              ? 'Visible to players'
+              : 'Hidden from players'}
             items={visibilityItems}
             {disabled}
           />

@@ -38,12 +38,20 @@
 
     &[data-edge='top'] {
       inset-block-start: var(--fade-inset-top);
-      background: linear-gradient(to bottom, var(--fade-color, var(--background-l2)), transparent);
+      background: linear-gradient(
+        to bottom,
+        var(--fade-color, var(--background-l2)),
+        transparent
+      );
     }
 
     &[data-edge='bottom'] {
       inset-block-end: var(--fade-inset-bottom);
-      background: linear-gradient(to top, var(--fade-color, var(--background-l2)), transparent);
+      background: linear-gradient(
+        to top,
+        var(--fade-color, var(--background-l2)),
+        transparent
+      );
     }
 
     @supports (animation-timeline: scroll()) {

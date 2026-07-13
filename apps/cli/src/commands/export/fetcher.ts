@@ -71,7 +71,7 @@ export function createFetcher(
         const res = await fetch(url)
         const data = await res.json()
         return { url, data, ok: res.ok }
-      } catch (err) {
+      } catch {
         if (attempt < retries - 1) {
           const delay = 1000 * Math.pow(2, attempt)
           console.log(`  Retry ${attempt + 1} for ${url} in ${delay}ms`)
@@ -98,7 +98,7 @@ export function createFetcher(
           console.log(`  Retry ${attempt + 1} for ${url} in ${delay}ms`)
           await new Promise(r => setTimeout(r, delay))
         }
-      } catch (err) {
+      } catch {
         if (attempt < retries - 1) {
           const delay = 1000 * Math.pow(2, attempt)
           console.log(`  Retry ${attempt + 1} for ${url} in ${delay}ms`)

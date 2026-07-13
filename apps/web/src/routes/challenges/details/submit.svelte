@@ -1,8 +1,18 @@
 <script lang="ts">
-  import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute, type Challenge } from '@rctf/types'
+  import {
+    BadAlreadySolvedChallenge,
+    GoodFlag,
+    SubmitFlagRoute,
+    type Challenge,
+  } from '@rctf/types'
   import { showApiError } from '$lib/api'
   import { useApiForm } from '$lib/forms/use-api-form.svelte'
-  import { IconCheck, IconInfo, IconPaperPlaneTilt, IconSignIn } from '$lib/icons'
+  import {
+    IconCheck,
+    IconInfo,
+    IconPaperPlaneTilt,
+    IconSignIn,
+  } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
   import { toast } from '$lib/toast'
@@ -22,7 +32,9 @@
   const configQuery = useClientConfig()
   const clientConfig = $derived(configQuery.data)
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const flagPlaceholder = $derived(clientConfig?.flagFormatPlaceholder ?? 'flag{...}')
+  const flagPlaceholder = $derived(
+    clientConfig?.flagFormatPlaceholder ?? 'flag{...}'
+  )
 
   const endTime = $derived(clientConfig?.endTime ?? Number.POSITIVE_INFINITY)
 

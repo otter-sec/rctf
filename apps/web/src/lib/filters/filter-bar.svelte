@@ -41,7 +41,9 @@
   const timeError = $derived(
     timeFilter ? resolveTimeRangeFilter(timeFilter, ctfStart).error : undefined
   )
-  const timeSummary = $derived(timeFilter ? formatTimeRangeSummary(timeFilter, ctfStart) : '')
+  const timeSummary = $derived(
+    timeFilter ? formatTimeRangeSummary(timeFilter, ctfStart) : ''
+  )
   const timeActive = $derived(!!timeFilter && hasTimeRangeFilter(timeFilter))
   const timeFamily = $derived<TimeFilterFamily | undefined>(
     timeFilter

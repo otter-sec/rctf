@@ -21,7 +21,12 @@ const sanitizeOptions = (
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'fatal'
 export type LogPrefix =
-  'console' | 'navigation' | 'network' | 'admin-bot' | 'challenge' | 'dialog'
+  | 'console'
+  | 'navigation'
+  | 'network'
+  | 'admin-bot'
+  | 'challenge'
+  | 'dialog'
 
 export abstract class OutputHandler {
   protected readonly maxValueChars: number | null
@@ -121,6 +126,7 @@ export class BufferedOutputHandler extends OutputHandler {
 
     // null = disable limit (do not do that)
     this.maxLines = maxLines === undefined ? defaultMaxLogLines : maxLines
+    // oxlint-disable-next-line unicorn/no-new-array -- this intentionally allocates a fixed-size ring buffer
     this.buffer = this.maxLines !== null ? new Array(this.maxLines) : []
   }
 
@@ -149,12 +155,13 @@ export class BufferedOutputHandler extends OutputHandler {
       return this.buffer.join('\n')
     }
 
-    const result = new Array(this.count)
+    const result: string[] = []
     for (let i = 0; i < this.count; i++) {
-      result[i] =
+      result.push(
         this.buffer[
           (this.head - this.count + i + this.maxLines) % this.maxLines
-        ]
+        ]!
+      )
     }
     return result.join('\n')
   }

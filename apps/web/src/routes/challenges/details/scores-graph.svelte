@@ -1,6 +1,8 @@
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
-  import ChartTooltip, { type TooltipRow } from '$lib/chart/chart-tooltip.svelte'
+  import ChartTooltip, {
+    type TooltipRow,
+  } from '$lib/chart/chart-tooltip.svelte'
   import Line from '$lib/chart/line.svelte'
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
@@ -71,18 +73,22 @@
 
   const maxScore = $derived.by(() => {
     let max = 0
-    for (const entry of rendered) for (const point of entry.points) max = Math.max(max, point.score)
+    for (const entry of rendered)
+      for (const point of entry.points) max = Math.max(max, point.score)
     return max
   })
 
   const maxTime = $derived.by(() => {
     let max = -Infinity
-    for (const entry of rendered) for (const point of entry.points) max = Math.max(max, point.time)
+    for (const entry of rendered)
+      for (const point of entry.points) max = Math.max(max, point.time)
     return max
   })
 
   const xMax = $derived(
-    Number.isFinite(maxTime) ? Math.max(maxTime, startTime) : Math.max(endTime, startTime)
+    Number.isFinite(maxTime)
+      ? Math.max(maxTime, startTime)
+      : Math.max(endTime, startTime)
   )
   const yMax = $derived(maxScore > 0 ? maxScore : 1)
 
@@ -90,7 +96,9 @@
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = HEIGHT - PAD_BOTTOM
 
-  const xScale = $derived(createTimeScale([startTime, xMax], [innerLeft, innerRight]))
+  const xScale = $derived(
+    createTimeScale([startTime, xMax], [innerLeft, innerRight])
+  )
   const yScale = $derived(createLinearScale([0, yMax], [innerBottom, PAD_TOP]))
   const ticks = $derived(ctfRelativeTicks(startTime, xMax, 7))
 
@@ -123,7 +131,10 @@
         width: isSelf ? 3 : 2,
         baseOpacity: isSelf || focusIds.has(entry.id) ? 1 : 0.3,
         points: entry.points,
-        scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
+        scaled: entry.points.map(p => ({
+          x: xScale(p.time),
+          y: yScale(p.score),
+        })),
       })
     }
     return out
@@ -131,7 +142,8 @@
 
   const renderSeries = $derived.by<RenderSeries[]>(() => {
     const out = scaledSeries.map(entry => {
-      const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
+      const dimmed =
+        hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
       return { ...entry, opacity: dimmed ? 0.15 : entry.baseOpacity }
     })
     return out.sort((a, b) => {
@@ -143,7 +155,9 @@
     })
   })
 
-  const nearestSeries = $derived<Series[]>(scaledSeries.map(s => ({ id: s.id, points: s.scaled })))
+  const nearestSeries = $derived<Series[]>(
+    scaledSeries.map(s => ({ id: s.id, points: s.scaled }))
+  )
 
   const nearest = $derived.by(() => {
     if (!hover || nearestSeries.length === 0) return null
@@ -193,18 +207,40 @@
       onpointermove={handleMove}
       onpointerleave={handleLeave}
     >
-      <Axis {ticks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
+      <Axis
+        {ticks}
+        scale={xScale}
+        y={innerBottom}
+        left={innerLeft}
+        right={innerRight}
+      />
 
       {#each renderSeries as series (series.id)}
         <g data-series-role={series.role}>
-          <Line points={series.scaled} width={series.width} opacity={series.opacity} />
+          <Line
+            points={series.scaled}
+            width={series.width}
+            opacity={series.opacity}
+          />
         </g>
       {/each}
 
       {#if hoverPx && hoveredSeries}
-        <line data-crosshair x1={hoverPx.x} y1={PAD_TOP} x2={hoverPx.x} y2={innerBottom} />
+        <line
+          data-crosshair
+          x1={hoverPx.x}
+          y1={PAD_TOP}
+          x2={hoverPx.x}
+          y2={innerBottom}
+        />
         <g data-series-role={hoveredSeries.role}>
-          <circle data-hover-dot cx={hoverPx.x} cy={hoverPx.y} r="3.5" fill="currentColor" />
+          <circle
+            data-hover-dot
+            cx={hoverPx.x}
+            cy={hoverPx.y}
+            r="3.5"
+            fill="currentColor"
+          />
         </g>
       {/if}
     </svg>

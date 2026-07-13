@@ -146,13 +146,22 @@
         bind:value={search}
       />
     </search-field>
-    <FilterBar {families} {filterFor} {hasActiveFilters} {onClearAll} {fetching} />
+    <FilterBar
+      {families}
+      {filterFor}
+      {hasActiveFilters}
+      {onClearAll}
+      {fetching}
+    />
   </teams-toolbar>
 {/snippet}
 
 {#snippet sortHeader(col: AdminTeamSortBy, label: string)}
   {@const active = sort.by === col}
-  <th-cell data-active={active || undefined} data-order={active ? sort.order : undefined}>
+  <th-cell
+    data-active={active || undefined}
+    data-order={active ? sort.order : undefined}
+  >
     <button type="button" onclick={() => toggleSort(col)}>
       <span>{label}</span>
       <IconCaretDown aria-hidden="true" data-arrow />
@@ -170,10 +179,14 @@
 {/snippet}
 
 {#snippet teamCell(row: TeamRow)}
-  {@const name = row.kind === 'registered' ? row.team.name : row.verification.name}
+  {@const name =
+    row.kind === 'registered' ? row.team.name : row.verification.name}
   <team-cell>
     <avatar-slot>
-      <Avatar src={row.kind === 'registered' ? row.team.avatarUrl : null} {name} />
+      <Avatar
+        src={row.kind === 'registered' ? row.team.avatarUrl : null}
+        {name}
+      />
     </avatar-slot>
     {#if row.kind === 'registered'}
       <a href="/profile/{row.team.id}">{name}</a>
@@ -184,7 +197,8 @@
 {/snippet}
 
 {#snippet emailCell(row: TeamRow)}
-  {@const email = row.kind === 'registered' ? row.team.email : row.verification.email}
+  {@const email =
+    row.kind === 'registered' ? row.team.email : row.verification.email}
   {#if email}
     <email-button data-tip="Copy email">
       <button type="button" onclick={() => onCopyEmail(email)}>{email}</button>
@@ -198,7 +212,11 @@
   {@const timestamp = rowDisplayTime(row)}
   {@const offset = formatCtfOffset(timestamp, startTime)}
   <time-cell data-tip={utcLabel(row, timestamp)}>
-    <local>{row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}</local>
+    <local
+      >{row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(
+        timestamp
+      )}</local
+    >
     {#if offset}<offset-label>{offset}</offset-label>{/if}
   </time-cell>
 {/snippet}
@@ -223,14 +241,26 @@
     <cell
       ><truncate
         >{divisionLabel(
-          item.kind === 'registered' ? item.team.division : item.verification.division
+          item.kind === 'registered'
+            ? item.team.division
+            : item.verification.division
         )}</truncate
       ></cell
     >
     <cell>{@render emailCell(item)}</cell>
-    <cell><nums>{item.kind === 'registered' ? item.team.score.toLocaleString() : '-'}</nums></cell>
     <cell
-      ><nums>{item.kind === 'registered' ? item.team.solveCount.toLocaleString() : '-'}</nums></cell
+      ><nums
+        >{item.kind === 'registered'
+          ? item.team.score.toLocaleString()
+          : '-'}</nums
+      ></cell
+    >
+    <cell
+      ><nums
+        >{item.kind === 'registered'
+          ? item.team.solveCount.toLocaleString()
+          : '-'}</nums
+      ></cell
     >
     <cell>{@render timeCell(item)}</cell>
     <cell>
@@ -351,7 +381,9 @@
   teams-head,
   teams-row {
     display: grid;
-    grid-template-columns: minmax(15rem, 1.4fr) 8rem 9rem minmax(12rem, 1fr) 6rem 6rem 12rem 11rem;
+    grid-template-columns:
+      minmax(15rem, 1.4fr) 8rem 9rem minmax(12rem, 1fr)
+      6rem 6rem 12rem 11rem;
     inline-size: 100%;
     user-select: none;
   }
@@ -427,7 +459,11 @@
     background: var(--background-l1);
 
     &[data-even] {
-      background: color-mix(in srgb, var(--background-l2) 55%, var(--background-l1));
+      background: color-mix(
+        in srgb,
+        var(--background-l2) 55%,
+        var(--background-l1)
+      );
     }
 
     &:hover {

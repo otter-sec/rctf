@@ -100,7 +100,8 @@
         {/if}
       {:else}
         <ctftime-hint>
-          Link your CTFtime account to enable CTFtime login and display your team on your profile.
+          Link your CTFtime account to enable CTFtime login and display your
+          team on your profile.
         </ctftime-hint>
         <ButtonCtftime
           clientId={clientConfig.ctftime.clientId}

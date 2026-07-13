@@ -24,14 +24,22 @@
 
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = $derived(Math.max(PAD_TOP, height - PAD_BOTTOM))
-  const rowHeight = $derived(data.length > 0 ? (innerBottom - PAD_TOP) / data.length : 0)
+  const rowHeight = $derived(
+    data.length > 0 ? (innerBottom - PAD_TOP) / data.length : 0
+  )
 
   const chartMax = $derived(maxChartValue(data, item => item.max))
-  const xScale = $derived(createLinearScale([0, chartMax], [PAD_LEFT, innerRight]))
+  const xScale = $derived(
+    createLinearScale([0, chartMax], [PAD_LEFT, innerRight])
+  )
   const xTicks = $derived(niceLinearTicks(chartMax, 4))
 
-  const activeIndex = $derived(hover.activeKey === null ? null : Number(hover.activeKey))
-  const active = $derived(activeIndex === null ? null : (data[activeIndex] ?? null))
+  const activeIndex = $derived(
+    hover.activeKey === null ? null : Number(hover.activeKey)
+  )
+  const active = $derived(
+    activeIndex === null ? null : (data[activeIndex] ?? null)
+  )
 
   function rowY(index: number): number {
     return PAD_TOP + index * rowHeight + ROW_INSET
@@ -61,7 +69,14 @@
         {@const barHeight = Math.max(0, rowHeight - ROW_INSET * 2)}
         {@const trackWidth = Math.max(0, xScale(item.max) - PAD_LEFT)}
         {@const fillWidth = Math.max(0, xScale(item.value) - PAD_LEFT)}
-        <rect data-track x={PAD_LEFT} {y} width={trackWidth} height={barHeight} rx="4" />
+        <rect
+          data-track
+          x={PAD_LEFT}
+          {y}
+          width={trackWidth}
+          height={barHeight}
+          rx="4"
+        />
         {#if fillWidth > 0}
           <rect
             data-fill
@@ -73,7 +88,13 @@
             rx="4"
           />
         {/if}
-        <text data-row-label x={PAD_LEFT - 10} y={y + barHeight / 2} dy={3} text-anchor="end">
+        <text
+          data-row-label
+          x={PAD_LEFT - 10}
+          y={y + barHeight / 2}
+          dy={3}
+          text-anchor="end"
+        >
           {item.label}
         </text>
         <rect
@@ -86,12 +107,23 @@
         />
       {/each}
 
-      <line data-axis-rule x1={PAD_LEFT} y1={innerBottom} x2={innerRight} y2={innerBottom} />
+      <line
+        data-axis-rule
+        x1={PAD_LEFT}
+        y1={innerBottom}
+        x2={innerRight}
+        y2={innerBottom}
+      />
     </svg>
   </div>
 
   {#if active && hover.tip}
-    <ChartTip x={hover.tip.x} y={hover.tip.y} chartWidth={width} chartHeight={height}>
+    <ChartTip
+      x={hover.tip.x}
+      y={hover.tip.y}
+      chartWidth={width}
+      chartHeight={height}
+    >
       <span data-heading>{active.label}</span>
       <span data-detail
         >{active.value.toLocaleString()}/{active.max.toLocaleString()} challenges</span

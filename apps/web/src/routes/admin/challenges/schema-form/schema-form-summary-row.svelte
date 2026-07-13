@@ -12,7 +12,14 @@
     onSelect: (path: string[]) => void
   }
 
-  let { schema, value, path, required = false, isNullable = false, onSelect }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    required = false,
+    isNullable = false,
+    onSelect,
+  }: Props = $props()
 
   const errorsContext = getSchemaFormErrors()
 
@@ -22,7 +29,9 @@
     const collection = collectionSummary(schema, value)
     if (collection !== null) return collection
     if (isNullable) {
-      return value === null || value === undefined ? 'Not configured' : 'Configured'
+      return value === null || value === undefined
+        ? 'Not configured'
+        : 'Configured'
     }
     return ''
   })
@@ -46,7 +55,9 @@
   {#if status}
     <row-status
       aria-hidden="true"
-      title={status === 'invalid' ? 'Contains errors' : 'Required fields missing'}
+      title={status === 'invalid'
+        ? 'Contains errors'
+        : 'Required fields missing'}
     >
       {status === 'invalid' ? '!' : '●'}
     </row-status>

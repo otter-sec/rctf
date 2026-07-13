@@ -6,7 +6,14 @@
 
   interface Props extends FieldProps {}
 
-  let { schema, value, path, onChange, onSelect, disabled = false }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    onChange,
+    onSelect,
+    disabled = false,
+  }: Props = $props()
 
   const isPrimitive = $derived(classifyHeavy(schema) !== 'array')
 </script>

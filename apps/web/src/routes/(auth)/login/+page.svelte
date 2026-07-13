@@ -39,10 +39,15 @@
     goto(getRedirectPath(page.url.searchParams.get('next'), page.url.origin))
   }
 
-  async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
+  async function handleCtftimeDone(data: {
+    ctftimeToken: string
+    ctftimeName: string
+  }) {
     await ctftimeLoginAction.run(
       async () => {
-        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        const response = await apiRequest(LoginRoute, {
+          ctftimeToken: data.ctftimeToken,
+        })
         if (response.kind === GoodLogin.kind) {
           handleLoginSuccess(response.data.authToken)
         } else if (response.kind === BadUnknownUser.kind) {
@@ -109,7 +114,10 @@
         </p>
       {/if}
       <form onsubmit={handleSubmit}>
-        <Field label="Team token" error={form.errors.teamToken ?? form.errors._form}>
+        <Field
+          label="Team token"
+          error={form.errors.teamToken ?? form.errors._form}
+        >
           {#snippet children({ id, describedBy })}
             <Input
               {id}
@@ -119,7 +127,9 @@
               autocomplete="current-password"
               required
               aria-describedby={describedBy}
-              aria-invalid={!!form.errors.teamToken || !!form.errors._form || undefined}
+              aria-invalid={!!form.errors.teamToken ||
+                !!form.errors._form ||
+                undefined}
               bind:value={form.data.teamToken}
               oninput={() => form.validateField('teamToken')}
             />
@@ -143,7 +153,10 @@
           disabled={isPending}
         />
       {/if}
-      <footer-note>Don't have an account? <a href="/register">Register here</a>.</footer-note>
+      <footer-note
+        >Don't have an account? <a href="/register">Register here</a
+        >.</footer-note
+      >
     </auth-page>
   </Card>
 {/if}

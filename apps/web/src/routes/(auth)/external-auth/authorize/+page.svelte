@@ -27,13 +27,17 @@
   const redirectUri = $derived(page.url.searchParams.get('redirect_uri') ?? '')
   const stateParam = $derived(page.url.searchParams.get('state'))
 
-  let client = $state<{ id: string; name: string; redirectUri: string } | null>(null)
+  let client = $state<{ id: string; name: string; redirectUri: string } | null>(
+    null
+  )
   let loadError = $state<string | null>(null)
   let approving = $state(false)
 
   onMount(() => {
     if (!isAuthenticated()) {
-      goto('/login?next=' + encodeURIComponent(page.url.pathname + page.url.search))
+      goto(
+        '/login?next=' + encodeURIComponent(page.url.pathname + page.url.search)
+      )
       return
     }
     loadClient()
@@ -45,13 +49,16 @@
       return
     }
     try {
-      const response = await apiRequest(GetExternalAuthClientRouteV2, { id: clientId })
+      const response = await apiRequest(GetExternalAuthClientRouteV2, {
+        id: clientId,
+      })
       if (response.kind !== GoodExternalAuthClient.kind) {
         loadError = 'This integration is not recognized.'
         return
       }
       if (response.data.redirectUri !== redirectUri) {
-        loadError = 'The redirect URI does not match what was registered for this integration.'
+        loadError =
+          'The redirect URI does not match what was registered for this integration.'
         return
       }
       if (!isHttpUrl(response.data.redirectUri)) {
@@ -60,7 +67,10 @@
       }
       client = response.data
     } catch (error) {
-      loadError = error instanceof Error ? error.message : 'Failed to look up integration.'
+      loadError =
+        error instanceof Error
+          ? error.message
+          : 'Failed to look up integration.'
     }
   }
 
@@ -85,7 +95,9 @@
       showApiError(response)
       approving = false
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Authorization failed')
+      toast.error(
+        error instanceof Error ? error.message : 'Authorization failed'
+      )
       approving = false
     }
   }
@@ -125,11 +137,13 @@
         <spinner-row><Spinner /></spinner-row>
       {:else}
         <p>
-          <strong>{client.name}</strong> wants to sign you in as <strong>{user.name}</strong>. After
-          you authorize, it will receive a token that lets it act on your account with the same
-          access you have.
+          <strong>{client.name}</strong> wants to sign you in as
+          <strong>{user.name}</strong>. After you authorize, it will receive a
+          token that lets it act on your account with the same access you have.
         </p>
-        <p data-part="redirect-note">Redirects to <code>{client.redirectUri}</code></p>
+        <p data-part="redirect-note">
+          Redirects to <code>{client.redirectUri}</code>
+        </p>
         <Button onclick={approve} disabled={approving}>
           {#if approving}
             <Spinner />

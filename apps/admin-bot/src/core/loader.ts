@@ -69,7 +69,7 @@ export class ChallengeLoader {
         )
       }
 
-      // this input is trusted, so rce is fine :thumbsup:
+      // oxlint-disable-next-line no-eval -- the challenge code is trusted
       eval(transpiled)(
         moduleExports,
         customRequire,

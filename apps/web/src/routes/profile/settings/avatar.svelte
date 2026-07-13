@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { ClientConfig, UserProfile } from '@rctf/types'
-  import { GoodAvatarUpdated, ProtectedAction, UpdateAvatarRoute } from '@rctf/types'
+  import {
+    GoodAvatarUpdated,
+    ProtectedAction,
+    UpdateAvatarRoute,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
   import AvatarUpload from '$lib/components/avatar-upload.svelte'
@@ -19,7 +23,10 @@
   const queryClient = useQueryClient()
   const avatarAction = createAsyncAction()
 
-  async function submitAvatar(args: { avatar?: File }, successMessage: string): Promise<boolean> {
+  async function submitAvatar(
+    args: { avatar?: File },
+    successMessage: string
+  ): Promise<boolean> {
     const result = await avatarAction.run(
       async () => {
         const response = await apiRequest(UpdateAvatarRoute, args)
@@ -36,7 +43,8 @@
     return result ?? false
   }
 
-  const uploadAvatar = (file: File) => submitAvatar({ avatar: file }, 'Avatar updated!')
+  const uploadAvatar = (file: File) =>
+    submitAvatar({ avatar: file }, 'Avatar updated!')
   const removeAvatar = () => submitAvatar({}, 'Avatar removed!')
 </script>
 

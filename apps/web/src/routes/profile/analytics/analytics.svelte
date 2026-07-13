@@ -49,20 +49,37 @@
   const sortedSolves = $derived(sortProfileSolves(solves))
 
   const categoryStats = $derived(
-    buildCategoryStats({ challenges: boardChallenges, dynamicScores, solves: sortedSolves })
+    buildCategoryStats({
+      challenges: boardChallenges,
+      dynamicScores,
+      solves: sortedSolves,
+    })
   )
   const categoryPointsData = $derived(
-    buildCategoryPointsData(categoryStats, sortedSolves, boardChallenges, dynamicScores)
+    buildCategoryPointsData(
+      categoryStats,
+      sortedSolves,
+      boardChallenges,
+      dynamicScores
+    )
   )
   const difficultyData = $derived(
     buildDifficultyData({ challenges: staticChallenges, solves: sortedSolves })
   )
-  const activityDomain = $derived(buildActivityDomain({ clientConfig, solves: sortedSolves }))
+  const activityDomain = $derived(
+    buildActivityDomain({ clientConfig, solves: sortedSolves })
+  )
   const cadenceData = $derived(
-    buildCadenceData({ ctfStart: startTime, domain: activityDomain, solves: sortedSolves })
+    buildCadenceData({
+      ctfStart: startTime,
+      domain: activityDomain,
+      solves: sortedSolves,
+    })
   )
   const timelineData = $derived(buildTimelineData(sortedSolves))
-  const timelineCategories = $derived(buildTimelineCategories(timelineData, categoryStats))
+  const timelineCategories = $derived(
+    buildTimelineCategories(timelineData, categoryStats)
+  )
 </script>
 
 <profile-analytics>
@@ -82,7 +99,10 @@
 
   <section>
     <h2>Points by category</h2>
-    <ProfileCategoryChart data={categoryPointsData} emptyMessage="No points data." />
+    <ProfileCategoryChart
+      data={categoryPointsData}
+      emptyMessage="No points data."
+    />
   </section>
 
   <section>
@@ -114,7 +134,8 @@
 
   section {
     padding-block: var(--space-s);
-    border-block-end: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    border-block-end: 1px solid
+      color-mix(in srgb, var(--border) 50%, transparent);
 
     &:first-child {
       padding-block-start: 0;

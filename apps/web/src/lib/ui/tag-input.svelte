@@ -55,7 +55,10 @@
   }
 </script>
 
-<tag-input data-invalid={invalid || undefined} data-disabled={disabled || undefined}>
+<tag-input
+  data-invalid={invalid || undefined}
+  data-disabled={disabled || undefined}
+>
   {#each value as item, index (index)}
     {#if children}
       {@render children({ item, index, remove: () => remove(index) })}
@@ -63,7 +66,11 @@
       <Chip>
         <span class="label">{item}</span>
         {#if !disabled}
-          <button type="button" onclick={() => remove(index)} aria-label="Remove {item}">
+          <button
+            type="button"
+            onclick={() => remove(index)}
+            aria-label="Remove {item}"
+          >
             <IconX />
           </button>
         {/if}

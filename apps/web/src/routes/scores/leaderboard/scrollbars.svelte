@@ -53,7 +53,10 @@
 
   const thumbHeight = $derived(
     trackHeight > 0 && scrollHeight > 0
-      ? Math.min(trackHeight, Math.max(MIN_THUMB, (clientHeight / scrollHeight) * trackHeight))
+      ? Math.min(
+          trackHeight,
+          Math.max(MIN_THUMB, (clientHeight / scrollHeight) * trackHeight)
+        )
       : 0
   )
   const thumbY = $derived(
@@ -61,7 +64,10 @@
   )
   const thumbWidth = $derived(
     trackWidth > 0 && scrollWidth > 0
-      ? Math.min(trackWidth, Math.max(MIN_THUMB, (clientWidth / scrollWidth) * trackWidth))
+      ? Math.min(
+          trackWidth,
+          Math.max(MIN_THUMB, (clientWidth / scrollWidth) * trackWidth)
+        )
       : 0
   )
   const thumbX = $derived(
@@ -76,7 +82,8 @@
     thumb.setPointerCapture(down.pointerId)
     const startPointer = axis === 'y' ? down.clientY : down.clientX
     const startScroll = axis === 'y' ? node.scrollTop : node.scrollLeft
-    const range = axis === 'y' ? trackHeight - thumbHeight : trackWidth - thumbWidth
+    const range =
+      axis === 'y' ? trackHeight - thumbHeight : trackWidth - thumbWidth
     const maxScroll = axis === 'y' ? maxScrollY : maxScrollX
     const onMove = (move: PointerEvent) => {
       if (range <= 0) return

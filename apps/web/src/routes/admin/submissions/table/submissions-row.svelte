@@ -4,7 +4,12 @@
   import Avatar from '$lib/ui/avatar.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
-  import { ipInfoUrl, isRealIp, kindLabel, type Submission } from '../submissions-model'
+  import {
+    ipInfoUrl,
+    isRealIp,
+    kindLabel,
+    type Submission,
+  } from '../submissions-model'
   import SubmissionsResult from './submissions-result.svelte'
 
   type Props = {
@@ -20,7 +25,9 @@
   const category = $derived(getCategoryConfig(submission.challengeCategory))
   const timestamp = $derived(new Date(submission.createdAt).getTime())
   const ctfOffset = $derived(formatCtfOffset(timestamp, ctfStartTime))
-  const isoLabel = $derived(`UTC ${new Date(submission.createdAt).toISOString()}`)
+  const isoLabel = $derived(
+    `UTC ${new Date(submission.createdAt).toISOString()}`
+  )
 
   function toggle() {
     onToggle(submission.id)
@@ -43,7 +50,11 @@
   onkeydown={onKeydown}
 >
   <row-cell data-col="expander">
-    <expander-button role="presentation" data-open={expanded || undefined} aria-hidden="true">
+    <expander-button
+      role="presentation"
+      data-open={expanded || undefined}
+      aria-hidden="true"
+    >
       <IconCaretRight />
     </expander-button>
   </row-cell>
@@ -70,7 +81,10 @@
     <avatar-slot>
       <Avatar src={submission.userAvatarUrl} name={submission.userName} />
     </avatar-slot>
-    <a href="/profile/{submission.userId}" onclick={event => event.stopPropagation()}>
+    <a
+      href="/profile/{submission.userId}"
+      onclick={event => event.stopPropagation()}
+    >
       {submission.userName}
     </a>
     {#if submission.userBanned}
@@ -113,7 +127,9 @@
 <style>
   submission-row {
     display: grid;
-    grid-template-columns: 2.75rem 16rem 14rem minmax(11rem, 1fr) 11rem 9rem 10rem;
+    grid-template-columns:
+      2.75rem 16rem 14rem minmax(11rem, 1fr)
+      11rem 9rem 10rem;
     inline-size: 100%;
     block-size: 3rem;
     cursor: pointer;

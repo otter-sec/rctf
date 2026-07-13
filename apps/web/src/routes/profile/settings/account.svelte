@@ -42,7 +42,8 @@
   let { user, clientConfig }: Props = $props()
 
   const queryClient = useQueryClient()
-  const invalidateUser = () => queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+  const invalidateUser = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
 
   const profileForm = useApiForm(UpdateUserRouteV2, {
     defaults: { countryCode: null },
@@ -59,7 +60,9 @@
         toast.success('Email updated!')
         invalidateUser()
       } else if (response.kind === GoodVerifySent.kind) {
-        toast.success('Verification email sent. Check your inbox to finish updating your email.')
+        toast.success(
+          'Verification email sent. Check your inbox to finish updating your email.'
+        )
       }
     },
     onError: response => showApiError(response),
@@ -118,7 +121,9 @@
       }
     )
   )
-  const emailHasChanges = $derived(isEmailDirty(emailForm.data.email, user.email))
+  const emailHasChanges = $derived(
+    isEmailDirty(emailForm.data.email, user.email)
+  )
 
   const loading = $derived(
     profileForm.submitting || emailForm.submitting || deleteEmailAction.pending
@@ -126,9 +131,13 @@
 
   const emailFieldError = $derived(
     emailForm.errors.email ??
-      (!emailValid && emailNonEmpty ? 'Please enter a valid email address' : null)
+      (!emailValid && emailNonEmpty
+        ? 'Please enter a valid email address'
+        : null)
   )
-  const emailLabel = $derived(emailButtonLabel(emailForm.data.email, canDeleteEmail))
+  const emailLabel = $derived(
+    emailButtonLabel(emailForm.data.email, canDeleteEmail)
+  )
 
   async function deleteEmail() {
     await deleteEmailAction.run(
@@ -204,7 +213,11 @@
       {/snippet}
     </Field>
 
-    <Field label="Status" description="Max 60 characters." error={profileForm.errors.statusText}>
+    <Field
+      label="Status"
+      description="Max 60 characters."
+      error={profileForm.errors.statusText}
+    >
       {#snippet children({ id, describedBy })}
         <Input
           {id}
@@ -238,7 +251,9 @@
   <form onsubmit={submitEmail}>
     <Field
       label="Email"
-      description={canDeleteEmail ? 'Optional — leave empty to remove.' : undefined}
+      description={canDeleteEmail
+        ? 'Optional — leave empty to remove.'
+        : undefined}
       error={emailFieldError}
     >
       {#snippet children({ id, describedBy })}

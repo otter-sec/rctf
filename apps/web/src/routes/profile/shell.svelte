@@ -54,7 +54,11 @@
       {@render header()}
     </profile-header-slot>
 
-    <profile-tabbar role="tablist" aria-label="Profile sections" {@attach rovingFocus}>
+    <profile-tabbar
+      role="tablist"
+      aria-label="Profile sections"
+      {@attach rovingFocus}
+    >
       {#each tabs as tab (tab.value)}
         <button
           type="button"
@@ -177,7 +181,8 @@
     }
   }
 
-  profile-page[data-active-tab='challenges'] profile-panel[data-tab='challenges'],
+  profile-page[data-active-tab='challenges']
+    profile-panel[data-tab='challenges'],
   profile-page[data-active-tab='analytics'] profile-panel[data-tab='analytics'],
   profile-page[data-active-tab='settings'] profile-panel[data-tab='settings'] {
     display: flex;
@@ -204,8 +209,10 @@
       grid-area: 1 / 2 / -1 / 3;
     }
 
-    profile-page[data-desktop-column='settings'] profile-panel[data-tab='settings'],
-    profile-page[data-desktop-column='analytics'] profile-panel[data-tab='analytics'] {
+    profile-page[data-desktop-column='settings']
+      profile-panel[data-tab='settings'],
+    profile-page[data-desktop-column='analytics']
+      profile-panel[data-tab='analytics'] {
       padding-block-start: var(--space-m);
     }
 
@@ -217,8 +224,10 @@
       display: none;
     }
 
-    profile-page[data-desktop-column='settings'] profile-panel[data-tab='settings'],
-    profile-page[data-desktop-column='analytics'] profile-panel[data-tab='analytics'] {
+    profile-page[data-desktop-column='settings']
+      profile-panel[data-tab='settings'],
+    profile-page[data-desktop-column='analytics']
+      profile-panel[data-tab='analytics'] {
       grid-area: aside;
       display: flex;
       flex-direction: column;
@@ -229,7 +238,8 @@
       flex-direction: column;
     }
 
-    profile-page[data-desktop-column='settings'] profile-panel[data-tab='analytics'] {
+    profile-page[data-desktop-column='settings']
+      profile-panel[data-tab='analytics'] {
       display: none;
     }
 

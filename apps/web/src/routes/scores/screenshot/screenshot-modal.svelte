@@ -51,7 +51,9 @@
   const exportAction = createAsyncAction()
 
   async function handleExport() {
-    const container = previewRef?.querySelector<HTMLElement>('[data-screenshot-container]')
+    const container = previewRef?.querySelector<HTMLElement>(
+      '[data-screenshot-container]'
+    )
     if (!container) {
       toast.error('Preview not ready')
       return
@@ -59,9 +61,14 @@
 
     await exportAction.run(
       async () => {
-        const { domToPng, domToJpeg, domToWebp } = await import('modern-screenshot')
-        const exportFn = { png: domToPng, jpeg: domToJpeg, webp: domToWebp }[exportSettings.format]
-        const dataUrl = await exportFn(container, { scale: exportSettings.scale })
+        const { domToPng, domToJpeg, domToWebp } =
+          await import('modern-screenshot')
+        const exportFn = { png: domToPng, jpeg: domToJpeg, webp: domToWebp }[
+          exportSettings.format
+        ]
+        const dataUrl = await exportFn(container, {
+          scale: exportSettings.scale,
+        })
 
         // Fetch into a blob first; webkit chokes on very large data URLs in anchors.
         const blob = await (await fetch(dataUrl)).blob()
@@ -92,7 +99,11 @@
       <modal-body>
         <modal-sidebar>
           <sidebar-scroll>
-            <ScreenshotOptionsPanel {options} {exportSettings} hasSelf={selfTeam !== null} />
+            <ScreenshotOptionsPanel
+              {options}
+              {exportSettings}
+              hasSelf={selfTeam !== null}
+            />
           </sidebar-scroll>
           <export-bar>
             <Button onclick={handleExport} disabled={exportAction.pending}>

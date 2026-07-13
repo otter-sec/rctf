@@ -47,8 +47,12 @@
 
   const configQuery = useClientConfig()
   const currentUserQuery = useCurrentUser()
-  const canReadChallenges = $derived(hasPermissions(currentUserQuery.data, Permissions.challsRead))
-  const canReadUsers = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canReadChallenges = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.challsRead)
+  )
+  const canReadUsers = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.usersWrite)
+  )
   const canReadSubmissions = $derived(canReadChallenges && canReadUsers)
   const challengesQuery = useAdminChallenges(() => canReadSubmissions)
 
@@ -69,19 +73,25 @@
 
   const revealAfterLoading = submissionsQuery.isPending
   const submissions = $derived(
-    (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
+    (submissionsQuery.data?.pages.flatMap(page => page.submissions) ??
+      []) as Submission[]
   )
   const showError = $derived(!!submissionsQuery.error && !submissionsQuery.data)
 
   const teamSearch = $derived(filters.team.search.trim())
   const teamSuggestionsQuery = useAdminUsersInfinite(
-    () => ({ limit: 16, search: teamSearch.length >= 2 ? teamSearch : undefined }),
+    () => ({
+      limit: 16,
+      search: teamSearch.length >= 2 ? teamSearch : undefined,
+    }),
     () => canReadSubmissions && teamSearch.length >= 2
   )
   const teamSuggestions = $derived(
     teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []
   )
-  const teamOptions = $derived(uniqueTeamOptions([...filters.team.selected, ...teamSuggestions]))
+  const teamOptions = $derived(
+    uniqueTeamOptions([...filters.team.selected, ...teamSuggestions])
+  )
 
   const allChallengeOptions = $derived<ChallengeOption[]>(
     (challengesQuery.data ?? []).map(challenge => ({
@@ -102,7 +112,9 @@
   })
   const categoryOptions = $derived.by(() => {
     const categories = new Set(
-      (challengesQuery.data ?? []).map(challenge => challenge.category.trim()).filter(Boolean)
+      (challengesQuery.data ?? [])
+        .map(challenge => challenge.category.trim())
+        .filter(Boolean)
     )
     return [...categories]
       .sort(compareCategories)
@@ -124,7 +136,8 @@
       categoryOptions,
       divisionOptions,
       challengesLoading: () => challengesQuery.isPending,
-      teamOptionsLoading: () => teamSuggestionsQuery.isFetching && teamOptions.length === 0,
+      teamOptionsLoading: () =>
+        teamSuggestionsQuery.isFetching && teamOptions.length === 0,
     })
   )
   const filterFor = (family: ValueFilterFamily): MultiFilter<unknown> =>
@@ -147,7 +160,9 @@
             avatarUrl: deepLinkTeamQuery.data.avatarUrl,
           }
         : null
-    const challenge = allChallengeOptions.find(option => option.id === deepLinkChallengeId) ?? null
+    const challenge =
+      allChallengeOptions.find(option => option.id === deepLinkChallengeId) ??
+      null
 
     deepLinkLatch = applyDeepLinkFilters(filters, deepLinkLatch, {
       team: { id: deepLinkTeamId, option: team },
@@ -233,7 +248,10 @@
         {/snippet}
 
         {#snippet detailRow(submission)}
-          <SubmissionsDetailRow {submission} onClose={() => (expandedId = null)} />
+          <SubmissionsDetailRow
+            {submission}
+            onClose={() => (expandedId = null)}
+          />
         {/snippet}
 
         {#snippet emptyState(filtered)}

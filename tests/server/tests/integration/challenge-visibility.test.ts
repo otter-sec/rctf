@@ -20,7 +20,6 @@ import { getApp, request } from '../../app'
 import {
   expectResponse,
   generateAuthToken,
-  generateChallenge,
   generateRealTestUser,
 } from '../../util'
 

@@ -5,7 +5,8 @@
     const root = document.documentElement
     const dark =
       root.dataset.theme === 'dark' ||
-      (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches)
+      (!root.dataset.theme &&
+        matchMedia('(prefers-color-scheme: dark)').matches)
     const theme = dark ? 'light' : 'dark'
     root.dataset.theme = theme
     localStorage.setItem('theme', theme)

@@ -17,7 +17,11 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { apiRequest, showApiError } from '$lib/api'
-  import { clearFilter, createFilter, type MultiFilter } from '$lib/filters/core'
+  import {
+    clearFilter,
+    createFilter,
+    type MultiFilter,
+  } from '$lib/filters/core'
   import type { ValueFilterFamily } from '$lib/filters/ui'
   import {
     invalidateAdminTeamQueries,
@@ -58,12 +62,16 @@
   const currentUserQuery = useCurrentUser()
 
   const clientConfig = $derived(configQuery.data)
-  const divisions = $derived<Record<string, string>>(clientConfig?.divisions ?? {})
+  const divisions = $derived<Record<string, string>>(
+    clientConfig?.divisions ?? {}
+  )
   const divisionOptions = $derived<DivisionOption[]>(
     Object.entries(divisions).map(([value, label]) => ({ value, label }))
   )
 
-  const canWrite = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canWrite = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.usersWrite)
+  )
   const canManage = $derived(
     canWrite && hasPermissions(currentUserQuery.data, Permissions.challsRead)
   )
@@ -91,14 +99,18 @@
   const hasActiveFilters = $derived(
     statusFilter.selected.length > 0 || divisionFilter.selected.length > 0
   )
-  const shouldFetchRegistered = $derived(canWrite && registeredRowsMayMatch(statusFilter))
+  const shouldFetchRegistered = $derived(
+    canWrite && registeredRowsMayMatch(statusFilter)
+  )
 
   const families = [
     statusFilterFamily(statusFilter),
     divisionFilterFamily(divisionFilter, () => divisionOptions),
   ]
   function filterFor(family: ValueFilterFamily): MultiFilter<unknown> {
-    return (family.id === 'status' ? statusFilter : divisionFilter) as MultiFilter<unknown>
+    return (
+      family.id === 'status' ? statusFilter : divisionFilter
+    ) as MultiFilter<unknown>
   }
   function clearAllFilters() {
     clearFilter(statusFilter)
@@ -115,10 +127,12 @@
 
   const registeredRows = $derived<TeamRow[]>(
     shouldFetchRegistered
-      ? (usersQuery.data?.pages.flatMap(page => page.users) ?? []).map(team => ({
-          kind: 'registered',
-          team,
-        }))
+      ? (usersQuery.data?.pages.flatMap(page => page.users) ?? []).map(
+          team => ({
+            kind: 'registered',
+            team,
+          })
+        )
       : []
   )
   const pendingRows = $derived<TeamRow[]>(
@@ -130,7 +144,9 @@
           .map(verification => ({ kind: 'pending', verification }))
       : []
   )
-  const rows = $derived(sortTeamRows([...registeredRows, ...pendingRows], sort.by, sort.order))
+  const rows = $derived(
+    sortTeamRows([...registeredRows, ...pendingRows], sort.by, sort.order)
+  )
   const fingerprint = $derived(teamFingerprint(sort, filters, debouncedSearch))
 
   const showError = $derived(
@@ -143,7 +159,9 @@
       (canWrite && verificationsQuery.isPending && !verificationsQuery.data)
   )
   const errorMessage = $derived(
-    usersQuery.error?.message ?? verificationsQuery.error?.message ?? 'Something went wrong.'
+    usersQuery.error?.message ??
+      verificationsQuery.error?.message ??
+      'Something went wrong.'
   )
 
   const copyAction = createAsyncAction<string>()
@@ -164,14 +182,22 @@
   async function mintToken(team: TeamRef) {
     await copyAction.run(
       async () => {
-        const response = await apiRequest(CreateUserTokenRouteV2, { id: team.id })
+        const response = await apiRequest(CreateUserTokenRouteV2, {
+          id: team.id,
+        })
         if (response.kind === GoodCreateUserTokenV2.kind) {
-          await copyText(response.data.token, `Login token copied for ${team.name}.`)
+          await copyText(
+            response.data.token,
+            `Login token copied for ${team.name}.`
+          )
         } else {
           showApiError(response)
         }
       },
-      { key: team.id, errorMessage: `Failed to create a login token for ${team.name}` }
+      {
+        key: team.id,
+        errorMessage: `Failed to create a login token for ${team.name}`,
+      }
     )
   }
 
@@ -200,7 +226,10 @@
           showApiError(response)
         }
       },
-      { key: team.id, errorMessage: `Failed to ${banned ? 'ban' : 'unban'} ${team.name}` }
+      {
+        key: team.id,
+        errorMessage: `Failed to ${banned ? 'ban' : 'unban'} ${team.name}`,
+      }
     )
   }
 
@@ -222,7 +251,9 @@
   async function deleteTeam(team: TeamRef) {
     await deleteAction.run(
       async () => {
-        const response = await apiRequest(DeleteAdminUserRouteV2, { id: team.id })
+        const response = await apiRequest(DeleteAdminUserRouteV2, {
+          id: team.id,
+        })
         if (response.kind === GoodAdminUserDeleteV2.kind) {
           toast.success(`${team.name} deleted.`)
           invalidateAdminTeamQueries(queryClient)
@@ -237,7 +268,8 @@
   function requestDelete(team: TeamRef) {
     confirmState.request({
       title: 'Delete team',
-      message: 'This removes the team and its solves from the database. This cannot be undone.',
+      message:
+        'This removes the team and its solves from the database. This cannot be undone.',
       confirmLabel: 'Delete team',
       destructive: true,
       run: () => deleteTeam(team),
@@ -247,9 +279,12 @@
   async function verifyTeam(verification: TeamRef) {
     await completeAction.run(
       async () => {
-        const response = await apiRequest(CompleteAdminUserVerificationRouteV2, {
-          id: verification.id,
-        })
+        const response = await apiRequest(
+          CompleteAdminUserVerificationRouteV2,
+          {
+            id: verification.id,
+          }
+        )
         if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
           toast.success(`${verification.name} verified.`)
           invalidateAdminTeamQueries(queryClient)
@@ -257,7 +292,10 @@
           showApiError(response)
         }
       },
-      { key: verification.id, errorMessage: `Failed to verify ${verification.name}` }
+      {
+        key: verification.id,
+        errorMessage: `Failed to verify ${verification.name}`,
+      }
     )
   }
 
@@ -269,7 +307,9 @@
         })
         if (response.kind === GoodAdminUserVerificationResendV2.kind) {
           toast.success(`Verification email resent to ${verification.name}.`)
-          queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.adminUserVerifications,
+          })
         } else {
           showApiError(response)
         }
@@ -292,7 +332,10 @@
   {#if !canWrite}
     <teams-status>
       <Card title="Team management unavailable">
-        <p>Your account needs the manage-teams permission to view registered teams.</p>
+        <p>
+          Your account needs the manage-teams permission to view registered
+          teams.
+        </p>
       </Card>
     </teams-status>
   {:else if showLoading}

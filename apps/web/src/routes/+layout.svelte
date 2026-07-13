@@ -37,7 +37,8 @@
 
   function onAnimationEnd(event: AnimationEvent) {
     if (event.animationName !== 'reveal-fade-in') return
-    if (event.target instanceof HTMLElement) event.target.removeAttribute('data-reveal')
+    if (event.target instanceof HTMLElement)
+      event.target.removeAttribute('data-reveal')
   }
 </script>
 
@@ -61,13 +62,19 @@
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content={data.clientConfig.ctfName} />
-  <meta property="og:description" content={data.clientConfig.meta.description} />
+  <meta
+    property="og:description"
+    content={data.clientConfig.meta.description}
+  />
   <meta property="og:image" content={data.clientConfig.meta.imageUrl} />
   <meta property="og:url" content={data.clientConfig.origin} />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={data.clientConfig.ctfName} />
-  <meta name="twitter:description" content={data.clientConfig.meta.description} />
+  <meta
+    name="twitter:description"
+    content={data.clientConfig.meta.description}
+  />
   <meta name="twitter:image" content={data.clientConfig.meta.imageUrl} />
   <meta name="twitter:url" content={data.clientConfig.origin} />
 </svelte:head>

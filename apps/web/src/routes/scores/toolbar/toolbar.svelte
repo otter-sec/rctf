@@ -37,7 +37,9 @@
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
   const divisionLabel = $derived(
-    urlState.division ? (divisions[urlState.division] ?? urlState.division) : 'All divisions'
+    urlState.division
+      ? (divisions[urlState.division] ?? urlState.division)
+      : 'All divisions'
   )
   const divisionItems = $derived<MenuItem[]>([
     {
@@ -54,7 +56,9 @@
     })),
   ])
 
-  const searchPending = $derived(data.isBoardFetching && urlState.searchInput.length > 0)
+  const searchPending = $derived(
+    data.isBoardFetching && urlState.searchInput.length > 0
+  )
 
   const viewOptions = [
     { value: 'challenges', icon: IconTableFilled, label: 'Challenges' },
@@ -62,14 +66,23 @@
   ] as const
 
   const sortOptions = [
-    { value: 'categories', icon: IconSortDescendingShapesFilled, label: 'Category' },
+    {
+      value: 'categories',
+      icon: IconSortDescendingShapesFilled,
+      label: 'Category',
+    },
     { value: 'solves', icon: IconSortAscendingNumbers, label: 'Difficulty' },
   ] as const
 
   const rovingFocus = createRovingFocus()
 </script>
 
-{#snippet iconToggle(label: string, Icon: Component, active: boolean, onclick: () => void)}
+{#snippet iconToggle(
+  label: string,
+  Icon: Component,
+  active: boolean,
+  onclick: () => void
+)}
   <Tooltip {label}>
     {#snippet children({ props })}
       <button
@@ -88,13 +101,20 @@
 {/snippet}
 
 <scores-toolbar>
-  <score-controls role="toolbar" aria-label="Scoreboard display controls" {@attach rovingFocus}>
+  <score-controls
+    role="toolbar"
+    aria-label="Scoreboard display controls"
+    {@attach rovingFocus}
+  >
     <control-group>
       <span>View</span>
       <button-row>
         {#each viewOptions as option (option.value)}
-          {@render iconToggle(option.label, option.icon, urlState.viewMode === option.value, () =>
-            urlState.setViewMode(option.value)
+          {@render iconToggle(
+            option.label,
+            option.icon,
+            urlState.viewMode === option.value,
+            () => urlState.setViewMode(option.value)
           )}
         {/each}
       </button-row>
@@ -105,8 +125,11 @@
         <span>Sort</span>
         <button-row>
           {#each sortOptions as option (option.value)}
-            {@render iconToggle(option.label, option.icon, urlState.sortMode === option.value, () =>
-              urlState.setSortMode(option.value)
+            {@render iconToggle(
+              option.label,
+              option.icon,
+              urlState.sortMode === option.value,
+              () => urlState.setSortMode(option.value)
             )}
           {/each}
         </button-row>
@@ -162,7 +185,11 @@
     </Tooltip>
 
     {#if showDivision}
-      <Menu label="Filter by division" items={divisionItems} placement="bottom-end">
+      <Menu
+        label="Filter by division"
+        items={divisionItems}
+        placement="bottom-end"
+      >
         {#snippet trigger({ props })}
           <button {...props} type="button" data-division-trigger>
             <span>{divisionLabel}</span>

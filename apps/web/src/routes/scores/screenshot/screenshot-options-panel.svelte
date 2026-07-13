@@ -79,7 +79,11 @@
     <field-list>
       <panel-field>
         <span data-label>Teams in list</span>
-        {@render selectTrigger(`${options.teamCount} teams`, 'Teams in list', teamCountItems)}
+        {@render selectTrigger(
+          `${options.teamCount} teams`,
+          'Teams in list',
+          teamCountItems
+        )}
       </panel-field>
 
       <panel-field>
@@ -115,7 +119,9 @@
           </Tooltip>
         {:else}
           <toggle-row data-inset>
-            <Checkbox bind:checked={options.emphasizeSelfOnly}>Emphasize your team only</Checkbox>
+            <Checkbox bind:checked={options.emphasizeSelfOnly}
+              >Emphasize your team only</Checkbox
+            >
           </toggle-row>
         {/if}
       {/if}
@@ -132,7 +138,9 @@
           </Tooltip>
         {:else}
           <toggle-row data-inset>
-            <Checkbox bind:checked={options.emphasizeListedTeams}>Emphasize listed teams</Checkbox>
+            <Checkbox bind:checked={options.emphasizeListedTeams}
+              >Emphasize listed teams</Checkbox
+            >
           </toggle-row>
         {/if}
       {/if}
@@ -140,9 +148,11 @@
       <Checkbox bind:checked={options.showAvatars}>Show avatars</Checkbox>
       <Checkbox bind:checked={options.showFlags}>Show flags</Checkbox>
       <Checkbox bind:checked={options.showStatuses}>Show statuses</Checkbox>
-      <Checkbox bind:checked={options.showSolveCount}>Show solve count</Checkbox>
+      <Checkbox bind:checked={options.showSolveCount}>Show solve count</Checkbox
+      >
       <Checkbox bind:checked={options.showSparklines}>Show sparklines</Checkbox>
-      <Checkbox bind:checked={options.showMatrix}>Show category matrix</Checkbox>
+      <Checkbox bind:checked={options.showMatrix}>Show category matrix</Checkbox
+      >
 
       {#if hasSelf}
         <Checkbox bind:checked={options.showSelf}>Show your team</Checkbox>
@@ -154,12 +164,20 @@
     <field-list>
       <panel-field>
         <span data-label>Resolution</span>
-        {@render selectTrigger(`${exportSettings.scale}x`, 'Resolution', scaleItems)}
+        {@render selectTrigger(
+          `${exportSettings.scale}x`,
+          'Resolution',
+          scaleItems
+        )}
       </panel-field>
 
       <panel-field>
         <span data-label>Format</span>
-        {@render selectTrigger(exportSettings.format.toUpperCase(), 'Format', formatItems)}
+        {@render selectTrigger(
+          exportSettings.format.toUpperCase(),
+          'Format',
+          formatItems
+        )}
       </panel-field>
     </field-list>
   </Section>
@@ -216,7 +234,11 @@
     }
 
     &:hover {
-      background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l4));
+      background: color-mix(
+        in oklab,
+        var(--foreground-l0) 4%,
+        var(--background-l4)
+      );
     }
 
     &:focus-visible {

@@ -82,10 +82,28 @@
       '2d 4h',
       v => (filter.relativeStart = v)
     )}
-    {@render boundField('To', 'text', filter.relativeEnd, '2d 6h', v => (filter.relativeEnd = v))}
+    {@render boundField(
+      'To',
+      'text',
+      filter.relativeEnd,
+      '2d 6h',
+      v => (filter.relativeEnd = v)
+    )}
   {:else}
-    {@render boundField('From', 'datetime-local', filter.start, undefined, v => (filter.start = v))}
-    {@render boundField('To', 'datetime-local', filter.end, undefined, v => (filter.end = v))}
+    {@render boundField(
+      'From',
+      'datetime-local',
+      filter.start,
+      undefined,
+      v => (filter.start = v)
+    )}
+    {@render boundField(
+      'To',
+      'datetime-local',
+      filter.end,
+      undefined,
+      v => (filter.end = v)
+    )}
   {/if}
 
   {#if error}

@@ -1,7 +1,12 @@
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { IconFile, IconFlagBanner, IconGlobeHemisphereWest, IconTrophy } from '$lib/icons'
+  import {
+    IconFile,
+    IconFlagBanner,
+    IconGlobeHemisphereWest,
+    IconTrophy,
+  } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
   import type { Component } from 'svelte'
@@ -23,13 +28,22 @@
 
   let { challenge, isSolved, onSolve, tab, onTabChange }: Props = $props()
 
-  type TabItem = { value: string; label: string; count?: number; icon?: Component }
+  type TabItem = {
+    value: string
+    label: string
+    count?: number
+    icon?: Component
+  }
 
-  const isDynamic = $derived(challenge?.scoringKind === ChallengeScoringKind.DYNAMIC)
+  const isDynamic = $derived(
+    challenge?.scoringKind === ChallengeScoringKind.DYNAMIC
+  )
 
   const tabItems = $derived.by((): TabItem[] => {
     if (!challenge) return []
-    const items: TabItem[] = [{ value: 'details', label: 'Details', icon: IconFile }]
+    const items: TabItem[] = [
+      { value: 'details', label: 'Details', icon: IconFile },
+    ]
     if (challenge.hasFlag) {
       items.push({
         value: 'solves',
@@ -48,7 +62,9 @@
     return items
   })
 
-  const activeTab = $derived(tabItems.some(item => item.value === tab) ? tab : 'details')
+  const activeTab = $derived(
+    tabItems.some(item => item.value === tab) ? tab : 'details'
+  )
 </script>
 
 {#if challenge}

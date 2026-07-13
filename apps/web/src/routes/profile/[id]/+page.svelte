@@ -41,7 +41,11 @@
   ]
 
   const status = $derived(
-    userQuery.isPending ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready'
+    userQuery.isPending
+      ? 'loading'
+      : !user || !clientConfig
+        ? 'unavailable'
+        : 'ready'
   )
 </script>
 
@@ -58,7 +62,8 @@
     <StatusCard
       icon={IconQuestion}
       title="Profile not found"
-      subtitle={userQuery.error?.message ?? 'The requested profile could not be found.'}
+      subtitle={userQuery.error?.message ??
+        'The requested profile could not be found.'}
     >
       <Button href="/scores">View leaderboard</Button>
     </StatusCard>

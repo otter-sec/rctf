@@ -51,7 +51,10 @@
   })
 </script>
 
-<svelte:window onpointerdowncapture={onWindowPointerdown} onkeydown={onWindowKeydown} />
+<svelte:window
+  onpointerdowncapture={onWindowPointerdown}
+  onkeydown={onWindowKeydown}
+/>
 
 <filter-popover {@attach attachRoot}>
   {@render trigger({ props: triggerProps, open })}

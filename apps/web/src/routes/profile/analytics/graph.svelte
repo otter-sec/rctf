@@ -11,7 +11,11 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import type { ProfileDynamicScore, ProfileSolve } from './analytics-data'
   import { compactNumber } from './chart-utils'
-  import { buildProfileGraphData, scoreAt, type GraphSampleInput } from './graph-data'
+  import {
+    buildProfileGraphData,
+    scoreAt,
+    type GraphSampleInput,
+  } from './graph-data'
   import ProfileSolveTooltip from './solve-tooltip.svelte'
 
   interface Props {
@@ -58,19 +62,32 @@
 
   const yTicks = $derived(niceLinearTicks(graph.yMax, 4))
   const xScale = $derived(
-    createTimeScale(graph.xDomain ?? [startTime, endTime], [innerLeft, innerRight])
+    createTimeScale(graph.xDomain ?? [startTime, endTime], [
+      innerLeft,
+      innerRight,
+    ])
   )
-  const yScale = $derived(createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP]))
+  const yScale = $derived(
+    createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP])
+  )
   const xTicks = $derived(
     graph.xDomain ? ctfRelativeTicks(graph.xDomain[0], graph.xDomain[1], 7) : []
   )
 
-  const totalPx = $derived(graph.totalLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) })))
-  const staticPx = $derived(graph.staticLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) })))
-  const dynamicPath = $derived(
-    monotoneCubicPath(graph.dynamicLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) })))
+  const totalPx = $derived(
+    graph.totalLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) }))
   )
-  const dotPx = $derived(graph.solveDots.map(d => ({ x: xScale(d.time), y: yScale(d.score) })))
+  const staticPx = $derived(
+    graph.staticLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) }))
+  )
+  const dynamicPath = $derived(
+    monotoneCubicPath(
+      graph.dynamicLine.map(p => ({ x: xScale(p.time), y: yScale(p.score) }))
+    )
+  )
+  const dotPx = $derived(
+    graph.solveDots.map(d => ({ x: xScale(d.time), y: yScale(d.score) }))
+  )
 
   const nearestSeries = $derived.by<Series[]>(() => {
     const series: Series[] = []
@@ -85,10 +102,14 @@
   })
 
   const hoveredSolve = $derived(
-    nearest?.seriesId === 'solve' ? (graph.solveDots[nearest.index] ?? null) : null
+    nearest?.seriesId === 'solve'
+      ? (graph.solveDots[nearest.index] ?? null)
+      : null
   )
   const hoveredSample = $derived(
-    nearest?.seriesId === 'sample' ? (graph.totalLine[nearest.index] ?? null) : null
+    nearest?.seriesId === 'sample'
+      ? (graph.totalLine[nearest.index] ?? null)
+      : null
   )
 
   interface SampleRow {
@@ -131,7 +152,11 @@
 
 <graph-root>
   {#if hasContent}
-    <div data-graph-viewport bind:clientWidth={width} bind:clientHeight={height}>
+    <div
+      data-graph-viewport
+      bind:clientWidth={width}
+      bind:clientHeight={height}
+    >
       <svg
         role="img"
         aria-label={ariaLabel}
@@ -148,7 +173,13 @@
           </text>
         {/each}
 
-        <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
+        <Axis
+          ticks={xTicks}
+          scale={xScale}
+          y={innerBottom}
+          left={innerLeft}
+          right={innerRight}
+        />
 
         {#if graph.hasDynamicLine && dynamicPath}
           <path data-dynamic-line d={dynamicPath} />
@@ -169,7 +200,13 @@
         {#each graph.solveDots as dot, index (dot.key)}
           {@const px = dotPx[index]}
           {#if px}
-            <circle data-solve-dot data-category-color={dot.color} cx={px.x} cy={px.y} r="4" />
+            <circle
+              data-solve-dot
+              data-category-color={dot.color}
+              cx={px.x}
+              cy={px.y}
+              r="4"
+            />
           {/if}
         {/each}
 

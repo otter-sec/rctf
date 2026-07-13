@@ -48,7 +48,11 @@
   } from '../model/editor-state'
   import AdminChallengesDetailsForm from './details-form.svelte'
   import AdminChallengesDetailsDialogs from './dialogs.svelte'
-  import { buildSavePayload, formErrors, hasFormErrors } from './form-validation'
+  import {
+    buildSavePayload,
+    formErrors,
+    hasFormErrors,
+  } from './form-validation'
 
   interface Props {
     editor: EditorState
@@ -59,14 +63,18 @@
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
-  const canWrite = $derived(hasPermissions(userQuery.data, Permissions.challsWrite))
+  const canWrite = $derived(
+    hasPermissions(userQuery.data, Permissions.challsWrite)
+  )
 
   const challengesQuery = useChallenges()
   const totalSolves = $derived(
     challengesQuery.data?.find(c => c.id === editor.challenge?.id)?.solves ?? 0
   )
 
-  const isEditMode = $derived(editor.mode === 'editing' || editor.mode === 'creating')
+  const isEditMode = $derived(
+    editor.mode === 'editing' || editor.mode === 'creating'
+  )
   const disabled = $derived(!isEditMode)
   const isSaving = $derived(editor.mode === 'saving')
   const isDeleting = $derived(editor.mode === 'deleting')
@@ -76,13 +84,18 @@
   const invalid = $derived(hasFormErrors(errors) || !instancerValid)
 
   const heading = $derived(
-    editor.mode === 'creating' ? 'New Challenge' : editor.form.name || 'Untitled'
+    editor.mode === 'creating'
+      ? 'New Challenge'
+      : editor.form.name || 'Untitled'
   )
   const categoryConfig = $derived(
     editor.form.category ? getCategoryConfig(editor.form.category) : null
   )
 
-  function onFieldChange<K extends keyof EditorForm>(field: K, value: EditorForm[K]) {
+  function onFieldChange<K extends keyof EditorForm>(
+    field: K,
+    value: EditorForm[K]
+  ) {
     onEditorChange(updateForm(editor, field, value))
   }
 
@@ -113,12 +126,17 @@
     onEditorChange(save(current))
 
     try {
-      const response = await apiRequest(UpdateChallengeRouteV2, buildSavePayload(current.form, id))
+      const response = await apiRequest(
+        UpdateChallengeRouteV2,
+        buildSavePayload(current.form, id)
+      )
       if (response.kind === GoodChallengeUpdateV2.kind) {
         toast.success(wasCreating ? 'Challenge created!' : 'Challenge saved!')
         queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
         if (!wasCreating) {
-          queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenge(id) })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.adminChallenge(id),
+          })
         }
         onEditorChange(saveSuccess(save(current), response.data))
       } else if (response.kind === BadAdminBotConfig.kind) {
@@ -135,7 +153,9 @@
         onEditorChange(saveError(save(current)))
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save challenge')
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to save challenge'
+      )
       onEditorChange(saveError(save(current)))
     }
   }
@@ -157,7 +177,9 @@
         onEditorChange(deleteError(deleteConfirm(current)))
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete challenge')
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to delete challenge'
+      )
       onEditorChange(deleteError(deleteConfirm(current)))
     }
   }
@@ -175,7 +197,9 @@
         Delete
       </Button>
     {/if}
-    <Button variant="secondary" onclick={() => onEditorChange(cancel(editor))}>Cancel</Button>
+    <Button variant="secondary" onclick={() => onEditorChange(cancel(editor))}
+      >Cancel</Button
+    >
     {#if invalid}
       <Tooltip label="Resolve all issues to save">
         {#snippet children({ props })}

@@ -18,7 +18,12 @@
     content: Snippet<[{ value: string }]>
   }
 
-  let { value = $bindable(null), onValueChange, tabs: items, content }: Props = $props()
+  let {
+    value = $bindable(null),
+    onValueChange,
+    tabs: items,
+    content,
+  }: Props = $props()
 
   const id = $props.id()
   const service = useMachine(tabs.machine, () => ({
@@ -42,8 +47,10 @@
         {#if tab.icon}
           <tab.icon data-slot="tab-icon" />
         {/if}
-        {tab.label}{#if tab.count !== undefined}<tab-count>({tab.count})</tab-count
-          >{/if}{#if tab.invalid}<tab-invalid aria-hidden="true"></tab-invalid>{/if}
+        {tab.label}{#if tab.count !== undefined}<tab-count
+            >({tab.count})</tab-count
+          >{/if}{#if tab.invalid}<tab-invalid aria-hidden="true"
+          ></tab-invalid>{/if}
       </button>
     {/each}
   </div>

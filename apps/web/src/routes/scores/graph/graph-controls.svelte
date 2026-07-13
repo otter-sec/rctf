@@ -11,10 +11,16 @@
     onToggleSelf: () => void
   }
 
-  let { showTop3Context, showSelfContext, onToggleTop3, onToggleSelf }: Props = $props()
+  let { showTop3Context, showSelfContext, onToggleTop3, onToggleSelf }: Props =
+    $props()
 </script>
 
-{#snippet pinToggle(label: string, Icon: Component, active: boolean, onclick: () => void)}
+{#snippet pinToggle(
+  label: string,
+  Icon: Component,
+  active: boolean,
+  onclick: () => void
+)}
   <Tooltip {label}>
     {#snippet children({ props })}
       <button
@@ -31,8 +37,18 @@
 {/snippet}
 
 <graph-controls>
-  {@render pinToggle('Pin top 3 to graph', IconPushPin, showTop3Context, onToggleTop3)}
-  {@render pinToggle('Pin self to graph', IconSmiley, showSelfContext, onToggleSelf)}
+  {@render pinToggle(
+    'Pin top 3 to graph',
+    IconPushPin,
+    showTop3Context,
+    onToggleTop3
+  )}
+  {@render pinToggle(
+    'Pin self to graph',
+    IconSmiley,
+    showSelfContext,
+    onToggleSelf
+  )}
 </graph-controls>
 
 <style>

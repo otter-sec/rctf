@@ -5,7 +5,11 @@
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import { IconCheck } from '$lib/icons'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import { maxChartValue, type CategoryBarDatum, type CategoryBarSegment } from './analytics-data'
+  import {
+    maxChartValue,
+    type CategoryBarDatum,
+    type CategoryBarSegment,
+  } from './analytics-data'
   import { earnedSegmentEnd, separatorIsNeutral } from './chart-geometry'
   import { compactNumber } from './chart-utils'
 
@@ -35,7 +39,9 @@
   const innerBottom = $derived(PAD_TOP + data.length * ROW_H)
 
   const chartMax = $derived(maxChartValue(data, item => item.max))
-  const xScale = $derived(createLinearScale([0, chartMax], [PAD_LEFT, innerRight]))
+  const xScale = $derived(
+    createLinearScale([0, chartMax], [PAD_LEFT, innerRight])
+  )
   const xTicks = $derived(niceLinearTicks(chartMax, 4))
 
   type HitEntry = { item: CategoryBarDatum; segment: CategoryBarSegment | null }
@@ -54,7 +60,9 @@
     return map
   })
 
-  const active = $derived(hover.activeKey === null ? null : (hitByKey.get(hover.activeKey) ?? null))
+  const active = $derived(
+    hover.activeKey === null ? null : (hitByKey.get(hover.activeKey) ?? null)
+  )
 
   function rowY(index: number): number {
     return PAD_TOP + index * ROW_H + ROW_INSET
@@ -62,7 +70,9 @@
 
   const barHeight = ROW_H - ROW_INSET * 2
 
-  function segmentKind(segment: CategoryBarSegment): 'solved' | 'dynamic' | 'unsolved' {
+  function segmentKind(
+    segment: CategoryBarSegment
+  ): 'solved' | 'dynamic' | 'unsolved' {
     if (segment.muted) return 'unsolved'
     if (segment.hatched) return 'dynamic'
     return 'solved'
@@ -83,7 +93,13 @@
         {#each xTicks.values as value (value)}
           {@const gx = xScale(value)}
           <line data-x-grid x1={gx} y1={PAD_TOP} x2={gx} y2={innerBottom} />
-          <text data-x-label x={gx} y={innerBottom} dy={16} text-anchor="middle">
+          <text
+            data-x-label
+            x={gx}
+            y={innerBottom}
+            dy={16}
+            text-anchor="middle"
+          >
             {compactNumber(value)}
           </text>
         {/each}
@@ -96,8 +112,17 @@
           {@const clipId = `cat-clip-${uid}-${index}`}
           {@const hatchId = `cat-hatch-${uid}-${index}`}
           {@const gradientId = `cat-grad-${uid}-${index}`}
-          {@const hasHatch = (item.segments ?? []).some(segment => segment.hatched)}
-          <rect data-track x={x0} {y} width={trackWidth} height={barHeight} rx="4" />
+          {@const hasHatch = (item.segments ?? []).some(
+            segment => segment.hatched
+          )}
+          <rect
+            data-track
+            x={x0}
+            {y}
+            width={trackWidth}
+            height={barHeight}
+            rx="4"
+          />
 
           {#if item.segments && item.segments.length > 0}
             {@const earnedEnd = earnedSegmentEnd(item.segments)}
@@ -105,7 +130,13 @@
             <g data-category-color={item.color}>
               <defs>
                 <clipPath id={clipId}>
-                  <rect x={x0} {y} width={itemWidth} height={barHeight} rx="4" />
+                  <rect
+                    x={x0}
+                    {y}
+                    width={itemWidth}
+                    height={barHeight}
+                    rx="4"
+                  />
                 </clipPath>
                 {#if hasHatch}
                   <pattern
@@ -126,9 +157,22 @@
                   {@const sw = Math.max(0, xScale(segment.end) - sx)}
                   {@const key = `${item.key}:${segment.key}`}
                   {@const kind = segmentKind(segment)}
-                  <rect data-segment data-kind={kind} x={sx} {y} width={sw} height={barHeight} />
+                  <rect
+                    data-segment
+                    data-kind={kind}
+                    x={sx}
+                    {y}
+                    width={sw}
+                    height={barHeight}
+                  />
                   {#if segment.hatched}
-                    <rect x={sx} {y} width={sw} height={barHeight} fill="url(#{hatchId})" />
+                    <rect
+                      x={sx}
+                      {y}
+                      width={sw}
+                      height={barHeight}
+                      fill="url(#{hatchId})"
+                    />
                   {/if}
                   {#if hover.activeKey === key}
                     <rect
@@ -147,7 +191,10 @@
                     {@const lineX = xScale(segment.end)}
                     <line
                       data-sep
-                      data-neutral={separatorIsNeutral(item.segments, segmentIndex) || undefined}
+                      data-neutral={separatorIsNeutral(
+                        item.segments,
+                        segmentIndex
+                      ) || undefined}
                       x1={lineX}
                       x2={lineX}
                       y1={y}
@@ -156,12 +203,25 @@
                   {/if}
                   {#if segment.hatched && segment.start > 0}
                     {@const lineX = xScale(segment.start)}
-                    <line data-sep x1={lineX} x2={lineX} y1={y} y2={y + barHeight} />
+                    <line
+                      data-sep
+                      x1={lineX}
+                      x2={lineX}
+                      y1={y}
+                      y2={y + barHeight}
+                    />
                   {/if}
                 {/each}
               </g>
 
-              <rect data-track-outline x={x0} {y} width={itemWidth} height={barHeight} rx="4" />
+              <rect
+                data-track-outline
+                x={x0}
+                {y}
+                width={itemWidth}
+                height={barHeight}
+                rx="4"
+              />
               {#if earnedWidth > 0}
                 <rect
                   data-earned-outline
@@ -175,12 +235,22 @@
             </g>
           {:else}
             <g data-category-color={item.color}>
-              <rect data-solid-bar x={x0} {y} width={itemWidth} height={barHeight} rx="4" />
+              <rect
+                data-solid-bar
+                x={x0}
+                {y}
+                width={itemWidth}
+                height={barHeight}
+                rx="4"
+              />
             </g>
           {/if}
 
           {#if item.fullClear}
-            {@const clearWidth = Math.max(0, xScale(item.fullClearValue ?? item.value) - x0)}
+            {@const clearWidth = Math.max(
+              0,
+              xScale(item.fullClearValue ?? item.value) - x0
+            )}
             <defs>
               <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" data-grad-start />
@@ -197,11 +267,22 @@
               rx="4"
             />
             <g data-full-check>
-              <IconCheck x={x0 + 7} y={y + barHeight / 2 - 7} width="14" height="14" />
+              <IconCheck
+                x={x0 + 7}
+                y={y + barHeight / 2 - 7}
+                width="14"
+                height="14"
+              />
             </g>
           {/if}
 
-          <text data-row-label x={x0 - 10} y={y + barHeight / 2} dy={3} text-anchor="end">
+          <text
+            data-row-label
+            x={x0 - 10}
+            y={y + barHeight / 2}
+            dy={3}
+            text-anchor="end"
+          >
             {item.label}
           </text>
 
@@ -233,7 +314,13 @@
           {/if}
         {/each}
 
-        <line data-axis-rule x1={PAD_LEFT} y1={innerBottom} x2={innerRight} y2={innerBottom} />
+        <line
+          data-axis-rule
+          x1={PAD_LEFT}
+          y1={innerBottom}
+          x2={innerRight}
+          y2={innerBottom}
+        />
       </svg>
     </div>
 
@@ -258,7 +345,8 @@
         </tip-heading>
         <span data-detail>
           {#if active.segment}
-            {active.segment.detail ?? `${active.segment.value.toLocaleString()} pts`}
+            {active.segment.detail ??
+              `${active.segment.value.toLocaleString()} pts`}
           {:else}
             {active.item.detail}
           {/if}

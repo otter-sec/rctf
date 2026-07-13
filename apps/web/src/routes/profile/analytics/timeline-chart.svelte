@@ -30,12 +30,19 @@
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = $derived(PAD_TOP + categories.length * ROW_H)
 
-  const laneIndex = $derived(new Map(categories.map((label, index) => [label, index])))
+  const laneIndex = $derived(
+    new Map(categories.map((label, index) => [label, index]))
+  )
 
   const xScale = $derived(
-    createTimeScale([activityDomain.start, activityDomain.end], [PAD_LEFT, innerRight])
+    createTimeScale(
+      [activityDomain.start, activityDomain.end],
+      [PAD_LEFT, innerRight]
+    )
   )
-  const xTicks = $derived(ctfRelativeTicks(activityDomain.start, activityDomain.end, 6))
+  const xTicks = $derived(
+    ctfRelativeTicks(activityDomain.start, activityDomain.end, 6)
+  )
 
   function laneY(index: number): number {
     return PAD_TOP + index * ROW_H + ROW_H / 2
@@ -75,7 +82,9 @@
     <div data-viewport bind:clientWidth={width}>
       <svg
         role="img"
-        aria-label="Solve timeline with {data.length} solve{data.length === 1 ? '' : 's'}"
+        aria-label="Solve timeline with {data.length} solve{data.length === 1
+          ? ''
+          : 's'}"
         {width}
         {height}
         onpointermove={handleMove}
@@ -84,10 +93,22 @@
         {#each categories as label, index (label)}
           {@const ly = laneY(index)}
           <line data-lane-grid x1={PAD_LEFT} y1={ly} x2={innerRight} y2={ly} />
-          <text data-lane-label x={PAD_LEFT - 10} y={ly} dy={3} text-anchor="end">{label}</text>
+          <text
+            data-lane-label
+            x={PAD_LEFT - 10}
+            y={ly}
+            dy={3}
+            text-anchor="end">{label}</text
+          >
         {/each}
 
-        <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={PAD_LEFT} right={innerRight} />
+        <Axis
+          ticks={xTicks}
+          scale={xScale}
+          y={innerBottom}
+          left={PAD_LEFT}
+          right={innerRight}
+        />
 
         {#each dots as dot (dot.datum.key)}
           <circle
@@ -100,7 +121,12 @@
         {/each}
 
         {#if nearest}
-          <circle data-hover-ring cx={nearest.point.x} cy={nearest.point.y} r="6" />
+          <circle
+            data-hover-ring
+            cx={nearest.point.x}
+            cy={nearest.point.y}
+            r="6"
+          />
         {/if}
       </svg>
     </div>

@@ -11,7 +11,11 @@
 </script>
 
 <form-viewport data-fade-scope>
-  <form-scroll data-fade-source tabindex="-1" data-mode={disabled ? 'view' : 'edit'}>
+  <form-scroll
+    data-fade-source
+    tabindex="-1"
+    data-mode={disabled ? 'view' : 'edit'}
+  >
     {@render children()}
   </form-scroll>
   <EdgeFades />

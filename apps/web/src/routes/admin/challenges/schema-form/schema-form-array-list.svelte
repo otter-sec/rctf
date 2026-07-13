@@ -3,7 +3,12 @@
   import { tick } from 'svelte'
   import SchemaFormListRow from './schema-form-list-row.svelte'
   import { getSchemaFormErrors, type JsonSchema } from './types'
-  import { arrayItemSchema, defaultValue, fieldLabel, getItemLabel } from './utils'
+  import {
+    arrayItemSchema,
+    defaultValue,
+    fieldLabel,
+    getItemLabel,
+  } from './utils'
 
   interface Props {
     schema: JsonSchema
@@ -47,7 +52,9 @@
       items.filter((_, i) => i !== index)
     )
     onRemoved?.(index)
-    void tick().then(() => listEl?.querySelector<HTMLElement>('sf-list-actions button')?.focus())
+    void tick().then(() =>
+      listEl?.querySelector<HTMLElement>('sf-list-actions button')?.focus()
+    )
   }
 </script>
 

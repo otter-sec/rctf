@@ -13,9 +13,13 @@
 
   const config = $derived(getCategoryConfig(challenge.category))
   const tags = $derived(challenge.tags ?? [])
-  const isDynamic = $derived(challenge.scoringKind === ChallengeScoringKind.DYNAMIC)
+  const isDynamic = $derived(
+    challenge.scoringKind === ChallengeScoringKind.DYNAMIC
+  )
   const showsScore = $derived(challenge.hasFlag || isDynamic)
-  const displayPoints = $derived(isDynamic ? (challenge.yourScore ?? 0) : challenge.points)
+  const displayPoints = $derived(
+    isDynamic ? (challenge.yourScore ?? 0) : challenge.points
+  )
 </script>
 
 <details-header>
@@ -42,7 +46,9 @@
       {#if isDynamic}
         <ChallengePointDelta delta={challenge.yourPointDelta ?? 0} />
       {:else}
-        <span data-slot="solves">{challenge.solves.toLocaleString()} solves</span>
+        <span data-slot="solves"
+          >{challenge.solves.toLocaleString()} solves</span
+        >
       {/if}
     </header-score>
   {/if}

@@ -10,7 +10,14 @@
     children?: Snippet
   }
 
-  let { icon: Icon, tone = 'neutral', title, subtitle, detail, children }: Props = $props()
+  let {
+    icon: Icon,
+    tone = 'neutral',
+    title,
+    subtitle,
+    detail,
+    children,
+  }: Props = $props()
 </script>
 
 <status-card data-tone={tone}>

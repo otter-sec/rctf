@@ -13,7 +13,12 @@
 
 <filter-search data-variant={variant}>
   <IconSearch aria-hidden="true" />
-  <input type="text" {placeholder} {value} oninput={event => onInput(event.currentTarget.value)} />
+  <input
+    type="text"
+    {placeholder}
+    {value}
+    oninput={event => onInput(event.currentTarget.value)}
+  />
 </filter-search>
 
 <style>

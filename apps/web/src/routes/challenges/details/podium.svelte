@@ -5,7 +5,11 @@
   import { useCurrentUser } from '$lib/query/user'
   import { solveTimeLabels } from '../model/solve-times'
   import ChallengeDetailsPodiumGrid from './podium-grid.svelte'
-  import { resolvePodiumSlots, type PodiumEntry, type PodiumSelf } from './podium-slots'
+  import {
+    resolvePodiumSlots,
+    type PodiumEntry,
+    type PodiumSelf,
+  } from './podium-slots'
 
   interface Props {
     challenge: Challenge
@@ -25,7 +29,9 @@
   const topSolves = $derived(solvesQuery.data?.solves.slice(0, 4) ?? [])
   const firstBloodTime = $derived(topSolves[0]?.createdAt ?? 0)
   const mySolvePosition = $derived(solvesQuery.data?.mySolvePosition ?? null)
-  const currentUserSolve = $derived(currentUser?.solves.find(solve => solve.id === challenge.id))
+  const currentUserSolve = $derived(
+    currentUser?.solves.find(solve => solve.id === challenge.id)
+  )
 
   const slots = $derived.by(() => {
     const top: PodiumEntry[] = topSolves.map((solve, index) => ({
@@ -57,7 +63,11 @@
         : null
 
     const placeholder = currentUser
-      ? { name: currentUser.name, avatarUrl: currentUser.avatarUrl, detail: 'Unsolved' }
+      ? {
+          name: currentUser.name,
+          avatarUrl: currentUser.avatarUrl,
+          detail: 'Unsolved',
+        }
       : null
 
     return resolvePodiumSlots({
@@ -69,4 +79,8 @@
   })
 </script>
 
-<ChallengeDetailsPodiumGrid {slots} loading={solvesQuery.isPending} reveal={revealAfterLoading} />
+<ChallengeDetailsPodiumGrid
+  {slots}
+  loading={solvesQuery.isPending}
+  reveal={revealAfterLoading}
+/>

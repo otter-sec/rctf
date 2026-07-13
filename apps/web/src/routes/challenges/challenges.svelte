@@ -17,7 +17,11 @@
   import { SvelteSet } from 'svelte/reactivity'
   import ChallengeDetails from './details/details.svelte'
   import ChallengesList from './list/list.svelte'
-  import { getDeepLinkId, resolveClose, type CloseSource } from './model/drawer-history'
+  import {
+    getDeepLinkId,
+    resolveClose,
+    type CloseSource,
+  } from './model/drawer-history'
 
   type ChallengeListProps = {
     challenges: Challenge[]
@@ -63,7 +67,9 @@
   const selectedChallenge = $derived(
     selectedId ? (challenges.find(c => c.id === selectedId) ?? null) : null
   )
-  const selectedIsSolved = $derived(selectedChallenge ? solvedIds.has(selectedChallenge.id) : false)
+  const selectedIsSolved = $derived(
+    selectedChallenge ? solvedIds.has(selectedChallenge.id) : false
+  )
 
   const drawerOpen = $derived(
     isMobile && selectedId !== null && page.state.challengeDrawer === true
@@ -80,7 +86,10 @@
   }
 
   function closeDrawer(source: CloseSource) {
-    if (resolveClose(source, page.state.challengeDrawer === true) === 'history-back') {
+    if (
+      resolveClose(source, page.state.challengeDrawer === true) ===
+      'history-back'
+    ) {
       history.back()
     }
   }
@@ -143,7 +152,11 @@
     wasMobile = mobile
     if (!mobile) {
       if (page.state.challengeDrawer === true) closeDrawer('resize-to-desktop')
-    } else if (routerReady && selectedId && page.state.challengeDrawer !== true) {
+    } else if (
+      routerReady &&
+      selectedId &&
+      page.state.challengeDrawer !== true
+    ) {
       openDrawer(selectedId)
     }
   })
@@ -206,10 +219,14 @@
       defaultSize={[40, 60]}
     >
       {#snippet a()}
-        <pane-surface data-side="list">{@render listPane(listProps)}</pane-surface>
+        <pane-surface data-side="list"
+          >{@render listPane(listProps)}</pane-surface
+        >
       {/snippet}
       {#snippet b()}
-        <pane-surface data-side="detail">{@render detailPane(detailProps)}</pane-surface>
+        <pane-surface data-side="detail"
+          >{@render detailPane(detailProps)}</pane-surface
+        >
       {/snippet}
     </Splitter>
   </challenges-page>

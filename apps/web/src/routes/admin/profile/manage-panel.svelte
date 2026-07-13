@@ -56,7 +56,9 @@
   const currentUserQuery = useCurrentUser()
   const configQuery = useClientConfig()
 
-  const canWrite = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canWrite = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.usersWrite)
+  )
   const adminUserQuery = useAdminUser(() => (canWrite ? userId : null))
 
   const adminUser = $derived(adminUserQuery.data)
@@ -67,7 +69,9 @@
   const action = createAsyncAction<ActionKind>()
   const saveAction = createAsyncAction()
   const avatarAction = createAsyncAction()
-  const busy = $derived(action.pending || saveAction.pending || avatarAction.pending)
+  const busy = $derived(
+    action.pending || saveAction.pending || avatarAction.pending
+  )
 
   const confirmState = createConfirmState()
 
@@ -100,7 +104,9 @@
       onSelect: () => (form.division = option.value),
     }))
   )
-  const selectedDivisionLabel = $derived(divisions[form.division] ?? 'Select division')
+  const selectedDivisionLabel = $derived(
+    divisions[form.division] ?? 'Select division'
+  )
 
   const dirty = $derived(
     !!adminUser &&
@@ -117,10 +123,16 @@
     queryClient.invalidateQueries({ queryKey: queryKeys.userById(userId) })
   }
 
-  async function submitAvatar(args: { avatar?: File }, message: string): Promise<boolean> {
+  async function submitAvatar(
+    args: { avatar?: File },
+    message: string
+  ): Promise<boolean> {
     const result = await avatarAction.run(
       async () => {
-        const response = await apiRequest(UpdateAdminUserAvatarRouteV2, { id: userId, ...args })
+        const response = await apiRequest(UpdateAdminUserAvatarRouteV2, {
+          id: userId,
+          ...args,
+        })
         if (response.kind === GoodAvatarUpdated.kind) {
           toast.success(message)
           invalidateTeam()
@@ -134,7 +146,8 @@
     return result ?? false
   }
 
-  const uploadAvatar = (file: File) => submitAvatar({ avatar: file }, 'Avatar updated!')
+  const uploadAvatar = (file: File) =>
+    submitAvatar({ avatar: file }, 'Avatar updated!')
   const removeAvatar = () => submitAvatar({}, 'Avatar removed!')
 
   async function saveProfile(event: SubmitEvent) {
@@ -179,7 +192,8 @@
     await action.run(
       async () => {
         const token = await mintToken()
-        if (token) await copyText(buildLoginUrl(token), 'Login URL copied to clipboard!')
+        if (token)
+          await copyText(buildLoginUrl(token), 'Login URL copied to clipboard!')
       },
       { key: 'url', errorMessage: 'Failed to create login URL' }
     )
@@ -188,7 +202,10 @@
   async function setBanned(banned: boolean) {
     await action.run(
       async () => {
-        const response = await apiRequest(UpdateAdminUserRouteV2, { id: userId, data: { banned } })
+        const response = await apiRequest(UpdateAdminUserRouteV2, {
+          id: userId,
+          data: { banned },
+        })
         if (response.kind === GoodAdminUserUpdateV2.kind) {
           toast.success(banned ? 'Team banned.' : 'Team unbanned.')
           invalidateTeam()
@@ -203,7 +220,9 @@
   async function deleteTeam() {
     await action.run(
       async () => {
-        const response = await apiRequest(DeleteAdminUserRouteV2, { id: userId })
+        const response = await apiRequest(DeleteAdminUserRouteV2, {
+          id: userId,
+        })
         if (response.kind === GoodAdminUserDeleteV2.kind) {
           toast.success('Team deleted.')
           invalidateTeam()
@@ -260,7 +279,8 @@
   function requestDelete() {
     confirmState.request({
       title: 'Delete team',
-      message: 'This removes the team and its solves from the database. This cannot be undone.',
+      message:
+        'This removes the team and its solves from the database. This cannot be undone.',
       confirmLabel: 'Delete team',
       destructive: true,
       run: deleteTeam,
@@ -320,7 +340,12 @@
 
         <Field label="Country">
           {#snippet children({ id, describedBy })}
-            <FlagPicker {id} {describedBy} bind:value={form.countryCode} disabled={busy} />
+            <FlagPicker
+              {id}
+              {describedBy}
+              bind:value={form.countryCode}
+              disabled={busy}
+            />
           {/snippet}
         </Field>
 
@@ -359,7 +384,11 @@
           Copy login token
         </Button>
 
-        <Button variant="secondary" disabled={busy} onclick={requestCopyLoginUrl}>
+        <Button
+          variant="secondary"
+          disabled={busy}
+          onclick={requestCopyLoginUrl}
+        >
           {#if action.key === 'url'}
             <Spinner />
           {:else}

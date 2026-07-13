@@ -2,7 +2,12 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import { getSchemaFormErrors, NO_FIELD_ERROR, type FieldProps } from './types'
-  import { isNullable as checkNullable, fieldLabel, parseNumber, resolveValue } from './utils'
+  import {
+    isNullable as checkNullable,
+    fieldLabel,
+    parseNumber,
+    resolveValue,
+  } from './utils'
 
   interface Props extends FieldProps {
     showLabel?: boolean
@@ -24,11 +29,15 @@
   const description = $derived(schema.description)
   const resolved = $derived(resolveValue(schema, value))
   const isNullable = $derived(checkNullable(schema))
-  const displayValue = $derived(resolved !== undefined && resolved !== null ? String(resolved) : '')
+  const displayValue = $derived(
+    resolved !== undefined && resolved !== null ? String(resolved) : ''
+  )
 
   let inputValue = $derived(displayValue)
 
-  const { error, incomplete } = $derived(errorsContext?.display(path) ?? NO_FIELD_ERROR)
+  const { error, incomplete } = $derived(
+    errorsContext?.display(path) ?? NO_FIELD_ERROR
+  )
 
   function handleInput(event: Event) {
     inputValue = (event.currentTarget as HTMLInputElement).value

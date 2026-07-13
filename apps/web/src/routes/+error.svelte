@@ -5,7 +5,9 @@
   import StatusCard from '$lib/ui/status-card.svelte'
 
   const detail = $derived(
-    page.error?.message ? `${page.error.message} · ${page.status}` : `Error ${page.status}`
+    page.error?.message
+      ? `${page.error.message} · ${page.status}`
+      : `Error ${page.status}`
   )
 </script>
 

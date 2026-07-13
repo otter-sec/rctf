@@ -1,7 +1,11 @@
 <script lang="ts">
   import { IconCaretDown } from '$lib/icons'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
-  import { filterOperatorLabel, includeOperatorLabel, type FilterMode } from './core'
+  import {
+    filterOperatorLabel,
+    includeOperatorLabel,
+    type FilterMode,
+  } from './core'
 
   type Props = {
     mode: FilterMode

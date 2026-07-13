@@ -1,4 +1,4 @@
-import { CreateInstanceRouteV2, GetInstanceStatusRouteV2 } from '@rctf/types'
+import { CreateInstanceRouteV2 } from '@rctf/types'
 import {
   filterInstanceEndpoints,
   getInstancerChallenge,

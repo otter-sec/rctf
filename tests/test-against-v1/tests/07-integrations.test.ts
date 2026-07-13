@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
   all,
-  allAs,
   assertAllKind,
   assertAllSuccess,
   assertSame,

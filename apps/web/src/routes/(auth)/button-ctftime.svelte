@@ -32,8 +32,10 @@
     const width = 600
     const height = 500
     const systemZoom = window.innerWidth / window.screen.availWidth
-    const left = (window.innerWidth - width) / 2 / systemZoom + window.screenLeft
-    const top = (window.innerHeight - height) / 2 / systemZoom + window.screenTop
+    const left =
+      (window.innerWidth - width) / 2 / systemZoom + window.screenLeft
+    const top =
+      (window.innerHeight - height) / 2 / systemZoom + window.screenTop
 
     const url =
       'https://oauth.ctftime.org/authorize' +
@@ -58,7 +60,11 @@
   }
 
   async function handleMessage(event: MessageEvent) {
-    if (event.origin !== location.origin || event.data?.kind !== 'ctftimeCallback') return
+    if (
+      event.origin !== location.origin ||
+      event.data?.kind !== 'ctftimeCallback'
+    )
+      return
     if (oauthState === null || event.data.state !== oauthState) return
     oauthState = null
 

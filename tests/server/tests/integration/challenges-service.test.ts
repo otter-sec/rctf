@@ -11,7 +11,6 @@ import {
   GoodChallengeUpdate,
   GoodChallengeUpdateV2,
   GoodFlag,
-  GoodLeaderboard,
   GoodLeaderboardV2,
   Permissions,
 } from '@rctf/types'
@@ -678,7 +677,7 @@ describe('challenges service', () => {
       const user2Id = crypto.randomUUID()
       const user3Id = crypto.randomUUID()
 
-      const [user1] = await db
+      await db
         .insert(users)
         .values({
           id: user1Id,
@@ -689,7 +688,7 @@ describe('challenges service', () => {
         })
         .returning()
 
-      const [user2] = await db
+      await db
         .insert(users)
         .values({
           id: user2Id,
@@ -700,7 +699,7 @@ describe('challenges service', () => {
         })
         .returning()
 
-      const [user3] = await db
+      await db
         .insert(users)
         .values({
           id: user3Id,

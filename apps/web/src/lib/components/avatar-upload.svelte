@@ -32,7 +32,9 @@
   let previewUrl = $state<string | null>(null)
   let isRemoving = $state(false)
 
-  const displayAvatarUrl = $derived(isRemoving ? null : (previewUrl ?? avatarUrl))
+  const displayAvatarUrl = $derived(
+    isRemoving ? null : (previewUrl ?? avatarUrl)
+  )
 
   function clearPreview() {
     if (previewUrl) {
@@ -96,7 +98,12 @@
         {avatarUrl ? 'Change' : 'Upload'}
       </Button>
       {#if avatarUrl}
-        <Button variant="destructive" size="sm" onclick={handleRemove} disabled={loading}>
+        <Button
+          variant="destructive"
+          size="sm"
+          onclick={handleRemove}
+          disabled={loading}
+        >
           <IconTrash />
           Remove
         </Button>

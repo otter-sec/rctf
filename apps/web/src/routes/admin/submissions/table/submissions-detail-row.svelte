@@ -19,7 +19,10 @@
       <detail-empty>No details recorded</detail-empty>
     {:else}
       {#each entries as entry (`${entry.label}:${entry.value}`)}
-        <detail-pill data-wide={entry.wide || undefined} title={`${entry.label}: ${entry.value}`}>
+        <detail-pill
+          data-wide={entry.wide || undefined}
+          title={`${entry.label}: ${entry.value}`}
+        >
           <pill-label>{entry.label}</pill-label>
           <code>{entry.value}</code>
         </detail-pill>

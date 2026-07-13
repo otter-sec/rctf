@@ -42,7 +42,9 @@
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)
-  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const canManageSettings = $derived(
+    hasPermissions(user, Permissions.settingsWrite)
+  )
   const canManageApps = $derived(hasPermissions(user, Permissions.usersWrite))
 
   const configQuery = useClientConfig()
@@ -126,7 +128,10 @@
 
   function dispatchSponsors(action: SponsorAction) {
     if (!form) return
-    const next = sponsorsReducer({ list: form.sponsors.list, selected: sponsorSelected }, action)
+    const next = sponsorsReducer(
+      { list: form.sponsors.list, selected: sponsorSelected },
+      action
+    )
     form.sponsors.list = next.list
     sponsorSelected = next.selected
     if (action.type !== 'select') markGroup('sponsors')
@@ -192,7 +197,9 @@
     }
     saving = true
     try {
-      const response = await apiRequest(UpdateAdminSettingsRouteV2, { data: patch })
+      const response = await apiRequest(UpdateAdminSettingsRouteV2, {
+        data: patch,
+      })
       if (response.kind === GoodAdminSettingsUpdate.kind) {
         toast.success('Settings saved.')
         clearDirty(form)
@@ -289,7 +296,9 @@
                   type="datetime-local"
                   value={formatDatetimeLocal(settingsForm.timing.startTime)}
                   onchange={e => {
-                    settingsForm.timing.startTime = parseDatetimeLocal(e.currentTarget.value)
+                    settingsForm.timing.startTime = parseDatetimeLocal(
+                      e.currentTarget.value
+                    )
                     markGroup('timing')
                   }}
                 />
@@ -303,7 +312,9 @@
                   type="datetime-local"
                   value={formatDatetimeLocal(settingsForm.timing.endTime)}
                   onchange={e => {
-                    settingsForm.timing.endTime = parseDatetimeLocal(e.currentTarget.value)
+                    settingsForm.timing.endTime = parseDatetimeLocal(
+                      e.currentTarget.value
+                    )
                     markGroup('timing')
                   }}
                 />
@@ -418,11 +429,14 @@
                   <sponsor-empty>No sponsors</sponsor-empty>
                 {:else}
                   {#each settingsForm.sponsors.list as sponsor, i (i)}
-                    <sponsor-item data-active={sponsorSelected === i ? '' : undefined}>
+                    <sponsor-item
+                      data-active={sponsorSelected === i ? '' : undefined}
+                    >
                       <button
                         type="button"
                         data-select
-                        onclick={() => dispatchSponsors({ type: 'select', index: i })}
+                        onclick={() =>
+                          dispatchSponsors({ type: 'select', index: i })}
                       >
                         {sponsor.name || `Sponsor ${i + 1}`}
                       </button>
@@ -430,7 +444,8 @@
                         type="button"
                         data-remove
                         aria-label="Remove sponsor"
-                        onclick={() => dispatchSponsors({ type: 'remove', index: i })}
+                        onclick={() =>
+                          dispatchSponsors({ type: 'remove', index: i })}
                       >
                         <IconX />
                       </button>
@@ -439,7 +454,10 @@
                 {/if}
               </sponsor-items>
               <sponsor-footer>
-                <Button size="sm" onclick={() => dispatchSponsors({ type: 'add' })}>Add</Button>
+                <Button
+                  size="sm"
+                  onclick={() => dispatchSponsors({ type: 'add' })}>Add</Button
+                >
               </sponsor-footer>
             </sponsor-list>
             <sponsor-detail>
@@ -509,7 +527,9 @@
                   {/snippet}
                 </Field>
               {:else}
-                <sponsor-placeholder>Add a sponsor to get started</sponsor-placeholder>
+                <sponsor-placeholder
+                  >Add a sponsor to get started</sponsor-placeholder
+                >
               {/if}
             </sponsor-detail>
           </sponsors-editor>

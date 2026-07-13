@@ -1,7 +1,18 @@
 <script lang="ts">
-  import { ChallengeScoringKind, DynamicScoringTransport, type InstancerConfig } from '@rctf/types'
+  import {
+    ChallengeScoringKind,
+    DynamicScoringTransport,
+    type InstancerConfig,
+  } from '@rctf/types'
   import MarkdownEditor from '$lib/components/markdown-editor.svelte'
-  import { IconCaretDown, IconCloud, IconFile, IconGear, IconRobot, IconTrophy } from '$lib/icons'
+  import {
+    IconCaretDown,
+    IconCloud,
+    IconFile,
+    IconGear,
+    IconRobot,
+    IconTrophy,
+  } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
@@ -9,7 +20,11 @@
   import Section from '$lib/ui/section.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
-  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../model/editor-state'
+  import type {
+    AdminBotConfig,
+    EditorForm,
+    ScoringConfig,
+  } from '../model/editor-state'
   import AdminChallengesDetailsAdminbot from './adminbot.svelte'
   import AdminChallengesDetailsAttachments from './attachments.svelte'
   import FieldSelect from './field-select.svelte'
@@ -34,7 +49,10 @@
     challengeId: string | null
     errors: FormErrors
     instancerValid?: boolean
-    onFieldChange: <K extends keyof EditorForm>(field: K, value: EditorForm[K]) => void
+    onFieldChange: <K extends keyof EditorForm>(
+      field: K,
+      value: EditorForm[K]
+    ) => void
     onScoringChange: (scoring: ScoringConfig) => void
     onFilesChange: (files: EditorForm['files']) => void
     onInstancerChange: (config: InstancerConfig | null) => void
@@ -57,11 +75,15 @@
   }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
-  const flagPlaceholder = $derived(clientConfigQuery.data?.flagFormatPlaceholder ?? 'flag{...}')
+  const flagPlaceholder = $derived(
+    clientConfigQuery.data?.flagFormatPlaceholder ?? 'flag{...}'
+  )
 
   const isDynamic = $derived(form.scoring.kind === ChallengeScoringKind.DYNAMIC)
   const dynamicSecret = $derived(
-    form.scoring.kind === ChallengeScoringKind.DYNAMIC ? form.scoring.source.secret : ''
+    form.scoring.kind === ChallengeScoringKind.DYNAMIC
+      ? form.scoring.source.secret
+      : ''
   )
   const kindLocked = $derived(scoringKindLocked(totalSolves))
 
@@ -83,7 +105,8 @@
   })
 
   type TouchedField = keyof typeof touched
-  const showError = (field: TouchedField) => touched[field] && Boolean(errors[field])
+  const showError = (field: TouchedField) =>
+    touched[field] && Boolean(errors[field])
 
   const tabItems = $derived([
     {
@@ -228,12 +251,15 @@
                       value={form.name}
                       {disabled}
                       aria-invalid={showError('name')}
-                      oninput={e => onFieldChange('name', e.currentTarget.value)}
+                      oninput={e =>
+                        onFieldChange('name', e.currentTarget.value)}
                       onblur={() => (touched.name = true)}
                     />
                     {@render fieldError('name')}
                   </form-field>
-                  <form-field data-invalid={showError('category') ? '' : undefined}>
+                  <form-field
+                    data-invalid={showError('category') ? '' : undefined}
+                  >
                     <field-label>Category<req>*</req></field-label>
                     <Input
                       type="text"
@@ -241,7 +267,8 @@
                       value={form.category}
                       {disabled}
                       aria-invalid={showError('category')}
-                      oninput={e => onFieldChange('category', e.currentTarget.value)}
+                      oninput={e =>
+                        onFieldChange('category', e.currentTarget.value)}
                       onblur={() => (touched.category = true)}
                     />
                     {@render fieldError('category')}
@@ -256,24 +283,31 @@
                     value={form.author}
                     {disabled}
                     aria-invalid={showError('author')}
-                    oninput={e => onFieldChange('author', e.currentTarget.value)}
+                    oninput={e =>
+                      onFieldChange('author', e.currentTarget.value)}
                     onblur={() => (touched.author = true)}
                   />
                   {@render fieldError('author')}
                 </form-field>
 
                 <form-field>
-                  <field-label>Tags <field-hint>(comma-separated)</field-hint></field-label>
+                  <field-label
+                    >Tags <field-hint>(comma-separated)</field-hint
+                    ></field-label
+                  >
                   <Input
                     type="text"
                     placeholder="web, easy, jwt"
                     value={form.tags.join(', ')}
                     {disabled}
-                    onchange={e => onFieldChange('tags', parseTags(e.currentTarget.value))}
+                    onchange={e =>
+                      onFieldChange('tags', parseTags(e.currentTarget.value))}
                   />
                 </form-field>
 
-                <form-field data-invalid={showError('description') ? '' : undefined}>
+                <form-field
+                  data-invalid={showError('description') ? '' : undefined}
+                >
                   <field-label>
                     Description<req>*</req>
                     <field-hint>(Markdown supported)</field-hint>
@@ -294,7 +328,8 @@
                 <form-field data-invalid={showError('flag') ? '' : undefined}>
                   <field-label>
                     Flag{#if !isDynamic}<req>*</req>{/if}
-                    {#if isDynamic}<field-hint>(unused for dynamic)</field-hint>{/if}
+                    {#if isDynamic}<field-hint>(unused for dynamic)</field-hint
+                      >{/if}
                   </field-label>
                   <Input
                     type="text"
@@ -316,18 +351,31 @@
                 <form-field>
                   <field-label>
                     Scoring kind
-                    {#if kindLocked}<field-hint>(locked: challenge has solves)</field-hint>{/if}
+                    {#if kindLocked}<field-hint
+                        >(locked: challenge has solves)</field-hint
+                      >{/if}
                   </field-label>
                   {#if kindLocked}
-                    <Tooltip label="Delete all solves before changing the scoring kind.">
+                    <Tooltip
+                      label="Delete all solves before changing the scoring kind."
+                    >
                       {#snippet children({ props })}
-                        <button type="button" data-field-trigger data-disabled {...props}>
+                        <button
+                          type="button"
+                          data-field-trigger
+                          data-disabled
+                          {...props}
+                        >
                           {kindLabel}<IconCaretDown />
                         </button>
                       {/snippet}
                     </Tooltip>
                   {:else}
-                    <FieldSelect label={kindLabel} items={kindItems} {disabled} />
+                    <FieldSelect
+                      label={kindLabel}
+                      items={kindItems}
+                      {disabled}
+                    />
                   {/if}
                 </form-field>
 
@@ -336,14 +384,16 @@
                     <field-label>
                       Webhook secret
                       <field-hint
-                        >(shared secret for the {DynamicScoringTransport.WEBHOOK} transport)</field-hint
+                        >(shared secret for the {DynamicScoringTransport.WEBHOOK}
+                        transport)</field-hint
                       >
                       <label-action>
                         <Button
                           variant="secondary"
                           size="sm"
                           {disabled}
-                          onclick={() => changeDynamicSecret(crypto.randomUUID())}
+                          onclick={() =>
+                            changeDynamicSecret(crypto.randomUUID())}
                         >
                           Regenerate
                         </Button>
@@ -357,7 +407,8 @@
                       aria-invalid={Boolean(errors.secret)}
                       oninput={e => changeDynamicSecret(e.currentTarget.value)}
                     />
-                    {#if errors.secret}<field-error>{errors.secret}</field-error>{/if}
+                    {#if errors.secret}<field-error>{errors.secret}</field-error
+                      >{/if}
                   </form-field>
                 {/if}
 
@@ -366,7 +417,9 @@
                     <field-label>
                       Minimum points
                       <field-hint
-                        >{isDynamic ? '(unused for dynamic)' : '(at max solves)'}</field-hint
+                        >{isDynamic
+                          ? '(unused for dynamic)'
+                          : '(at max solves)'}</field-hint
                       >
                     </field-label>
                     <Input
@@ -374,14 +427,17 @@
                       min={0}
                       value={form.pointsMin}
                       disabled={disabled || isDynamic}
-                      onchange={e => onFieldChange('pointsMin', +e.currentTarget.value)}
+                      onchange={e =>
+                        onFieldChange('pointsMin', +e.currentTarget.value)}
                     />
                   </form-field>
                   <form-field>
                     <field-label>
                       Maximum points
                       <field-hint
-                        >{isDynamic ? '(unused for dynamic)' : '(at zero solves)'}</field-hint
+                        >{isDynamic
+                          ? '(unused for dynamic)'
+                          : '(at zero solves)'}</field-hint
                       >
                     </field-label>
                     <Input
@@ -389,19 +445,24 @@
                       min={0}
                       value={form.pointsMax}
                       disabled={disabled || isDynamic}
-                      onchange={e => onFieldChange('pointsMax', +e.currentTarget.value)}
+                      onchange={e =>
+                        onFieldChange('pointsMax', +e.currentTarget.value)}
                     />
                   </form-field>
                 </field-grid>
 
                 <field-grid>
                   <form-field>
-                    <field-label>Sort weight <field-hint>(higher = first)</field-hint></field-label>
+                    <field-label
+                      >Sort weight <field-hint>(higher = first)</field-hint
+                      ></field-label
+                    >
                     <Input
                       type="number"
                       value={form.sortWeight}
                       {disabled}
-                      onchange={e => onFieldChange('sortWeight', +e.currentTarget.value)}
+                      onchange={e =>
+                        onFieldChange('sortWeight', +e.currentTarget.value)}
                     />
                   </form-field>
                   <form-field>
@@ -417,7 +478,9 @@
                 <form-field>
                   <field-label>Visibility</field-label>
                   <FieldSelect
-                    label={form.hidden ? 'Hidden from players' : 'Visible to players'}
+                    label={form.hidden
+                      ? 'Hidden from players'
+                      : 'Visible to players'}
                     items={visibilityItems}
                     {disabled}
                   />
@@ -444,14 +507,21 @@
                     value={releaseTimeToInput(form.releaseTime)}
                     {disabled}
                     onchange={e =>
-                      onFieldChange('releaseTime', inputToReleaseTime(e.currentTarget.value))}
+                      onFieldChange(
+                        'releaseTime',
+                        inputToReleaseTime(e.currentTarget.value)
+                      )}
                   />
                 </form-field>
               </section-fields>
             </Section>
 
             <Section title="Files">
-              <AdminChallengesDetailsAttachments files={form.files} {disabled} {onFilesChange} />
+              <AdminChallengesDetailsAttachments
+                files={form.files}
+                {disabled}
+                {onFilesChange}
+              />
             </Section>
           </FormScroll>
         {:else if value === 'instancer'}

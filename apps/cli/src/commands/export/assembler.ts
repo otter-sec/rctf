@@ -1,4 +1,4 @@
-import { cp, rm } from 'fs/promises'
+import { cp } from 'fs/promises'
 import { join } from 'path'
 import { brotliCompressSync } from 'zlib'
 

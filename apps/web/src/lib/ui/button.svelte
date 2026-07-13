@@ -1,9 +1,18 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
+  import type {
+    HTMLAnchorAttributes,
+    HTMLButtonAttributes,
+  } from 'svelte/elements'
 
   type BaseProps = {
-    variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+    variant?:
+      | 'default'
+      | 'destructive'
+      | 'outline'
+      | 'secondary'
+      | 'ghost'
+      | 'link'
     size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg'
     disabled?: boolean
     children?: Snippet
@@ -14,7 +23,13 @@
 
   type Props = BaseProps & (AnchorProps | ButtonProps)
 
-  let { variant = 'default', size = 'default', disabled, children, ...rest }: Props = $props()
+  let {
+    variant = 'default',
+    size = 'default',
+    disabled,
+    children,
+    ...rest
+  }: Props = $props()
 </script>
 
 {#if rest.href !== undefined}
@@ -31,8 +46,17 @@
     {@render children?.()}
   </a>
 {:else}
-  {@const { type = 'button', ...buttonRest } = rest as Omit<ButtonProps, 'href'>}
-  <button data-variant={variant} data-size={size} {type} {disabled} {...buttonRest}>
+  {@const { type = 'button', ...buttonRest } = rest as Omit<
+    ButtonProps,
+    'href'
+  >}
+  <button
+    data-variant={variant}
+    data-size={size}
+    {type}
+    {disabled}
+    {...buttonRest}
+  >
     {@render children?.()}
   </button>
 {/if}

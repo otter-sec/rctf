@@ -6,7 +6,10 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import * as yaml from 'yaml'
   import { SchemaForm, type JsonSchema } from '../schema-form'
-  import { resolveInstancer, resolveInstancerValidity } from './instancer-config'
+  import {
+    resolveInstancer,
+    resolveInstancerValidity,
+  } from './instancer-config'
 
   interface Props {
     config: InstancerConfig | null
@@ -79,11 +82,17 @@
 {/snippet}
 
 <provider-viewport data-fade-scope>
-  <provider-pane data-disabled={disabled || undefined} data-fade-source tabindex="-1">
+  <provider-pane
+    data-disabled={disabled || undefined}
+    data-fade-source
+    tabindex="-1"
+  >
     {#if schemaQuery.isPending}
       <pane-loading><Spinner label="Loading instancer schema" /></pane-loading>
     {:else if !config}
-      <provider-empty>Enable the instancer to configure the provider.</provider-empty>
+      <provider-empty
+        >Enable the instancer to configure the provider.</provider-empty
+      >
     {:else}
       <provider-editor>
         <yaml-editor hidden={!advanced || undefined}>

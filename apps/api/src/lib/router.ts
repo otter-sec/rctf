@@ -1,4 +1,3 @@
-import { config } from '@rctf/config'
 import type { User } from '@rctf/db'
 import type {
   AnyRouteDefinition,
@@ -367,7 +366,8 @@ export const declareRouter = <
       const isV1 = definition.path.startsWith('/v1/')
 
       const bodyWithCaptcha = body as
-        { captchaCode?: string; recaptchaCode?: string } | undefined
+        | { captchaCode?: string; recaptchaCode?: string }
+        | undefined
       const captchaCode = isV1
         ? bodyWithCaptcha?.recaptchaCode
         : bodyWithCaptcha?.captchaCode

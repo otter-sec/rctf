@@ -12,7 +12,10 @@
   let { teamToken, loginUrl }: Props = $props()
 </script>
 
-<Card title="Save your team token" description="You will need this token to log in again.">
+<Card
+  title="Save your team token"
+  description="You will need this token to log in again."
+>
   <team-token-card>
     <token-box>
       <box-header>
@@ -22,7 +25,11 @@
           size="sm"
           aria-label="Copy team token"
           onclick={() =>
-            copyText(teamToken, 'Team token copied to clipboard', 'Failed to copy team token')}
+            copyText(
+              teamToken,
+              'Team token copied to clipboard',
+              'Failed to copy team token'
+            )}
         >
           <IconCopy />
           Copy
@@ -38,7 +45,11 @@
           size="sm"
           aria-label="Copy login URL"
           onclick={() =>
-            copyText(loginUrl, 'Login URL copied to clipboard', 'Failed to copy login URL')}
+            copyText(
+              loginUrl,
+              'Login URL copied to clipboard',
+              'Failed to copy login URL'
+            )}
         >
           <IconCopy />
           Copy
@@ -46,7 +57,10 @@
       </box-header>
       <code>{loginUrl}</code>
     </token-box>
-    <p>Store your team token somewhere safe. It is the easiest way back into this account.</p>
+    <p>
+      Store your team token somewhere safe. It is the easiest way back into this
+      account.
+    </p>
     <Button href="/" variant="secondary">
       <IconSignIn />
       Continue

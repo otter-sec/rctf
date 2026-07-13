@@ -1,5 +1,9 @@
 export type CloseSource =
-  'back' | 'esc' | 'backdrop' | 'resize-to-desktop' | 'programmatic'
+  | 'back'
+  | 'esc'
+  | 'backdrop'
+  | 'resize-to-desktop'
+  | 'programmatic'
 
 export type CloseResolution = 'history-back' | 'close-direct'
 

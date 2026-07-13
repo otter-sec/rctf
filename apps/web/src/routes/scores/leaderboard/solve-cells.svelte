@@ -22,7 +22,14 @@
     hoveredColumnId: string | null
   }
 
-  let { data, entry, viewMode, sortMode, focusedChallengeId, hoveredColumnId }: Props = $props()
+  let {
+    data,
+    entry,
+    viewMode,
+    sortMode,
+    focusedChallengeId,
+    hoveredColumnId,
+  }: Props = $props()
 
   const RING_RADIUS = 8.75
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
@@ -85,23 +92,26 @@
     })
   )
 
-  const challengeCellGroups = $derived.by((): { key: string; cells: ChallengeCell[] }[] | null => {
-    if (viewMode === 'categories' || sortMode !== 'categories') return null
-    const groups: { key: string; cells: ChallengeCell[] }[] = []
-    let offset = 0
-    for (const group of data.categoryGroups) {
-      groups.push({
-        key: group.category,
-        cells: challengeCells.slice(offset, offset + group.challenges.length),
-      })
-      offset += group.challenges.length
+  const challengeCellGroups = $derived.by(
+    (): { key: string; cells: ChallengeCell[] }[] | null => {
+      if (viewMode === 'categories' || sortMode !== 'categories') return null
+      const groups: { key: string; cells: ChallengeCell[] }[] = []
+      let offset = 0
+      for (const group of data.categoryGroups) {
+        groups.push({
+          key: group.category,
+          cells: challengeCells.slice(offset, offset + group.challenges.length),
+        })
+        offset += group.challenges.length
+      }
+      return groups
     }
-    return groups
-  })
+  )
 </script>
 
 {#snippet challengeCell(cell: ChallengeCell)}
-  {@const dimmed = focusedChallengeId !== null && focusedChallengeId !== cell.id}
+  {@const dimmed =
+    focusedChallengeId !== null && focusedChallengeId !== cell.id}
   {#if cell.dynamic}
     <solve-cell
       data-tooltip-cell
@@ -118,7 +128,9 @@
       style:--cell-width={`${cell.width}px`}
     >
       <dyn-points>
-        <dyn-value>{cell.teamPoints.toLocaleString()} <span>pts</span></dyn-value>
+        <dyn-value
+          >{cell.teamPoints.toLocaleString()} <span>pts</span></dyn-value
+        >
         <dyn-delta data-trend={pointDeltaTrend(cell.pointDelta)}>
           {#if cell.pointDelta > 0}
             <IconTriangleFilled data-icon />
@@ -186,7 +198,8 @@
                 r={RING_RADIUS}
                 data-progress
                 stroke-dasharray={RING_CIRCUMFERENCE}
-                stroke-dashoffset={RING_CIRCUMFERENCE * (1 - cell.percent / 100)}
+                stroke-dashoffset={RING_CIRCUMFERENCE *
+                  (1 - cell.percent / 100)}
               />
             </g>
           </svg>
@@ -275,7 +288,8 @@
     box-sizing: border-box;
 
     &[data-solved] {
-      border: 2px solid color-mix(in oklab, var(--foreground-success) 75%, transparent);
+      border: 2px solid
+        color-mix(in oklab, var(--foreground-success) 75%, transparent);
     }
 
     &[data-unsolved] {

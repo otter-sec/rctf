@@ -4,7 +4,11 @@
   import { includeOperatorLabel, setFilterMode, type MultiFilter } from './core'
   import FilterOptionList from './filter-option-list.svelte'
   import FilterSearchInput from './filter-search-input.svelte'
-  import { clearTimeRangeFilter, hasTimeRangeFilter, type TimeRangeFilter } from './time'
+  import {
+    clearTimeRangeFilter,
+    hasTimeRangeFilter,
+    type TimeRangeFilter,
+  } from './time'
   import TimeRangeEditor from './time-range-editor.svelte'
   import { formatTimeRangeSummary } from './time-summary'
   import { valueFilterSummary, type ValueFilterFamily } from './ui'
@@ -17,7 +21,13 @@
     ctfStartTime?: number | null
   }
 
-  let { open = $bindable(), families, filterFor, timeFilter, ctfStartTime = null }: Props = $props()
+  let {
+    open = $bindable(),
+    families,
+    filterFor,
+    timeFilter,
+    ctfStartTime = null,
+  }: Props = $props()
 
   let activeId = $state<string | 'time' | null>(null)
 
@@ -26,7 +36,9 @@
       ? null
       : (families.find(family => family.id === activeId) ?? null)
   )
-  const title = $derived(activeId === 'time' ? 'Time' : (activeFamily?.label ?? 'Filters'))
+  const title = $derived(
+    activeId === 'time' ? 'Time' : (activeFamily?.label ?? 'Filters')
+  )
   const hasActive = $derived(
     families.some(family => filterFor(family).selected.length > 0) ||
       (!!timeFilter && hasTimeRangeFilter(timeFilter))
@@ -41,7 +53,10 @@
     family.clear()
   }
 
-  function selectMode(filter: MultiFilter<unknown>, mode: 'include' | 'exclude') {
+  function selectMode(
+    filter: MultiFilter<unknown>,
+    mode: 'include' | 'exclude'
+  ) {
     setFilterMode(filter, mode)
   }
 
@@ -62,7 +77,14 @@
   </button>
 {/snippet}
 
-<Dialog {open} onOpenChange={setOpen} {title} titleHidden presentation="drawer" flush>
+<Dialog
+  {open}
+  onOpenChange={setOpen}
+  {title}
+  titleHidden
+  presentation="drawer"
+  flush
+>
   {#snippet children({ closeProps })}
     <filter-drawer-shell>
       <drawer-header>
@@ -77,7 +99,12 @@
           </button>
         {/if}
         <drawer-title>{title}</drawer-title>
-        <button {...closeProps} type="button" data-nav aria-label="Close filters">
+        <button
+          {...closeProps}
+          type="button"
+          data-nav
+          aria-label="Close filters"
+        >
           <IconX aria-hidden="true" />
         </button>
       </drawer-header>
@@ -111,7 +138,11 @@
             is not
           </button>
           {#if filter.selected.length > 0}
-            <button type="button" data-clear onclick={() => clearFamily(activeFamily)}>
+            <button
+              type="button"
+              data-clear
+              onclick={() => clearFamily(activeFamily)}
+            >
               Clear
             </button>
           {/if}
@@ -130,18 +161,26 @@
               {@render familyRow(family)}
             {/each}
             {#if timeFilter}
-              <button type="button" data-row onclick={() => (activeId = 'time')}>
+              <button
+                type="button"
+                data-row
+                onclick={() => (activeId = 'time')}
+              >
                 <IconClock aria-hidden="true" />
                 <span data-label>Time</span>
                 {#if hasTimeRangeFilter(timeFilter)}
-                  <span data-summary>{formatTimeRangeSummary(timeFilter, ctfStartTime)}</span>
+                  <span data-summary
+                    >{formatTimeRangeSummary(timeFilter, ctfStartTime)}</span
+                  >
                 {/if}
                 <IconCaretRight aria-hidden="true" data-chevron />
               </button>
             {/if}
           </root-list>
           {#if hasActive}
-            <button type="button" data-clear-all onclick={clearAll}>Clear all filters</button>
+            <button type="button" data-clear-all onclick={clearAll}
+              >Clear all filters</button
+            >
           {/if}
         </drawer-body>
       {/if}

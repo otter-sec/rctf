@@ -40,7 +40,9 @@
 <style>
   submission-header {
     display: grid;
-    grid-template-columns: 2.75rem 16rem 14rem minmax(11rem, 1fr) 11rem 9rem 10rem;
+    grid-template-columns:
+      2.75rem 16rem 14rem minmax(11rem, 1fr)
+      11rem 9rem 10rem;
     inline-size: 100%;
     block-size: 100%;
     user-select: none;

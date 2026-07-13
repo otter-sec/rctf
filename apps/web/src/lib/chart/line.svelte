@@ -8,7 +8,12 @@
     opacity?: number
   }
 
-  let { points, color = 'currentColor', width = 2, opacity = 1 }: Props = $props()
+  let {
+    points,
+    color = 'currentColor',
+    width = 2,
+    opacity = 1,
+  }: Props = $props()
 
   const d = $derived(monotoneCubicPath(points))
 </script>

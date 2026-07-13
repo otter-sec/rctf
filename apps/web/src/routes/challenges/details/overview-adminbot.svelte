@@ -37,7 +37,10 @@
   import Field from '$lib/ui/field.svelte'
   import Input from '$lib/ui/input.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import { parseAdminBotLogs, validateAdminBotInput } from '$lib/utils/admin-bot-logs'
+  import {
+    parseAdminBotLogs,
+    validateAdminBotInput,
+  } from '$lib/utils/admin-bot-logs'
   import { downloadTextFile } from '$lib/utils/download'
   import { formatLocalTime } from '$lib/utils/time'
   import AdminBotLogViewer from './adminbot-log-viewer.svelte'
@@ -69,15 +72,20 @@
 
   const job = $derived(statusQuery.data ?? null)
   const isJobActive = $derived(
-    job?.status === AdminBotJobStatus.QUEUED || job?.status === AdminBotJobStatus.RUNNING
+    job?.status === AdminBotJobStatus.QUEUED ||
+      job?.status === AdminBotJobStatus.RUNNING
   )
   const logEntries = $derived(job?.logs ? parseAdminBotLogs(job.logs) : [])
 
-  const history = $derived((historyQuery.data ?? []).filter(entry => entry.id !== job?.id))
+  const history = $derived(
+    (historyQuery.data ?? []).filter(entry => entry.id !== job?.id)
+  )
 
   const inputNames = $derived(Object.keys(inputs))
 
-  const view = $derived(!isAuthenticated ? 'login' : statusQuery.isLoading ? 'loading' : 'ready')
+  const view = $derived(
+    !isAuthenticated ? 'login' : statusQuery.isLoading ? 'loading' : 'ready'
+  )
 
   let values = $state<Record<string, string>>({})
   let errors = $state<Record<string, string | undefined>>({})
@@ -89,7 +97,9 @@
   let historyLogs = $state<string | null>(null)
   let historyLogsLoading = $state(false)
   let historyLogsRequestId = 0
-  const historyLogEntries = $derived(historyLogs ? parseAdminBotLogs(historyLogs) : [])
+  const historyLogEntries = $derived(
+    historyLogs ? parseAdminBotLogs(historyLogs) : []
+  )
 
   let previousJob: { id: string; status: AdminBotJobStatus } | null = null
   $effect(() => {
@@ -141,7 +151,9 @@
     try {
       const res = await apiRequest(SubmitAdminBotJobRouteV2, {
         id: challengeId,
-        inputs: Object.fromEntries(inputNames.map(name => [name, values[name] ?? ''])),
+        inputs: Object.fromEntries(
+          inputNames.map(name => [name, values[name] ?? ''])
+        ),
       })
       if (res.kind === GoodAdminBotJobSubmitted.kind) {
         toast.success('Admin bot job submitted!')
@@ -155,7 +167,10 @@
           logs: null,
         })
         void queryClient.invalidateQueries({ queryKey: statusKey, exact: true })
-      } else if (res.kind === BadAdminBotConfig.kind || res.kind === BadInstancerState.kind) {
+      } else if (
+        res.kind === BadAdminBotConfig.kind ||
+        res.kind === BadInstancerState.kind
+      ) {
         toast.error(res.data.error)
       } else {
         showApiError(res)
@@ -169,9 +184,15 @@
 
   async function downloadConfig() {
     try {
-      const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
+      const res = await apiRequest(GetAdminBotConfigRouteV2, {
+        id: challengeId,
+      })
       if (res.kind === GoodAdminBotConfig.kind) {
-        downloadTextFile(`bot${res.data.fileExtension}`, res.data.sourceCode, 'text/plain')
+        downloadTextFile(
+          `bot${res.data.fileExtension}`,
+          res.data.sourceCode,
+          'text/plain'
+        )
       } else {
         showApiError(res)
       }
@@ -242,7 +263,9 @@
           {@render statusIcon(job.status)}
           {#if job.status === AdminBotJobStatus.QUEUED}
             <span
-              >Job queued{job.queuePosition != null ? ` (position ${job.queuePosition})` : ''}</span
+              >Job queued{job.queuePosition != null
+                ? ` (position ${job.queuePosition})`
+                : ''}</span
             >
           {:else if job.status === AdminBotJobStatus.RUNNING}
             <span>Job running</span>
@@ -289,16 +312,22 @@
                 type="button"
                 aria-expanded={openHistoryLogsJobId === historyJob.id}
                 disabled={!historyJob.hasLogs}
-                onclick={() => historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
+                onclick={() =>
+                  historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
               >
                 {@render statusIcon(historyJob.status)}
-                <history-date>{formatLocalTime(Date.parse(historyJob.createdAt))}</history-date>
+                <history-date
+                  >{formatLocalTime(
+                    Date.parse(historyJob.createdAt)
+                  )}</history-date
+                >
                 <history-status>{historyJob.status}</history-status>
                 {#if historyJob.hasLogs}
                   <history-logs-hint>
                     Logs
                     <IconCaretDown
-                      data-open={openHistoryLogsJobId === historyJob.id || undefined}
+                      data-open={openHistoryLogsJobId === historyJob.id ||
+                        undefined}
                     />
                   </history-logs-hint>
                 {/if}
@@ -355,7 +384,10 @@
           <IconDownload />
           Download config
         </Button>
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.AdminBotSubmit} />
+        <CaptchaNotice
+          config={clientConfig}
+          action={ProtectedAction.AdminBotSubmit}
+        />
       </form-actions>
     </form>
   {/if}

@@ -52,7 +52,8 @@ export const NumericString = z.pipe(
   z.string()
 )
 
-const UPLOAD_FILE_NAME_PATTERN = /^(?!\.{1,2}$)[^/\\\0:]{1,255}$/
+// oxlint-disable-next-line no-control-regex -- upload names must explicitly reject NUL bytes
+const UPLOAD_FILE_NAME_PATTERN = /^(?!\.{1,2}$)[^/\\\u0000:]{1,255}$/
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/i
 
 export const UploadFileName = example(z.string(), 'chall.zip')

@@ -42,8 +42,12 @@
   }))
   const api = $derived(dialog.connect(service, normalizeProps))
 
-  const triggerProps = $derived(api.getTriggerProps() as Record<string, unknown>)
-  const closeProps = $derived(api.getCloseTriggerProps() as Record<string, unknown>)
+  const triggerProps = $derived(
+    api.getTriggerProps() as Record<string, unknown>
+  )
+  const closeProps = $derived(
+    api.getCloseTriggerProps() as Record<string, unknown>
+  )
 </script>
 
 {#if trigger}
@@ -59,7 +63,9 @@
       data-flush={flush ? '' : undefined}
     >
       <div {...api.getContentProps()}>
-        <h2 {...api.getTitleProps()} data-hidden={titleHidden ? '' : undefined}>{title}</h2>
+        <h2 {...api.getTitleProps()} data-hidden={titleHidden ? '' : undefined}>
+          {title}
+        </h2>
         <dialog-body>
           {#if description}
             <p {...api.getDescriptionProps()}>{description}</p>

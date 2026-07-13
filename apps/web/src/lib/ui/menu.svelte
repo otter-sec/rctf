@@ -22,7 +22,13 @@
     trigger: Snippet<[{ props: Record<string, unknown> }]>
   }
 
-  let { label, items, placement = 'bottom-start', sameWidth = false, trigger }: Props = $props()
+  let {
+    label,
+    items,
+    placement = 'bottom-start',
+    sameWidth = false,
+    trigger,
+  }: Props = $props()
 
   const id = $props.id()
   const service = useMachine(menu.machine, () => ({
@@ -35,7 +41,9 @@
   }))
   const api = $derived(menu.connect(service, normalizeProps))
 
-  const triggerProps = $derived(api.getTriggerProps() as Record<string, unknown>)
+  const triggerProps = $derived(
+    api.getTriggerProps() as Record<string, unknown>
+  )
 </script>
 
 {@render trigger({ props: triggerProps })}

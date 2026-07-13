@@ -36,7 +36,9 @@
   onDestroy(() => clearTimeout(timeout))
 
   const trimmed = $derived(
-    type === 'connection' ? content.trim().replace(/^`+|`+$/g, '') : content.trim()
+    type === 'connection'
+      ? content.trim().replace(/^`+|`+$/g, '')
+      : content.trim()
   )
   const isUrl = $derived(/^https?:\/\//.test(trimmed))
   const CopyIcon = $derived(copied ? IconCheck : IconCopy)
@@ -59,7 +61,8 @@
     </alert-header>
     <alert-body>
       {#if isUrl}
-        <a href={trimmed} target="_blank" rel="noopener noreferrer">{trimmed}</a>
+        <a href={trimmed} target="_blank" rel="noopener noreferrer">{trimmed}</a
+        >
       {:else}
         <code>{trimmed}</code>
       {/if}

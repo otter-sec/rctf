@@ -1,6 +1,9 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
-  import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
+  import {
+    resolvePinnedEdge,
+    type ViewportClip,
+  } from '$lib/components/pinned-self-row'
   import { createScrollGeometry } from '$lib/components/scroll-geometry.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { getCategoryConfig } from '$lib/utils/categories'
@@ -85,7 +88,10 @@
       rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
       loadedCount: data.entries.length,
     })
-    if (lastWindow.minRank !== next.minRank || lastWindow.maxRank !== next.maxRank) {
+    if (
+      lastWindow.minRank !== next.minRank ||
+      lastWindow.maxRank !== next.maxRank
+    ) {
       lastWindow = next
     }
     return lastWindow
@@ -148,35 +154,42 @@
 
   const selfEdge = $derived(
     resolvePinnedEdge({
-      hasSelf: !!data.currentUser && (data.isLoading || data.currentUser.globalPlace !== null),
+      hasSelf:
+        !!data.currentUser &&
+        (data.isLoading || data.currentUser.globalPlace !== null),
       selfIndex: selfIndex === -1 ? null : selfIndex,
       viewportClip: selfClip,
       searchActive,
     })
   )
 
-  const selfRow = $derived.by((): { entry: LeaderboardEntry; index: number } | null => {
-    const user = data.currentUser
-    if (!user) return null
-    const loaded = data.entries[selfIndex]
-    if (selfIndex !== -1 && loaded) return { entry: loaded, index: selfIndex }
-    return {
-      entry: {
-        id: user.id,
-        name: user.name,
-        score: user.score,
-        avatarUrl: user.avatarUrl,
-        countryCode: user.countryCode,
-        statusText: user.statusText,
-        solves: user.solves.map(solve => ({ id: solve.id, solveTime: solve.createdAt })),
-        dynamicScores: user.dynamicScores,
-        division: user.division,
-        divisionPlace: user.divisionPlace ?? 0,
-        globalPlace: user.globalPlace,
-      },
-      index: (user.globalPlace ?? 1) - 1,
+  const selfRow = $derived.by(
+    (): { entry: LeaderboardEntry; index: number } | null => {
+      const user = data.currentUser
+      if (!user) return null
+      const loaded = data.entries[selfIndex]
+      if (selfIndex !== -1 && loaded) return { entry: loaded, index: selfIndex }
+      return {
+        entry: {
+          id: user.id,
+          name: user.name,
+          score: user.score,
+          avatarUrl: user.avatarUrl,
+          countryCode: user.countryCode,
+          statusText: user.statusText,
+          solves: user.solves.map(solve => ({
+            id: solve.id,
+            solveTime: solve.createdAt,
+          })),
+          dynamicScores: user.dynamicScores,
+          division: user.division,
+          divisionPlace: user.divisionPlace ?? 0,
+          globalPlace: user.globalPlace,
+        },
+        index: (user.globalPlace ?? 1) - 1,
+      }
     }
-  })
+  )
 
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 </script>
@@ -351,8 +364,15 @@
             {line.text}
             {#if line.icon}
               {#if line.icon.kind === 'blood'}
-                <svg viewBox="0 0 24 24" data-icon="blood" data-medal={line.icon.medal}>
-                  <path fill="currentColor" d={BLOOD_PATHS[line.icon.medal - 1]} />
+                <svg
+                  viewBox="0 0 24 24"
+                  data-icon="blood"
+                  data-medal={line.icon.medal}
+                >
+                  <path
+                    fill="currentColor"
+                    d={BLOOD_PATHS[line.icon.medal - 1]}
+                  />
                 </svg>
               {:else}
                 <svg viewBox="0 0 24 24" data-icon="solved">
@@ -372,7 +392,9 @@
   scores-shell {
     --score-row-gap: 4px;
     --score-row-height-full: 68px;
-    --score-row-height: calc(var(--score-row-height-full) - var(--score-row-gap));
+    --score-row-height: calc(
+      var(--score-row-height-full) - var(--score-row-gap)
+    );
     --score-header-height: 188px;
     --score-name-row-height: 128px;
     --score-diagonal-overflow: 96px;
@@ -381,7 +403,9 @@
     --score-fade-size: 1.5rem;
     --score-fade-inset-top: 0px;
     --score-fade-inset-bottom: 0px;
-    --score-fade-region-top: calc(var(--score-mobile-graph-height) + var(--space-3xs));
+    --score-fade-region-top: calc(
+      var(--score-mobile-graph-height) + var(--space-3xs)
+    );
     --score-fade-rail: 0px;
     position: relative;
     display: flex;
@@ -439,14 +463,18 @@
     }
 
     &[data-edge='top'] {
-      inset-block-start: calc(var(--score-fade-region-top) + var(--score-fade-inset-top));
+      inset-block-start: calc(
+        var(--score-fade-region-top) + var(--score-fade-inset-top)
+      );
       inset-inline: 0;
       block-size: var(--score-fade-size);
       background: linear-gradient(to bottom, var(--background-l0), transparent);
     }
 
     &[data-edge='bottom'] {
-      inset-block-end: calc(var(--score-fade-rail) + var(--score-fade-inset-bottom));
+      inset-block-end: calc(
+        var(--score-fade-rail) + var(--score-fade-inset-bottom)
+      );
       inset-inline: 0;
       block-size: var(--score-fade-size);
       background: linear-gradient(to top, var(--background-l0), transparent);
@@ -578,7 +606,11 @@
     }
 
     &[data-hovered]::before {
-      background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l2));
+      background: color-mix(
+        in oklab,
+        var(--foreground-l0) 4%,
+        var(--background-l2)
+      );
     }
 
     &[data-ranked]::after {
@@ -722,7 +754,11 @@
       border-end-end-radius: var(--radius-lg);
 
       &[data-hovered] {
-        background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l2));
+        background: color-mix(
+          in oklab,
+          var(--foreground-l0) 4%,
+          var(--background-l2)
+        );
       }
 
       &[data-current] {

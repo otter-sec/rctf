@@ -19,14 +19,20 @@
 
   const errorsContext = getSchemaFormErrors()
 
-  const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
+  const entries = $derived(
+    Object.entries((value ?? {}) as Record<string, unknown>)
+  )
   const valueSchema = $derived(recordValueSchema(schema))
   const label = $derived(fieldLabel(schema, path, 'Items'))
   const description = $derived(schema.description)
-  const isNumeric = $derived(valueSchema.type === 'number' || valueSchema.type === 'integer')
+  const isNumeric = $derived(
+    valueSchema.type === 'number' || valueSchema.type === 'integer'
+  )
   const isBoolean = $derived(valueSchema.type === 'boolean')
 
-  const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
+  const keyEnumValues = $derived(
+    schema.propertyNames?.enum as string[] | undefined
+  )
   const availableKeys = $derived(
     keyEnumValues?.filter(k => !entries.some(([ek]) => ek === k)) ?? []
   )
@@ -144,7 +150,8 @@
                 type="text"
                 inputmode={isNumeric ? 'decimal' : 'text'}
                 value={String(val ?? '')}
-                oninput={event => handleValueInput(key, event.currentTarget.value)}
+                oninput={event =>
+                  handleValueInput(key, event.currentTarget.value)}
                 aria-invalid={error ? 'true' : undefined}
                 {disabled}
               />
@@ -186,7 +193,11 @@
               placeholder="new key"
               bind:value={newKeyInput}
               onkeydown={event => {
-                if (event.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
+                if (
+                  event.key === 'Enter' &&
+                  newKeyInput.trim() &&
+                  !isDuplicateKey
+                ) {
                   event.preventDefault()
                   addEntry(newKeyInput.trim())
                 }
@@ -201,12 +212,16 @@
           size="sm"
           onclick={addFromControls}
           disabled={disabled ||
-            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}
+            (keyEnumValues
+              ? !selectedKey
+              : !newKeyInput.trim() || isDuplicateKey)}
         >
           Add
         </Button>
       </record-controls>
-      {#if isDuplicateKey}<record-error role="alert">Key already exists</record-error>{/if}
+      {#if isDuplicateKey}<record-error role="alert"
+          >Key already exists</record-error
+        >{/if}
     </record-row>
   </record-rows>
 </record-field>

@@ -33,18 +33,26 @@
 {#if clientConfig?.isArchived}
   <ArchivedNotice message="Account recovery is not available." />
 {:else if verifySent}
-  <Card title="Recovery email sent" description="Get a new team token sent to your email">
+  <Card
+    title="Recovery email sent"
+    description="Get a new team token sent to your email"
+  >
     <auth-page>
       <p>
-        If an account exists for <strong>{form.data.email}</strong>, we've sent a recovery email.
-        Please check your inbox and click the link to access your account. If you didn't receive the
-        email, check your spam folder or
-        <button type="button" onclick={() => (verifySent = false)}>try again</button>.
+        If an account exists for <strong>{form.data.email}</strong>, we've sent
+        a recovery email. Please check your inbox and click the link to access
+        your account. If you didn't receive the email, check your spam folder or
+        <button type="button" onclick={() => (verifySent = false)}
+          >try again</button
+        >.
       </p>
     </auth-page>
   </Card>
 {:else}
-  <Card title="Recover account" description="Get a new team token sent to your email">
+  <Card
+    title="Recover account"
+    description="Get a new team token sent to your email"
+  >
     <auth-page>
       <form onsubmit={form.submit}>
         <Field label="Email" error={form.errors.email ?? form.errors._form}>
@@ -57,7 +65,9 @@
               autocomplete="email"
               required
               aria-describedby={describedBy}
-              aria-invalid={!!form.errors.email || !!form.errors._form || undefined}
+              aria-invalid={!!form.errors.email ||
+                !!form.errors._form ||
+                undefined}
               bind:value={form.data.email}
             />
           {/snippet}
@@ -69,7 +79,9 @@
           Recover
         </Button>
       </form>
-      <footer-note>Remember your token? <a href="/login">Login here</a>.</footer-note>
+      <footer-note
+        >Remember your token? <a href="/login">Login here</a>.</footer-note
+      >
       <CaptchaNotice config={clientConfig} action={ProtectedAction.Recover} />
     </auth-page>
   </Card>

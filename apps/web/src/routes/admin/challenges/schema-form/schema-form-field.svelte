@@ -37,7 +37,9 @@
   const heavyKind = $derived(classifyHeavy(schema))
 
   const isRecord = $derived(
-    primaryType === 'object' && !effectiveSchema.properties && effectiveSchema.additionalProperties
+    primaryType === 'object' &&
+      !effectiveSchema.properties &&
+      effectiveSchema.additionalProperties
   )
 </script>
 
@@ -51,7 +53,14 @@
     {onSelect}
   />
 {:else if isRecord}
-  <SchemaFormRecord schema={effectiveSchema} {value} {path} {onChange} {onSelect} {disabled} />
+  <SchemaFormRecord
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {onSelect}
+    {disabled}
+  />
 {:else if primaryType === 'object' && effectiveSchema.properties}
   <SchemaFormObject
     schema={effectiveSchema}
@@ -66,7 +75,14 @@
     label={fieldLabel(effectiveSchema, path)}
   />
 {:else if primaryType === 'array'}
-  <SchemaFormArray schema={effectiveSchema} {value} {path} {onChange} {onSelect} {disabled} />
+  <SchemaFormArray
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {onSelect}
+    {disabled}
+  />
 {:else if primaryType === 'string' || effectiveSchema.enum}
   <SchemaFormFieldString
     schema={effectiveSchema}

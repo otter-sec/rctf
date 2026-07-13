@@ -57,7 +57,10 @@
   const instancerItems = $derived<MenuItem[]>(
     instancers.map(entry => ({
       value: entry.name,
-      label: entry.name === schema?.defaultInstancer ? `${entry.name} (default)` : entry.name,
+      label:
+        entry.name === schema?.defaultInstancer
+          ? `${entry.name} (default)`
+          : entry.name,
       checked: active?.name === entry.name,
       onSelect: () => switchInstancer(entry.name),
     }))
@@ -112,7 +115,11 @@
           <config-fields>
             <form-field>
               <field-label>Enable instancer</field-label>
-              <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
+              <FieldSelect
+                label={config ? 'Enabled' : 'Disabled'}
+                items={enableItems}
+                {disabled}
+              />
             </form-field>
 
             {#if config}
@@ -136,18 +143,25 @@
                     placeholder="challenge-id"
                     value={config.challengeIntegrationId}
                     {disabled}
-                    oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
+                    oninput={e =>
+                      patch({ challengeIntegrationId: e.currentTarget.value })}
                   />
                 </form-field>
                 <form-field>
-                  <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
+                  <field-label
+                    >Timeout <field-hint>(seconds)</field-hint></field-label
+                  >
                   <Input
                     type="number"
                     min={0}
                     value={timeoutToSeconds(config.timeoutMilliseconds)}
                     {disabled}
                     oninput={e =>
-                      patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
+                      patch({
+                        timeoutMilliseconds: secondsToTimeout(
+                          +e.currentTarget.value
+                        ),
+                      })}
                   />
                 </form-field>
               </field-grid>
@@ -180,7 +194,8 @@
           <ChallengesDetailsOverviewInstancer
             {challengeId}
             instancerLifetime={config.timeoutMilliseconds}
-            instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
+            instancerExtendable={(config.extendable ?? true) &&
+              (active?.canExtend ?? true)}
             instancerStoppable={active?.canStop ?? true}
             instancerActions={[]}
             onSolve={() => {}}

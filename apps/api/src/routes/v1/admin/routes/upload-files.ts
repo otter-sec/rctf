@@ -12,7 +12,7 @@ adminGroup.route(UploadFilesRoute, async ({ res, body }) => {
         data: Buffer.from(dataUriToBuffer(data).buffer),
       }
     })
-  } catch (e) {
+  } catch {
     return res.badDataUri()
   }
 

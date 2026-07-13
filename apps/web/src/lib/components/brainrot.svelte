@@ -19,7 +19,8 @@
 
   function onKeydown(event: KeyboardEvent) {
     const targetIsTextField =
-      event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
     const result = advanceBuffer(buffer, event.key, targetIsTextField)
     buffer = result.buffer
     if (result.activated) {
@@ -41,7 +42,11 @@
     const win = windows.find(w => w.id === id)
     if (!win) return
     bringToFront(id)
-    dragging = { id, offsetX: event.clientX - win.x, offsetY: event.clientY - win.y }
+    dragging = {
+      id,
+      offsetX: event.clientX - win.x,
+      offsetY: event.clientY - win.y,
+    }
   }
 
   function onMouseMove(event: MouseEvent) {
@@ -69,7 +74,10 @@
     onmousedown={() => bringToFront(win.id)}
     role="presentation"
   >
-    <brainrot-bar onmousedown={(event: MouseEvent) => startDrag(event, win.id)} role="presentation">
+    <brainrot-bar
+      onmousedown={(event: MouseEvent) => startDrag(event, win.id)}
+      role="presentation"
+    >
       <span>{win.title}</span>
       <button
         type="button"

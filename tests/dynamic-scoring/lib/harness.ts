@@ -60,7 +60,7 @@ const req = async <T = unknown>(
     opts.body = typeof body === 'string' ? body : JSON.stringify(body)
     opts.headers = {
       'Content-Type': 'application/json',
-      ...(opts.headers ?? {}),
+      ...opts.headers,
     }
   }
   const res = await fetch(`${base}${path}`, opts)
@@ -74,9 +74,9 @@ export const api = <T = unknown>(
 ): Promise<ApiResponse<T>> => req<T>(RCTF_BASE_URL, path, init)
 
 const withBearer = (init: ReqInit | undefined, token: string): ReqInit => ({
-  ...(init ?? {}),
+  ...init,
   headers: {
-    ...(init?.headers ?? {}),
+    ...init?.headers,
     Authorization: `Bearer ${token}`,
   },
 })

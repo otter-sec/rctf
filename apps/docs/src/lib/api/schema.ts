@@ -22,7 +22,12 @@ export interface ResponseField {
 }
 
 export type ExampleValue =
-  string | number | boolean | null | ExampleValue[] | { [key: string]: ExampleValue }
+  | string
+  | number
+  | boolean
+  | null
+  | ExampleValue[]
+  | { [key: string]: ExampleValue }
 
 function defOf(schema: ZodSchema | undefined | null): ZodDef | null {
   if (!schema) return null

@@ -1,5 +1,7 @@
 export type TagAddResult =
-  { kind: 'added'; value: string[] } | { kind: 'rejected' } | { kind: 'empty' }
+  | { kind: 'added'; value: string[] }
+  | { kind: 'rejected' }
+  | { kind: 'empty' }
 
 export function addTag(
   value: string[],
