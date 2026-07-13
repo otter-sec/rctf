@@ -8,7 +8,7 @@ rCTF is configured through YAML or JSON files in a `rctf.d/{:dir}` directory and
 
 ## Configuration loading
 
-By default, rCTF searches upward from `packages/config/{:dir}` for a directory named `rctf.d/{:dir}`. Set `RCTF_CONF_PATH{:sh}` to use another directory.
+By default, rCTF searches upward from `packages/config/{:dir}` for a directory named `rctf.d/{:dir}`. Set `<yellow>RCTF_CONF_PATH</yellow>` to use another directory.
 
 rCTF loads `.yaml`, `.yml`, and `.json` files **alphabetically**, merging each file over the previous ones. This lets you separate base settings, providers, and deployment-specific overrides:
 
@@ -29,70 +29,70 @@ The following environment variables are supported. They override values from con
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_NAME{:sh}` | `string{:ts}` | CTF display name |
-| `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
-| `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
-| `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
-| `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit. `0` disables the cap. |
-| `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
-| `RCTF_MAX_REQUEST_BODY_SIZE{:sh}` | `integer{:ts}` | Maximum accepted request body size in bytes |
-| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
-| `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
+| `<yellow>RCTF_NAME</yellow>` | `string{:ts}` | CTF display name |
+| `<yellow>RCTF_ORIGIN</yellow>` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
+| `<yellow>RCTF_TOKEN_KEY</yellow>` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
+| `<yellow>RCTF_INSTANCE_TYPE</yellow>` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
+| `<yellow>RCTF_SHUTDOWN_TIMEOUT</yellow>` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit. `0` disables the cap. |
+| `<yellow>RCTF_IDLE_TIMEOUT</yellow>` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
+| `<yellow>RCTF_MAX_REQUEST_BODY_SIZE</yellow>` | `integer{:ts}` | Maximum accepted request body size in bytes |
+| `<yellow>RCTF_UPLOAD_PROVIDER</yellow>` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
+| `<yellow>RCTF_CONF_PATH</yellow>` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_DATABASE_URL{:sh}` | `string{:ts}` | PostgreSQL connection string |
-| `RCTF_DATABASE_HOST{:sh}` | `string{:ts}` | PostgreSQL host (if not using URL) |
-| `RCTF_DATABASE_PORT{:sh}` | `integer{:ts}` | PostgreSQL port |
-| `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}` | PostgreSQL user |
-| `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}` | PostgreSQL password |
-| `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}` | PostgreSQL database name |
-| `RCTF_DATABASE_MIGRATE{:sh}` | `string{:ts}` | `<green>before</green>`, `<green>only</green>`, or `<green>never</green>` |
-| `RCTF_REDIS_URL{:sh}` | `string{:ts}` | Redis connection string |
-| `RCTF_REDIS_HOST{:sh}` | `string{:ts}` | Redis host (if not using URL) |
-| `RCTF_REDIS_PORT{:sh}` | `integer{:ts}` | Redis port |
-| `RCTF_REDIS_PASSWORD{:sh}` | `string{:ts}` | Redis password |
-| `RCTF_REDIS_DATABASE{:sh}` | `integer{:ts}` | Redis database number |
+| `<yellow>RCTF_DATABASE_URL</yellow>` | `string{:ts}` | PostgreSQL connection string |
+| `<yellow>RCTF_DATABASE_HOST</yellow>` | `string{:ts}` | PostgreSQL host (if not using URL) |
+| `<yellow>RCTF_DATABASE_PORT</yellow>` | `integer{:ts}` | PostgreSQL port |
+| `<yellow>RCTF_DATABASE_USERNAME</yellow>` | `string{:ts}` | PostgreSQL user |
+| `<yellow>RCTF_DATABASE_PASSWORD</yellow>` | `string{:ts}` | PostgreSQL password |
+| `<yellow>RCTF_DATABASE_DATABASE</yellow>` | `string{:ts}` | PostgreSQL database name |
+| `<yellow>RCTF_DATABASE_MIGRATE</yellow>` | `string{:ts}` | `<green>before</green>`, `<green>only</green>`, or `<green>never</green>` |
+| `<yellow>RCTF_REDIS_URL</yellow>` | `string{:ts}` | Redis connection string |
+| `<yellow>RCTF_REDIS_HOST</yellow>` | `string{:ts}` | Redis host (if not using URL) |
+| `<yellow>RCTF_REDIS_PORT</yellow>` | `integer{:ts}` | Redis port |
+| `<yellow>RCTF_REDIS_PASSWORD</yellow>` | `string{:ts}` | Redis password |
+| `<yellow>RCTF_REDIS_DATABASE</yellow>` | `integer{:ts}` | Redis database number |
 
 ### Timing and auth
 
 | Variable                          | Type           | Description                                |
 | --------------------------------- | -------------- | ------------------------------------------ |
-| `RCTF_START_TIME{:sh}`            | `integer{:ts}` | Competition start time (Unix milliseconds) |
-| `RCTF_END_TIME{:sh}`              | `integer{:ts}` | Competition end time (Unix milliseconds)   |
-| `RCTF_LOGIN_TIMEOUT{:sh}`         | `integer{:ts}` | Verification token expiry in milliseconds  |
-| `RCTF_USER_MEMBERS{:sh}`          | `boolean{:ts}` | Enable team members feature                |
-| `RCTF_CTFTIME_CLIENT_ID{:sh}`     | `string{:ts}`  | CTFtime OAuth client ID                    |
-| `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | `string{:ts}`  | CTFtime OAuth client secret                |
+| `<yellow>RCTF_START_TIME</yellow>`            | `integer{:ts}` | Competition start time (Unix milliseconds) |
+| `<yellow>RCTF_END_TIME</yellow>`              | `integer{:ts}` | Competition end time (Unix milliseconds)   |
+| `<yellow>RCTF_LOGIN_TIMEOUT</yellow>`         | `integer{:ts}` | Verification token expiry in milliseconds  |
+| `<yellow>RCTF_USER_MEMBERS</yellow>`          | `boolean{:ts}` | Enable team members feature                |
+| `<yellow>RCTF_CTFTIME_CLIENT_ID</yellow>`     | `string{:ts}`  | CTFtime OAuth client ID                    |
+| `<yellow>RCTF_CTFTIME_CLIENT_SECRET</yellow>` | `string{:ts}`  | CTFtime OAuth client secret                |
 
 ### UI and meta
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_HOME_CONTENT{:sh}` | `string{:ts}` | Home page markdown content |
-| `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
-| `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
-| `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
-| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading#analytics-provider). |
+| `<yellow>RCTF_HOME_CONTENT</yellow>` | `string{:ts}` | Home page markdown content |
+| `<yellow>RCTF_FAVICON_URL</yellow>` | `string{:ts}` | Favicon URL |
+| `<yellow>RCTF_META_DESCRIPTION</yellow>` | `string{:ts}` | Meta description |
+| `<yellow>RCTF_IMAGE_URL</yellow>` | `string{:ts}` | Meta image URL |
+| `<yellow>RCTF_GLOBAL_SITE_TAG</yellow>` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading#analytics-provider). |
 
 ### Email
 
 | Variable                    | Type          | Description                 |
 | --------------------------- | ------------- | --------------------------- |
-| `RCTF_EMAIL_FROM{:sh}`      | `string{:ts}` | Email sender address        |
-| `RCTF_EMAIL_LOGO_URL{:sh}`  | `string{:ts}` | Logo URL in email templates |
+| `<yellow>RCTF_EMAIL_FROM</yellow>`      | `string{:ts}` | Email sender address        |
+| `<yellow>RCTF_EMAIL_LOGO_URL</yellow>`  | `string{:ts}` | Logo URL in email templates |
 
 ### Leaderboard
 
 | Variable                                  | Type           | Description                      |
 | ----------------------------------------- | -------------- | -------------------------------- |
-| `RCTF_LEADERBOARD_MAX_LIMIT{:sh}`         | `integer{:ts}` | Max teams per leaderboard page   |
-| `RCTF_LEADERBOARD_MAX_OFFSET{:sh}`        | `integer{:ts}` | Max leaderboard offset           |
-| `RCTF_LEADERBOARD_UPDATE_INTERVAL{:sh}`   | `integer{:ts}` | Leaderboard recalc interval (ms) |
-| `RCTF_LEADERBOARD_GRAPH_MAX_TEAMS{:sh}`   | `integer{:ts}` | Max teams on score graph         |
-| `RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME{:sh}` | `integer{:ts}` | Graph sample interval (ms)       |
+| `<yellow>RCTF_LEADERBOARD_MAX_LIMIT</yellow>`         | `integer{:ts}` | Max teams per leaderboard page   |
+| `<yellow>RCTF_LEADERBOARD_MAX_OFFSET</yellow>`        | `integer{:ts}` | Max leaderboard offset           |
+| `<yellow>RCTF_LEADERBOARD_UPDATE_INTERVAL</yellow>`   | `integer{:ts}` | Leaderboard recalc interval (ms) |
+| `<yellow>RCTF_LEADERBOARD_GRAPH_MAX_TEAMS</yellow>`   | `integer{:ts}` | Max teams on score graph         |
+| `<yellow>RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME</yellow>` | `integer{:ts}` | Graph sample interval (ms)       |
 
 :::note
 Boolean environment variables accept `<green>true</green>`, `<green>yes</green>`, `<green>y</green>`, or `<green>1</green>` as truthy values. Anything else is treated as false.

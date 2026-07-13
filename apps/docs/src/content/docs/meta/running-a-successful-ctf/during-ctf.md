@@ -47,8 +47,8 @@ After the fix is tested, announce that the challenge is available again and say 
 If the rCTF platform itself becomes unresponsive, work through the following steps:
 
 1. **Check API server logs** for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker, run `$ <red>docker</red> logs rctf-rctf-1`.
-2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 psql <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
-3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 redis-cli --pass "$RCTF_REDIS_PASSWORD" ping`.
+2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 <red>psql</red> <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
+3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 <red>redis-cli</red> <dim>--pass</dim> <green>"<yellow>$RCTF_REDIS_PASSWORD</yellow>"</green> ping`.
 4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
 5. **Check resource usage** to verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 

@@ -45,6 +45,8 @@ prose-content tab-group {
       background: var(--background-l2);
       border-start-start-radius: var(--radius-lg);
       border-start-end-radius: var(--radius-lg);
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
 
       > [role='tab'] {
         padding: 0.45rem var(--space-xs);

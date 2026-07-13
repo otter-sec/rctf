@@ -4,15 +4,15 @@ description: Generate a read-only snapshot of a finished rCTF instance for Cloud
 order: 8
 ---
 
-The `rctf export{:sh}` command of the [rctf CLI](/admin/cli) turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
+The `$ <red>rctf</red> export` command of the [rctf CLI](/admin/cli) turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
 
 ## CLI
 
 The exporter reads from a live rCTF API and copies a built SvelteKit frontend. Build the frontend first, then run the export command:
 
-```console
+```ansi
 $ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build
-$ <red>bun</red> rctf export \
+$ <red><dim>bun</dim> rctf</red> export \
   <dim>--api-url</dim> https://ctf.example.com \
   <dim>--backend</dim> cloudflare-pages \
   <dim>--output</dim> ./export-output
@@ -86,7 +86,7 @@ The `cloudflare-pages` backend writes:
 
 Deploy from the output directory:
 
-```console
+```ansi
 $ <red>npx</red> wrangler pages deploy ./export-output
 ```
 :::
@@ -95,7 +95,7 @@ The `github-pages` backend writes an empty `.nojekyll{:file}` so files under `_a
 
 Publish with `$ <red>gh-pages</red>` from the repository root. The `<dim>--dotfiles</dim>` flag is required so `.nojekyll{:file}` is uploaded:
 
-```console
+```ansi
 $ <red>npx</red> gh-pages <dim>-d</dim> ./export-output <dim>--dotfiles</dim>
 ```
 

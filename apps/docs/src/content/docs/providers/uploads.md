@@ -22,7 +22,7 @@ uploadProvider:
     awsRegion: us-east-1
 ```
 
-You can keep storage credentials out of config files by using environment variables. Set `RCTF_UPLOAD_PROVIDER{:sh}` to a provider such as `<green>uploads/s3</green>`, then provide the settings through the variables listed below. Environment values override the config file.
+You can keep storage credentials out of config files by using environment variables. Set `<yellow>RCTF_UPLOAD_PROVIDER</yellow>` to a provider such as `<green>uploads/s3</green>`, then provide the settings through the variables listed below. Environment values override the config file.
 
 ## File handling
 
@@ -68,10 +68,10 @@ uploadProvider:
 
 | Option                    | Environment Variable      | Description           |
 | ------------------------- | ------------------------- | --------------------- |
-| `<red>bucketName</red>`   | `RCTF_S3_BUCKET{:sh}`     | S3 bucket name        |
-| `<red>awsKeyId</red>`     | `RCTF_S3_KEY_ID{:sh}`     | AWS access key ID     |
-| `<red>awsKeySecret</red>` | `RCTF_S3_KEY_SECRET{:sh}` | AWS secret access key |
-| `<red>awsRegion</red>`    | `RCTF_S3_REGION{:sh}`     | AWS region            |
+| `<red>bucketName</red>`   | `<yellow>RCTF_S3_BUCKET</yellow>`     | S3 bucket name        |
+| `<red>awsKeyId</red>`     | `<yellow>RCTF_S3_KEY_ID</yellow>`     | AWS access key ID     |
+| `<red>awsKeySecret</red>` | `<yellow>RCTF_S3_KEY_SECRET</yellow>` | AWS secret access key |
+| `<red>awsRegion</red>`    | `<yellow>RCTF_S3_REGION</yellow>`     | AWS region            |
 
 Files are stored with `public-read` ACL and `attachment` content disposition. The bucket has to allow public reads.
 ::::
@@ -94,9 +94,9 @@ uploadProvider:
 
 | Option | Environment Variable | Description |
 | --- | --- | --- |
-| `<red>projectId</red>` | `RCTF_GCS_PROJECT_ID{:sh}` | GCP project ID |
-| `<red>bucketName</red>` | `RCTF_GCS_BUCKET{:sh}` | GCS bucket name |
-| `<red>credentials</red>` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
+| `<red>projectId</red>` | `<yellow>RCTF_GCS_PROJECT_ID</yellow>` | GCP project ID |
+| `<red>bucketName</red>` | `<yellow>RCTF_GCS_BUCKET</yellow>` | GCS bucket name |
+| `<red>credentials</red>` | `<yellow>RCTF_GCS_CREDENTIALS</yellow>` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket has to be configured to allow public access.
 ::::
@@ -108,7 +108,7 @@ Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GC
 
 ::::tabs
 :::tab[AWS S3]
-```console
+```ansi
 $ <red>cd</red> deploy/terraform/storage/main
 $ <red>terraform</red> init
 $ <red>terraform</red> apply <dim>-var=</dim><green>"region=eu-west-3"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>
@@ -134,7 +134,7 @@ uploadProvider:
 The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default, which you can override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
 :::
 :::tab[GCS]
-```console
+```ansi
 $ <red>cd</red> deploy/terraform/storage/gcs
 $ <red>terraform</red> init
 $ <red>terraform</red> apply <dim>-var=</dim><green>"project_id=my-gcp-project"</green> <dim>-var=</dim><green>"region=europe-west1"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>

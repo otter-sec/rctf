@@ -59,8 +59,8 @@ captcha:
 
 | Option                 | Environment Variable             | Description          |
 | ---------------------- | -------------------------------- | -------------------- |
-| `<red>siteKey</red>`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
-| `<red>secretKey</red>` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_RECAPTCHA_SITE_KEY</yellow>`   | reCAPTCHA site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_RECAPTCHA_SECRET_KEY</yellow>` | reCAPTCHA secret key |
 
 :::
 :::tab[captcha/hcaptcha]
@@ -77,8 +77,8 @@ captcha:
 
 | Option                 | Environment Variable            | Description         |
 | ---------------------- | ------------------------------- | ------------------- |
-| `<red>siteKey</red>`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
-| `<red>secretKey</red>` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_HCAPTCHA_SITE_KEY</yellow>`   | hCaptcha site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_HCAPTCHA_SECRET_KEY</yellow>` | hCaptcha secret key |
 
 :::
 :::tab[captcha/turnstile]
@@ -95,8 +95,8 @@ captcha:
 
 | Option                 | Environment Variable             | Description          |
 | ---------------------- | -------------------------------- | -------------------- |
-| `<red>siteKey</red>`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
-| `<red>secretKey</red>` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_TURNSTILE_SITE_KEY</yellow>`   | Turnstile site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_TURNSTILE_SECRET_KEY</yellow>` | Turnstile secret key |
 
 :::
 ::::

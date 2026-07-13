@@ -18,7 +18,7 @@ Konata has been used for public events, but it is still pre-1.0 and its configur
 
 Konata is published on PyPI:
 
-```console
+```ansi
 $ <red>pip</red> install konata
 $ <red>kona</red> <dim>--help</dim>
 ```
@@ -98,7 +98,7 @@ templates:
     {{ endpoints_rendered.strip() }}
 ```
 
-### `secrets`
+### `<red>secrets</red>`
 
 The `<red>secrets</red>` map gives sensitive or repeated values a name. Each entry uses exactly one source:
 
@@ -116,7 +116,7 @@ rctf:
     secret: token # resolves to secrets.token
 ```
 
-### `rctf`
+### `<red>rctf</red>`
 
 rCTF API credentials. Konata calls into rCTF over the public admin API.
 
@@ -128,7 +128,7 @@ rCTF API credentials. Konata calls into rCTF over the public admin API.
 
 A `<red>ctfd</red>` block with the same structure is available for CTFd deployments. Both blocks can be used together when the same challenge repository is deployed to multiple platforms.
 
-### `clusters`
+### `<red>clusters</red>`
 
 Named Kubernetes clusters that challenge `<red>kubernetesManifests</red>` / `<red>kubernetesInlineManifests</red>` deployments target. Each entry picks exactly one auth backend:
 
@@ -137,20 +137,20 @@ Named Kubernetes clusters that challenge `<red>kubernetesManifests</red>` / `<re
 | `<red>gcloud</red>` | Required for GKE. Konata runs `$ <red>gcloud</red> container clusters get-credentials`, so the workflow needs an authenticated `$ <red>gcloud</red>` session and the `gke-gcloud-auth-plugin`. |
 | `<red>kind</red>` | Local Kind cluster. `<red>clusterName</red>` / `<red>cluster_name</red>` defaults to `<green>kind</green>`. |
 | `<red>kubeconfig</red>` | Inline kubeconfig pulled from a `<red>secret</red>` or `<red>value</red>`. |
-| `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config{:file}` from the host (the default). |
+| `<red>use_default: true</red>` | Use `<yellow>$KUBECONFIG</yellow>` or `~/.kube/config{:file}` from the host (the default). |
 | `<red>incluster: true</red>` | Use the in-pod service-account credentials when Konata itself runs inside the cluster. |
 
 `<red>alias_to</red>` / `<red>aliasTo</red>` redirects one cluster name to another. This lets challenge files target a stable name such as `<red>main</red>` while the root config decides which cluster that means.
 
-### `registries`
+### `<red>registries</red>`
 
 The `<red>registries</red>` map names container registry prefixes. An image selects one with `<red>registryName</red>` / `<red>registry_name</red>`, and Konata prepends the mapped prefix to the image name. Separate entries are useful when shared and instanced challenges publish to different registries.
 
-### `domains`
+### `<red>domains</red>`
 
 The `<red>domains</red>` map makes hostnames available to Jinja templates, for example `{{ config.domains['static'] }}`. Changing a deployment domain then requires one root edit instead of changes to every challenge.
 
-### `templates`
+### `<red>templates</red>`
 
 Templates control the final challenge description and connection block. They use Jinja2 and can read `<red>challenge</red>`, `<red>config</red>`, and `<red>models</red>`.
 
@@ -172,7 +172,7 @@ templates:
       {% endfor %}
 ```
 
-### `discovery`
+### `<red>discovery</red>`
 
 Top-level discovery options.
 
@@ -183,11 +183,11 @@ Top-level discovery options.
 | `<red>klodd_domain</red>` | - | Klodd domain when using the [Klodd](https://github.com/redpwn/klodd) integration. |
 | `<red>klodd_endpoint_name</red>` | - | Klodd endpoint identifier. |
 
-### `attachment_format`
+### `<red>attachment_format</red>`
 
 Choose `<green>tar_gz</green>` (the default), `<green>zip</green>`, or `<green>7z</green>` for generated attachments. Password protection always uses `<green>7z</green>`.
 
-### `attachment_wrap_dir`
+### `<red>attachment_wrap_dir</red>`
 
 When `true{:ts}`, the default, generated archives place their files under a directory named after the archive or challenge. Set it to `false{:ts}` to put files at the archive root.
 
@@ -608,11 +608,11 @@ Konata's Jinja2 environment exposes a `<red>re_escape</red>` filter (`{{ value |
 
 ## CLI
 
-### `kona sync`
+### `<red>kona</red> sync`
 
 `sync` finds the selected challenges, builds and pushes their images, applies Kubernetes manifests, and updates every configured platform.
 
-```console
+```ansi
 $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 ```
 
@@ -622,13 +622,13 @@ $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 | `<dim>--only</dim> <name>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
 | `<dim>--challenge-path</dim> <path>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
 
-### `kona compress`
+### `<red>kona</red> compress`
 
 `compress` creates an attachment archive that can be committed and referenced through `<red>attachments.preCompressed</red>`.
 
-```console
+```ansi
 $ <red>kona</red> compress ./challenge/dist <dim>--format</dim> zip <dim>--output</dim> handout.zip
-$ <red>kona</red> compress ./challenge/dist <dim>--password</dim> "$FLAG" <dim>--output</dim> handout.7z
+$ <red>kona</red> compress ./challenge/dist <dim>--password</dim> <green>"<yellow>$FLAG</yellow>"</green> <dim>--output</dim> handout.7z
 ```
 
 | Flag | Behavior |

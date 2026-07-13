@@ -25,21 +25,22 @@ A full admin uses `63`, the sum of every permission.
 
 After registering a normal account, grant admin permissions with the [rctf CLI](/admin/cli):
 
-```console
-# Full admin (all permissions)
-$ <red>bun</red> rctf user promote admin@example.com
-
-# Challenge editor (read + write challenges)
-$ <red>bun</red> rctf user promote author@example.com <dim>--perms</dim> challsRead,challsWrite
-```
+- For full admin:
+   ```ansi
+   $ <red><dim>bun</dim> rctf</red> user promote admin@example.com
+   ```
+- For challenge editors (read + write challenges):
+   ```ansi
+   $ <red><dim>bun</dim> rctf</red> user promote author@example.com <dim>--perms</dim> challsRead,challsWrite
+   ```
 
 If using Docker:
 
-```console
-$ <red>docker</red> exec rctf-rctf-1 rctf user promote admin@example.com
+```ansi
+$ <red>docker</red> exec rctf-rctf-1 <red>rctf</red> user promote admin@example.com
 ```
 
-Use `rctf user demote <email>{:sh}` to revoke all permissions and `rctf user list-admins{:sh}` to see who currently has any.
+Use `$ <red>rctf</red> user demote <dim><email></dim>` to revoke all permissions and `$ <red>rctf</red> user list-admins` to see who currently has any.
 
 ### Permission bypass
 

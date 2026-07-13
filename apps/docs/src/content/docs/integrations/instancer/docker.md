@@ -34,7 +34,7 @@ ports:
   - '12237:1337'
 ```
 
-The API is authenticated by a shared `<red>AUTH_TOKEN</red>`, but the endpoint shouldn't be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
+The API is authenticated by a shared `<yellow>AUTH_TOKEN</yellow>`, but the endpoint shouldn't be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
 :::
 
 The environment file requires shared auth, Redis, and public instance host settings:
@@ -57,7 +57,7 @@ TRAEFIK_PERMANENT_REDIRECT_MIDDLEWARE_NAME=permanent-https-redirect@file
 
 The Docker instancer stack starts from the repository root:
 
-```console
+```ansi
 $ <red>docker</red> compose <dim>-f</dim> deploy/docker-instancer/compose.yml up <dim>-d</dim>
 ```
 
@@ -95,13 +95,13 @@ Traefik terminates TLS for every `<green>https</green>` and `<green>tcp-ssl</gre
 
 Instance hostnames are one label deep, so a single-level wildcard covers every `<hostPrefix>`. Generate the certificate with an ACME client that supports DNS-01, since wildcard certificates cannot use HTTP-01. With Certbot:
 
-```console
+```ansi
 $ <red>certbot</red> certonly <dim>--manual</dim> <dim>--preferred-challenges</dim> dns <dim>-d</dim> <green>'*.instancer.example.com'</green>
 ```
 
 Copy the issued files into the mount, matching the names Traefik expects:
 
-```console
+```ansi
 $ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/fullchain.pem deploy/docker-instancer/certs/fullchain.pem
 $ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/privkey.pem deploy/docker-instancer/certs/privkey.pem
 ```

@@ -26,7 +26,7 @@ Replace `example.com` and `123.123.123.123` throughout the guide with your domai
 
    Connect to the new server:
 
-   ```console
+   ```ansi
    $ <red>ssh</red> root@123.123.123.123
    ```
 
@@ -36,7 +36,7 @@ Replace `example.com` and `123.123.123.123` throughout the guide with your domai
 
    Run the installer:
 
-   ```console
+   ```ansi
    $ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io | <red>sh</red>
    ```
 
@@ -55,7 +55,7 @@ Replace `example.com` and `123.123.123.123` throughout the guide with your domai
 
    Recreate the service after changing configuration:
 
-   ```console
+   ```ansi
    $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
    ```
 :::
@@ -79,9 +79,9 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    Allow SSH and Cloudflare traffic, then enable UFW:
 
-   ```console
+   ```ansi
    $ <red>ufw</red> allow 22
-   $ for cfip in `<red>curl</red> <dim>-sw</dim> '\n' https://www.cloudflare.com/ips-v{4,6}`; do <red>ufw</red> allow proto tcp from $cfip comment 'Cloudflare IP'; done
+   $ for cfip in `<red>curl</red> <dim>-sw</dim> <green>'\n'</green> https://www.cloudflare.com/ips-v{4,6}`; do <red>ufw</red> allow proto tcp from <yellow>$cfip</yellow> comment <green>'Cloudflare IP'</green>; done
    $ <red>ufw</red> enable   <dim># answer `y` when prompted regarding enabling firewall</dim>
    ```
 
@@ -135,7 +135,7 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    Create a symlink so Nginx loads the configuration, then apply it:
 
-   ```console
+   ```ansi
    $ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
    $ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
    ```
@@ -194,7 +194,7 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    Create a symlink so Nginx loads the configuration, then apply it:
 
-   ```console
+   ```ansi
    $ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
    $ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
    ```
@@ -215,11 +215,11 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    On the VPS, open PostgreSQL and grant the account admin permissions:
 
-   ```console
-   $ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 bash
+   ```ansi
+   $ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 <red>bash</red>
    ```
 
-   ```console title="Inside the postgres container" output="sql"
+   ```ansi title="Inside the postgres container" output="sql"
    $ <red>psql</red> <dim>-U</dim> rctf
    UPDATE users SET perms = 3 WHERE email = 'my.email@example.com';
    ```

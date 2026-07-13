@@ -27,8 +27,8 @@ The [CTFtime](https://ctftime.org) integration lets teams register or log in wit
 
    | Variable                          | Description                              |
    | --------------------------------- | ---------------------------------------- |
-   | `RCTF_CTFTIME_CLIENT_ID{:sh}`     | CTFtime OAuth client ID (numeric string) |
-   | `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | CTFtime OAuth client secret              |
+   | `<yellow>RCTF_CTFTIME_CLIENT_ID</yellow>`     | CTFtime OAuth client ID (numeric string) |
+   | `<yellow>RCTF_CTFTIME_CLIENT_SECRET</yellow>` | CTFtime OAuth client secret              |
 
 :::
 

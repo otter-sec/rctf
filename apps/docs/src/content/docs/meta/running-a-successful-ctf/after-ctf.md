@@ -33,7 +33,7 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 
    Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
 
-   ```console
+   ```ansi
    $ <red>curl</red> https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
      <dim>-H</dim> <green>"Authorization: Bearer TOKEN"</green>
    ```
@@ -92,5 +92,5 @@ Decommission the following resources so you don't get hit with unexpected costs:
 - Remove challenge infrastructure: kCTF clusters and any VPS instances used for shared remotes, plus the [Docker instancer](/integrations/instancer/docker) or [Kubernetes instancer](/integrations/instancer/kubernetes) deployment (including the GKE cluster, Traefik, and the ACME wildcard secret).
 - Remove the [admin bot](/integrations/admin-bot) worker(s) and any queue/scraper sidecars if you deployed an autoscaled fleet.
 - For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts (including the S3/GCS upload bucket if you migrated off the local provider).
-- Rotate or revoke any API keys, tokens, or credentials used during the event. This covers rCTF's `<red>tokenKey</red>`, the instancer `<red>authToken</red>`, the admin bot service token, captcha secrets, registry push credentials, and any deploy tokens (e.g. the Konata `<red>RCTF_TOKEN</red>`).
+- Rotate or revoke any API keys, tokens, or credentials used during the event. This covers rCTF's `<red>tokenKey</red>`, the instancer `<red>authToken</red>`, the admin bot service token, captcha secrets, registry push credentials, and any deploy tokens, such as Konata's `<yellow>RCTF_TOKEN</yellow>`.
 :::

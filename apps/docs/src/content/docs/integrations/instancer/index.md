@@ -79,8 +79,8 @@ instancers:
 | --- | --- |
 | `<red>options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
 | `<red>options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` when rCTF creates, reads, extends, or deletes an instance. |
-| `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
-| `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
+| `<yellow>DOCKER_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
+| `<yellow>DOCKER_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
 
 See [Docker instancer](/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
 :::
@@ -92,16 +92,16 @@ See [Docker instancer](/integrations/instancer/docker) for the deployment walkth
 | `<red>options.apiUrl</red>` | Kubernetes API server URL. |
 | `<red>options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
 | `<red>options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
-| `K8S_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
-| `K8S_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
-| `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `<red>caCertificate</red>`. |
+| `<yellow>K8S_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
+| `<yellow>K8S_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
+| `<yellow>K8S_INSTANCER_CA_CERTIFICATE</yellow>` | Environment override for `<red>caCertificate</red>`. |
 
 See [Kubernetes instancer](/integrations/instancer/kubernetes) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
 :::
 ::::
 
 :::note[Environment overrides and multiple instancers]
-The `DOCKER_INSTANCER_*{:sh}` and `K8S_INSTANCER_*{:sh}` environment variables apply globally per provider type, so they're best suited to single-instancer deployments. When you run two instancers of the same type, set their `<red>options</red>` inline instead.
+The `<yellow>DOCKER_INSTANCER_*</yellow>` and `<yellow>K8S_INSTANCER_*</yellow>` environment variables apply globally per provider type, so they're best suited to single-instancer deployments. When you run two instancers of the same type, set their `<red>options</red>` inline instead.
 :::
 
 ## Challenge configuration

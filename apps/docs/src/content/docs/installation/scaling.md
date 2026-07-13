@@ -16,7 +16,7 @@ The [VPS setup walkthrough](/meta/running-a-successful-ctf/setup) starts with 2 
 
 ## Instance types
 
-The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs.
+The `<red>instanceType</red>` config option (environment variable `<yellow>RCTF_INSTANCE_TYPE</yellow>`) selects what an API process runs.
 
 | Value                          | API server  | Leaderboard worker thread |
 | ------------------------------ | ----------- | ------------------------- |
@@ -24,7 +24,7 @@ The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE
 | `<green>frontend</green>`      | Yes         | No                        |
 | `<green>leaderboard</green>`   | Health only | Yes                       |
 
-Every instance type listens on `PORT{:sh}`, which defaults to `3000{:ts}`. A `<green>leaderboard</green>` instance only serves `/api/healthz` and `/api/readyz`, allowing a deployment system to check its health even though it does not serve normal API routes.
+Every instance type listens on `<yellow>PORT</yellow>`, which defaults to `3000{:ts}`. A `<green>leaderboard</green>` instance only serves `/api/healthz` and `/api/readyz`, allowing a deployment system to check its health even though it does not serve normal API routes.
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard' or 'all'

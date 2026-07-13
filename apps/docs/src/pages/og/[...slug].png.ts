@@ -53,7 +53,7 @@ const CHIP_SURFACE: CSSProperties = {
   display: 'flex',
   alignItems: 'baseline',
   flexWrap: 'wrap',
-  fontFamily: 'Geist Mono',
+  fontFamily: 'Lilex',
   fontSize: '0.9em',
   padding: '0.1em 0.3em',
   borderRadius: 6,
@@ -68,8 +68,8 @@ const wordmark = readFile(`${ASSETS}/wordmark-light.svg`)
   .then(png => `data:image/png;base64,${png.toString('base64')}`)
 const sansRegular = readFile(`${ASSETS}/fonts/Outfit-Regular.ttf`)
 const sansMedium = readFile(`${ASSETS}/fonts/Outfit-Medium.ttf`)
-const monoRegular = readFile(`${ASSETS}/fonts/GeistMono-Regular.otf`)
-const monoMedium = readFile(`${ASSETS}/fonts/GeistMono-Medium.otf`)
+const monoRegular = readFile(`${ASSETS}/fonts/Lilex-Regular.ttf`)
+const monoMedium = readFile(`${ASSETS}/fonts/Lilex-Medium.ttf`)
 
 export async function getStaticPaths() {
   const docs = await getDocs()
@@ -104,8 +104,8 @@ export async function GET({ props }: { props: { entry: DocsEntry } }) {
     fonts: [
       { name: 'Outfit', data: regular, weight: 400, style: 'normal' },
       { name: 'Outfit', data: medium, weight: 500, style: 'normal' },
-      { name: 'Geist Mono', data: mono, weight: 400, style: 'normal' },
-      { name: 'Geist Mono', data: monoMed, weight: 500, style: 'normal' },
+      { name: 'Lilex', data: mono, weight: 400, style: 'normal' },
+      { name: 'Lilex', data: monoMed, weight: 500, style: 'normal' },
     ],
   })
   const png = await sharp(Buffer.from(svg)).png().toBuffer()

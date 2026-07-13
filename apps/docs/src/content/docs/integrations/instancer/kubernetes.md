@@ -60,7 +60,7 @@ The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone><
 
 ## Controller image
 
-The operator image is published at `ghcr.io/otter-sec/rctf-new/k8s-operator`. The Terraform module installs it from `apps/k8s-operator/dist/install.yaml{:file}` and fills in the configured `INSTANCER_HOST`, so you do not need to build or publish an image before running `$ <red>terraform</red> apply`.
+The operator image is published at `ghcr.io/otter-sec/rctf-new/k8s-operator`. The Terraform module installs it from `apps/k8s-operator/dist/install.yaml{:file}` and fills in the configured `<yellow>INSTANCER_HOST</yellow>`, so you do not need to build or publish an image before running `$ <red>terraform</red> apply`.
 
 ## Terraform variables
 
@@ -126,7 +126,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 :::steps
 1. **Initialize Terraform**
 
-   ```console
+   ```ansi
    $ <red>cd</red> deploy/terraform/instancer/example
    $ <red>cp</red> terraform.tfvars.example terraform.tfvars
    $ <yellow>$EDITOR</yellow> terraform.tfvars
@@ -135,7 +135,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
 2. **Apply the stack**
 
-   ```console
+   ```ansi
    $ <red>terraform</red> apply
    ```
 
@@ -143,7 +143,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
 3. **Fetch kubectl credentials**
 
-   ```console
+   ```ansi
    $ <red>gcloud</red> container clusters get-credentials rctf-cluster <dim>--project</dim> example-ctf <dim>--location</dim> us-central1
    $ <red>kubectl</red> get pods <dim>-n</dim> rctf-operator-system
    ```
@@ -156,13 +156,13 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
    | Terraform output | rCTF option | Environment override |
    | --- | --- | --- |
-   | `<red>rctf_instancer_api_url</red>` | `<red>options.apiUrl</red>` | `K8S_INSTANCER_API_URL{:sh}` |
-   | `<red>rctf_instancer_auth_token</red>` | `<red>options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
-   | `<red>rctf_instancer_ca_certificate</red>` | `<red>options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
+   | `<red>rctf_instancer_api_url</red>` | `<red>options.apiUrl</red>` | `<yellow>K8S_INSTANCER_API_URL</yellow>` |
+   | `<red>rctf_instancer_auth_token</red>` | `<red>options.authToken</red>` | `<yellow>K8S_INSTANCER_AUTH_TOKEN</yellow>` |
+   | `<red>rctf_instancer_ca_certificate</red>` | `<red>options.caCertificate</red>` | `<yellow>K8S_INSTANCER_CA_CERTIFICATE</yellow>` |
 
    Render them into rCTF's `rctf.d/{:dir}`:
 
-   ```console
+   ```ansi
    $ <red>terraform</red> output <dim>-raw</dim> rctf_instancer_api_url
    $ <red>terraform</red> output <dim>-raw</dim> rctf_instancer_auth_token
    $ <red>terraform</red> output <dim>-raw</dim> rctf_instancer_ca_certificate
@@ -201,7 +201,7 @@ The example layers the GKE module, the k8s module, and the example-level resourc
 | Traefik (`helm_release.traefik`) | `modules/k8s/traefik.tf{:file}` | `LoadBalancer` service with `externalTrafficPolicy: Local{:yml}` to preserve client IPs, plus the dashboard entrypoint for `$ <red>kubectl</red> port-forward`. |
 | Nginx error pages | `modules/k8s/traefik.tf{:file}` | `kubernetes_deployment_v1.error-pages` plus a `ConfigMap` rendering 404 and 502 templates with `<red>ctf_name</red>`. |
 | Traefik `Middleware` and catch-all `IngressRoute` | `modules/k8s/traefik.tf{:file}` | Middleware intercepts 502 errors and serves the Nginx page. The catch-all `HostRegexp(.*)` route returns the 404 page for unmatched hosts. |
-| Operator installer (`kubectl_manifest`) | `modules/k8s/rctf-operator.tf{:file}` | Applies every manifest in `apps/k8s-operator/dist/install.yaml{:file}`, replacing `INSTANCER_HOST` with the resolved hostname. |
+| Operator installer (`kubectl_manifest`) | `modules/k8s/rctf-operator.tf{:file}` | Applies every manifest in `apps/k8s-operator/dist/install.yaml{:file}`, replacing `<yellow>INSTANCER_HOST</yellow>` with the resolved hostname. |
 | ACME wildcard certificate (`acme_certificate`) | `example/tls.tf{:file}` | DNS-01 challenge through Cloudflare or Cloud DNS. The chain and key land in the `instancer-wildcard-tls` `Secret` in the `traefik` namespace. |
 | Traefik `TLSStore` (`kubectl_manifest`) | `example/tls.tf{:file}` | Sets `instancer-wildcard-tls` as the default certificate for the cluster. |
 | Wildcard DNS record (`cloudflare_dns_record`) | `example/dns.tf{:file}` | `*.<subdomain>` `A` record pointing at the Traefik LoadBalancer IP. The GCP variant uses `google_dns_record_set`. |
@@ -271,7 +271,7 @@ instancerConfig:
                       fieldPath: metadata.annotations['rctf.osec.io/exposed-hostnames']
 ```
 
-`<red>RCTF_EXPOSED_HOSTNAMES</red>` is a JSON string. Hidden endpoints (`shouldDisplay: false{:yml}`) are included because they still exist for routing.
+`<yellow>RCTF_EXPOSED_HOSTNAMES</yellow>` is a JSON string. Hidden endpoints (`shouldDisplay: false{:yml}`) are included because they still exist for routing.
 
 ## Per-pod safety checklist
 

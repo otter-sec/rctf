@@ -38,7 +38,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 ::::steps
 1. **Clone and install dependencies**
 
-   ```console
+   ```ansi
    $ <red>git</red> clone https://github.com/otter-sec/rctf.git
    $ <red>cd</red> rctf
    $ <red>bun</red> i
@@ -80,7 +80,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
 3. **Run database migrations**
 
-   ```console
+   ```ansi
    $ <red>bun</red> run db:migrate
    ```
 
@@ -88,7 +88,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
 4. **Start the development servers**
 
-   ```console
+   ```ansi
    $ <red>bun</red> dev
    ```
 
@@ -96,7 +96,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
    To run them separately:
 
-   ```console
+   ```ansi
    $ <red>bun</red> run dev:api   <dim># API only on :3000</dim>
    $ <red>bun</red> run dev:web   <dim># Frontend only on :5173</dim>
    ```
@@ -124,7 +124,7 @@ The `<red>instanceType</red>` config option lets you split an rCTF process into 
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
-```console
+```ansi
 $ <red>bun</red> run test                 <dim># Run all tests from root</dim>
 $ <red>bun</red> run test:server:coverage <dim># Server tests with coverage</dim>
 $ <red>bun</red> run typecheck            <dim># Typecheck all workspaces</dim>

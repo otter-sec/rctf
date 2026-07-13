@@ -43,8 +43,8 @@ avatarsModeration:
 
 | Option | Environment Variable | Default | Description |
 | --- | --- | --- | --- |
-| `<red>apiKey</red>` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | - | OpenAI API key |
-| `<red>model</red>` | `RCTF_MODERATION_OPENAI_MODEL{:sh}` | `omni-moderation-latest` | OpenAI moderation model |
+| `<red>apiKey</red>` | `<yellow>RCTF_MODERATION_OPENAI_API_KEY</yellow>` or `<yellow>OPENAI_API_KEY</yellow>` | - | OpenAI API key |
+| `<red>model</red>` | `<yellow>RCTF_MODERATION_OPENAI_MODEL</yellow>` | `omni-moderation-latest` | OpenAI moderation model |
 
 The provider sends a 256-by-256 WebP copy of the avatar to OpenAI. rCTF rejects the upload when the moderation response flags the image.
 

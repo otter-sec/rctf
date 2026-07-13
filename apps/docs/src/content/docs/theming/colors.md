@@ -12,11 +12,9 @@ order: 1
     width: fit-content;
     max-width: 100%;
     padding: 0.2em 0.5em;
-    border: 1px solid var(--border);
     border-radius: 0.4em;
-    background-color: color-mix(in oklab, var(--muted) 35%, transparent);
+    background-color: color-mix(in oklab, var(--muted) 80%, transparent);
     font-family: var(--font-mono);
-    font-size: 0.8125em;
     line-height: 1.25;
     vertical-align: middle;
     white-space: nowrap;
@@ -142,7 +140,7 @@ Challenge categories pick from ten hues. Each hue has two background tints plus 
 
 :::table{cols="auto auto auto auto auto"}
 
-| Color | <span class="text-nowrap">`--background-<hue>-l0{:css}`</span> | <span class="text-nowrap">`--background-<hue>-l1{:css}`</span> | <span class="text-nowrap">`--foreground-<hue>-l0{:css}`</span> | <span class="text-nowrap">`--foreground-<hue>-l1{:css}`</span> |
+| Color | <span class="text-nowrap">`--background-<dim><hue></dim>-l0{:css}`</span> | <span class="text-nowrap">`--background-<dim><hue></dim>-l1{:css}`</span> | <span class="text-nowrap">`--foreground-<dim><hue></dim>-l0{:css}`</span> | <span class="text-nowrap">`--foreground-<dim><hue></dim>-l1{:css}`</span> |
 | --- | --- | --- | --- | --- |
 | `crimson` | <color-swatch style="--c:#ff005216;--bg:#fcfcfc">crimson-a3</color-swatch> | <color-swatch style="--c:#e0004008;--bg:#fcfcfc">crimson-a2</color-swatch> | <color-swatch style="--c:#530026e9;--bg:#fcfcfc">crimson-a12</color-swatch> | <color-swatch style="--c:#c4004fe2;--bg:#fcfcfc">crimson-a11</color-swatch> |
 | `red` | <color-swatch style="--c:#f3000d14;--bg:#fcfcfc">red-a3</color-swatch> | <color-swatch style="--c:#ff000008;--bg:#fcfcfc">red-a2</color-swatch> | <color-swatch style="--c:#55000de8;--bg:#fcfcfc">red-a12</color-swatch> | <color-swatch style="--c:#c40006d3;--bg:#fcfcfc">red-a11</color-swatch> |

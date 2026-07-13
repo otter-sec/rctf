@@ -24,7 +24,7 @@ email:
   logoUrl: https://example.com/email-logo.png # Optional
 ```
 
-When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `RCTF_EMAIL_LOGO_URL{:sh}` environment variable.
+When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `<yellow>RCTF_EMAIL_LOGO_URL</yellow>` environment variable.
 
 :::note
 Without an email provider, registration skips verification, account recovery is unavailable, and email-based division ACLs cannot be enforced.
@@ -49,7 +49,7 @@ email:
 
 | Option               | Environment Variable | Description         |
 | -------------------- | -------------------- | ------------------- |
-| `<red>smtpUrl</red>` | `RCTF_SMTP_URL{:sh}` | SMTP connection URL |
+| `<red>smtpUrl</red>` | `<yellow>RCTF_SMTP_URL</yellow>` | SMTP connection URL |
 
 ::::
 ::::tab[emails/ses]
@@ -68,9 +68,9 @@ email:
 
 | Option                    | Environment Variable       | Description           |
 | ------------------------- | -------------------------- | --------------------- |
-| `<red>awsKeyId</red>`     | `RCTF_SES_KEY_ID{:sh}`     | AWS access key ID     |
-| `<red>awsKeySecret</red>` | `RCTF_SES_KEY_SECRET{:sh}` | AWS secret access key |
-| `<red>awsRegion</red>`    | `RCTF_SES_REGION{:sh}`     | AWS region            |
+| `<red>awsKeyId</red>`     | `<yellow>RCTF_SES_KEY_ID</yellow>`     | AWS access key ID     |
+| `<red>awsKeySecret</red>` | `<yellow>RCTF_SES_KEY_SECRET</yellow>` | AWS secret access key |
+| `<red>awsRegion</red>`    | `<yellow>RCTF_SES_REGION</yellow>`     | AWS region            |
 
 :::warning
 Make sure your SES account is out of the sandbox and the sender address is verified before you use it.
@@ -90,7 +90,7 @@ email:
 
 | Option                   | Environment Variable              | Description           |
 | ------------------------ | --------------------------------- | --------------------- |
-| `<red>serverToken</red>` | `RCTF_POSTMARK_SERVER_TOKEN{:sh}` | Postmark server token |
+| `<red>serverToken</red>` | `<yellow>RCTF_POSTMARK_SERVER_TOKEN</yellow>` | Postmark server token |
 
 ::::
 ::::tab[emails/mailgun]
@@ -108,8 +108,8 @@ email:
 
 | Option              | Environment Variable        | Description            |
 | ------------------- | --------------------------- | ---------------------- |
-| `<red>apiKey</red>` | `RCTF_MAILGUN_API_KEY{:sh}` | Mailgun API key        |
-| `<red>domain</red>` | `RCTF_MAILGUN_DOMAIN{:sh}`  | Mailgun sending domain |
+| `<red>apiKey</red>` | `<yellow>RCTF_MAILGUN_API_KEY</yellow>` | Mailgun API key        |
+| `<red>domain</red>` | `<yellow>RCTF_MAILGUN_DOMAIN</yellow>`  | Mailgun sending domain |
 
 ::::
 :::::

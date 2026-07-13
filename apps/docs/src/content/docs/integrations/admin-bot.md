@@ -52,11 +52,11 @@ adminBot:
 | --- | --- |
 | `adminBot.provider.options.endpoint{:yaml}` | Base URL of the admin bot worker from the rCTF API container or process. |
 | `adminBot.provider.options.secretKey{:yaml}` | Bearer token shared between the rCTF API and the admin bot worker. |
-| `RCTF_ADMIN_BOT_ENDPOINT{:sh}` | Environment override for `endpoint{:yaml}`. |
-| `RCTF_ADMIN_BOT_SECRET_KEY{:sh}` | Environment override for `secretKey{:yaml}`. |
+| `<yellow>RCTF_ADMIN_BOT_ENDPOINT</yellow>` | Environment override for `endpoint{:yaml}`. |
+| `<yellow>RCTF_ADMIN_BOT_SECRET_KEY</yellow>` | Environment override for `secretKey{:yaml}`. |
 | `adminBot.maxLogsPerUserChallenge{:yaml}` | Number of completed or failed job logs retained per user and challenge. The default is `5{:ts}`. |
 
-Set the same secret on the worker through `RCTF_SECRET_KEY{:sh}`. Each service uses it to authenticate requests from the other.
+Set the same secret on the worker through `<yellow>RCTF_SECRET_KEY</yellow>`. Each service uses it to authenticate requests from the other.
 
 Protect participant submissions with captcha by adding the `adminBotSubmit{:yaml}` action:
 
@@ -84,12 +84,12 @@ The worker service uses these environment variables:
 
 | Variable | Purpose |
 | --- | --- |
-| `RCTF_BASE_URL{:sh}` | Base URL of the rCTF API from the worker container or process. |
-| `RCTF_SECRET_KEY{:sh}` | Shared bearer token. This must match the provider secret in rCTF config. |
-| `RCTF_EXTRA_HEADERS{:sh}` | JSON object of extra headers added to worker-to-API requests. |
-| `BROWSER_CACHE_DIR{:sh}` | Browser download cache directory. The Docker image defaults to `/data/browser-cache/{:dir}`. |
-| `POLL_INTERVAL_MS{:sh}` | Queue polling interval. The default is `5000{:ts}`. |
-| `PORT{:sh}` | Worker HTTP port. The default is `21337{:ts}`. |
+| `<yellow>RCTF_BASE_URL</yellow>` | Base URL of the rCTF API from the worker container or process. |
+| `<yellow>RCTF_SECRET_KEY</yellow>` | Shared bearer token. This must match the provider secret in rCTF config. |
+| `<yellow>RCTF_EXTRA_HEADERS</yellow>` | JSON object of extra headers added to worker-to-API requests. |
+| `<yellow>BROWSER_CACHE_DIR</yellow>` | Browser download cache directory. The Docker image defaults to `/data/browser-cache/{:dir}`. |
+| `<yellow>POLL_INTERVAL_MS</yellow>` | Queue polling interval. The default is `5000{:ts}`. |
+| `<yellow>PORT</yellow>` | Worker HTTP port. The default is `21337{:ts}`. |
 
 A minimal worker environment looks like this:
 
@@ -102,7 +102,7 @@ PORT=21337
 
 Run the bundled Compose service from the repository root:
 
-```console
+```ansi
 $ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-d</dim>
 ```
 
