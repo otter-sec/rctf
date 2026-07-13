@@ -57,6 +57,7 @@
     <editor-edit hidden={mode !== 'edit' || undefined}>
       <CodeEditor
         language="markdown"
+        wrap
         {value}
         {disabled}
         {rows}

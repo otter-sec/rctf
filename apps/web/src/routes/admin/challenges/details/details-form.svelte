@@ -121,7 +121,7 @@
       ? [
           {
             value: 'provider',
-            label: 'Provider',
+            label: 'Instancer config',
             icon: IconGear,
             invalid: !instancerValid,
           },

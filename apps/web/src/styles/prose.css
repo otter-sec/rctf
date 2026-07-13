@@ -133,14 +133,14 @@ prose-content {
     font-family: var(--font-mono);
     font-size: 0.875em;
     color: var(--foreground-prose-inline-code);
-    background-color: var(--background-l2);
+    background-color: var(--background-l4);
     border-radius: var(--radius-sm);
     padding: 0.125em 0.375em;
   }
 
   pre {
     font-family: var(--font-mono);
-    background-color: var(--background-l2);
+    background-color: var(--background-l4);
     border-radius: var(--radius-md);
     padding: var(--space-s);
     overflow-x: auto;

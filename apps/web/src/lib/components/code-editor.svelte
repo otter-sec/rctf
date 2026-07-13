@@ -10,6 +10,7 @@
     placeholder?: string
     label?: string
     invalid?: boolean
+    wrap?: boolean
     oninput: (value: string) => void
     onblur?: () => void
   }
@@ -22,6 +23,7 @@
     placeholder,
     label,
     invalid = false,
+    wrap = false,
     oninput,
     onblur,
   }: Props = $props()
@@ -51,7 +53,7 @@
   }
 </script>
 
-<code-editor-shell data-invalid={invalid || undefined}>
+<code-editor-shell data-invalid={invalid || undefined} data-wrap={wrap || undefined}>
   {#if html !== null}
     <code-editor-overlay {@attach captureOverlay} aria-hidden="true">
       {@html html}
@@ -68,7 +70,7 @@
     spellcheck="false"
     autocomplete="off"
     autocapitalize="off"
-    wrap="off"
+    wrap={wrap ? 'soft' : 'off'}
     oninput={e => oninput(e.currentTarget.value)}
     {onblur}
     onscroll={syncScroll}></textarea>
@@ -90,6 +92,19 @@
 
     &[data-invalid] {
       border-color: var(--foreground-destructive);
+    }
+
+    &[data-wrap] {
+      textarea,
+      code-editor-overlay {
+        scrollbar-gutter: stable;
+      }
+
+      textarea,
+      code-editor-overlay :global(pre) {
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+      }
     }
   }
 
@@ -118,6 +133,10 @@
     &[data-highlighted] {
       color: transparent;
       caret-color: var(--foreground-l0);
+    }
+
+    &::selection {
+      background: color-mix(in srgb, var(--foreground-accent) 35%, transparent);
     }
 
     &::placeholder {

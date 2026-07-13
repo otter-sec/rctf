@@ -528,7 +528,7 @@
 
   --foreground-prose:             var(--gray-11);
   --foreground-prose-link:        var(--sky-11);
-  --foreground-prose-inline-code: light-dark(var(--gray-11), var(--red-11));
+  --foreground-prose-inline-code: var(--red-11);
 
   --background-red-l0:       var(--red-a3);
   --background-red-l1:       var(--red-a2);
