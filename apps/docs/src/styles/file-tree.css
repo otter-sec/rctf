@@ -1,11 +1,11 @@
 prose-content file-tree {
   display: block;
   margin-block: 0 1em;
-  padding: var(--space-xs) var(--space-m);
+  padding: var(--space-s) var(--space-m);
   font-family: var(--font-sans);
   font-size: var(--step--1);
-  background-color: color-mix(in oklab, var(--muted) 25%, transparent);
-  border: 2px solid var(--border);
+  background-color: var(--background-l1);
+  border-radius: var(--radius-lg);
   overflow-x: auto;
 
   ul {

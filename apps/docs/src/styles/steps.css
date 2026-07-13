@@ -29,8 +29,7 @@ prose-content step-list {
         font-size: var(--step--1);
         font-weight: var(--font-weight-medium);
         color: var(--foreground);
-        background-color: color-mix(in oklab, var(--muted) 50%, transparent);
-        border: 2px solid var(--border);
+        background-color: var(--background-l2);
         border-radius: var(--radius-full);
       }
 

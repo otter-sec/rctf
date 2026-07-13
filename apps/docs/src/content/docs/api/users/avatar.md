@@ -1,6 +1,6 @@
 ---
-title: "<route>PATCH</route> Update avatar"
-description: "<route>PATCH /api/v2/users/me/avatar</route>"
+title: "`<route>PATCH</route>` Update avatar"
+description: "`<route>PATCH /api/v2/users/me/avatar</route>`"
 order: 4
 ---
 

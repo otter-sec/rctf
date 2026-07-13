@@ -48,8 +48,18 @@ prose-content {
       margin-block: 0 1em;
     }
 
-    > :is(blockquote, figure, details, table, pre, math-display, file-tree, tab-group, step-list),
-    > .expressive-code {
+    > :is(
+      blockquote,
+      figure,
+      details,
+      table,
+      pre,
+      math-display,
+      .expressive-code,
+      file-tree,
+      tab-group,
+      step-list
+    ):not(file-tree *) {
       margin-block: 1em;
     }
 

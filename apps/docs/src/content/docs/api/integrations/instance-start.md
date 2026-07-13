@@ -1,6 +1,6 @@
 ---
-title: "<route>PUT</route> Start an instance"
-description: "<route>PUT /api/v2/integrations/challs/:id/instance</route>"
+title: "`<route>PUT</route>` Start an instance"
+description: "`<route>PUT /api/v2/integrations/challs/:id/instance</route>`"
 order: 4
 ---
 

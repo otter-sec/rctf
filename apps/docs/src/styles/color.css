@@ -25,6 +25,10 @@
   --border: var(--gray-6);
   --ring: var(--gray-8);
 
+  --background-l1: light-dark(var(--gray-3), var(--gray-2));
+  --background-l2: light-dark(var(--gray-4), var(--gray-3));
+  --background-l3: light-dark(var(--gray-5), var(--gray-4));
+
   --tone-red: light-dark(#ce2c31, #ff9592);
   --tone-orange: light-dark(#cc4e00, #ffa057);
   --tone-yellow: light-dark(#9e6c00, #f5e147);

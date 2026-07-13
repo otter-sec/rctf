@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Authorize"
-description: "<route>POST /api/v2/external-auth/authorize</route>"
+title: "`<route>POST</route>` Authorize"
+description: "`<route>POST /api/v2/external-auth/authorize</route>`"
 order: 2
 ---
 

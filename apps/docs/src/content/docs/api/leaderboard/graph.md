@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Score graph"
-description: "<route>GET /api/[v2,v1]/leaderboard/graph</route>"
+title: "`<route>GET</route>` Score graph"
+description: "`<route>GET /api/[v2,v1]/leaderboard/graph</route>`"
 order: 3
 ---
 

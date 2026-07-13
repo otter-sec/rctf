@@ -5,25 +5,27 @@ prose-content tab-group {
   > [role='tablist'] {
     display: flex;
     flex-wrap: wrap;
-    column-gap: var(--space-xs);
-    border-block-end: 2px solid var(--border);
+    gap: 2px;
+    padding: 2px;
+    background-color: var(--background-l1);
+    border-radius: var(--radius-lg);
 
     > [role='tab'] {
-      padding-block: 0.35em;
-      margin-block-end: -2px;
+      padding: 0.25em 0.75em;
       font-size: var(--step--1);
       font-weight: var(--font-weight-medium);
       color: var(--muted-foreground);
-      border-block-end: 2px solid transparent;
+      border-radius: var(--radius-md);
       cursor: pointer;
 
       &:hover {
         color: var(--foreground);
+        background-color: color-mix(in oklab, var(--background-l3) 60%, transparent);
       }
 
       &[aria-selected='true'] {
         color: var(--foreground);
-        border-color: var(--foreground);
+        background-color: var(--background-l3);
       }
     }
   }
@@ -38,25 +40,29 @@ prose-content tab-group {
 
   &[data-code-tabs] {
     > [role='tablist'] {
-      column-gap: 0;
-      border: 2px solid var(--border);
-      background: transparent;
+      gap: 2px;
+      padding: 2px;
+      background: var(--background-l2);
+      border-start-start-radius: var(--radius-lg);
+      border-start-end-radius: var(--radius-lg);
 
       > [role='tab'] {
-        margin-block-end: 0;
         padding: 0.45rem var(--space-xs);
-        border: 0;
+        border-radius: var(--radius-md);
         background: transparent;
+        color: var(--muted-foreground);
         font-size: var(--step--1);
         font-weight: var(--font-weight-medium);
         line-height: 1.45;
 
         &:hover {
-          background: color-mix(in oklab, var(--muted) 60%, transparent);
+          color: var(--foreground);
+          background: color-mix(in oklab, var(--background-l3) 60%, transparent);
         }
 
         &[aria-selected='true'] {
-          background: var(--muted);
+          color: var(--foreground);
+          background: var(--background-l3);
         }
 
         code {

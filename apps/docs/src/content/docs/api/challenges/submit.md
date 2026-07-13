@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Submit a flag"
-description: "<route>POST /api/v1/challs/:id/submit</route>"
+title: "`<route>POST</route>` Submit a flag"
+description: "`<route>POST /api/v1/challs/:id/submit</route>`"
 order: 3
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Exchange code for token"
-description: "<route>POST /api/v2/external-auth/token</route>"
+title: "`<route>POST</route>` Exchange code for token"
+description: "`<route>POST /api/v2/external-auth/token</route>`"
 order: 3
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Admin bot status"
-description: "<route>GET /api/v2/admin/admin-bot/status</route>"
+title: "`<route>GET</route>` Admin bot status"
+description: "`<route>GET /api/v2/admin/admin-bot/status</route>`"
 order: 22
 ---
 

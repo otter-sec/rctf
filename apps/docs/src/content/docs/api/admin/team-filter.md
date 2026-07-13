@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Filter teams"
-description: "<route>POST /api/v2/admin/users</route>"
+title: "`<route>POST</route>` Filter teams"
+description: "`<route>POST /api/v2/admin/users</route>`"
 order: 9
 ---
 

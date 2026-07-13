@@ -77,13 +77,12 @@ article[data-reference] {
 
   prose-content dl[data-field-list] {
     margin-block: var(--space-xs) var(--space-m);
-    border-block: 2px solid var(--border);
-
     [data-field] {
-      padding-block: var(--space-2xs);
+      padding: var(--space-2xs) var(--space-xs);
 
-      & + [data-field] {
-        border-block-start: 2px solid var(--border);
+      &:nth-child(odd) {
+        background-color: var(--background-l1);
+        border-radius: var(--radius-md);
       }
     }
 
@@ -146,8 +145,9 @@ prose-content dl[data-route-meta] {
   grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
   gap: var(--space-s) var(--space-m);
   margin-block-end: var(--space-m);
-  padding-block-end: var(--space-s);
-  border-block-end: 2px solid var(--border);
+  padding: var(--space-s) var(--space-s);
+  background-color: var(--background-l1);
+  border-radius: var(--radius-lg);
 
   div {
     min-inline-size: 0;
