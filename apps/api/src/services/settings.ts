@@ -1,10 +1,5 @@
-import { config } from '@rctf/config'
-import {
-  settings,
-  type DatabaseClient,
-  type EditableSettings,
-  type EditableSponsor,
-} from '@rctf/db'
+import { config, normalizeSponsorIcons } from '@rctf/config'
+import { settings, type DatabaseClient, type EditableSettings } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq } from 'drizzle-orm'
 import type { TypedRedis } from '../cache/scripts'
@@ -26,16 +21,6 @@ type CachedResolvedSettings = {
   resolved: ResolvedSettings
 }
 
-function normalizeSponsors(
-  sponsors: (EditableSponsor & { icon?: string })[]
-): EditableSponsor[] {
-  return sponsors.map(({ icon, ...sponsor }) => ({
-    ...sponsor,
-    iconLight: sponsor.iconLight || icon || '',
-    iconDark: sponsor.iconDark || icon || '',
-  }))
-}
-
 export async function getSettings(
   db: DatabaseClient
 ): Promise<EditableSettings> {
@@ -46,7 +31,7 @@ export async function getSettings(
     .then(takeUnique)
   const data = row?.data ?? {}
   return data.sponsors
-    ? { ...data, sponsors: normalizeSponsors(data.sponsors) }
+    ? { ...data, sponsors: data.sponsors.map(normalizeSponsorIcons) }
     : data
 }
 

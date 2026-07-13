@@ -174,57 +174,23 @@
     }
   }
 
-  async function uploadLogo(file: File, target: 'light' | 'dark') {
+  function setLogo(target: 'light' | 'dark', url: string) {
     if (!form) return
-    const url = await uploadImage(file)
-    if (url === null) return
-    if (target === 'light') form.logo.light = url
-    else form.logo.dark = url
+    form.logo[target] = url
     markGroup('logo')
   }
 
-  function onLogoFile(event: Event, target: 'light' | 'dark') {
+  function setSponsorIcon(field: 'iconLight' | 'iconDark', value: string) {
+    dispatchSponsors({ type: 'update', index: sponsorSelected, field, value })
+  }
+
+  async function onImageFile(event: Event, apply: (url: string) => void) {
     const input = event.currentTarget as HTMLInputElement
     const file = input.files?.[0]
     input.value = ''
-    if (file) uploadLogo(file, target)
-  }
-
-  function removeLogo(target: 'light' | 'dark') {
-    if (!form) return
-    if (target === 'light') form.logo.light = ''
-    else form.logo.dark = ''
-    markGroup('logo')
-  }
-
-  async function uploadSponsorIcon(
-    file: File,
-    field: 'iconLight' | 'iconDark'
-  ) {
+    if (!file) return
     const url = await uploadImage(file)
-    if (url === null) return
-    dispatchSponsors({
-      type: 'update',
-      index: sponsorSelected,
-      field,
-      value: url,
-    })
-  }
-
-  function onSponsorIconFile(event: Event, field: 'iconLight' | 'iconDark') {
-    const input = event.currentTarget as HTMLInputElement
-    const file = input.files?.[0]
-    input.value = ''
-    if (file) uploadSponsorIcon(file, field)
-  }
-
-  function removeSponsorIcon(field: 'iconLight' | 'iconDark') {
-    dispatchSponsors({
-      type: 'update',
-      index: sponsorSelected,
-      field,
-      value: '',
-    })
+    if (url !== null) apply(url)
   }
 
   async function save() {
@@ -275,6 +241,59 @@
     <group-title>{title}</group-title>
     <button type="button" data-reset onclick={onReset}>Reset to default</button>
   </group-header>
+{/snippet}
+
+{#snippet uploadRow(row: {
+  key: 'light' | 'dark'
+  label: string
+  url: string
+  alt: string
+  removeLabel: string
+  fallback?: string
+  inputs: Record<'light' | 'dark', HTMLInputElement | null>
+  onFile: (event: Event) => void
+  onRemove: () => void
+})}
+  <logo-row>
+    <group-title>{row.label}</group-title>
+    <logo-controls>
+      <logo-preview data-mode={row.key}>
+        {#if row.url || row.fallback}
+          <img src={row.url || row.fallback} alt={row.alt} />
+        {:else}
+          <preview-empty>No icon</preview-empty>
+        {/if}
+      </logo-preview>
+      <logo-actions>
+        <input
+          bind:this={row.inputs[row.key]}
+          type="file"
+          accept="image/*"
+          hidden
+          onchange={row.onFile}
+        />
+        <Button
+          size="sm"
+          onclick={() => row.inputs[row.key]?.click()}
+          disabled={uploading}
+        >
+          <IconCloud />
+          {row.url ? 'Change' : 'Upload'}
+        </Button>
+        {#if row.url}
+          <Button
+            size="sm"
+            variant="destructive"
+            aria-label={row.removeLabel}
+            onclick={row.onRemove}
+            disabled={uploading}
+          >
+            <IconTrash />
+          </Button>
+        {/if}
+      </logo-actions>
+    </logo-controls>
+  </logo-row>
 {/snippet}
 
 {#if canManageApps && !canManageSettings}
@@ -379,43 +398,17 @@
         {@render groupHeader('Logo', resetLogo)}
         <group-body>
           {#each logoTargets as target (target.key)}
-            {@const url = settingsForm.logo[target.key]}
-            <logo-row>
-              <group-title>{target.label}</group-title>
-              <logo-controls>
-                <logo-preview data-mode={target.key}>
-                  <img src={url || target.fallback} alt="{target.label} logo" />
-                </logo-preview>
-                <logo-actions>
-                  <input
-                    bind:this={logoInputs[target.key]}
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onchange={e => onLogoFile(e, target.key)}
-                  />
-                  <Button
-                    size="sm"
-                    onclick={() => logoInputs[target.key]?.click()}
-                    disabled={uploading}
-                  >
-                    <IconCloud />
-                    {url ? 'Change' : 'Upload'}
-                  </Button>
-                  {#if url}
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      aria-label="Remove {target.label} logo"
-                      onclick={() => removeLogo(target.key)}
-                      disabled={uploading}
-                    >
-                      <IconTrash />
-                    </Button>
-                  {/if}
-                </logo-actions>
-              </logo-controls>
-            </logo-row>
+            {@render uploadRow({
+              key: target.key,
+              label: target.label,
+              url: settingsForm.logo[target.key],
+              alt: `${target.label} logo`,
+              removeLabel: `Remove ${target.label} logo`,
+              fallback: target.fallback,
+              inputs: logoInputs,
+              onFile: e => onImageFile(e, url => setLogo(target.key, url)),
+              onRemove: () => setLogo(target.key, ''),
+            })}
           {/each}
         </group-body>
       </settings-group>
@@ -528,50 +521,17 @@
                   {/snippet}
                 </Field>
                 {#each sponsorIconTargets as target (target.key)}
-                  {@const url = sponsor[target.field]}
-                  <logo-row>
-                    <group-title>{target.label}</group-title>
-                    <logo-controls>
-                      <logo-preview data-mode={target.key}>
-                        {#if url}
-                          <img
-                            src={url}
-                            alt="{sponsor.name || 'Sponsor'} {target.label}"
-                          />
-                        {:else}
-                          <preview-empty>No icon</preview-empty>
-                        {/if}
-                      </logo-preview>
-                      <logo-actions>
-                        <input
-                          bind:this={sponsorIconInputs[target.key]}
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          onchange={e => onSponsorIconFile(e, target.field)}
-                        />
-                        <Button
-                          size="sm"
-                          onclick={() => sponsorIconInputs[target.key]?.click()}
-                          disabled={uploading}
-                        >
-                          <IconCloud />
-                          {url ? 'Change' : 'Upload'}
-                        </Button>
-                        {#if url}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            aria-label="Remove {target.label}"
-                            onclick={() => removeSponsorIcon(target.field)}
-                            disabled={uploading}
-                          >
-                            <IconTrash />
-                          </Button>
-                        {/if}
-                      </logo-actions>
-                    </logo-controls>
-                  </logo-row>
+                  {@render uploadRow({
+                    key: target.key,
+                    label: target.label,
+                    url: sponsor[target.field],
+                    alt: `${sponsor.name || 'Sponsor'} ${target.label}`,
+                    removeLabel: `Remove ${target.label}`,
+                    inputs: sponsorIconInputs,
+                    onFile: e =>
+                      onImageFile(e, url => setSponsorIcon(target.field, url)),
+                    onRemove: () => setSponsorIcon(target.field, ''),
+                  })}
                 {/each}
                 <Field label="Description" description="Markdown supported.">
                   <MarkdownEditor

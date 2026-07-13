@@ -8,6 +8,22 @@ export const ProviderConfigSchema = z.object({
   options: z._default(z.unknown(), {}),
 })
 
+export function normalizeSponsorIcons<
+  T extends { icon?: string; iconLight?: string; iconDark?: string },
+>({
+  icon,
+  ...sponsor
+}: T): Omit<T, 'icon'> & {
+  iconLight: string
+  iconDark: string
+} {
+  return {
+    ...sponsor,
+    iconLight: sponsor.iconLight || icon || '',
+    iconDark: sponsor.iconDark || icon || '',
+  }
+}
+
 export const SponsorSchema = z.pipe(
   z.object({
     name: z.string(),
@@ -17,11 +33,7 @@ export const SponsorSchema = z.pipe(
     description: z.string(),
     url: z.optional(z.string()),
   }),
-  z.transform(({ icon, ...sponsor }) => ({
-    ...sponsor,
-    iconLight: sponsor.iconLight || icon || '',
-    iconDark: sponsor.iconDark || icon || '',
-  }))
+  z.transform(normalizeSponsorIcons)
 )
 
 // Division access control: matches field `match` against `value`, applies to listed divisions

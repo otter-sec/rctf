@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import { createDatabase, settings } from '@rctf/db'
+import { createDatabase, settings, type EditableSponsor } from '@rctf/db'
 import {
   BadEnded,
   BadNotStarted,
@@ -316,7 +316,7 @@ describe('admin settings', () => {
               name: 'Legacy',
               icon: 'https://legacy.com/logo.png',
               description: 'Stored before per-theme icons',
-            } as never,
+            } as unknown as EditableSponsor,
           ],
         },
       })

@@ -48,6 +48,24 @@ export const ChallengeFileSchemaV2 = z.object({
   ),
 })
 
+export const SponsorSchemaV2 = z.object({
+  name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
+  iconLight: example(
+    z.string(),
+    'https://rctf.osec.io/sponsors/osec-light.png'
+  ).check(z.describe('Sponsor icon URL for light mode, or empty string.')),
+  iconDark: example(
+    z.string(),
+    'https://rctf.osec.io/sponsors/osec-dark.png'
+  ).check(z.describe('Sponsor icon URL for dark mode, or empty string.')),
+  description: example(z.string(), 'Security research.').check(
+    z.describe('Sponsor description.')
+  ),
+  url: example(z.optional(z.string()), 'https://osec.io').check(
+    z.describe('Sponsor link, when present.')
+  ),
+})
+
 export const ChallengePointsSchema = z.object({
   min: example(z.int(), 100).check(z.describe('Minimum (floor) point value.')),
   max: example(z.int(), 500).check(
