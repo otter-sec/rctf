@@ -19,6 +19,7 @@
   import { type MenuItem } from '$lib/ui/menu.svelte'
   import Section from '$lib/ui/section.svelte'
   import Tabs from '$lib/ui/tabs.svelte'
+  import TagInput from '$lib/ui/tag-input.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type {
     AdminBotConfig,
@@ -169,17 +170,6 @@
     })
   }
 
-  function parseTags(value: string): string[] {
-    return [
-      ...new Set(
-        value
-          .split(',')
-          .map(tag => tag.trim())
-          .filter(tag => tag.length > 0)
-      ),
-    ]
-  }
-
   const kindLabel = $derived(isDynamic ? 'Dynamic' : 'Decay')
   const kindItems = $derived<MenuItem[]>([
     {
@@ -291,17 +281,15 @@
                 </form-field>
 
                 <form-field>
-                  <field-label
-                    >Tags <field-hint>(comma-separated)</field-hint
-                    ></field-label
-                  >
-                  <Input
-                    type="text"
-                    placeholder="web, easy, jwt"
-                    value={form.tags.join(', ')}
+                  <field-label>Tags</field-label>
+                  <TagInput
+                    value={form.tags}
                     {disabled}
-                    onchange={e =>
-                      onFieldChange('tags', parseTags(e.currentTarget.value))}
+                    aria-label="Add tag"
+                    emptyPlaceholder="web, easy, jwt..."
+                    validate={tag =>
+                      !tag.includes(',') && !form.tags.includes(tag)}
+                    onchange={tags => onFieldChange('tags', tags)}
                   />
                 </form-field>
 

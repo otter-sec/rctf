@@ -389,6 +389,7 @@
     &[data-edge='bottom'] {
       inset-block-end: 0;
       padding-block-start: var(--space-3xs);
+      padding-block-end: 1rem;
     }
 
     :global(a) {
