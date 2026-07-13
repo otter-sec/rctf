@@ -30,13 +30,16 @@ jobs:
           set -euo pipefail
           sanitize() { sed 's|[^A-Za-z0-9_.+-]|-|g'; }
 
+          tags=$(gh api "repos/${REPO}/tags" --paginate -q '.[].name')
           valid=$(
             {
               echo latest
+              echo v1
               gh api "repos/${REPO}/branches" --paginate -q '.[].name' | sanitize
-              gh api "repos/${REPO}/tags" --paginate -q '.[].name' | sanitize
+              printf '%s\n' "$tags" | sanitize
+              printf '%s\n' "$tags" | sed -nE 's/^(v[0-9]+)\.([0-9]+)\.[0-9]+$/\1\n\1.\2/p'
               gh api "repos/${REPO}/pulls?state=open" --paginate -q '.[].number' | sed 's|^|pr-|'
-            } | sort -u | paste -sd, -
+            } | sed '/^$/d' | sort -u | paste -sd, -
           )
           echo "valid=$valid" >> "$GITHUB_OUTPUT"
 
