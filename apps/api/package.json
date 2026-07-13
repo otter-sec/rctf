@@ -13,7 +13,6 @@
     "@aws-sdk/client-ses": "3.1079.0",
     "@fastify/proxy-addr": "5.1.0",
     "@google-cloud/storage": "7.21.0",
-    "@hono/zod-validator": "0.8.0",
     "@kubernetes/client-node": "1.4.0",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",

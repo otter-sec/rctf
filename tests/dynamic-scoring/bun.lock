@@ -5,13 +5,13 @@
     "": {
       "name": "dynamic-scoring-tests",
       "devDependencies": {
-        "@types/bun": "latest",
-        "@types/dockerode": "latest",
-        "dockerode": "latest",
-        "postgres": "latest",
+        "@types/bun": "1.3.14",
+        "@types/dockerode": "4.0.1",
+        "dockerode": "5.0.1",
+        "postgres": "3.4.9",
       },
       "peerDependencies": {
-        "typescript": "latest",
+        "typescript": "7.0.2",
       },
     },
   },
