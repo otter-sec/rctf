@@ -119,12 +119,9 @@ mock.module('@rctf/db/util', () => {
 
 mock.module('@rctf/config', () => {
   const { loadFileConfigs } = require('../../packages/config/src/loader')
-  const {
-    normalizeSponsorIcons,
-    ServerConfigSchema,
-  } = require('../../packages/config/src/types')
+  const { ServerConfigSchema } = require('../../packages/config/src/types')
   const config = ServerConfigSchema.parse(loadFileConfigs(testConfigDir)[0])
-  return { config, normalizeSponsorIcons }
+  return { config }
 })
 
 const mockRedisInstance = new RedisMock()

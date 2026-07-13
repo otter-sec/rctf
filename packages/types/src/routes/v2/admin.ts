@@ -61,7 +61,7 @@ import {
   PartialInstancerConfigSchema,
   searchFilter,
   SortOrder,
-  SponsorSchemaV2,
+  SponsorUpdateSchemaV2,
   SubmissionKind,
   SubmissionResult,
   SubmissionSortBy,
@@ -610,7 +610,7 @@ const AdminSettingsUpdateBody = z.object({
       endTime: example(z.nullish(z.int()), 1710864000000).check(
         z.describe('CTF end time as a Unix ms timestamp.')
       ),
-      sponsors: z.nullish(z.array(SponsorSchemaV2)),
+      sponsors: z.nullish(z.array(SponsorUpdateSchemaV2)),
       meta: z.nullish(
         z.object({
           description: example(

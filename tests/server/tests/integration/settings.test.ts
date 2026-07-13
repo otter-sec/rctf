@@ -348,6 +348,33 @@ describe('admin settings', () => {
       ])
     })
 
+    test('applies a legacy sponsor icon in updates to both modes', async () => {
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({
+          data: {
+            sponsors: [
+              {
+                name: 'Legacy',
+                icon: 'https://legacy.com/logo.png',
+                description: 'Sent by an old client',
+              },
+            ],
+          },
+        }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          iconLight: 'https://legacy.com/logo.png',
+          iconDark: 'https://legacy.com/logo.png',
+          description: 'Sent by an old client',
+        },
+      ])
+    })
+
     test('sets all fields at once', async () => {
       const allFields = {
         ctfName: 'All',

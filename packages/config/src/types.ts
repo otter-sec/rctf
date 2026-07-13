@@ -1,4 +1,8 @@
-import { NumericString, ProtectedAction } from '@rctf/types'
+import {
+  normalizeSponsorIcons,
+  NumericString,
+  ProtectedAction,
+} from '@rctf/types'
 import { z } from 'zod/mini'
 
 export { ProtectedAction }
@@ -7,22 +11,6 @@ export const ProviderConfigSchema = z.object({
   name: z.string(),
   options: z._default(z.unknown(), {}),
 })
-
-export function normalizeSponsorIcons<
-  T extends { icon?: string; iconLight?: string; iconDark?: string },
->({
-  icon,
-  ...sponsor
-}: T): Omit<T, 'icon'> & {
-  iconLight: string
-  iconDark: string
-} {
-  return {
-    ...sponsor,
-    iconLight: sponsor.iconLight || icon || '',
-    iconDark: sponsor.iconDark || icon || '',
-  }
-}
 
 export const SponsorSchema = z.pipe(
   z.object({
