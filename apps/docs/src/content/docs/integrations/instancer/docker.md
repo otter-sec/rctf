@@ -183,4 +183,6 @@ Services may only reference networks declared under `<red>config.networks</red>`
 
 ### Network isolation
 
-Challenge workloads are untrusted, so a container is never attached to Docker's shared default bridge unless you ask for it. A service with no `<red>networks</red>`, no `<red>expose</red>`, and no `<red>network_mode</red>` runs detached (`<red>network_mode: none</red>`) rather than on the default bridge. That's what the default config does. When a challenge's services need to talk to each other, declare an internal user-defined network (`<red>internal: true</red>`, as in the example above) and list it under each service's `<red>networks</red>`. That network keeps them off the host and the internet while still connecting them. Set a service's `<red>network_mode</red>` to `<red>bridge</red>` only when you want it on the host's default bridge.
+Services do not join Docker's shared default bridge unless configured to do so. With no `<red>networks</red>`, `<red>expose</red>`, or `<red>network_mode</red>`, a service gets `<red>network_mode: none</red>`.
+
+When several challenge services need to communicate, declare a user-defined network with `<red>internal: true</red>` and attach each service to it. They can then reach one another without reaching the host or internet. Use `<red>network_mode: bridge</red>` only when the service specifically needs Docker's default bridge.

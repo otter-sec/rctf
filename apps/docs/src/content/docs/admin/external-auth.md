@@ -7,7 +7,7 @@ order: 7
 Scoring backends, instancers, dashboards, and other external apps can let users sign in with their rCTF account. After the user approves the app on rCTF, they are sent back with an authorization code.
 
 :::warning[This is *NOT* OAuth2]
-This flow borrows familiar OAuth2 field names, including `client_id`, `redirect_uri`, `code`, and `state`, but it does not implement OAuth2 (it has no scopes, refresh tokens, PKCE, OIDC discovery, token introspection, revocation, etc). The returned access token is an ordinary rCTF login token with full access to the user's account.
+This flow borrows OAuth2 field names such as `client_id`, `redirect_uri`, `code`, and `state`, but it is not an OAuth2 implementation. It has no scopes, refresh tokens, PKCE, OIDC discovery, token introspection, or revocation. The access token is an ordinary rCTF login token with full access to the user's account.
 :::
 
 ## Registering an app (admin)
@@ -33,21 +33,21 @@ Deleting an app prevents it from exchanging any more authorization codes. Access
 
 The code is valid for 60 seconds and can only be used once. Before issuing it, `/authorize` checks that `redirect_uri` exactly matches the URI registered for the client.
 
-Exchanging the code only requires the client secret and the code itself. An invalid client ID, secret, or code returns the same `badExternalAuthRequest` response.
+Exchange the code by sending it with the client ID and secret.
 
 ## Endpoints
 
 ### `<route>GET /api/v2/external-auth/clients/:id</route>`
 
-Public. Returns `<green>goodExternalAuthClient</green>` with `<red>{id, name, redirectUri}</red>`, used by the consent page to look up app metadata. Returns `<green>badExternalAuthRequest</green>` (HTTP 400) for unknown ids.
+This public endpoint returns `<green>goodExternalAuthClient</green>` with the app's `<red>{id, name, redirectUri}</red>` for the consent page. An unknown ID returns `<green>badExternalAuthRequest</green>` with HTTP 400.
 
 ### `<route>POST /api/v2/external-auth/authorize</route>`
 
-Requires the user's session token in `Authorization: Bearer`. Send `<red>{clientId, redirectUri, state?}</red>`. The response contains `<red>{redirectTo}</red>`, the complete callback URL with `code` and, when provided, `state`.
+Send `<red>{clientId, redirectUri, state?}</red>` with the user's session token in `Authorization: Bearer`. The response contains `<red>{redirectTo}</red>`, the complete callback URL with `code` and the optional `state`.
 
 ### `<route>POST /api/v2/external-auth/token</route>`
 
-Public. Body: `<red>{clientId, clientSecret, code}</red>`. Mismatch on any field returns `<green>badExternalAuthRequest</green>` (HTTP 400). On success, returns `<green>goodExternalAuthToken</green>` with `<red>{accessToken, tokenType: "bearer"}</red>`.
+This public endpoint exchanges `<red>{clientId, clientSecret, code}</red>` for `<green>goodExternalAuthToken</green>` with `<red>{accessToken, tokenType: "bearer"}</red>`. A mismatch returns `<green>badExternalAuthRequest</green>` with HTTP 400.
 
 :::note[Failure responses don't distinguish causes]
 Unknown client, wrong secret, and wrong/expired/reused code all return the same `<green>badExternalAuthRequest</green>` body.

@@ -1,6 +1,6 @@
 ---
 title: "API reference"
-description: "Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions."
+description: "Reference for rCTF API versions, authentication, responses, permissions, rate limits, and typed route definitions."
 order: 6
 ---
 
@@ -8,18 +8,18 @@ rCTF exposes a JSON REST API under `/api`. The `@rctf/types` package exports the
 
 ## Versions
 
-Both API versions are available at the same time:
+rCTF serves V1 and V2 together:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
 | V1 | `/api/v1` | Supported | Legacy clients and compatibility with the original rCTF API. |
 | V2 | `/api/v2` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-Neither version contains every operation. Use V2 when the route exists and V1 for operations that have no V2 replacement. Equivalent routes often use the same response `<red>kind</red>`, though V2 may return additional fields such as avatars, country codes, or blood indices.
+Use V2 when it provides the operation you need. Some operations still exist only in V1. Routes shared by both versions usually return the same response `<red>kind</red>`, with V2 adding fields such as avatars, country codes, and blood indices.
 
 ## Typed route contract
 
-The `@rctf/types` package exports every public route definition, response definition, enum, and helper type:
+The `@rctf/types` package exports the public route definitions, responses, enums, and helper types:
 
 ```ts showLineNumbers=false
 
@@ -33,7 +33,7 @@ type Query = RouteQueryInput<typeof GetChallengesRouteV2>
 type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 ```
 
-`RouteBodyInput<T>{:ts}` gives the request body type that a client sends, before server-side Zod parsing or conversion. `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` provide the corresponding query-string and path-parameter types.
+`RouteBodyInput<T>{:ts}`, `RouteQueryInput<T>{:ts}`, and `RouteParamsInput<T>{:ts}` provide the input types for the body, query string, and path parameters. They describe values before the server applies Zod conversions.
 
 ## Authentication
 
@@ -43,7 +43,7 @@ User-authenticated routes require an auth token in the `Authorization` header:
 Authorization: Bearer <auth-token>
 ```
 
-Service-authenticated admin bot routes also use the `Authorization` header, but the token here is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
+Admin bot service routes use the same header with the shared secret from `adminBot.provider.options.secretKey` instead of a user token.
 
 | Auth mode | Behavior |
 | --- | --- |
@@ -85,11 +85,11 @@ Responses without additional data omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` rather than an rCTF envelope.
+One typed route does not use this wrapper. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` directly.
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation failures return `<response>400 badBody</response>` with a machine-readable `reason` string:
+Routes with a JSON body parse JSON, while upload routes parse `multipart/form-data`. Invalid input returns `<response>400 badBody</response>` with a machine-readable `reason`:
 
 ```json
 {
@@ -101,7 +101,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The first part of `reason` identifies whether the invalid value came from the request `body`, `query`, or `params`. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
+The `reason` begins with `body`, `query`, or `params` to identify the source. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
 
 ## Permissions
 
@@ -126,7 +126,7 @@ Routes marked as start-gated return `<response>401 badNotStarted</response>` bef
 
 ## Captcha
 
-Captcha-protected routes only validate a challenge response when the configured captcha provider marks that action as protected. V1 request bodies use `recaptchaCode`, and V2 request bodies use `captchaCode`.
+Captcha is checked only for actions listed in the provider's protected actions. V1 request bodies use `recaptchaCode`. V2 uses `captchaCode`.
 
 | Action | Routes |
 | --- | --- |
@@ -154,7 +154,7 @@ Rate-limited routes return `<response>429 badRateLimit</response>` with `data.ti
 | Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.   |
 | Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.    |
 
-The registration and recovery limits gate verification email delivery, and they apply whether or not the action is captcha protected. Registration only consumes its buckets when a verification email would be sent, and recovery consumes its buckets before the account lookup, so throttling cannot be used to probe whether an email is registered.
+Registration uses its buckets only when rCTF would send a verification email. Recovery checks its buckets before looking up the account, so its rate-limit behavior does not reveal whether an email is registered. Both limits apply even when captcha is enabled.
 
 ## Route sections
 
@@ -166,5 +166,5 @@ The registration and recovery limits gate verification email delivery, and they 
 | [Users](/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
 | [Admin](/api/admin/) | Challenge management, users, verification queue, submissions, uploads, settings, admin bot service routes, and external-auth clients. |
 | [Integrations](/api/integrations/) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
-| [External auth](/api/external-auth/) | "Sign in with rCTF" flow for external services - client lookup, consent, and token exchange. |
+| [External auth](/api/external-auth/) | "Sign in with rCTF" flow for external services, including client lookup, consent, and token exchange. |
 | [Responses](/api/responses/) | Shared response kinds, error payloads, and common object models. |

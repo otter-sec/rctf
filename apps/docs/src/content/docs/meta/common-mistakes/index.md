@@ -43,6 +43,6 @@ If the venue cannot provide network details, plan a backup uplink and test it be
 
 ### Not enough VPN configs
 
-Onsite CTFs that also allow remote participation sometimes hand out WireGuard or OpenVPN configs so challenge networks are reachable without exposing every service publicly, or to give all participants a shared local network. A pattern we keep seeing: enough configs for a few onsite devices but none for remote players. That forces remote teams to build their own access path, which isn't really a problem in itself but is annoying for players given that VPN config generation is basically free.
+Hybrid events sometimes use WireGuard or OpenVPN to expose challenge networks without making every service public. Generate enough configurations for both onsite and remote teams. Leaving remote participants to build their own access path creates needless setup work and inconsistent conditions.
 
 Generate configs for all players, not only the people attending onsite. Pre-generate a large pool, such as 100 configs. Bind the VPN endpoint to a public IP, or use a cloud VPS that bridges to the venue network so remote players can reach it over the public internet.

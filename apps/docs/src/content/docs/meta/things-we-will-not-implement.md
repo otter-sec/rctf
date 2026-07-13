@@ -9,25 +9,25 @@ Some platform requests appear often enough that it is useful to document the pro
 :::steps
 1. **First blood bonus points**
 
-   This would award extra points to the first team that solves a challenge. First blood is useful recognition, but adding score weight to it often rewards timezone, team size, and start-time availability as much as technical skill. Teams that are awake at the opening minute, or teams with enough members to split across many challenges immediately, can gain an advantage that is only loosely related to problem solving.
+   Bonus points for the first solve reward time zone, team size, and availability at the opening minute alongside technical skill. First blood is worth recognizing, but it should not change the score.
 
    Use [Blood bot](/integrations/bloodbot) to recognize first solves without changing the scoring model.
 
 2. **Leaderboard freeze**
 
-   This would hide standings for the last `n{:ts}` hours of the event. Some events use a freeze to add suspense, but it also removes information participants use to decide what to work on. Visible standings make the event easier to follow during play and easier to review afterward.
+   A freeze adds suspense by hiding the last `n{:ts}` hours of standings, but it also removes information teams use to choose what to work on. Visible standings are easier to follow during the event and easier to review afterward.
 
    rCTF favors transparent standings throughout the event.
 
 3. **Limited flag submission attempts**
 
-   This would cap the number of flags a team can submit, or apply per-team penalties to wrong submissions. In practice, legitimate teams mistype flags, paste the wrong value, or submit a nearly correct value while debugging. Submission caps make those ordinary mistakes more stressful without doing much to stop brute force attempts.
+   Legitimate teams mistype flags, paste the wrong value, or submit near matches while debugging. Caps and score penalties punish those mistakes without doing much to stop brute force.
 
    Brute force protection belongs in route and challenge rate limits, not in scoring penalties for normal participant error.
 
 4. **Requiring authentication to see challenges or leaderboard**
 
-   This would require visitors to log in before they can view the challenge list or scoreboard. CTFs are educational events, and public visibility helps spectators, friends of teams, and future participants understand what is happening.
+   Public challenges and standings let spectators, friends, and future participants follow the event without creating an account.
 
    rCTF keeps challenge lists and standings visible so the event remains accessible outside the set of registered teams.
 :::

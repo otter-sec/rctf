@@ -4,14 +4,14 @@ description: CLI tool and CI actions for syncing CTF challenges to rCTF, buildin
 order: 5
 ---
 
-[Konata](https://github.com/project-sekai-ctf/konata) is a CTF challenge-management tool, invoked as `$ <red>kona</red>` on the command line. It walks a repository of challenge directories, builds and pushes Docker images, applies Kubernetes manifests, and syncs the resulting challenge metadata to rCTF (and CTFd, when configured).
+[Konata](https://github.com/project-sekai-ctf/konata) deploys challenges from a repository. The `$ <red>kona</red>` command can package attachments, build and push images, apply Kubernetes manifests, and update rCTF or CTFd.
 
-The whole workflow is driven by a single root `kona.yaml{:file}` or `kona.yml{:file}` for global settings, plus a per-challenge `kona.yaml{:file}` or `kona.yml{:file}` in each challenge directory.
+One root `kona.yaml{:file}` holds shared settings. Each challenge directory has its own `kona.yaml{:file}` with the challenge metadata and deployment instructions.
 
 This page covers Konata as it relates to rCTF. For the upstream tool and source, check the [Konata repository](https://github.com/project-sekai-ctf/konata).
 
 :::note[Pre-1.0 status]
-Konata is pre-1.0. The schema is settled enough that we've used it to run public CTFs end-to-end, but breaking changes are still on the table until 1.0.
+Konata has been used for public events, but it is still pre-1.0 and its configuration may change incompatibly before the 1.0 release.
 :::
 
 ## Install
@@ -23,11 +23,11 @@ $ <red>pip</red> install konata
 $ <red>kona</red> <dim>--help</dim>
 ```
 
-Python 3.12 or newer is required. The `$ <red>kona</red>` binary exposes two commands. The `sync` command is the main workflow, and `compress` is a helper for packaging attachment folders ahead of time.
+Konata requires Python 3.12 or newer. Use `sync` to deploy challenges and `compress` to create attachment archives separately.
 
 ## Repository layout
 
-Konata assumes a directory tree with one root config at `kona.yaml{:file}` or `kona.yml{:file}` and one config per challenge somewhere underneath. The challenge folder structure itself is arbitrary. Konata walks up to `<red>discovery.challenge_folder_depth</red>` levels deep (default `3{:ts}`), looking for files named `kona.yaml{:file}` or `kona.yml{:file}`.
+The root and per-challenge files can use either the `.yaml` or `.yml` extension. Challenge directories can be arranged however you like. Konata searches to `<red>discovery.challenge_folder_depth</red>`, which defaults to three levels below the root.
 
 A typical layout (taken from the SekaiCTF 2026 challenge repository):
 
@@ -51,7 +51,7 @@ A typical layout (taken from the SekaiCTF 2026 challenge repository):
 
 ## Global config
 
-The root `kona.yaml{:file}` configures credentials, clusters, registries, and shared template overrides. Everything below is optional. A minimum config just needs an `<red>rctf</red>` block.
+The root config contains credentials and any shared clusters, registries, domains, or templates. Only the `<red>rctf</red>` block is required for an rCTF-only setup.
 
 ```yaml title="kona.yaml"
 secrets:
@@ -100,7 +100,7 @@ templates:
 
 ### `secrets`
 
-Named references that the rest of the config can pull from. Each entry must specify exactly one of:
+The `<red>secrets</red>` map gives sensitive or repeated values a name. Each entry uses exactly one source:
 
 | Field | Behavior |
 | --- | --- |
@@ -108,7 +108,7 @@ Named references that the rest of the config can pull from. Each entry must spec
 | `<red>file_path</red>` | Path read from disk at load time. Relative paths resolve against the directory containing the root `kona.yml{:file}`. |
 | `<red>env</red>` | Read from the environment. Konata fails fast if the variable is unset. |
 
-The reference is then used wherever the schema accepts a `<red>secret</red>` or `<red>value</red>` field:
+Use the name anywhere a field accepts `<red>secret</red>`:
 
 ```yaml
 rctf:
@@ -140,19 +140,19 @@ Named Kubernetes clusters that challenge `<red>kubernetesManifests</red>` / `<re
 | `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config{:file}` from the host (the default). |
 | `<red>incluster: true</red>` | Use the in-pod service-account credentials when Konata itself runs inside the cluster. |
 
-`<red>alias_to</red>` / `<red>aliasTo</red>` lets a challenge reference one cluster name while routing to another. The SekaiCTF example uses this so per-challenge configs say `<red>clusterName: main</red>`, while the operator swaps `main => prod` at the root level.
+`<red>alias_to</red>` / `<red>aliasTo</red>` redirects one cluster name to another. This lets challenge files target a stable name such as `<red>main</red>` while the root config decides which cluster that means.
 
 ### `registries`
 
-Aliases for container registry prefixes. A challenge's `<red>deployment.images[].registryName</red>` / `<red>registry_name</red>` looks up an entry here, then prepends the resolved value to the image name. Splitting registries (one for static-hosted images, one for instancer images) is common when shared challenge workloads and the rCTF instancer live in different registries or clusters.
+The `<red>registries</red>` map names container registry prefixes. An image selects one with `<red>registryName</red>` / `<red>registry_name</red>`, and Konata prepends the mapped prefix to the image name. Separate entries are useful when shared and instanced challenges publish to different registries.
 
 ### `domains`
 
-Free-form key/value map of domain names available to the Jinja templates inside challenge configs (`{{ config.domains['static'] }}` in the examples). Keeps the deploy domain out of every per-challenge config.
+The `<red>domains</red>` map makes hostnames available to Jinja templates, for example `{{ config.domains['static'] }}`. Changing a deployment domain then requires one root edit instead of changes to every challenge.
 
 ### `templates`
 
-Overrides for the rendered challenge description and endpoint block. The defaults wrap the description with a connection-info section followed by `**Author**: ...`. Overrides are Jinja2 templates with `<red>challenge</red>`, `<red>config</red>`, and `<red>models</red>` available.
+Templates control the final challenge description and connection block. They use Jinja2 and can read `<red>challenge</red>`, `<red>config</red>`, and `<red>models</red>`.
 
 | Field | Purpose |
 | --- | --- |
@@ -161,7 +161,7 @@ Overrides for the rendered challenge description and endpoint block. The default
 | `<red>endpoints_text.ctfd</red>` | Endpoints template used when syncing to CTFd. The default is plain `socat`/`nc`/`ncat --ssl`/`http(s)` lines. |
 | `<red>ctfd_attribution</red>` | Suffix appended to the description on CTFd syncs (defaults to `**Author**: {{ challenge.author }}`). |
 
-Endpoint templates are separate because rCTF and CTFd format connection details differently. You can override either provider without replacing the other one's default.
+rCTF and CTFd have separate endpoint templates, so either format can be changed independently.
 
 ```yaml
 templates:
@@ -185,15 +185,15 @@ Top-level discovery options.
 
 ### `attachment_format`
 
-`<green>tar_gz</green>` (default), `<green>zip</green>`, or `<green>7z</green>`. Picks the archive format Konata uses when bundling attachment files for upload. Password-protected generated archives always use `<green>7z</green>`, regardless of this setting.
+Choose `<green>tar_gz</green>` (the default), `<green>zip</green>`, or `<green>7z</green>` for generated attachments. Password protection always uses `<green>7z</green>`.
 
 ### `attachment_wrap_dir`
 
-`true{:ts}` (default) or `false{:ts}`. When on, every archive entry is nested under a top-level `<red><archive_name or challenge_id>/</red>` directory, so unpacking the download drops files into one named folder instead of the current directory. Set it to `false{:ts}` to write entries at the archive root.
+When `true{:ts}`, the default, generated archives place their files under a directory named after the archive or challenge. Set it to `false{:ts}` to put files at the archive root.
 
 ## Per-challenge config
 
-Each challenge directory has a `kona.yml{:file}` (or `kona.yaml{:file}`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The simplest static challenge needs nothing but a category, name, author, description, and flag:
+A challenge file declares one or more challenges and may include a `<red>deployment</red>` block. A static challenge needs only its category, name, author, description, and flag:
 
 ```yaml title="misc/survey/kona.yaml"
 challenges:
@@ -256,7 +256,7 @@ Konata accepts a datetime value and sends it to rCTF as `<red>releaseTime</red>`
 
 ### Scoring
 
-By default, Konata creates regular rCTF decay challenges and sets their point range from `<red>scoring.initialValue</red>` / `<red>initial_value</red>` and `<red>scoring.minimumValue</red>` / `<red>minimum_value</red>`. The rCTF-specific block also controls tiebreak eligibility:
+By default, Konata creates a decay challenge. `<red>initialValue</red>` and `<red>minimumValue</red>` set its point range, while the rCTF block controls tiebreak eligibility:
 
 ```yaml
 scoring:
@@ -362,7 +362,7 @@ flags:
 
 ### Endpoints
 
-Static-hosting deployments declare `<red>endpoints</red>` so Konata can render connection info into the description. Each entry has a `<red>type</red>` (one of `<green>http</green>`, `<green>https</green>`, `<green>socat</green>`, `<green>nc</green>`, `<green>ncat-ssl</green>`), an `<red>endpoint</red>` host, and an optional `<red>port</red>`. Jinja templating works on `<red>endpoint</red>`, so the host can be built from the challenge name and the global `<red>domains</red>` map:
+Use `<red>endpoints</red>` to add connection information to a static challenge's description. Each entry has a `<red>type</red>`, a host in `<red>endpoint</red>`, and an optional `<red>port</red>`. The supported types are `<green>http</green>`, `<green>https</green>`, `<green>socat</green>`, `<green>nc</green>`, and `<green>ncat-ssl</green>`. The host supports Jinja templates:
 
 ```yaml
 endpoints:
@@ -373,7 +373,7 @@ endpoints:
 
 ### Deployment
 
-`<red>deployment</red>` declares what Konata should build and what manifests to apply on top of the challenge sync. Both blocks are optional, so a static challenge with just a flag and an attachment skips deployment entirely.
+The optional `<red>deployment</red>` block tells Konata which images to build and which Kubernetes manifests to apply. Omit it for challenges that need only metadata and attachments.
 
 #### Building images
 
@@ -473,7 +473,7 @@ deployment:
 
 ### Instanced challenges
 
-For challenges using the rCTF instancer, add `<red>instancerConfig</red>` / `<red>instancer_config</red>`. The shared fields match the [rCTF instancer config](/integrations/instancer#challenge-configuration), while `<red>config</red>` contains either Docker services or Kubernetes `<red>pods[]</red>`. Konata accepts both `snake_case` and `camelCase` keys throughout the schema.
+For an instanced challenge, add `<red>instancerConfig</red>` / `<red>instancer_config</red>`. Its shared fields match the [rCTF instancer config](/integrations/instancer#challenge-configuration). The inner `<red>config</red>` contains Docker services or Kubernetes `<red>pods[]</red>`. Konata accepts both `snake_case` and `camelCase` keys.
 
 ```yaml title="misc/pwnable-document-fabricator/kona.yaml"
 challenges:
@@ -551,13 +551,13 @@ deployment:
       platform: linux/amd64
 ```
 
-The instanced flow only needs pod definitions. The rCTF instancer's k8s-operator handles namespaces, services, network policies, and ingress at runtime, so no `<red>kubernetesInlineManifests</red>` block is required.
+For an instanced Kubernetes challenge, provide the pods only. The rCTF operator creates the namespace, services, network policies, and ingress when a team starts an instance.
 
 `<red>instancerConfig.instancer</red>` names which configured rCTF instancer the challenge runs on, matching a key in rCTF's `<red>instancers</red>` map. Omit it to fall back to rCTF's `<red>defaultInstancer</red>`. See [Instancer](/integrations/instancer#provider-configuration) for the deployment-side setup.
 
 ### Admin bot
 
-Web challenges that use the rCTF [admin bot](/integrations/admin-bot) declare their bot source under `<red>adminBot</red>` / `<red>admin_bot</red>`. Konata uploads the source as the challenge's `<red>adminBotConfig</red>`, and rCTF parses it server-side to derive the bot's inputs, timeout, and revision, so nothing else needs configuring here.
+For a web challenge with an rCTF [admin bot](/integrations/admin-bot), put the handler source under `<red>adminBot</red>` / `<red>admin_bot</red>`. Konata uploads it as `<red>adminBotConfig</red>`, and rCTF reads the handler's inputs, timeout, and revision from the source.
 
 Provide exactly one of `<red>code</red>` (inline source) or `<red>file</red>` (path relative to the challenge directory):
 
@@ -610,7 +610,7 @@ Konata's Jinja2 environment exposes a `<red>re_escape</red>` filter (`{{ value |
 
 ### `kona sync`
 
-The main entry point. Walks the deploy directory, builds and pushes any declared images, applies Kubernetes manifests, then syncs challenge metadata to every configured platform.
+`sync` finds the selected challenges, builds and pushes their images, applies Kubernetes manifests, and updates every configured platform.
 
 ```console
 $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
@@ -624,7 +624,7 @@ $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 
 ### `kona compress`
 
-Helper for producing an attachment archive from a folder or file. Useful when you want to commit a pre-built handout and reference it through `<red>attachments.preCompressed</red>`.
+`compress` creates an attachment archive that can be committed and referenced through `<red>attachments.preCompressed</red>`.
 
 ```console
 $ <red>kona</red> compress ./challenge/dist <dim>--format</dim> zip <dim>--output</dim> handout.zip
@@ -642,7 +642,7 @@ Generated archives are deterministic. Konata normalizes file metadata and entry 
 
 ## CI integration
 
-The [`project-sekai-ctf/konata-deploy-action`](https://github.com/project-sekai-ctf/konata-deploy-action) GitHub Action exposes two subactions. The `detect` action walks the repository and emits a matrix of changed challenges, and `sync` runs `$ <red>kona</red> sync <dim>--challenge-path</dim> <one>` for one matrix shard. Together they restrict each push to redeploying only the challenges that changed.
+The [`project-sekai-ctf/konata-deploy-action`](https://github.com/project-sekai-ctf/konata-deploy-action) has two parts. `detect` builds a matrix of changed challenges, then `sync` deploys one challenge from each matrix job with `$ <red>kona</red> sync <dim>--challenge-path</dim> <one>`. Unchanged challenges are not redeployed.
 
 The SekaiCTF 2026 workflow is a good reference:
 

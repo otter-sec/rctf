@@ -4,11 +4,11 @@ description: Overview of rCTF administration, permissions, and settings manageme
 order: 5
 ---
 
-The rCTF admin panel handles challenge management, user administration, and platform settings from the web interface.
+The admin panel manages challenges, teams, solves, and runtime settings.
 
 ## Permissions
 
-rCTF uses a bitwise permission system. Each permission is a flag, and you combine them to build different admin roles.
+Each admin permission has a numeric value. Add the values together to grant several permissions to one account.
 
 | Permission         | Value | Description                                         |
 | ------------------ | ----- | --------------------------------------------------- |
@@ -19,7 +19,7 @@ rCTF uses a bitwise permission system. Each permission is a flag, and you combin
 | `usersWrite`       | 16    | Manage users and generate team tokens               |
 | `settingsWrite`    | 32    | Modify platform settings                            |
 
-A full admin has all permissions combined for a total of `1 + 2 + 4 + 8 + 16 + 32 = 63`.
+A full admin uses `63`, the sum of every permission.
 
 ### Creating admin accounts
 
@@ -43,13 +43,11 @@ Use `rctf user demote <email>{:sh}` to revoke all permissions and `rctf user lis
 
 ### Permission bypass
 
-Users with the right permissions can bypass competition timeline restrictions. A user with `challsRead`, for example, can view challenges before the CTF starts.
+Some permissions also bypass event timing. For example, `challsRead` can view released challenges before the CTF starts.
 
 ## Runtime settings
 
-You can change platform settings at runtime without restarting the server. This requires the `settingsWrite` permission.
-
-Editable settings:
+An account with `settingsWrite` can change the following settings without restarting rCTF.
 
 | Setting           | Description                                 |
 | ----------------- | ------------------------------------------- |

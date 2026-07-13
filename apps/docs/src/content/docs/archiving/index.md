@@ -1,6 +1,6 @@
 ---
 title: Static export
-description: Generate a read-only static snapshot of a finished rCTF instance for indefinite hosting on Cloudflare Pages or GitHub Pages.
+description: Generate a read-only snapshot of a finished rCTF instance for Cloudflare Pages or GitHub Pages.
 order: 8
 ---
 
@@ -8,7 +8,7 @@ The `rctf export{:sh}` command of the [rctf CLI](/admin/cli) turns a running rCT
 
 ## CLI
 
-The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build/{:dir}` exists, then invoke the export command:
+The exporter reads from a live rCTF API and copies a built SvelteKit frontend. Build the frontend first, then run the export command:
 
 ```console
 $ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build
@@ -40,7 +40,7 @@ The discovery phase fetches:
 - Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json{:file}` per challenge.
 - A static `<response>401 badToken</response>` stub for `/api/v2/users/me` so the frontend stays in a logged-out state.
 
-Unless `<dim>--skip-uploads</dim>` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/<hash>/<filename>{:file}`, and the JSON files in `api-data/{:dir}` are rewritten to point at the local copies so the archive is self-contained.
+Unless `<dim>--skip-uploads</dim>` is set, the exporter downloads challenge files, avatars, sponsor icons, the favicon, logos, and the OG image. Files already under `/uploads/` keep that path. Files from S3, Discord, and other external hosts are stored under `uploads/external/<hash>/<filename>{:file}`. The saved JSON responses are updated to use the local copies.
 
 ## Output layout
 
@@ -70,7 +70,7 @@ The resulting directory is ready to upload to a static host:
   - .nojekyll github-pages only
 :::
 
-The injector also strips the `Content-Security-Policy{:http}` meta tag from `index.html{:file}` so the inline interceptor script can execute on the static host.
+The exporter removes the `Content-Security-Policy{:http}` meta tag from `index.html{:file}` because the static archive injects an inline request interceptor.
 
 ## Deployment
 
@@ -113,7 +113,7 @@ The injected script wraps `window.fetch{:ts}` and routes `/api/*` calls through 
 - `/api/v2/integrations/analytics/script` returns an empty `<response>404</response>` so the archived bundle does not ping a third-party analytics provider.
 - Every other `/api/*` `<route>GET</route>` is rewritten to `/api-data/<path>.json{:file}` and served from the static bundle. Missing files return a `<response>404 badEndpoint</response>`.
 
-The frontend reads `<red>isArchived</red>` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
+When `<red>isArchived</red>` is set, the frontend hides flag submission, profile editing, account creation, and other interactive controls.
 
 ## Limitations
 
@@ -127,4 +127,4 @@ The archive contains every JSON response the exporter saw at crawl time. Anythin
 - No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.
 - Captcha, analytics, and any other integration that calls back to the API or a third party is disabled.
 
-Re-run the exporter against the live instance to refresh the snapshot. The output directory is rebuilt from scratch on every invocation.
+To refresh the snapshot, run the exporter again while the live instance is still available. Each run rebuilds the output directory from scratch.

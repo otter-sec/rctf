@@ -4,7 +4,7 @@ description: Post-CTF tasks including uploading scoreboards to CTFtime, distribu
 order: 6
 ---
 
-After the competition wraps up, a handful of administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution, feedback collection, [archiving](#archive-the-platform), and infrastructure teardown.
+After the event, submit the scoreboard, contact prize winners, collect feedback and writeups, publish an archive, and remove infrastructure that no longer needs to run.
 
 ## Uploading scoreboard to CTFtime
 
@@ -13,7 +13,7 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 :::steps
 1. **Update admin permissions**
 
-   The CTFtime export endpoint requires the `<red>leaderboardRead</red>` (`4{:ts}`) permission. If the admin account was already provisioned with full perms (`63{:ts}`) during initial setup, this step is a no-op. Otherwise see [Administration › Permissions](/admin#permissions) for the full table and the exact SQL to run. The snippet for granting CTFtime-export-capable perms is:
+   The CTFtime export requires `<red>leaderboardRead</red>` (`4{:ts}`). A full admin with permissions `63{:ts}` already has it. Otherwise, grant the permission as described under [Administration › Permissions](/admin#permissions):
 
    ```sql
    UPDATE users SET perms = 7 WHERE email = '[...]';
@@ -49,13 +49,11 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 
 ## Prize distribution
 
-For competitions with prizes, look up the winning teams in the admin panel's [teams view](/admin/teams), which lists every team with its email and division, and supports name search and pagination. This is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
-
-For divisional prizes, filter the list by division in the same view.
+Contact winners through the email in the admin [teams view](/admin/teams), not through an unverified Discord account. The same view can filter teams by division for divisional prizes.
 
 ## Feedback collection
 
-A post-competition feedback form (e.g., Google Forms) gives you real signal for future events. Worth asking about:
+A short post-event form can show what to keep and what to change. Ask about:
 
 | Category       | Topics to address                                                    |
 | -------------- | -------------------------------------------------------------------- |
@@ -64,12 +62,12 @@ A post-competition feedback form (e.g., Google Forms) gives you real signal for 
 | Organization   | Communication clarity, support responsiveness, overall experience    |
 
 :::tip
-Participant feedback is the best signal for what to change next time. Read through the responses before planning the next edition.
+Read the responses before planning the next edition, while the incidents and challenge discussions are still fresh.
 :::
 
 ## Writeup collection
 
-Encouraging participants to publish writeups gives back to the broader CTF community and creates learning material for future competitors. Some approaches:
+Writeups make the challenges useful after the scoreboard closes. To encourage them:
 
 - Announce a deadline for writeup submissions (typically one to two weeks after the event).
 - Offer incentives such as prizes for outstanding writeups or recognition in official channels.
@@ -82,9 +80,9 @@ Before decommissioning the platform, use the [static export tool](/archiving) to
 
 ## Infrastructure teardown
 
-When to tear infrastructure down depends on a few things, like remaining budget, whether you want to keep challenges accessible for writeup authors, and how much operational work you're willing to keep doing. Most organizers scale things down shortly after the competition ends, but keep minimal services running for a few days so participants can verify their solutions.
+Scale expensive infrastructure down soon after the event. If the budget allows, keep challenge services available for a few days so participants can finish writeups and verify solutions.
 
-For infrastructure paid for by cloud-provider credits (e.g., Google Cloud), services can stay up until the credits run out, as long as no sensitive data is at risk.
+Cloud credits are not a reason to leave vulnerable or forgotten services running. Keep them only while someone is still monitoring them and no sensitive data or credentials remain exposed.
 
 :::warning[Teardown checklist]
 Decommission the following resources so you don't get hit with unexpected costs:

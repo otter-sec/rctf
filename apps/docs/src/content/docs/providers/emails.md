@@ -7,12 +7,12 @@ order: 2
 Email providers send verification and recovery emails. You need one configured if you want email-based registration, account recovery, or email changes to work.
 
 :::tip[What we use in practice]
-For events we run or help operate, including Malta CTF, idek CTF, DiceCTF, and SekaiCTF, we usually use [Postmark](https://postmarkapp.com/). SMTP works with any mail service that provides credentials. SES is inexpensive at higher volume for events already using AWS, while Mailgun offers another hosted option. Choose based on the infrastructure and account limits you already have.
+We usually use [Postmark](https://postmarkapp.com/) for events including Malta CTF, idek CTF, DiceCTF, and SekaiCTF. SES is inexpensive at higher volume when the event already uses AWS. SMTP works with any mail service that provides credentials, and Mailgun is another hosted option. Account limits and existing infrastructure usually matter more than the provider itself.
 :::
 
 ## Configuration
 
-Email config includes the provider, a sender address, and an optional email-specific logo URL:
+Configure a provider and sender address. You can also add an email-specific logo:
 
 ```yaml
 email:
@@ -27,10 +27,10 @@ email:
 When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `RCTF_EMAIL_LOGO_URL{:sh}` environment variable.
 
 :::note
-Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.
+Without an email provider, registration skips verification, account recovery is unavailable, and email-based division ACLs cannot be enforced.
 :::
 
-Registration and recovery emails are [rate limited](/api#rate-limits) per client IP and per destination address. This protects your sending quota and domain reputation from abuse, even when captcha is not configured for those actions. Make sure the [proxy settings](/configuration#proxy) are correct so the real client IP reaches the rate limiter.
+Registration and recovery emails are [rate limited](/api#rate-limits) by client IP and destination address, with or without captcha. Configure [proxy trust](/configuration#proxy) correctly so the limiter sees the participant's IP rather than the proxy's.
 
 ## Providers
 

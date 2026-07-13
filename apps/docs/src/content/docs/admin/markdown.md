@@ -4,9 +4,9 @@ description: Markdown extensions available in challenge descriptions, home page 
 order: 6
 ---
 
-rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. [`marked`](https://marked.js.org/) does the rendering with two custom extensions (alerts and timer), and the output then runs through [DOMPurify](https://github.com/cure53/DOMPurify) for sanitization before it hits the page.
+rCTF supports Markdown in challenge descriptions, homepage content, and sponsor descriptions. [`marked`](https://marked.js.org/) parses it, rCTF adds alerts and a countdown timer, and [DOMPurify](https://github.com/cure53/DOMPurify) sanitizes the resulting HTML.
 
-The renderer is defined in `apps/web/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web/src/lib/components/markdown.svelte{:file}`.
+The parser is in `apps/web/src/lib/utils/markdown.ts{:file}`, and `apps/web/src/lib/components/markdown.svelte{:file}` handles the interactive parts.
 
 ## Alerts
 
@@ -81,7 +81,7 @@ rCTF doesn't support `<timer to="...">{:html}` or `<timer until="...">{:html}`. 
 
 ## Standard Markdown
 
-The renderer uses `marked` with its default options, so no GFM plugin is registered. CommonMark features (headings, lists, emphasis, links, images, fenced code blocks, inline code, blockquotes) plus `marked`'s built-in tables and autolinks all pass through. There are no task lists, footnotes, or strikethrough.
+The renderer supports CommonMark headings, lists, emphasis, links, images, code, and blockquotes, along with `marked` tables and autolinks. Task lists, footnotes, and strikethrough are not supported.
 
 ````md title="Challenge description"
 ## Setup
@@ -99,7 +99,7 @@ For the full list of what CommonMark supports, see the [CommonMark spec](https:/
 
 ## Sanitization
 
-After parsing, the HTML passes through DOMPurify before it is inserted into the page. Author-facing implications:
+DOMPurify sanitizes the parsed HTML before it reaches the page. This has the following effects.
 
 - `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
 - Most HTML tags from DOMPurify's default profile are allowed (e.g. `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).

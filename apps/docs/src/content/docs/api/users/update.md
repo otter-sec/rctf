@@ -46,13 +46,11 @@ order: 3
 
 ::route-meta{def="UpdateUserRouteV2" rateLimit="Profile update bucket. Burst `3` and refill window `180000` ms per user."}
 
-This route updates profile fields for the authenticated team. Profile changes recalculate cached user data and trigger a leaderboard update.
+V2 can update the authenticated team's name, division, country or region code, and status text. V1 supports only the name and division. Changes refresh the team's cached profile and leaderboard entry.
 
-V2 can update the name, division, country or region code, and status text. V1 can update the name and division.
+Every request uses the same profile rate-limit bucket, regardless of the fields it changes. A new division must be allowed for the team's current email address.
 
-Every update consumes from the shared profile update bucket, regardless of which fields are present. Division updates are checked against the divisions allowed for the team's current email address.
-
-Division changes are rejected once the competition ends, since the division affects the final standings. Other profile fields can still be updated. V2 responds with `badDivisionChangeEnded`, while V1 reports this through `badBody`.
+Division changes stop when the competition ends because they affect the final standings. Other fields remain editable. V2 returns `badDivisionChangeEnded`, while V1 returns `badBody`.
 
 ::::tabs{sync="users-update-version"}
 

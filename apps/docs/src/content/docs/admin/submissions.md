@@ -4,15 +4,15 @@ description: Viewing and managing challenge submissions in rCTF.
 order: 4
 ---
 
-A submission (solve) gets recorded when a team submits the correct flag for a challenge. Admins can view and manage solves from the admin panel, and review submission IP history for both flag submissions and admin bot submissions.
+rCTF keeps accepted solves and a broader submission log. The admin panel can remove solves and inspect the IP history for flag attempts and admin bot jobs.
 
 ## Viewing solves
 
-Admins can view solves for any challenge, including the team name, solve timestamp, and ranking information.
+The solve list shows the team, timestamp, and placement for each accepted flag.
 
 ## Deleting solves
 
-Admins with the `challsSolveWrite` permission can delete individual solves. Useful for handling cheating or accidental solves.
+Admins with `challsSolveWrite` can remove a solve caused by cheating, a leaked flag, or an administrative mistake.
 
 :::warning
 Deleting a solve triggers an automatic leaderboard recalculation, and the team's score and rank update to match.
@@ -24,6 +24,4 @@ Each solve records the submitter's IP address. The submissions table also record
 
 ## First bloods
 
-The first three teams to solve a challenge are tracked as "bloods", recorded as **first blood** at index 0, **second blood** at index 1, and **third blood** at index 2.
-
-Blood status comes from the solve timestamp. If a [blood bot](/integrations/bloodbot) is configured, it announces these milestones automatically as they're hit.
+The first three solves, ordered by timestamp, are first, second, and third blood. A configured [blood bot](/integrations/bloodbot) announces them automatically.

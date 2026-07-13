@@ -42,13 +42,9 @@ order: 2
   }
 </style>
 
-Each category is configured in `apps/web/src/lib/utils/categories.ts{:file}`, where its entry pairs a display name and icon with one of the ten colors in `CategoryColor{:ts}`, such as `'red'{:ts}` or `'teal'{:ts}`.
-
-To apply that color, set `data-category-color={config.color}{:svelte}` on the element wrapping the category UI. A matching selector in `apps/web/src/styles/color.css{:file}` assigns the appropriate `--category-*{:css}` tokens, which then inherit into child elements using values such as `var(--category-foreground-l0){:css}`.
+Category names, icons, colors, aliases, and display order are configured in `apps/web/src/lib/utils/categories.ts{:file}`.
 
 ## Default categories
-
-Each of the default categories uses a color specified in [Category colors](/theming/colors/#category-colors).
 
 :::table{cols="auto auto auto auto"}
 
@@ -71,11 +67,11 @@ Each of the default categories uses a color specified in [Category colors](/them
 
 The challenge list follows the order shown above. The scoreboard uses the same order with `sanity` moved to the end.
 
-A handful of category aliases (`binary` => `pwn`, `rev` => `reverse`, `cryptography` => `crypto`) make naming a bit more flexible.
+The aliases `binary` => `pwn`, `rev` => `reverse`, and `cryptography` => `crypto` are also accepted.
 
 :::note[How category styling works]
 
-Each hue has a `[data-category-color]{:css}` block in `color.css{:file}` that binds its variables to the generic category tokens:
+Each hue has a `[data-category-color]{:css}` selector in `color.css{:file}`. The selector maps that hue to the generic category tokens:
 
 ```css title="styles/color.css" showLineNumbers=false
 [data-category-color='red'] {
@@ -87,7 +83,7 @@ Each hue has a `[data-category-color]{:css}` block in `color.css{:file}` that bi
 }
 ```
 
-A component sets `data-category-color` on a container, and descendants read the generic tokens from their scoped styles (custom properties inherit):
+Set `data-category-color` on a container, then use the generic tokens in its descendants:
 
 ```svelte showLineNumbers=false
 <challenge-card data-category-color={config.color}>
@@ -106,7 +102,7 @@ A component sets `data-category-color` on a container, and descendants read the 
 </style>
 ```
 
-Each hue defines two backgrounds, a hover background, and two foregrounds in `color.css{:file}`.
+The tokens include two backgrounds, one hover background, and two foregrounds.
 
 :::
 
@@ -166,7 +162,7 @@ Each hue defines two backgrounds, a hover background, and two foregrounds in `co
 
 4. **Add a hue (if using a new color)**
 
-   The `color{:ts}` must be a member of the `CategoryColor{:ts}` union. Reusing an existing hue skips this step entirely. To introduce a new hue, add it to the union in `categories.ts{:file}`, then define the five ramp variables for it in `apps/web/src/styles/color.css{:file}` following the pattern above. Finish with a `[data-category-color='<hue>']{:css}` block that points the generic `--category-*{:css}` tokens at the new ramp.
+   Skip this step when reusing an existing hue. For a new one, add it to `CategoryColor{:ts}` in `categories.ts{:file}` and define its five variables in `apps/web/src/styles/color.css{:file}`. Then add a `[data-category-color='<hue>']{:css}` selector that maps the generic `--category-*{:css}` tokens to the new values.
 
 :::
 

@@ -8,9 +8,9 @@ rCTF is configured through YAML or JSON files in a `rctf.d/{:dir}` directory and
 
 ## Configuration loading
 
-Configuration is loaded from a directory named `rctf.d/{:dir}`. The loader searches upward from the `packages/config/{:dir}` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
+By default, rCTF searches upward from `packages/config/{:dir}` for a directory named `rctf.d/{:dir}`. Set `RCTF_CONF_PATH{:sh}` to use another directory.
 
-All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order, so you can split configuration across multiple files for organization:
+rCTF loads `.yaml`, `.yml`, and `.json` files **alphabetically**, merging each file over the previous ones. This lets you separate base settings, providers, and deployment-specific overrides:
 
 :::file-tree
 - rctf.d/
@@ -33,10 +33,10 @@ The following environment variables are supported. They override values from con
 | `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
 | `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
 | `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
-| `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit; `0` disables the cap |
+| `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit. `0` disables the cap. |
 | `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
 | `RCTF_MAX_REQUEST_BODY_SIZE{:sh}` | `integer{:ts}` | Maximum accepted request body size in bytes |
-| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/providers/uploads). |
+| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
 | `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
@@ -220,7 +220,7 @@ ACLs control which divisions a user can register for based on their email. Each 
 A user receives the divisions from **every** matching rule, regardless of order. A `<green>domain</green>` rule matches the full domain exactly. For example, `<green>example.edu</green>` matches `alice@example.edu` but not `alice@sub.example.edu`.
 
 :::warning[Email provider required, disable CTFtime auth]
-Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs, since CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
+Division ACLs require an email provider. Disable CTFtime authentication when using them because CTFtime sign-ins bypass the ACLs and can select any division.
 :::
 
 ### Authentication
@@ -379,7 +379,7 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 | `<red>flagFormatPlaceholder</red>` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"{:ts}` | Flag format hint shown to participants |
 
 :::tip
-Most UI settings and client config timing values (`<red>ctfName</red>`, `<red>startTime</red>`, `<red>endTime</red>`, `<red>homeContent</red>`, `<red>sponsors</red>`, `<red>meta</red>`, `<red>faviconUrl</red>`, `<red>logoLightUrl</red>`, `<red>logoDarkUrl</red>`) can also be changed at runtime through the admin settings API without restarting the server.
+The admin settings API can update `<red>ctfName</red>`, event timing, homepage content, sponsors, metadata, favicon, and logos without restarting rCTF.
 :::
 
 ### Analytics
@@ -451,7 +451,7 @@ proxy:
 | `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `'loopback'{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges or the named subnets `loopback{:ts}`, `linklocal{:ts}`, `uniquelocal{:ts}` |
 
 :::warning
-Set `<red>proxy.cloudflare</red>` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `<red>proxy.trust</red>` instead.
+Behind Cloudflare, set `<red>proxy.cloudflare</red>` to `true{:ts}` so logs and rate limits use the participant's IP. For any other reverse proxy, configure `<red>proxy.trust</red>` with the proxies rCTF should trust.
 :::
 
 ### Blood bot

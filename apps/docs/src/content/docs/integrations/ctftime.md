@@ -4,7 +4,7 @@ description: Configure CTFtime OAuth authentication and leaderboard export.
 order: 1
 ---
 
-The [CTFtime](https://ctftime.org) integration adds OAuth-based authentication and leaderboard export in CTFtime's standard format.
+The [CTFtime](https://ctftime.org) integration lets teams register or log in with CTFtime and exports the final standings in CTFtime's format.
 
 ## Setup
 
@@ -42,22 +42,20 @@ The [CTFtime](https://ctftime.org) integration adds OAuth-based authentication a
 
 ### Registration with CTFtime
 
-When a user registers with CTFtime, they provide a team name and the CTFtime token. No email verification is required.
+A CTFtime registration includes the team name and CTFtime token. It does not require email verification.
 
 ### Login with CTFtime
 
-Returning users provide their CTFtime auth token to log in. The API matches their CTFtime ID to an existing account and returns an rCTF auth token.
+For later logins, rCTF matches the CTFtime ID to the existing team and returns an rCTF auth token.
 
 ## Division ACL behavior
 
 :::note
-When CTFtime authentication is configured, division ACLs are **bypassed entirely**. All divisions become available to CTFtime-authenticated users. This is because ACLs are email-based, and CTFtime authentication does not require an email address.
+CTFtime authentication bypasses division ACLs because it does not provide the email address those rules need. CTFtime users can therefore select any division.
 :::
 
 ## Leaderboard export
 
-After the CTF ends, you can export the leaderboard in CTFtime's format for scoreboard submission.
-
-The platform provides a leaderboard export in CTFtime's JSON format, accessible to users with `<green>leaderboardRead</green>` permission.
+After the event, a user with `<green>leaderboardRead</green>` permission can export the standings as CTFtime JSON.
 
 See [After the CTF](/meta/running-a-successful-ctf/after-ctf) for the full scoreboard submission procedure.

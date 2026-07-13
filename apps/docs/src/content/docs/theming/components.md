@@ -28,8 +28,6 @@ Components are grouped by how they handle behavior.
 
 :::
 
-Native components use HTML and scoped CSS. Zag components add a state machine, while custom components handle the few interactions that do not fit one.
-
 ## Adding components
 
 When adding a component, choose the simplest tier that fits its behavior and keep its variants and state in data attributes. Most components only need a single Svelte file.

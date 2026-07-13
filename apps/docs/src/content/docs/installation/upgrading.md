@@ -4,7 +4,7 @@ description: Migration guide from rCTF v1 to v2, covering database changes, API 
 order: 2
 ---
 
-This guide covers what changed between rCTF v1 and v2, and what you need to do to upgrade.
+This guide explains the v1 to v2 upgrade and lists the database, API, and configuration changes.
 
 ## In short, swap the image and restart
 
@@ -20,11 +20,11 @@ services:
 Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump (e.g. `$ pg_dump`) before swapping the image so you have a way back if something goes wrong.
 :::
 
-If you want to know what actually changes (new tables, new columns, API differences, and config sections worth rewriting by hand), read on. None of it is required to upgrade.
+The rest of this page describes what the migration changes and which old configuration fields you may want to replace.
 
 ## Database migration
 
-Drizzle ORM handles schema changes and runs them automatically when `<red>database.migrate</red>` is set to `<green>before</green>`. The schema default is `<green>never</green>`, so enable it explicitly (the bundled deployment configures it). To run them by hand:
+Set `<red>database.migrate</red>` to `<green>before</green>` to run Drizzle migrations during startup. The bundled deployment already does this. The schema default is `<green>never</green>`, so custom deployments must enable migrations or run them manually:
 
 ```console
 $ <red>bun</red> run db:migrate
@@ -96,7 +96,7 @@ The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) takes 
 
 ### Captcha provider
 
-The v1 `<red>recaptcha</red>` top-level config gets converted to the new `<red>captcha.provider</red>` format at startup automatically. We still recommend migrating to the new format by hand:
+rCTF converts the v1 `<red>recaptcha</red>` block at startup, but new configuration should use `<red>captcha.provider</red>`:
 
 ::::tabs
 :::tab[v1 (deprecated)]
@@ -126,7 +126,7 @@ The new format also supports `<green>captcha/hcaptcha</green>` and `<green>captc
 
 ### Analytics provider
 
-The v1 `<red>globalSiteTag</red>` config gets converted to the `<red>analytics.provider</red>` format automatically. Migrate to:
+rCTF also converts `<red>globalSiteTag</red>` automatically. Its v2 replacement is:
 
 ```yaml title="v2 (recommended)"
 analytics:

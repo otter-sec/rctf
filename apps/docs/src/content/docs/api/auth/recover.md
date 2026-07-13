@@ -30,7 +30,7 @@ Starts account recovery for a team that still has access to its email inbox. Whe
 
 The response does not reveal whether the email belongs to an account. Known and unknown addresses both return `<response>200 goodVerifySent</response>`.
 
-Recovery has separate rate limits for the client IP and destination email, even when captcha is enabled. An IP can make `5` requests per `1500000` ms refill window, while an email address can receive `2` per `3600000` ms window. Exceeding either limit returns `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. rCTF checks both limits before looking up the account.
+The recovery limits apply even when captcha is enabled. rCTF checks them before looking up the account, so rate-limit behavior cannot reveal whether an address is registered. Exceeding either limit returns `<response>429 badRateLimit</response>` with the wait in `data.timeLeft`.
 
 ::::tabs{sync="recover-version"}
 
@@ -60,4 +60,4 @@ When email delivery is configured and the request passes validation, the route r
 
 ::::
 
-If email delivery is not configured, recovery cannot be started because there is nowhere to send the token. Captcha, email validation, and rate limits are handled before any recovery email is queued.
+Recovery requires an email provider. rCTF validates the request, captcha, and rate limits before queuing the message.

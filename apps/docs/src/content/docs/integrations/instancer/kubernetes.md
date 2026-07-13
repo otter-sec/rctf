@@ -56,7 +56,7 @@ The Terraform example assumes GKE plus Cloudflare for DNS and ACME. GCP Cloud DN
 | Domain plus DNS provider | One of Cloudflare or GCP Cloud DNS. Used for the ACME DNS-01 challenge and the wildcard `A` record. |
 | Let's Encrypt account email | Registered through the `acme_registration` resource. |
 
-The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone></red>`, or simply `<red><instancer_zone></red>` when no subdomain is configured. Individual instance hostnames are placed under a wildcard one level below it.
+The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone></red>`, or `<red><instancer_zone></red>` when no subdomain is configured. Each instance gets a hostname one level below it.
 
 ## Controller image
 
@@ -400,7 +400,7 @@ deployment:
 Things worth pointing at in this example:
 
 - **`egress: false{:yml}`** keeps the pod sealed off from public internet egress. Set it to `true{:yml}` only for challenges that need outbound access.
-- **Resource `<red>requests</red>` and `<red>limits</red>`** are mandatory in practice. The controller schedules the pod normally, so an unset limit lets a single instance starve the node. Size them to the per-team load you expect at peak.
+- **Resource `<red>requests</red>` and `<red>limits</red>`** keep one instance from starving the node. Set both from the expected peak load for one team.
 - **`<red>readinessProbe</red>`** keeps Traefik from routing to the pod before the app is up. Without it, the first request after creation often 502s while the container is still booting.
 - **`<red>readOnlyRootFilesystem</red>` plus the sized `<red>emptyDir</red>`** gives the app a bounded writable `/tmp/{:dir}` without letting it write into the image layer.
 - **`<red>securityContext</red>`** locks the container down with dropped capabilities and no privilege escalation.

@@ -171,11 +171,11 @@ If a request times out, retry with the same body, timestamp, and signature. A `4
 
 ## How scores reach the leaderboard
 
-rCTF stores each team's current points in `solves.points{:sql}`. It also appends every change to `score_events{:sql}` with the point difference and its source (`<green>flag</green>`, `<green>decay-recompute</green>`, `<green>feed</green>`, `<green>ban</green>`, `<green>delete</green>`, or `<green>algo-change</green>`).
+rCTF stores each team's current points in `solves.points{:sql}` and records every change in `score_events{:sql}`. Each history entry includes the point difference and its source (`<green>flag</green>`, `<green>decay-recompute</green>`, `<green>feed</green>`, `<green>ban</green>`, `<green>delete</green>`, or `<green>algo-change</green>`).
 
 - The leaderboard worker sums each team's `solves.points{:sql}` to produce ranks. Decay recomputes are debounced through Redis pub/sub so a burst of solves only re-prices the challenge once.
 - The leaderboard graph replays `score_events{:sql}` chronologically so historical points reflect what the team had at that point in time, not what they have now.
-- Banning a team emits reversing events for every solve they had, and unbanning restores them. The leaderboard worker re-runs decay for every affected challenge.
-- Deleting a solve emits a single reversing event.
+- Banning a team records the removal of its solve points, while unbanning records their return. Both actions recalculate affected decay challenges.
+- Deleting a solve records the corresponding point removal.
 
-You don't need to interact with `score_events{:sql}` directly. It's an internal audit log. Its fields are documented above to help explain discrepancies between the `/scores` page and the `/scores/:id` graph.
+You don't need to interact with `score_events{:sql}` directly. It's an internal audit log, and its fields are documented above to help explain discrepancies between the `/scores` page and the `/scores/:id` graph.

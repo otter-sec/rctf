@@ -4,27 +4,27 @@ description: Guide to deploying CTF challenges including shared remotes, instanc
 order: 4
 ---
 
-With the CTF platform running and challenges ready to create, the next step is deployment. Alongside static challenges, there are two main deployment types, **shared remote** and **instanced remote**.
+Hosted challenges use either a **shared remote**, which every team connects to, or an **instanced remote**, which gives each team a separate environment.
 
 :::tip
-Whichever deployment method you pick, ship a local setup of the challenge (e.g., a Docker Compose file) for debugging. It also makes remote deployment easier, since most solutions are designed around running a provided Docker image.
+Every hosted challenge should include a local setup, such as a Docker Compose file. Authors need it to reproduce deployment problems and test the reference solution against the same build.
 :::
 
-rCTF also supports hosting admin bots separately from the challenge. This handles traffic spikes better and gives a more accurate simulation of external visitors, rather than the internal-IP traffic you'd see from a local deployment.
+Admin bots should run separately from challenge services. This keeps browser traffic outside the challenge network and lets bot workers scale independently.
 
 ## Shared remote
 
-In a shared remote, every competitor connects to one single instance shared across all teams. This works when the vulnerability does not depend on state or is sandboxed (for example, a cryptographic vulnerability that proves you can recover the secret value from the server).
+In a shared remote, every team connects to the same service. Use one when solves do not alter shared state, or when each connection runs inside its own sandbox. A cryptographic oracle is a common example.
 
-Google built [kCTF](https://google.github.io/kctf/introduction.html) for this. It runs challenges on GCP with instance scaling, health checks, automatic restarts on failure, and secure sandboxing on shared hosts. For a simpler alternative, you can run shared instances on a traditional VPS, either inside Docker or directly on the host.
+[kCTF](https://google.github.io/kctf/introduction.html) runs shared challenges on GCP with autoscaling, health checks, automatic restarts, and per-connection sandboxing. A dedicated VPS running Docker is simpler, but you must provide the isolation and resource limits yourself.
 
 :::warning[Wrap shared remotes in a jail]
 Any shared remote where the intended solve gives a competitor code execution must run the vulnerable process inside a per-connection sandbox. Concretely:
 
-- **[pwn.red/jail](https://github.com/redpwn/jail)** is the modern drop-in. It's a small base image that forks the challenge per connection inside an nsjail with read-only rootfs, no network, dropped caps, and CPU/memory/time limits. Add two lines to a Dockerfile (`FROM pwn.red/jail`) and you get isolation per session for free. Recommended default for pwn / RCE-style shared remotes.
+- **[pwn.red/jail](https://github.com/redpwn/jail)** runs each connection in a separate nsjail with a read-only root filesystem, no network, dropped capabilities, and CPU, memory, and time limits. It is a practical default for shared pwn and RCE services.
 - **[nsjail](https://github.com/google/nsjail)** is the lower-level building block both kCTF and pwn.red/jail wrap. kCTF runs every challenge inside an nsjail by default. If you're not on kCTF and not using pwn.red/jail, configure nsjail yourself.
 
-Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp/{:dir}`, or just kill the process for everyone else.
+Use a jail whenever the intended solution provides code execution. Without per-connection isolation, one solver can replace the binary, leave a backdoor in `/tmp/{:dir}`, or stop the service for everyone.
 :::
 
 ### kCTF
@@ -39,34 +39,30 @@ kCTF has its own [documentation](https://google.github.io/kctf/), so this sectio
 
 ### Docker
 
-If you don't want the complexity of kCTF (GCP plus Kubernetes), a simpler option is to deploy challenges using Docker on one or more dedicated hosts. Don't reuse the same VPS that runs the CTF platform. Challenges can pull serious traffic, and keeping participant data away from intentionally vulnerable services is just good security hygiene.
+For a smaller setup, run Docker on one or more dedicated hosts. Do not put intentionally vulnerable challenges on the server that holds the rCTF database or participant data. Challenge traffic and a container escape should not be able to take down or expose the platform.
 
-The simplest deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge on a unique port. Note that challenges that grant remote code execution carry risk of container breakouts (especially when elevated privileges are involved) or malicious actions like disk exhaustion. Wrap the challenge process in [pwn.red/jail](https://github.com/redpwn/jail) or nsjail. See the [shared-remote callout above](#shared-remote).
+[Docker Compose](https://docs.docker.com/compose/) is enough for a small set of shared services, with each challenge on its own port. A container alone is not a safe boundary for an RCE challenge, especially if it has extra privileges. Put the vulnerable process inside [pwn.red/jail](https://github.com/redpwn/jail) or nsjail and set storage and process limits.
 
 :::caution
-It is critical that competitors cannot access internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers, which hold access credentials to the cloud account).
+Block access to cloud metadata services such as `http://169.254.169.254`. They can expose credentials for the cloud account.
 :::
 
 ### VM
 
-Another option is to give each challenge instance its own VM or VPS. This costs more, but a compromised challenge is less likely to affect the rest of the event through disk exhaustion, a container escape, or a host failure. Choose the level of isolation based on the risks and resource needs of each challenge.
-
-:::caution
-It is critical that competitors cannot access internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers, which hold access credentials to the cloud account).
-:::
+Another option is to give each challenge instance its own VM or VPS. This costs more, but a compromised challenge is less likely to affect the rest of the event through disk exhaustion, a container escape, or a host failure. Block access to the cloud metadata service on these hosts as well. Choose the level of isolation based on the risks and resource needs of each challenge.
 
 ## Instanced remote
 
-In an instanced remote setup, each competitor gets a dedicated instance. This is necessary for challenges where the vulnerability hands you file write or remote code execution. Otherwise, competitors could break the challenge, remove flags, or interfere with each other.
+An instanced remote gives each team its own environment. Use it when a solve changes persistent state, writes files, or gives broad code execution that cannot be safely reset after every connection.
 
-rCTF v2 ships first-party support for instanced challenges, so you don't need a third-party integration here. Pick whichever backend matches your operational comfort level:
+rCTF provides two instancer backends:
 
 - **[Docker instancer](/integrations/instancer/docker)** is a bundled Python FastAPI service that runs on a standalone Docker host alongside Traefik and Redis. It's lightweight and a good fit for small-to-medium events.
 - **[Kubernetes instancer](/integrations/instancer/kubernetes)** runs each team instance in its own namespace with network policies and Traefik routing. It includes a Terraform deployment for GKE and is intended for events that need several challenge nodes.
 
 The [instancer overview](/integrations/instancer) explains the shared `<red>instancerConfig</red>` fields, participant controls, and admin UI.
 
-If you'd rather stick with an existing setup, third-party integrations like [Klodd](https://klodd.tjcsec.club/) still work against rCTF, but the first-party instancer is the recommended path now.
+Existing systems such as [Klodd](https://klodd.tjcsec.club/) can still integrate with rCTF.
 
 :::warning
 Instances can be deployed before the CTF begins. Be careful when deploying challenges in advance if their names are predictable.
@@ -74,14 +70,14 @@ Instances can be deployed before the CTF begins. Be careful when deploying chall
 
 ## Admin bot
 
-rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript handlers in a Puppeteer-driven Chrome/Firefox session. The handlers sit alongside the challenge, validate participant input, and stream structured per-job logs back to the platform. Configuration, the handler API, scaling notes, and deployment guidance are all on the [Admin bot](/integrations/admin-bot) page.
+The rCTF [admin bot](/integrations/admin-bot) runs trusted TypeScript handlers in Chrome or Firefox. It validates participant input, queues browser visits, and returns logs for each job. Run the worker separately from the challenge so browser capacity can scale without exposing the worker service publicly.
 
 ## Keeping challenges in sync
 
-Challenge updates become difficult to debug when source, attachments, images, and `<red>instancerConfig</red>` are updated separately. Keep them in one deployment workflow so participants do not end up with mismatched versions.
+Deploy source, attachments, images, and `<red>instancerConfig</red>` from the same revision. Updating them separately makes it easy to publish a binary that no longer matches the remote service or reference solution.
 
 :::tip[Use Konata + CI as the single source of truth]
-Commit every challenge's `kona.yml{:file}` alongside the source, and let [Konata](/integrations/konata) drive deployment from CI on every push to `main`. With the [Konata GitHub Action](/integrations/konata#ci-integration), one commit can rebuild and push the Docker image, re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the running deployment, all from the same source tree, in the right order.
+Commit each challenge's `kona.yml{:file}` beside its source and deploy it with [Konata](/integrations/konata) from CI. The [Konata GitHub Action](/integrations/konata#ci-integration) can build and push the image, regenerate attachments, update rCTF, and roll out the Kubernetes deployment from one commit.
 :::
 
 Generate attachments from the challenge build and reference the output through `<red>attachments.files</red>`. Konata archives that output on each sync, while rCTF skips the upload when its contents have not changed.

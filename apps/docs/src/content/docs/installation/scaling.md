@@ -12,7 +12,7 @@ Most events can run rCTF on one server. Multiple application containers are only
 
 ![sekaictf-2026-cpu-usage](./sekaictf-2026-cpu-usage.png)
 
-A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
+The [VPS setup walkthrough](/meta/running-a-successful-ctf/setup) starts with 2 CPU cores and 4 GiB of memory. In the bundled `compose.yml{:file}`, PostgreSQL and Redis use more idle memory than the rCTF container itself.
 
 ## Instance types
 
@@ -32,10 +32,10 @@ instanceType: frontend # or 'leaderboard' or 'all'
 
 ## Horizontal scaling
 
-To scale beyond one container, run several `<green>all</green>` instances behind a load balancer and connect them to the same PostgreSQL and Redis services. A PostgreSQL advisory lock ensures that only one instance runs the leaderboard worker at a time.
+To scale beyond one container, run several `<green>all</green>` instances behind a load balancer and connect them to the same PostgreSQL and Redis services. A PostgreSQL advisory lock ensures that only one instance runs the leaderboard worker at a time. The bundled Compose file is for one server, so a multi-server deployment needs its own load balancer and service configuration.
 
 :::note[Splitting roles is optional]
-Running several `all` replicas is the simplest setup. You can split into separate `frontend` and `leaderboard` replicas to keep the worker's CPU away from request serving, but you don't need to.
+Several `all` replicas are the simplest arrangement. Separate `frontend` and `leaderboard` replicas only when the worker should have dedicated CPU.
 :::
 
 :::warning[No transaction-pooling proxies]
@@ -60,7 +60,3 @@ The API provides two public endpoints for load balancers and deployment health c
 On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting connections, drains active requests, and releases the leaderboard lock for a standby. The `<red>shutdownTimeout</red>` defaults to 30 seconds, so the orchestrator's termination grace period must be at least that long. A second signal exits immediately.
 
 After a host crash or network partition, Postgres holds the leaderboard lock until it detects the dead connection. Multi-node deployments should shorten the Postgres `tcp_keepalives_idle{:sh}`, `tcp_keepalives_interval{:sh}`, and `tcp_keepalives_count{:sh}` settings. Do not use `idle_session_timeout{:sh}`, which can also kill healthy sessions holding advisory locks.
-
-## Deployment templates
-
-There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml{:file}`, no Terraform module). It's on the roadmap and will land here when ready. For single-box events, the bundled `compose.yml{:file}` is still the simplest option.
