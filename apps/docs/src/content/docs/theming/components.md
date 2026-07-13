@@ -16,7 +16,7 @@ The interface is split across these directories.
 
 Variants are represented with [data attributes](/theming/colors/), while layout components use custom tags such as `<ui-card>{:html}`.
 
-Components fall into three tiers by how much machinery they need.
+Components are grouped by how they handle behavior.
 
 :::table{cols="auto wrap"}
 
@@ -27,8 +27,6 @@ Components fall into three tiers by how much machinery they need.
 | **Custom Svelte** | `TagInput`, `Portal` |
 
 :::
-
-Native components use HTML and scoped CSS. Zag components add a state machine, while custom components handle the few interactions that do not fit one.
 
 ## Adding components
 
@@ -55,7 +53,7 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 
    The reactive props passed to `useMachine{:ts}` **must** be a thunk, or controlled state silently freezes:
 
-   ```svelte showLineNumbers=false
+   ```ts showLineNumbers=false
    const service = useMachine(dialog.machine, () => ({ id, open }))
    const api = $derived(dialog.connect(service, normalizeProps))
    ```

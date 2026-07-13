@@ -6,25 +6,39 @@ prose-content {
   }
 
   table {
-    --table-border: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
-
     inline-size: 100%;
     margin-block: 0;
     font-size: var(--step--1);
+    border-collapse: separate;
+    border-spacing: 0;
 
-    thead {
-      border-block-end: 1.5px solid var(--table-border);
-    }
-
-    tr {
-      border-block: 1.5px solid var(--table-border);
+    thead th {
+      background-color: var(--background-l2);
 
       &:first-child {
-        border-block-start: 0;
+        border-start-start-radius: var(--radius-lg);
+        border-end-start-radius: var(--radius-lg);
       }
 
       &:last-child {
-        border-block-end: 0;
+        border-start-end-radius: var(--radius-lg);
+        border-end-end-radius: var(--radius-lg);
+      }
+    }
+
+    tbody tr:nth-child(even) {
+      :is(th, td) {
+        background-color: var(--background-l1);
+      }
+
+      :is(th, td):first-child {
+        border-start-start-radius: var(--radius-lg);
+        border-end-start-radius: var(--radius-lg);
+      }
+
+      :is(th, td):last-child {
+        border-start-end-radius: var(--radius-lg);
+        border-end-end-radius: var(--radius-lg);
       }
     }
 

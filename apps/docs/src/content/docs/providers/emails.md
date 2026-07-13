@@ -7,12 +7,12 @@ order: 2
 Email providers send verification and recovery emails. You need one configured if you want email-based registration, account recovery, or email changes to work.
 
 :::tip[What we use in practice]
-For events we run or help operate (including Malta CTF, idek CTF, DiceCTF, SekaiCTF), we typically use [Postmark](https://postmarkapp.com/) for transactional delivery. The others are perfectly reasonable choices too. SMTP works with any provider you already have credentials for, SES is the cheapest at volume if you're already on AWS, and Mailgun is a fine alternative if you prefer it. Pick whichever fits your existing infrastructure.
+We usually use [Postmark](https://postmarkapp.com/) for events including Malta CTF, idek CTF, DiceCTF, and SekaiCTF. SES is inexpensive at higher volume when the event already uses AWS. SMTP works with any mail service that provides credentials, and Mailgun is another hosted option. Account limits and existing infrastructure usually matter more than the provider itself.
 :::
 
 ## Configuration
 
-Email config includes the provider, a sender address, and an optional email-specific logo URL:
+Configure a provider and sender address. You can also add an email-specific logo:
 
 ```yaml
 email:
@@ -24,13 +24,13 @@ email:
   logoUrl: https://example.com/email-logo.png # Optional
 ```
 
-When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `RCTF_EMAIL_LOGO_URL{:sh}` environment variable.
+When `<red>email.logoUrl</red>` is unset, emails use the top-level `<red>logoLightUrl</red>` and `<red>logoDarkUrl</red>` values instead. The logo can also be set with the `<yellow>RCTF_EMAIL_LOGO_URL</yellow>` environment variable.
 
 :::note
-Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.
+Without an email provider, registration skips verification, account recovery is unavailable, and email-based division ACLs cannot be enforced.
 :::
 
-Registration and recovery emails are [rate limited](/api#rate-limits) per client IP and per destination address. This protects your sending quota and domain reputation from abuse, even when captcha is not configured for those actions. Make sure the [proxy settings](/configuration#proxy) are correct so the real client IP reaches the rate limiter.
+Registration and recovery emails are [rate limited](/api#rate-limits) by client IP and destination address, with or without captcha. Configure [proxy trust](/configuration#proxy) correctly so the limiter sees the participant's IP rather than the proxy's.
 
 ## Providers
 
@@ -49,7 +49,7 @@ email:
 
 | Option               | Environment Variable | Description         |
 | -------------------- | -------------------- | ------------------- |
-| `<red>smtpUrl</red>` | `RCTF_SMTP_URL{:sh}` | SMTP connection URL |
+| `<red>smtpUrl</red>` | `<yellow>RCTF_SMTP_URL</yellow>` | SMTP connection URL |
 
 ::::
 ::::tab[emails/ses]
@@ -68,9 +68,9 @@ email:
 
 | Option                    | Environment Variable       | Description           |
 | ------------------------- | -------------------------- | --------------------- |
-| `<red>awsKeyId</red>`     | `RCTF_SES_KEY_ID{:sh}`     | AWS access key ID     |
-| `<red>awsKeySecret</red>` | `RCTF_SES_KEY_SECRET{:sh}` | AWS secret access key |
-| `<red>awsRegion</red>`    | `RCTF_SES_REGION{:sh}`     | AWS region            |
+| `<red>awsKeyId</red>`     | `<yellow>RCTF_SES_KEY_ID</yellow>`     | AWS access key ID     |
+| `<red>awsKeySecret</red>` | `<yellow>RCTF_SES_KEY_SECRET</yellow>` | AWS secret access key |
+| `<red>awsRegion</red>`    | `<yellow>RCTF_SES_REGION</yellow>`     | AWS region            |
 
 :::warning
 Make sure your SES account is out of the sandbox and the sender address is verified before you use it.
@@ -90,7 +90,7 @@ email:
 
 | Option                   | Environment Variable              | Description           |
 | ------------------------ | --------------------------------- | --------------------- |
-| `<red>serverToken</red>` | `RCTF_POSTMARK_SERVER_TOKEN{:sh}` | Postmark server token |
+| `<red>serverToken</red>` | `<yellow>RCTF_POSTMARK_SERVER_TOKEN</yellow>` | Postmark server token |
 
 ::::
 ::::tab[emails/mailgun]
@@ -108,8 +108,8 @@ email:
 
 | Option              | Environment Variable        | Description            |
 | ------------------- | --------------------------- | ---------------------- |
-| `<red>apiKey</red>` | `RCTF_MAILGUN_API_KEY{:sh}` | Mailgun API key        |
-| `<red>domain</red>` | `RCTF_MAILGUN_DOMAIN{:sh}`  | Mailgun sending domain |
+| `<red>apiKey</red>` | `<yellow>RCTF_MAILGUN_API_KEY</yellow>` | Mailgun API key        |
+| `<red>domain</red>` | `<yellow>RCTF_MAILGUN_DOMAIN</yellow>`  | Mailgun sending domain |
 
 ::::
 :::::

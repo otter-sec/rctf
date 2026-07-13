@@ -4,15 +4,15 @@ description: Guidelines for planning, authoring, and testing CTF challenges, inc
 order: 2
 ---
 
-Before you start authoring challenges, settle on the general format and scope of the competition. A well-organized CTF usually shares a few traits:
+Set the event format before authors begin. For a typical online jeopardy CTF:
 
-- The event should last for either 24 or 48 hours and be held on a weekend or Friday night.
+- Run for 24 or 48 hours, usually over a weekend.
 
-- Challenges should conform to [standard CTF categories](/theming/categories#default-categories).
+- Use recognizable [CTF categories](/theming/categories#default-categories).
 
-- Each category should contain approximately 2-6 challenges, with a similar number of challenges across all categories.
+- Aim for two to six challenges per category and avoid leaving one category noticeably thinner than the others.
 
-- Challenge difficulty should be distributed across a range from easy to hard, accommodating participants of varying skill levels. A common distribution is 1-2 easy, 2-3 medium, and 1-2 hard.
+- Include a real range of difficulty. One or two easy, two or three medium, and one or two hard challenges per category is a useful starting point.
 
 ## Challenge authoring
 
@@ -20,15 +20,15 @@ Good challenges are what make a CTF worth playing. Keep these guidelines in mind
 
 ### General principles
 
-- Avoid recycling challenges from other CTFs or online resources. Participants can often identify reused challenges.
+- Write original challenges. Reused problems are often searchable or recognizable.
 
-- Avoid making challenges overly difficult, contrived, or reliant on "guessing." A "guessy" challenge is one where the solution is unclear, so solvers fall back on arbitrary or brute-force approaches instead of reasoning from the given information. Good challenges have enough clues to make logical progress possible and reward problem-solving over brute persistence. If no one solves a challenge, the issue is usually design, not difficulty.
+- Give solvers enough information to make reasoned progress. If the only way forward is to guess what the author had in mind or try arbitrary inputs, the challenge is unclear rather than difficult. An unsolved challenge is usually a reason to revisit the design.
 
-- Challenges should be solvable within a reasonable timeframe given the event duration.
+- Make sure the intended solution fits the length of the event.
 
-- Challenge descriptions should not include red herrings.
+- Do not use fake clues or red herrings.
 
-- Ideally, each challenge teaches or reinforces a concept or technique.
+- Give each challenge a technical idea worth learning or practicing.
 
 ### Challenge components
 
@@ -36,22 +36,22 @@ Each challenge should include the following:
 
 | Component | Comments | Necessity |
 | --- | --- | --- |
-| **Title** | A memorable name. The typical convention is to use [Kebab case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case/) for titles. Please be fun with the title rather than calling it `keygen` or `pwnme` or `warmup` or `crackme`. | Required |
+| **Title** | A memorable name. Prefer something distinctive over `keygen`, `pwnme`, `warmup`, or `crackme`. | Required |
 | **Description** | Context and necessary information for the challenge. Descriptions are often themed and playful. | Required |
-| **Hints** | Avoid actually using the "Hints" field, but rather use hints reactively during the CTF for unsolved challenges (e.g., after gauging progress at the 24-hour mark). See [Hint policy](/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information. | Optional, uncommon |
-| **Category** | The primary category (the one most aligned with the challenge, for challenges that fit multiple categories). | Required |
+| **Hints** | Usually released during the event when an unsolved challenge needs clarification. See [Hint policy](/meta/running-a-successful-ctf/during-ctf#hint-policy). | Optional, uncommon |
+| **Category** | The category that best matches the main technique. | Required |
 | **Author** | The challenge author. Meta challenges, such as survey or sanity checks, should be authored by "Team" or some other umbrella name. | Optional, common |
-| **Tags** | Additional categorizations. Tags are often used for bounties, challenges part of a series, or challenges that fit into multiple categories. | Optional, common |
-| **Difficulty** | Relative difficulty level. This is a contentious topic due to the subjective nature of difficulty ratings, so this is sometimes excluded. | Optional, uncommon |
+| **Tags** | Extra labels for bounties, challenge series, or secondary categories. | Optional, common |
+| **Difficulty** | A rough rating. Because difficulty is subjective, many events omit it. | Optional, uncommon |
 | **Flag** | The solution in the established format. | Required |
-| **Attachments** | Any downloadable attachments. Attachments should be nicely zipped and uniquely named to avoid issues like `dist(4).tar.gz`. (`<green>konata</green>` helps with this!) | Optional, common |
-| **Remote** | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>{:html}` rather than a `<code>{:html}`. rCTF provides a custom `[!CONNECTION]{:md}` callout for this purpose. | Optional, common |
-| **Instancer** | Configuration for instancer challenges (if applicable). This should not be public but rather documented internally, and open-sourced after the CTF. | Optional, uncommon |
-| **Solution** | A working solve script or writeup. This should be referenced internally during playtesting and released after the CTF. | Optional, recommended |
+| **Attachments** | Downloadable files, packaged cleanly and given stable names instead of names such as `dist(4).tar.gz`. | Optional, common |
+| **Remote** | Connection details for a hosted challenge. Use rCTF's `[!CONNECTION]{:md}` callout. | Optional, common |
+| **Instancer** | Per-team instance configuration. Keep it private during the event and publish it with the challenge afterward. | Optional, uncommon |
+| **Solution** | A working solve script or writeup for playtesting, support, and post-event release. | Optional, recommended |
 
 ### Dockerization
 
-For challenges that need a remote component, Docker is the recommended way to ship them. Containers give you reproducible builds, easy deployment, and isolation between challenges.
+Package remote challenges as containers so the same build can be tested, deployed, and reproduced after the event.
 
 #### Best practices
 
@@ -91,7 +91,7 @@ CMD ["python", "app.py"]
 
 #### Using with rCTF instancer
 
-If you're using rCTF's [docker instancer integration](/integrations/instancer), define the Docker Compose-like configuration in the challenge's `<red>instancerConfig</red>` field. The instancer handles container lifecycle, networking, and cleanup automatically.
+With the rCTF [Docker instancer](/integrations/instancer), describe the challenge services in `<red>instancerConfig</red>`. The instancer creates the containers and network for each team, then removes them when the instance expires.
 
 ## Pre-event checklist
 

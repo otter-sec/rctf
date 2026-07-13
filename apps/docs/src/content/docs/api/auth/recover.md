@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Recover an account"
-description: "<route>POST /api/[v2,v1]/auth/recover</route>"
+title: "`<route>POST</route>` Recover an account"
+description: "`<route>POST /api/[v2,v1]/auth/recover</route>`"
 order: 3
 ---
 
@@ -28,9 +28,9 @@ order: 3
 
 Starts account recovery for a team that still has access to its email inbox. When the request is accepted, the server sends a recovery email containing a team token.
 
-The response does not reveal whether the email belongs to an account. Unknown emails still get the same `<response>200 goodVerifySent</response>` envelope, which keeps the recovery endpoint from becoming an account lookup tool.
+The response does not reveal whether the email belongs to an account. Known and unknown addresses both return `<response>200 goodVerifySent</response>`.
 
-Recovery is rate limited independently of captcha so the endpoint cannot be used to flood an inbox with recovery emails. Each client IP has a burst of `5` requests with a refill window of `1500000` ms, and each target email has a burst of `2` requests with a refill window of `3600000` ms. Requests over either budget return `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. Both buckets are consumed before the account lookup, so known and unknown emails are throttled identically.
+The recovery limits apply even when captcha is enabled. rCTF checks them before looking up the account, so rate-limit behavior cannot reveal whether an address is registered. Exceeding either limit returns `<response>429 badRateLimit</response>` with the wait in `data.timeLeft`.
 
 ::::tabs{sync="recover-version"}
 
@@ -60,4 +60,4 @@ When email delivery is configured and the request passes validation, the route r
 
 ::::
 
-If email delivery is not configured, recovery cannot be started because there is nowhere to send the token. Captcha, email validation, and rate limits are handled before any recovery email is queued.
+Recovery requires an email provider. rCTF validates the request, captcha, and rate limits before queuing the message.

@@ -35,10 +35,8 @@ Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` an
 ::::tabs
 :::tab[scores/classic]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">0</text>
 <line x1="58" x2="696" y1="248.8" y2="248.8" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="252.8" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
@@ -72,7 +70,7 @@ Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` an
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Solves</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
 </figure>
 
 The **default** scoring algorithm. Uses a logistic decay function that drops points as more teams solve the challenge.
@@ -87,10 +85,8 @@ Challenges start at `<red>maxPoints</red>` with zero solves and decay toward `<r
 :::
 :::tab[scores/sekai]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">0</text>
 <line x1="58" x2="696" y1="248.8" y2="248.8" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="252.8" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
@@ -124,7 +120,7 @@ Challenges start at `<red>maxPoints</red>` with zero solves and decay toward `<r
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Solves</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
 </figure>
 
 Logarithmic decay with tuned constants (gradient=10, decay=60). Produces a gentler curve than `<green>scores/classic</green>`.
@@ -137,10 +133,8 @@ scoreProvider:
 :::
 :::tab[scores/steep]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">0</text>
 <line x1="58" x2="696" y1="248.8" y2="248.8" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="252.8" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
@@ -174,7 +168,7 @@ scoreProvider:
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Solves</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
 </figure>
 
 Similar to `<green>scores/classic</green>` but with a steeper decay curve. Points drop more aggressively with early solves, so challenges differentiate faster.
@@ -187,10 +181,8 @@ scoreProvider:
 :::
 :::tab[scores/jammy]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
 <line x1="58" x2="696" y1="235" y2="235" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="239" text-anchor="end" fill="var(--muted-foreground)" font-size="11">200</text>
@@ -218,7 +210,7 @@ scoreProvider:
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Event elapsed before first solve (%)</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-cyan)"></span>scores/jammy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-cyan)"></span>scores/jammy</span></figcaption>
 </figure>
 
 Time-based scoring that values challenges by when they were first solved. Unlike the other providers, this one looks at the first solve time relative to the event duration rather than how many teams solved the challenge.
@@ -243,10 +235,8 @@ This provider needs `<red>startTime</red>` and `<red>endTime</red>` set in the c
 :::
 :::tab[scores/genni]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">0</text>
 <line x1="58" x2="696" y1="248.8" y2="248.8" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="252.8" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
@@ -280,7 +270,7 @@ This provider needs `<red>startTime</red>` and `<red>endTime</red>` set in the c
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Solves</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
 </figure>
 
 A binary scoring algorithm. It returns `<red>maxPoints</red>` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Good for challenges that shouldn't contribute to the score once they're widely solved.
@@ -293,10 +283,8 @@ scoreProvider:
 :::
 :::tab[scores/legacy]
 
-<figure style="margin:1.5rem 0;overflow:hidden;border:2px solid var(--border);border-radius:var(--radius-md)">
-<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%;background:var(--background)">
-<rect x="0" y="0" width="720" height="360" fill="var(--background)"/>
-<line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
+<figure style="margin:1.5rem 0;overflow:hidden;background:var(--background-l1);border-radius:var(--radius-lg)">
+<svg viewBox="0 0 720 360" role="img" style="display:block;width:100%"><line x1="58" x2="696" y1="304" y2="304" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="308" text-anchor="end" fill="var(--muted-foreground)" font-size="11">0</text>
 <line x1="58" x2="696" y1="248.8" y2="248.8" stroke="var(--border)" stroke-width="1"/>
 <text x="46" y="252.8" text-anchor="end" fill="var(--muted-foreground)" font-size="11">100</text>
@@ -330,7 +318,7 @@ scoreProvider:
 <text x="377" y="346" text-anchor="middle" fill="var(--muted-foreground)" font-size="12">Solves</text>
 <text x="18" y="166" text-anchor="middle" transform="rotate(-90 18 166)" fill="var(--muted-foreground)" font-size="12">Points</text>
 </svg>
-<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;border-top:2px solid var(--border);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
+<figcaption style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;background:var(--background-l2);padding:.75rem 1rem;font-size:.8rem"><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-red)"></span>scores/classic</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-blue)"></span>scores/sekai</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-orange)"></span>scores/steep</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--muted-foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-magenta)"></span>scores/genni</span><span style="display:inline-flex;align-items:center;gap:.5rem;color:var(--foreground)"><span style="display:inline-block;width:.65rem;height:.65rem;border-radius:999px;background:var(--tone-green)"></span>scores/legacy</span></figcaption>
 </figure>
 
 Hyperbolic tangent-based decay that normalizes against the maximum solve count across all challenges. This was the original rCTF scoring algorithm.

@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Admin bot queue depth"
-description: "<route>GET /api/v2/admin/admin-bot/queue-depth</route>"
+title: "`<route>GET</route>` Admin bot queue depth"
+description: "`<route>GET /api/v2/admin/admin-bot/queue-depth</route>`"
 order: 27
 ---
 

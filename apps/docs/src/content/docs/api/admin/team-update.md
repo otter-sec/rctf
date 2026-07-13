@@ -1,6 +1,6 @@
 ---
-title: "<route>PUT</route> Update team"
-description: "<route>PUT /api/v2/admin/users/:id</route>"
+title: "`<route>PUT</route>` Update team"
+description: "`<route>PUT /api/v2/admin/users/:id</route>`"
 order: 11
 ---
 

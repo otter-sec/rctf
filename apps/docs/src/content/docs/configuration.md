@@ -8,9 +8,9 @@ rCTF is configured through YAML or JSON files in a `rctf.d/{:dir}` directory and
 
 ## Configuration loading
 
-Configuration is loaded from a directory named `rctf.d/{:dir}`. The loader searches upward from the `packages/config/{:dir}` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
+By default, rCTF searches upward from `packages/config/{:dir}` for a directory named `rctf.d/{:dir}`. Set `<yellow>RCTF_CONF_PATH</yellow>` to use another directory.
 
-All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order, so you can split configuration across multiple files for organization:
+rCTF loads `.yaml`, `.yml`, and `.json` files **alphabetically**, merging each file over the previous ones. This lets you separate base settings, providers, and deployment-specific overrides:
 
 :::file-tree
 - rctf.d/
@@ -29,70 +29,70 @@ The following environment variables are supported. They override values from con
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_NAME{:sh}` | `string{:ts}` | CTF display name |
-| `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
-| `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
-| `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
-| `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit; `0` disables the cap |
-| `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
-| `RCTF_MAX_REQUEST_BODY_SIZE{:sh}` | `integer{:ts}` | Maximum accepted request body size in bytes |
-| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/providers/uploads). |
-| `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
+| `<yellow>RCTF_NAME</yellow>` | `string{:ts}` | CTF display name |
+| `<yellow>RCTF_ORIGIN</yellow>` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
+| `<yellow>RCTF_TOKEN_KEY</yellow>` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
+| `<yellow>RCTF_INSTANCE_TYPE</yellow>` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
+| `<yellow>RCTF_SHUTDOWN_TIMEOUT</yellow>` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit. `0` disables the cap. |
+| `<yellow>RCTF_IDLE_TIMEOUT</yellow>` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
+| `<yellow>RCTF_MAX_REQUEST_BODY_SIZE</yellow>` | `integer{:ts}` | Maximum accepted request body size in bytes |
+| `<yellow>RCTF_UPLOAD_PROVIDER</yellow>` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
+| `<yellow>RCTF_CONF_PATH</yellow>` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_DATABASE_URL{:sh}` | `string{:ts}` | PostgreSQL connection string |
-| `RCTF_DATABASE_HOST{:sh}` | `string{:ts}` | PostgreSQL host (if not using URL) |
-| `RCTF_DATABASE_PORT{:sh}` | `integer{:ts}` | PostgreSQL port |
-| `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}` | PostgreSQL user |
-| `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}` | PostgreSQL password |
-| `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}` | PostgreSQL database name |
-| `RCTF_DATABASE_MIGRATE{:sh}` | `string{:ts}` | `<green>before</green>`, `<green>only</green>`, or `<green>never</green>` |
-| `RCTF_REDIS_URL{:sh}` | `string{:ts}` | Redis connection string |
-| `RCTF_REDIS_HOST{:sh}` | `string{:ts}` | Redis host (if not using URL) |
-| `RCTF_REDIS_PORT{:sh}` | `integer{:ts}` | Redis port |
-| `RCTF_REDIS_PASSWORD{:sh}` | `string{:ts}` | Redis password |
-| `RCTF_REDIS_DATABASE{:sh}` | `integer{:ts}` | Redis database number |
+| `<yellow>RCTF_DATABASE_URL</yellow>` | `string{:ts}` | PostgreSQL connection string |
+| `<yellow>RCTF_DATABASE_HOST</yellow>` | `string{:ts}` | PostgreSQL host (if not using URL) |
+| `<yellow>RCTF_DATABASE_PORT</yellow>` | `integer{:ts}` | PostgreSQL port |
+| `<yellow>RCTF_DATABASE_USERNAME</yellow>` | `string{:ts}` | PostgreSQL user |
+| `<yellow>RCTF_DATABASE_PASSWORD</yellow>` | `string{:ts}` | PostgreSQL password |
+| `<yellow>RCTF_DATABASE_DATABASE</yellow>` | `string{:ts}` | PostgreSQL database name |
+| `<yellow>RCTF_DATABASE_MIGRATE</yellow>` | `string{:ts}` | `<green>before</green>`, `<green>only</green>`, or `<green>never</green>` |
+| `<yellow>RCTF_REDIS_URL</yellow>` | `string{:ts}` | Redis connection string |
+| `<yellow>RCTF_REDIS_HOST</yellow>` | `string{:ts}` | Redis host (if not using URL) |
+| `<yellow>RCTF_REDIS_PORT</yellow>` | `integer{:ts}` | Redis port |
+| `<yellow>RCTF_REDIS_PASSWORD</yellow>` | `string{:ts}` | Redis password |
+| `<yellow>RCTF_REDIS_DATABASE</yellow>` | `integer{:ts}` | Redis database number |
 
 ### Timing and auth
 
 | Variable                          | Type           | Description                                |
 | --------------------------------- | -------------- | ------------------------------------------ |
-| `RCTF_START_TIME{:sh}`            | `integer{:ts}` | Competition start time (Unix milliseconds) |
-| `RCTF_END_TIME{:sh}`              | `integer{:ts}` | Competition end time (Unix milliseconds)   |
-| `RCTF_LOGIN_TIMEOUT{:sh}`         | `integer{:ts}` | Verification token expiry in milliseconds  |
-| `RCTF_USER_MEMBERS{:sh}`          | `boolean{:ts}` | Enable team members feature                |
-| `RCTF_CTFTIME_CLIENT_ID{:sh}`     | `string{:ts}`  | CTFtime OAuth client ID                    |
-| `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | `string{:ts}`  | CTFtime OAuth client secret                |
+| `<yellow>RCTF_START_TIME</yellow>`            | `integer{:ts}` | Competition start time (Unix milliseconds) |
+| `<yellow>RCTF_END_TIME</yellow>`              | `integer{:ts}` | Competition end time (Unix milliseconds)   |
+| `<yellow>RCTF_LOGIN_TIMEOUT</yellow>`         | `integer{:ts}` | Verification token expiry in milliseconds  |
+| `<yellow>RCTF_USER_MEMBERS</yellow>`          | `boolean{:ts}` | Enable team members feature                |
+| `<yellow>RCTF_CTFTIME_CLIENT_ID</yellow>`     | `string{:ts}`  | CTFtime OAuth client ID                    |
+| `<yellow>RCTF_CTFTIME_CLIENT_SECRET</yellow>` | `string{:ts}`  | CTFtime OAuth client secret                |
 
 ### UI and meta
 
 | Variable | Type | Description |
 | --- | --- | --- |
-| `RCTF_HOME_CONTENT{:sh}` | `string{:ts}` | Home page markdown content |
-| `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
-| `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
-| `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
-| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading#analytics-provider). |
+| `<yellow>RCTF_HOME_CONTENT</yellow>` | `string{:ts}` | Home page markdown content |
+| `<yellow>RCTF_FAVICON_URL</yellow>` | `string{:ts}` | Favicon URL |
+| `<yellow>RCTF_META_DESCRIPTION</yellow>` | `string{:ts}` | Meta description |
+| `<yellow>RCTF_IMAGE_URL</yellow>` | `string{:ts}` | Meta image URL |
+| `<yellow>RCTF_GLOBAL_SITE_TAG</yellow>` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading#analytics-provider). |
 
 ### Email
 
 | Variable                    | Type          | Description                 |
 | --------------------------- | ------------- | --------------------------- |
-| `RCTF_EMAIL_FROM{:sh}`      | `string{:ts}` | Email sender address        |
-| `RCTF_EMAIL_LOGO_URL{:sh}`  | `string{:ts}` | Logo URL in email templates |
+| `<yellow>RCTF_EMAIL_FROM</yellow>`      | `string{:ts}` | Email sender address        |
+| `<yellow>RCTF_EMAIL_LOGO_URL</yellow>`  | `string{:ts}` | Logo URL in email templates |
 
 ### Leaderboard
 
 | Variable                                  | Type           | Description                      |
 | ----------------------------------------- | -------------- | -------------------------------- |
-| `RCTF_LEADERBOARD_MAX_LIMIT{:sh}`         | `integer{:ts}` | Max teams per leaderboard page   |
-| `RCTF_LEADERBOARD_MAX_OFFSET{:sh}`        | `integer{:ts}` | Max leaderboard offset           |
-| `RCTF_LEADERBOARD_UPDATE_INTERVAL{:sh}`   | `integer{:ts}` | Leaderboard recalc interval (ms) |
-| `RCTF_LEADERBOARD_GRAPH_MAX_TEAMS{:sh}`   | `integer{:ts}` | Max teams on score graph         |
-| `RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME{:sh}` | `integer{:ts}` | Graph sample interval (ms)       |
+| `<yellow>RCTF_LEADERBOARD_MAX_LIMIT</yellow>`         | `integer{:ts}` | Max teams per leaderboard page   |
+| `<yellow>RCTF_LEADERBOARD_MAX_OFFSET</yellow>`        | `integer{:ts}` | Max leaderboard offset           |
+| `<yellow>RCTF_LEADERBOARD_UPDATE_INTERVAL</yellow>`   | `integer{:ts}` | Leaderboard recalc interval (ms) |
+| `<yellow>RCTF_LEADERBOARD_GRAPH_MAX_TEAMS</yellow>`   | `integer{:ts}` | Max teams on score graph         |
+| `<yellow>RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME</yellow>` | `integer{:ts}` | Graph sample interval (ms)       |
 
 :::note
 Boolean environment variables accept `<green>true</green>`, `<green>yes</green>`, `<green>y</green>`, or `<green>1</green>` as truthy values. Anything else is treated as false.
@@ -121,7 +121,7 @@ maxRequestBodySize: 1073741824 # Maximum request body size in bytes
 | `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
 | `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling) before splitting roles. |
 | `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. `0{:ts}` disables the force-exit cap. See [Scaling](/installation/scaling#graceful-shutdown). |
-| `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Must be at most `255{:ts}` (Bun's limit) - larger values are rejected at startup; `0{:ts}` disables the timeout. |
+| `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Bun limits this value to `255{:ts}`, and rCTF rejects larger values at startup. Set it to `0{:ts}` to disable the timeout. |
 | `<red>maxRequestBodySize</red>` | `number{:ts}` | `1073741824{:ts}` (1 GiB) | Maximum request body size accepted by the Bun API server. This is the effective backend cap for upload routes when the bundled nginx config sets `<red>client_max_body_size</red>` to `<green>0</green>` for streaming uploads. |
 
 :::warning
@@ -214,13 +214,13 @@ ACLs control which divisions a user can register for based on their email. Each 
 | Field | Description |
 | --- | --- |
 | `<red>match</red>` | Match type: `<green>domain</green>`, `<green>email</green>`, `<green>regex</green>`, or `<green>any</green>` |
-| `<red>value</red>` | Value to match against (full email domain - the part after `@`, e.g. `example.edu` - exact email, regex pattern, or empty for `<green>any</green>`) |
+| `<red>value</red>` | Value to match. For a domain rule, use the full domain after `@`, such as `example.edu`. Email rules take the full address, regex rules take a pattern, and `<green>any</green>` uses an empty value. |
 | `<red>divisions</red>` | Array of division IDs this rule grants access to |
 
-A user is granted the union of the divisions from **every** matching rule; order does not matter. The `<green>domain</green>` match is an exact full-domain match (`<green>example.edu</green>` matches `alice@example.edu`, not `alice@sub.example.edu`).
+A user receives the divisions from **every** matching rule, regardless of order. A `<green>domain</green>` rule matches the full domain exactly. For example, `<green>example.edu</green>` matches `alice@example.edu` but not `alice@sub.example.edu`.
 
 :::warning[Email provider required, disable CTFtime auth]
-Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs, since CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
+Division ACLs require an email provider. Disable CTFtime authentication when using them because CTFtime sign-ins bypass the ACLs and can select any division.
 :::
 
 ### Authentication
@@ -248,7 +248,42 @@ ctftime:
 Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `<red>loginTimeout</red>`.
 :::
 
-### Captcha
+### Providers
+
+Providers are pluggable integrations, each selected by `<red>name</red>` with provider-specific `<red>options</red>`. Names follow a `<category>/<provider>` scheme where the category is a plural or mass noun. The [Providers](/providers) section documents every provider in detail.
+
+#### Uploads
+
+```yaml
+uploadProvider:
+  name: uploads/s3
+  options:
+    bucketName: my-bucket
+    awsKeyId: AKIAIOSFODNN7EXAMPLE
+    awsKeySecret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    awsRegion: us-east-1
+```
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
+
+See [Upload Providers](/providers/uploads) for provider-specific options.
+
+#### Scoring
+
+```yaml
+scoreProvider:
+  name: scores/classic
+```
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
+
+See [Scoring Providers](/providers/scores) for provider-specific options.
+
+#### Captcha
 
 ```yaml
 captcha:
@@ -269,33 +304,24 @@ captcha:
 
 Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
 
-See [Captcha Providers](/providers/captcha) for provider-specific configuration.
+See [Captcha Providers](/providers/captcha) for provider-specific options.
 
-### Providers
+#### Instancers
 
 ```yaml
-uploadProvider:
-  name: uploads/s3
-  options:
-    bucketName: my-bucket
-    awsKeyId: AKIAIOSFODNN7EXAMPLE
-    awsKeySecret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    awsRegion: us-east-1
-scoreProvider:
-  name: scores/classic
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://localhost:8000
       authToken: secret
   k8s:
-    name: instancer/k8s-instancer
+    name: instancers/k8s
     options:
       apiUrl: https://k8s.example.com
       authToken: <service-account-token>
   k8s-arm:
-    name: instancer/k8s-instancer
+    name: instancers/k8s
     options:
       apiUrl: https://k8s-arm.example.com
       authToken: <service-account-token>
@@ -304,19 +330,17 @@ defaultInstancer: k8s
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
-| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
 | `<red>instancers</red>` | `object{:ts}` | - | Map of named challenge instancer providers (optional). Each key is an instancer name a challenge can target. |
-| `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined; auto-selected when only one is. |
+| `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined. When there is only one, rCTF selects it automatically. |
 
-See the [Providers](/providers) section for detailed configuration of each provider.
+See [Instancer](/integrations/instancer) for the available instancers and their options.
 
 ### Admin bot
 
 ```yaml
 adminBot:
   provider:
-    name: admin-bot/rctf-js
+    name: admin-bots/rctf-ts
     options: {}
   maxLogsPerUserChallenge: 5
 ```
@@ -379,7 +403,7 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 | `<red>flagFormatPlaceholder</red>` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"{:ts}` | Flag format hint shown to participants |
 
 :::tip
-Most UI settings and client config timing values (`<red>ctfName</red>`, `<red>startTime</red>`, `<red>endTime</red>`, `<red>homeContent</red>`, `<red>sponsors</red>`, `<red>meta</red>`, `<red>faviconUrl</red>`, `<red>logoLightUrl</red>`, `<red>logoDarkUrl</red>`) can also be changed at runtime through the admin settings API without restarting the server.
+The admin settings API can update `<red>ctfName</red>`, event timing, homepage content, sponsors, metadata, favicon, and logos without restarting rCTF.
 :::
 
 ### Analytics
@@ -451,7 +475,7 @@ proxy:
 | `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `'loopback'{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges or the named subnets `loopback{:ts}`, `linklocal{:ts}`, `uniquelocal{:ts}` |
 
 :::warning
-Set `<red>proxy.cloudflare</red>` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `<red>proxy.trust</red>` instead.
+Behind Cloudflare, set `<red>proxy.cloudflare</red>` to `true{:ts}` so logs and rate limits use the participant's IP. For any other reverse proxy, configure `<red>proxy.trust</red>` with the proxies rCTF should trust.
 :::
 
 ### Blood bot

@@ -1,6 +1,6 @@
 ---
-title: "<route>DELETE</route> Delete a solve"
-description: "<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>"
+title: "`<route>DELETE</route>` Delete a solve"
+description: "`<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>`"
 order: 4
 ---
 

@@ -10,7 +10,7 @@ describe('resolveInstancerConfigs', () => {
   })
 
   test('uses the single instancer as default when unspecified', () => {
-    const configs = { k8s: provider('instancer/k8s-instancer') }
+    const configs = { k8s: provider('instancers/k8s') }
     expect(resolveInstancerConfigs({ instancers: configs })).toEqual({
       configs,
       defaultName: 'k8s',
@@ -19,8 +19,8 @@ describe('resolveInstancerConfigs', () => {
 
   test('honors an explicit defaultInstancer', () => {
     const configs = {
-      k8s: provider('instancer/k8s-instancer'),
-      docker: provider('instancer/docker-instancer'),
+      k8s: provider('instancers/k8s'),
+      docker: provider('instancers/docker'),
     }
     expect(
       resolveInstancerConfigs({
@@ -34,8 +34,8 @@ describe('resolveInstancerConfigs', () => {
     expect(() =>
       resolveInstancerConfigs({
         instancers: {
-          k8s: provider('instancer/k8s-instancer'),
-          docker: provider('instancer/docker-instancer'),
+          k8s: provider('instancers/k8s'),
+          docker: provider('instancers/docker'),
         },
       })
     ).toThrow(/defaultInstancer is not set/)
@@ -44,7 +44,7 @@ describe('resolveInstancerConfigs', () => {
   test('throws when defaultInstancer names an undefined instancer', () => {
     expect(() =>
       resolveInstancerConfigs({
-        instancers: { k8s: provider('instancer/k8s-instancer') },
+        instancers: { k8s: provider('instancers/k8s') },
         defaultInstancer: 'nope',
       })
     ).toThrow(/not defined in instancers/)

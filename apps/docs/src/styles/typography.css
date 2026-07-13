@@ -9,21 +9,12 @@
   --font-weight-normal: 400;
   --font-weight-medium: 450;
 
-  --tracking-tight: -0.015em;
   --leading-offset: 0.65rem;
 
   --prose-foreground: color-mix(in oklab, var(--foreground) 80%, transparent);
   --prose-marker: color-mix(in oklab, var(--foreground) 30%, transparent);
 
   --measure: 40rem;
-}
-
-*,
-::before,
-::after,
-::backdrop,
-::file-selector-button {
-  letter-spacing: var(--tracking-tight);
 }
 
 body {

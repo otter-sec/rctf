@@ -12,11 +12,9 @@ order: 1
     width: fit-content;
     max-width: 100%;
     padding: 0.2em 0.5em;
-    border: 1px solid var(--border);
     border-radius: 0.4em;
-    background-color: color-mix(in oklab, var(--muted) 35%, transparent);
+    background-color: color-mix(in oklab, var(--muted) 80%, transparent);
     font-family: var(--font-mono);
-    font-size: 0.8125em;
     line-height: 1.25;
     vertical-align: middle;
     white-space: nowrap;
@@ -42,11 +40,11 @@ order: 1
   }
 </style>
 
-The rCTF palette is based on [Radix Colors](https://www.radix-ui.com/colors), with its color values and theme tokens collected in `apps/web/src/styles/color.css{:file}`.
+rCTF builds its palette from [Radix Colors](https://www.radix-ui.com/colors). The values and theme tokens are defined in `apps/web/src/styles/color.css{:file}`.
 
-Color tokens define both theme values with `light-dark(){:css}`, and the browser chooses between them through `color-scheme{:css}`. A `light` or `dark` value on the `<html>{:html}` element's `data-theme{:html}` attribute overrides the system preference. If the attribute is missing, the page follows `prefers-color-scheme{:css}`.
+Each token defines its light and dark values with `light-dark(){:css}`. Set `data-theme="light"{:html}` or `data-theme="dark"{:html}` on `<html>{:html}` to choose one. Without that attribute, `prefers-color-scheme{:css}` follows the operating system setting.
 
-The theme toggle saves this choice to `localStorage{:js}`. On the next visit, `static/theme.js{:file}` applies it to `<html>{:html}` before the page paints, which avoids a flash of the other theme during reload.
+The theme toggle saves the choice to `localStorage{:js}`. On later visits, `static/theme.js{:file}` applies it before the page paints so the other theme does not flash during loading.
 
 ## Color reference
 
@@ -85,7 +83,7 @@ Semantic colors convey meaning. Each role pairs a soft background wash with a re
 
 ### Scoreboard colors
 
-These colors appear on scoreboards, podiums, and blood medals. `gold`, `silver`, and `bronze` mark the top three placements (see [Wikipedia's "Hierarchy of precious substances"](https://en.wikipedia.org/wiki/Hierarchy_of_precious_substances)). `self` highlights the current user's row, and `nth` covers everyone outside the top three by reusing the layered grays.
+These colors appear on scoreboards, podiums, and blood medals. `gold`, `silver`, and `bronze` mark the top three places, `self` highlights the current user's row, and `nth` uses the neutral layers for everyone else.
 
 :::table{cols="auto auto auto auto auto"}
 
@@ -142,7 +140,7 @@ Challenge categories pick from ten hues. Each hue has two background tints plus 
 
 :::table{cols="auto auto auto auto auto"}
 
-| Color | <span class="text-nowrap">`--background-<hue>-l0{:css}`</span> | <span class="text-nowrap">`--background-<hue>-l1{:css}`</span> | <span class="text-nowrap">`--foreground-<hue>-l0{:css}`</span> | <span class="text-nowrap">`--foreground-<hue>-l1{:css}`</span> |
+| Color | <span class="text-nowrap">`--background-<dim><hue></dim>-l0{:css}`</span> | <span class="text-nowrap">`--background-<dim><hue></dim>-l1{:css}`</span> | <span class="text-nowrap">`--foreground-<dim><hue></dim>-l0{:css}`</span> | <span class="text-nowrap">`--foreground-<dim><hue></dim>-l1{:css}`</span> |
 | --- | --- | --- | --- | --- |
 | `crimson` | <color-swatch style="--c:#ff005216;--bg:#fcfcfc">crimson-a3</color-swatch> | <color-swatch style="--c:#e0004008;--bg:#fcfcfc">crimson-a2</color-swatch> | <color-swatch style="--c:#530026e9;--bg:#fcfcfc">crimson-a12</color-swatch> | <color-swatch style="--c:#c4004fe2;--bg:#fcfcfc">crimson-a11</color-swatch> |
 | `red` | <color-swatch style="--c:#f3000d14;--bg:#fcfcfc">red-a3</color-swatch> | <color-swatch style="--c:#ff000008;--bg:#fcfcfc">red-a2</color-swatch> | <color-swatch style="--c:#55000de8;--bg:#fcfcfc">red-a12</color-swatch> | <color-swatch style="--c:#c40006d3;--bg:#fcfcfc">red-a11</color-swatch> |

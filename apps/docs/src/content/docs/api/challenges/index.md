@@ -17,16 +17,16 @@ aside: true
 
 :::
 
-Challenge routes provide public challenge metadata, solve history, the legacy flag submission endpoint, and the dynamic-scoring webhook. Admin challenge mutation routes are documented in [Admin](/api/admin/).
+These routes cover public challenge data, solve history, flag submission, and dynamic scoring. Challenge administration is documented under [Admin](/api/admin/).
 
-For new clients, prefer V2 routes. V1 routes remain available for older clients. Flag submission still uses V1 because there is no V2 route for that action.
+Use V2 where available. Flag submission still uses V1 because it has no V2 replacement.
 
 ### Scoring behavior
 
-Challenge point values come from the configured [scoring provider](/providers/scores/) for `decay` challenges. The public challenge list returns the current point value. It does not expose the configured `points.min` or `points.max` range. Challenge updates and solve changes trigger leaderboard recalculation.
+For a `decay` challenge, the configured [scoring provider](/providers/scores/) calculates the current value from its point range and solve count. Public responses include the current value, not `points.min` or `points.max`. Challenge and solve changes recalculate the leaderboard.
 
-`dynamic` challenges receive per-team scores over a webhook instead - see [Submit dynamic scores](/api/challenges/submit-dynamic-scores/) for the wire format and [Scoring](/admin/scoring/) for the operator-facing model.
+`dynamic` challenges receive per-team scores through a webhook. See [Submit dynamic scores](/api/challenges/submit-dynamic-scores/) for the request format and [Scoring](/admin/scoring/) for setup guidance.
 
 ### Visibility behavior
 
-Regular users see challenges once those challenges are visible and released. Admin users with `challsRead{:ts}` can read through the CTF start gate with the same public routes. Hidden and scheduled release rules still apply inside the challenge service.
+Participants see challenges after the event starts and each challenge is released. A user with `challsRead{:ts}` can bypass the event start time. Hidden challenges remain unavailable, and scheduled challenges stay unavailable until their release time.

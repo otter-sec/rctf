@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> CTFtime leaderboard"
-description: "<route>GET /api/v1/integrations/ctftime/leaderboard</route>"
+title: "`<route>GET</route>` CTFtime leaderboard"
+description: "`<route>GET /api/v1/integrations/ctftime/leaderboard</route>`"
 order: 13
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Test an auth token"
-description: "<route>GET /api/v1/auth/test</route>"
+title: "`<route>GET</route>` Test an auth token"
+description: "`<route>GET /api/v1/auth/test</route>`"
 order: 6
 ---
 

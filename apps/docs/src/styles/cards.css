@@ -14,7 +14,8 @@ prose-content {
     display: block;
     margin-block: 0 1em;
     padding: var(--space-s);
-    border: 2px solid var(--border);
+    background-color: var(--background-l1);
+    border-radius: var(--radius-lg);
     color: var(--prose-foreground);
 
     [data-card-title] {
@@ -34,7 +35,7 @@ prose-content {
     text-decoration-line: none;
 
     &:hover {
-      border-color: var(--ring);
+      background-color: var(--background-l2);
     }
   }
 }

@@ -1,16 +1,12 @@
 prose-content {
   [data-callout] {
-    --accent: var(--muted-foreground);
-    --callout-border: var(--accent);
-    --callout-text: light-dark(
-      oklch(from var(--accent) 0.48 calc(c * 1.05) h),
-      oklch(from var(--accent) 0.83 calc(c * 0.5) h)
-    );
+    --callout-bg: light-dark(#0000000f, #ffffff09);
+    --callout-text: var(--gray-11);
 
     position: relative;
-    padding-block: 0.75rem;
-    padding-inline: 1rem 0;
-    border-inline-start: 4px solid var(--callout-border);
+    padding: 0.75rem 1rem;
+    background-color: var(--callout-bg);
+    border-radius: var(--radius-lg);
 
     > summary {
       display: flex;
@@ -65,67 +61,89 @@ prose-content {
     }
   }
 
+  /* per type: --callout-bg = radix alpha step 3, --callout-text = radix step 11 */
   [data-callout='note'] {
-    --accent: #0090ff;
+    --callout-bg: light-dark(#008ff519, #1166fb18);
+    --callout-text: light-dark(#0d74ce, #70b8ff);
   }
   [data-callout='tip'] {
-    --accent: #30a46c;
+    --callout-bg: light-dark(#00a43319, #29f99d0b);
+    --callout-text: light-dark(#218358, #3dd68c);
   }
   [data-callout='warning'] {
-    --accent: #ffc53d;
+    --callout-bg: light-dark(#ffde003d, #fd9b000d);
+    --callout-text: light-dark(#ab6400, #ffca16);
   }
   [data-callout='caution'] {
-    --accent: #e5484d;
+    --callout-bg: light-dark(#f3000d14, #f22f3e11);
+    --callout-text: light-dark(#ce2c31, #ff9592);
   }
   [data-callout='important'] {
-    --accent: #8e4ec6;
+    --callout-bg: light-dark(#8e00f112, #b744f714);
+    --callout-text: light-dark(#8145b5, #d19dff);
   }
   [data-callout='definition'] {
-    --accent: #5b5bd6;
+    --callout-bg: light-dark(#0011ee0f, #564bf916);
+    --callout-text: light-dark(#5753c6, #b1a9ff);
   }
   [data-callout='notation'] {
-    --accent: #3e63dd;
+    --callout-bg: light-dark(#0047f112, #3354fa17);
+    --callout-text: light-dark(#3a5bc7, #9eb1ff);
   }
   [data-callout='theorem'] {
-    --accent: #6e56cf;
+    --callout-bg: light-dark(#4400ee0f, #853ff916);
+    --callout-text: light-dark(#6550b9, #baa7ff);
   }
   [data-callout='proposition'] {
-    --accent: #ab4aba;
+    --callout-bg: light-dark(#cc00cc14, #f22ff211);
+    --callout-text: light-dark(#953ea3, #e796f3);
   }
   [data-callout='lemma'] {
-    --accent: #d6409f;
+    --callout-bg: light-dark(#f4008c16, #f420bb12);
+    --callout-text: light-dark(#c2298a, #ff8dcc);
   }
   [data-callout='corollary'] {
-    --accent: #e93d82;
+    --callout-bg: light-dark(#ff005216, #f22f7a11);
+    --callout-text: light-dark(#cb1d63, #ff92ad);
   }
   [data-callout='axiom'] {
-    --accent: #e54666;
+    --callout-bg: light-dark(#f3002515, #fe5a7f0e);
+    --callout-text: light-dark(#ca244d, #ff949d);
   }
   [data-callout='conjecture'] {
-    --accent: #e54d2e;
+    --callout-bg: light-dark(#f52b0018, #ff55330f);
+    --callout-text: light-dark(#d13415, #ff977d);
   }
   [data-callout='proof'] {
-    --accent: #00a2c7;
+    --callout-bg: light-dark(#00c2d121, #02a7f211);
+    --callout-text: light-dark(#107d98, #4ccce6);
   }
   [data-callout='recall'] {
-    --accent: #7ce2fe;
+    --callout-bg: light-dark(#00b3ee1e, #1171fb18);
+    --callout-text: light-dark(#00749e, #75c7f0);
   }
   [data-callout='remark'] {
-    --accent: #12a594;
+    --callout-bg: light-dark(#00c69d1f, #12fbe60c);
+    --callout-text: light-dark(#008573, #0bd8b6);
   }
   [data-callout='explanation'] {
-    --accent: #29a383;
+    --callout-bg: light-dark(#00ae4819, #27fba60c);
+    --callout-text: light-dark(#208368, #1fd8a4);
   }
   [data-callout='intuition'] {
-    --accent: #ffe629;
+    --callout-bg: light-dark(#ffee0047, #f9b4000b);
+    --callout-text: light-dark(#9e6c00, #f5e147);
   }
   [data-callout='example'] {
-    --accent: #46a758;
+    --callout-bg: light-dark(#00970016, #5ef7780a);
+    --callout-text: light-dark(#2a7e3b, #71d083);
   }
   [data-callout='exercise'] {
-    --accent: #f76b15;
+    --callout-bg: light-dark(#ff9c0029, #fe6d000e);
+    --callout-text: light-dark(#cc4e00, #ffa057);
   }
   [data-callout='solution'] {
-    --accent: #30a46c;
+    --callout-bg: light-dark(#00a43319, #29f99d0b);
+    --callout-text: light-dark(#218358, #3dd68c);
   }
 }

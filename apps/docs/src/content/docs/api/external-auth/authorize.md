@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Authorize"
-description: "<route>POST /api/v2/external-auth/authorize</route>"
+title: "`<route>POST</route>` Authorize"
+description: "`<route>POST /api/v2/external-auth/authorize</route>`"
 order: 2
 ---
 
@@ -24,7 +24,7 @@ order: 2
 
 Mints a single-use authorization code for the signed-in user and returns the URL the browser should navigate to next. The consent page calls this when the user clicks Authorize.
 
-The `<red>redirectUri</red>` must match what the client was registered with byte-for-byte (no wildcards, no path normalization). Any mismatch returns `<response>400 badExternalAuthRequest</response>` - the response intentionally doesn't distinguish "unknown client" from "wrong redirect URI" so the endpoint can't be probed.
+The `<red>redirectUri</red>` must exactly match the URI registered for the client. Wildcards and path normalization are not supported. A mismatch returns `<response>400 badExternalAuthRequest</response>` without revealing whether the client or URI was wrong.
 
 ::request-body{def="AuthorizeExternalAuthRouteV2" title="Request body"}
 
@@ -32,4 +32,4 @@ The `<red>redirectUri</red>` must match what the client was registered with byte
 
 The returned `<red>redirectTo</red>` appends `code=...` to the registered `<red>redirectUri</red>`, along with `state=...` when the request provides one. It uses `?` or `&` as needed for the registered URI. The code expires from Redis after 60 seconds and is deleted by the first `<route>POST /api/v2/external-auth/token</route>` call.
 
-The `<red>state</red>` value is opaque to rCTF and is passed through verbatim. It is the integrator's responsibility to use it for CSRF protection.
+rCTF returns `<red>state</red>` without reading or changing it. The external service should use this value for CSRF protection.

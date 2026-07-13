@@ -38,7 +38,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 ::::steps
 1. **Clone and install dependencies**
 
-   ```console
+   ```ansi
    $ <red>git</red> clone https://github.com/otter-sec/rctf.git
    $ <red>cd</red> rctf
    $ <red>bun</red> i
@@ -80,7 +80,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
 3. **Run database migrations**
 
-   ```console
+   ```ansi
    $ <red>bun</red> run db:migrate
    ```
 
@@ -88,7 +88,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
 4. **Start the development servers**
 
-   ```console
+   ```ansi
    $ <red>bun</red> dev
    ```
 
@@ -96,13 +96,13 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
    To run them separately:
 
-   ```console
+   ```ansi
    $ <red>bun</red> run dev:api   <dim># API only on :3000</dim>
    $ <red>bun</red> run dev:web   <dim># Frontend only on :5173</dim>
    ```
 
    :::tip[One-shot dev setup]
-   For a fresh local environment, `$ <red>bun</red> run dev:mock` chains `$ <red>bun</red> run db:migrate`, `$ <red>bun</red> run dev:seed`, and `$ <red>bun</red> run dev` together. The seed resets the database and populates it with an admin account, 250 teams, 20 challenges across `<orange>rev</orange>`/`<red>pwn</red>`/`<yellow>crypto</yellow>`/`<blue>web</blue>`/`<magenta>misc</magenta>`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+   For a fresh local environment, `$ <red>bun</red> run dev:mock` runs the migrations, resets and seeds the database, and starts the development servers. The seed includes an admin, 1000 teams, 38 challenges, and sample solves and submissions. The console prints login URLs for the admin and one team.
    :::
 ::::
 
@@ -114,7 +114,7 @@ For production deployments, use our prebuilt Docker images rather than running a
 image: ghcr.io/otter-sec/rctf-new:latest
 ```
 
-See [Quick start with Docker](/installation/) for the full Compose setup. The manual-from-source path above is meant for development; running `bun` directly in production means owning the build, worker wiring, and reverse proxy yourself, which the image already handles.
+See [Quick start with Docker](/installation/) for the full Compose setup. The manual build above is intended for development. If you run `bun` directly in production, you also need to manage the build, leaderboard worker, and reverse proxy that the image normally handles.
 
 ## Scaling
 
@@ -124,7 +124,7 @@ The `<red>instanceType</red>` config option lets you split an rCTF process into 
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
-```console
+```ansi
 $ <red>bun</red> run test                 <dim># Run all tests from root</dim>
 $ <red>bun</red> run test:server:coverage <dim># Server tests with coverage</dim>
 $ <red>bun</red> run typecheck            <dim># Typecheck all workspaces</dim>

@@ -53,7 +53,7 @@ const CHIP_SURFACE: CSSProperties = {
   display: 'flex',
   alignItems: 'baseline',
   flexWrap: 'wrap',
-  fontFamily: 'IBM Plex Mono',
+  fontFamily: 'Lilex',
   fontSize: '0.9em',
   padding: '0.1em 0.3em',
   borderRadius: 6,
@@ -66,10 +66,10 @@ const ASSETS = resolve(process.cwd(), 'src/assets')
 const wordmark = readFile(`${ASSETS}/wordmark-light.svg`)
   .then(svg => sharp(svg).resize({ width: 390 }).png().toBuffer())
   .then(png => `data:image/png;base64,${png.toString('base64')}`)
-const sansRegular = readFile(`${ASSETS}/fonts/IBMPlexSans-Regular.ttf`)
-const sansMedium = readFile(`${ASSETS}/fonts/IBMPlexSans-Medium.ttf`)
-const monoRegular = readFile(`${ASSETS}/fonts/IBMPlexMono-Regular.ttf`)
-const monoMedium = readFile(`${ASSETS}/fonts/IBMPlexMono-Medium.ttf`)
+const sansRegular = readFile(`${ASSETS}/fonts/Outfit-Regular.ttf`)
+const sansMedium = readFile(`${ASSETS}/fonts/Outfit-Medium.ttf`)
+const monoRegular = readFile(`${ASSETS}/fonts/Lilex-Regular.ttf`)
+const monoMedium = readFile(`${ASSETS}/fonts/Lilex-Medium.ttf`)
 
 export async function getStaticPaths() {
   const docs = await getDocs()
@@ -102,10 +102,10 @@ export async function GET({ props }: { props: { entry: DocsEntry } }) {
     width: 1200,
     height: 630,
     fonts: [
-      { name: 'IBM Plex Sans', data: regular, weight: 400, style: 'normal' },
-      { name: 'IBM Plex Sans', data: medium, weight: 500, style: 'normal' },
-      { name: 'IBM Plex Mono', data: mono, weight: 400, style: 'normal' },
-      { name: 'IBM Plex Mono', data: monoMed, weight: 500, style: 'normal' },
+      { name: 'Outfit', data: regular, weight: 400, style: 'normal' },
+      { name: 'Outfit', data: medium, weight: 500, style: 'normal' },
+      { name: 'Lilex', data: mono, weight: 400, style: 'normal' },
+      { name: 'Lilex', data: monoMed, weight: 500, style: 'normal' },
     ],
   })
   const png = await sharp(Buffer.from(svg)).png().toBuffer()
@@ -135,8 +135,7 @@ function layout(
         padding: 72,
         background: THEME.background,
         color: THEME.foreground,
-        fontFamily: 'IBM Plex Sans',
-        letterSpacing: '-0.02em',
+        fontFamily: 'Outfit',
       },
     },
     h('img', { src: wordmarkSrc, width: 195, height: 59 }),
@@ -275,8 +274,10 @@ function toneColor(classes: string[]): string | undefined {
 }
 
 function codeChip(value: string, key: string): VNode {
-  const code = stripCodeAnnotationTags(value).replace(/^\$ /, '')
-  return h('span', { key, style: CODE_CHIP }, code)
+  const code = value.replace(/^\$ /, '')
+  const children = parseCodeAnnotations(code)
+  if (children) return h('span', { key, style: CODE_CHIP }, ...hastToNodes(children, key))
+  return h('span', { key, style: CODE_CHIP }, stripCodeAnnotationTags(code))
 }
 
 function titleSize(title: string): number {

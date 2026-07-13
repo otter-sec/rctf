@@ -1,28 +1,28 @@
 ---
 title: "API reference"
-description: "Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions."
+description: "Reference for rCTF API versions, authentication, responses, permissions, rate limits, and typed route definitions."
 order: 6
 ---
 
-The rCTF API is a JSON REST API served from `<route>/api</route>`. Route definitions are exported from the `@rctf/types` package, and the API server registers each route by prefixing the typed path with `<route>/api</route>`.
+rCTF exposes a JSON REST API under `/api`. The `@rctf/types` package exports the route definitions and TypeScript types used by both the server and API clients.
 
 ## Versions
 
-Both API versions are available at the same time:
+rCTF serves V1 and V2 together:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
-| V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
-| V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+| V1 | `/api/v1` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `/api/v2` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-The two versions overlap rather than forming separate complete APIs. Use V2 where a V2 route exists, and fall back to V1 routes for actions that don't have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, and similar additions).
+Use V2 when it provides the operation you need. Some operations still exist only in V1. Routes shared by both versions usually return the same response `<red>kind</red>`, with V2 adding fields such as avatars, country codes, and blood indices.
 
 ## Typed route contract
 
-The `@rctf/types` package exports every public route definition, response definition, enum, and helper type:
+The `@rctf/types` package exports the public route definitions, responses, enums, and helper types:
 
 ```ts showLineNumbers=false
-
+import {
   GetChallengesRouteV2,
   type RouteBodyInput,
   type RouteQueryInput,
@@ -33,7 +33,7 @@ type Query = RouteQueryInput<typeof GetChallengesRouteV2>
 type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 ```
 
-`RouteBodyInput<T>{:ts}` describes the client-side input shape before any zod coercions and transforms have run. The matching `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` helpers do the same for query strings and path parameters.
+`RouteBodyInput<T>{:ts}`, `RouteQueryInput<T>{:ts}`, and `RouteParamsInput<T>{:ts}` provide the input types for the body, query string, and path parameters. They describe values before the server applies Zod conversions.
 
 ## Authentication
 
@@ -43,7 +43,7 @@ User-authenticated routes require an auth token in the `Authorization` header:
 Authorization: Bearer <auth-token>
 ```
 
-Service-authenticated admin bot routes also use the `Authorization` header, but the token here is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
+Admin bot service routes use the same header with the shared secret from `adminBot.provider.options.secretKey` instead of a user token.
 
 | Auth mode | Behavior |
 | --- | --- |
@@ -64,9 +64,9 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 
 Tokens are encrypted with AES-GCM using the configured `tokenKey`. Changing `tokenKey` invalidates every token that was issued before the rotation.
 
-## Response envelope
+## Response format
 
-Most API routes return a JSON envelope:
+Most API responses wrap their fields in the following object:
 
 ```json
 {
@@ -76,7 +76,7 @@ Most API routes return a JSON envelope:
 }
 ```
 
-Routes whose response definition has no data schema omit the `data` field:
+Responses without additional data omit the `data` field:
 
 ```json
 {
@@ -85,11 +85,11 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` rather than an rCTF envelope.
+One typed route does not use this wrapper. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` directly.
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation failures return `<response>400 badBody</response>` with a machine-readable `reason` string:
+Routes with a JSON body parse JSON, while upload routes parse `multipart/form-data`. Invalid input returns `<response>400 badBody</response>` with a machine-readable `reason`:
 
 ```json
 {
@@ -101,7 +101,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
+The `reason` begins with `body`, `query`, or `params` to identify the source. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
 
 ## Permissions
 
@@ -126,7 +126,7 @@ Routes marked as start-gated return `<response>401 badNotStarted</response>` bef
 
 ## Captcha
 
-Captcha-protected routes only validate a challenge response when the configured captcha provider marks that action as protected. V1 request bodies use `recaptchaCode`, and V2 request bodies use `captchaCode`.
+Captcha is checked only for actions listed in the provider's protected actions. V1 request bodies use `recaptchaCode`. V2 uses `captchaCode`.
 
 | Action | Routes |
 | --- | --- |
@@ -154,7 +154,7 @@ Rate-limited routes return `<response>429 badRateLimit</response>` with `data.ti
 | Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.   |
 | Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.    |
 
-The registration and recovery limits gate verification email delivery, and they apply whether or not the action is captcha protected. Registration only consumes its buckets when a verification email would be sent, and recovery consumes its buckets before the account lookup, so throttling cannot be used to probe whether an email is registered.
+Registration uses its buckets only when rCTF would send a verification email. Recovery checks its buckets before looking up the account, so its rate-limit behavior does not reveal whether an email is registered. Both limits apply even when captcha is enabled.
 
 ## Route sections
 
@@ -166,5 +166,5 @@ The registration and recovery limits gate verification email delivery, and they 
 | [Users](/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
 | [Admin](/api/admin/) | Challenge management, users, verification queue, submissions, uploads, settings, admin bot service routes, and external-auth clients. |
 | [Integrations](/api/integrations/) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
-| [External auth](/api/external-auth/) | "Sign in with rCTF" flow for external services - client lookup, consent, and token exchange. |
+| [External auth](/api/external-auth/) | "Sign in with rCTF" flow for external services, including client lookup, consent, and token exchange. |
 | [Responses](/api/responses/) | Shared response kinds, error payloads, and common object models. |

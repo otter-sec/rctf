@@ -1,9 +1,9 @@
 ---
 title: rCTF
-description: An open-source CTF platform with indestructible performance and a modern user experience.
+description: An open-source platform for hosting capture-the-flag competitions.
 ---
 
-rCTF is an open-source capture-the-flag platform, serving thousands of teams with indestructible performance and a modern user experience. It is developed and maintained by the [OtterSec](https://osec.io) team.
+rCTF is an open-source platform for hosting capture-the-flag competitions. It is developed and maintained by the [OtterSec](https://osec.io) team and has supported public events with thousands of teams.
 
 ::::card-grid
 :::card[Installation]{href=/installation}

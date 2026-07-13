@@ -1,13 +1,13 @@
 ---
 title: "Responses"
-description: "Reference for rCTF response envelopes, common errors, response data, and shared API objects."
+description: "Reference for rCTF responses, common errors, and shared API objects."
 ---
 
-Response definitions are in `@rctf/types` under `packages/types/src/responses/{:dir}`. Each definition records the response `kind`, HTTP status, message, and optional `data` schema. Endpoint pages show the responses that matter most for each route, while this page gives a broader lookup table.
+The `@rctf/types` package defines each response's `kind`, HTTP status, message, and optional `data`. Individual endpoint pages list their relevant responses. This page collects the shared definitions.
 
-## Envelope
+## Response format
 
-Most API responses use a small JSON wrapper. When a response includes data, it looks like this:
+Most responses contain `kind`, `message`, and optional `data` fields:
 
 ```json
 {
@@ -17,7 +17,7 @@ Most API responses use a small JSON wrapper. When a response includes data, it l
 }
 ```
 
-When there is no data, the `data` property is left out:
+Responses with no additional data omit `data`:
 
 ```json
 {
@@ -92,7 +92,7 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>400 badAvatarFileSize</response>` | `{ maxSize: number }{:ts}` | The avatar is larger than `maxAvatarSize`. |
 | `<response>400 badModerationNotPassed</response>` | No data | Avatar moderation did not approve the image. |
 | `<response>400 badInstancerConfig</response>` | `{ error: string }{:ts}` | The instancer provider did not accept the challenge config. |
-| `<response>400 badInstancerError</response>` | `{ message: string }{:ts}` | The instancer provider returned a lifecycle error. |
+| `<response>400 badInstancerError</response>` | `{ message: string }{:ts}` | The instancer could not create, read, extend, or stop the instance. |
 | `<response>400 badInstancerState</response>` | `{ error: string }{:ts}` | The admin bot route needs a running instance, but one was not available. |
 | `<response>400 badAdminBotConfig</response>` | `{ error: string }{:ts}` | The admin bot provider did not accept the challenge source. |
 | `<response>404 badUnknownVerification</response>` | No data | The pending user verification was not found. |

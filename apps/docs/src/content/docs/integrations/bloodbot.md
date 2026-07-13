@@ -4,7 +4,7 @@ description: Configure first blood announcements to Discord and Telegram.
 order: 4
 ---
 
-The blood bot posts an announcement to Discord or Telegram channels (or both) when teams land an early solve on a challenge.
+The blood bot announces the first teams to solve each challenge in Discord, Telegram, or both.
 
 ## Configuration
 
@@ -33,7 +33,7 @@ bloodBot:
 | `<red>destinations</red>`            | `array{:ts}`    | -       | At least one destination required                          |
 | `<red>destinations[].bloodEmojis</red>` | `string[]{:ts}` | `[]{:ts}` | Optional blood emoji for that destination |
 
-`<red>bloodsCount</red>` set to `3{:ts}` announces first, second, and third blood. Set it to `1{:ts}` and only first blood gets announced.
+Set `<red>bloodsCount</red>` to `1{:ts}` for first blood only or `3{:ts}` for the first three solves.
 
 ## Message providers
 
@@ -45,7 +45,7 @@ Posts announcements through a Discord webhook.
 | ---------------- | ------------------- |
 | `<red>url</red>` | Discord webhook URL |
 
-To create a webhook, navigate to Server Settings > Integrations > Webhooks > New Webhook, then copy the webhook URL.
+In Discord, open Server Settings > Integrations > Webhooks > New Webhook and copy its URL.
 :::
 :::tab[messages/telegram]
 Posts announcements through a Telegram bot.
@@ -78,7 +78,7 @@ bloodBot:
       messageTemplate: '{{bloodEmoji}} {{bloodNumTitle}} solve for challenge "**{{challengeName}}**" goes to **{{teamName}}**!'
 ```
 
-Define emojis on each destination, not globally. That lets Discord use custom Discord emoji markup while Telegram can use Unicode emoji or a different template.
+Emojis are configured per destination, so Discord can use custom emoji markup while Telegram uses Unicode or a different template.
 
 ### Template variables
 
@@ -97,7 +97,7 @@ Define emojis on each destination, not globally. That lets Discord use custom Di
 
 ### Default templates
 
-When no custom template is set, the defaults kick in.
+Without a custom template, rCTF uses the following defaults.
 
 The Discord default is ``{{#bloodEmoji}}{{bloodEmoji}} {{/bloodEmoji}}Congratulations to [`{{teamName}}`]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`!``.
 

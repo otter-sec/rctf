@@ -7,8 +7,8 @@ export const instancerProviders: Record<
   string,
   (options: unknown) => InstancerProvider
 > = {
-  'instancer/docker-instancer': options => new DockerInstancerProvider(options),
-  'instancer/k8s-instancer': options => new K8sInstancerProvider(options),
-  'instancer/paradigmctf-instancer': options =>
+  'instancers/docker': options => new DockerInstancerProvider(options),
+  'instancers/k8s': options => new K8sInstancerProvider(options),
+  'instancers/paradigmctf': options =>
     new ParadigmctfInstancerProvider(options),
 }

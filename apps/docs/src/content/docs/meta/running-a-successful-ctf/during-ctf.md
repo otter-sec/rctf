@@ -4,63 +4,63 @@ description: Operational procedures for monitoring, incident response, and issue
 order: 5
 ---
 
-With challenges deployed and the CTF platform live, the competition is ready to start. This section covers monitoring, incident response, and operational guidance for the issues that show up during the event.
+During the event, the team needs to watch the platform, respond to failures, and make consistent decisions about broken challenges and hints.
 
 ## Monitoring
 
-Good monitoring catches issues before they hit participants.
+Monitor the services participants depend on and alert someone who can act when they fail.
 
 ### Infrastructure monitoring
 
 Monitor the following components throughout the competition:
 
-- For the **rCTF platform**, watch API server logs for elevated error rates.
-- For **PostgreSQL**, monitor connection pool usage, query latency, and disk space. High connection counts may indicate a connection leak or excessive load.
-- For **Redis**, monitor memory usage and connected clients. Redis is used for caching, rate limiting, and leaderboard computation. If Redis becomes unavailable, rate limiting and caching will fail.
-- For **challenge containers**, monitor CPU, memory, and network usage for hosted challenges.
-- For the **reverse proxy (Nginx)**, monitor request rates, error rates (5xx), and response times. If behind Cloudflare, use the Cloudflare dashboard for DDoS metrics.
+- For the **rCTF API**, watch error rates, latency, CPU, and memory.
+- For **PostgreSQL**, watch connection usage, slow queries, and disk space. A steadily rising connection count can point to a leak.
+- For **Redis**, watch memory and connected clients. If Redis fails, leaderboard caching and rate limiting are affected.
+- For **challenge containers**, watch CPU, memory, network traffic, restarts, and disk use.
+- For the **reverse proxy**, watch request volume, 5xx responses, and latency. If Cloudflare is in front, include its traffic and DDoS dashboards.
 
 :::tip
-Consider setting up a simple uptime monitor (e.g., [UptimeRobot](https://uptimerobot.com/), [Hetrix Tools](https://hetrixtools.com/)) that pings your CTF platform and alerts via Discord or email if it goes down.
+Use an external uptime monitor such as [UptimeRobot](https://uptimerobot.com/) or [Hetrix Tools](https://hetrixtools.com/) so a total outage still produces an alert.
 :::
 
 ### Staffing and shift coverage
 
-For competitions running longer than 12 hours, set up a shift rotation so coverage stays continuous. A team spread across time zones can cover the full event without anyone pulling overnight shifts. At minimum, keep at least one person with infrastructure access on call at all times for critical incidents. If a challenge author isn't available, make sure the support team has enough internal documentation to handle tickets on that challenge.
+For events longer than 12 hours, rotate shifts and keep someone with infrastructure access on call at all times. When a challenge author is offline, the support team should still have the reference solution and enough notes to investigate tickets.
 
 ## Incident response
 
-Even with thorough preparation, things will go wrong during the competition. Have clear procedures ready for common incident types.
+Decide who can change infrastructure, challenges, and the event schedule before an incident happens.
 
 ### Challenge outages
 
 If a challenge becomes unavailable, the response depends on the deployment method:
 
-- For **Docker containers**, check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <container>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <service>` if needed.
+- For **Docker containers**, check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <cyan><container></cyan>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <cyan><service></cyan>` if needed.
 - For **instancer-managed challenges**, verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
 - For **static challenges** (no remote), verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
 
-Once the issue is fixed, post an announcement in the `#announcements` channel letting participants know the challenge is back online.
+After the fix is tested, announce that the challenge is available again and say whether its files or behavior changed.
 
 ### Platform issues
 
 If the rCTF platform itself becomes unresponsive, work through the following steps:
 
 1. **Check API server logs** for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker, run `$ <red>docker</red> logs rctf-rctf-1`.
-2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 psql <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
-3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 redis-cli --pass "$RCTF_REDIS_PASSWORD" ping`.
-4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
+2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 <red>psql</red> <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
+3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 <red>redis-cli</red> <dim>--pass</dim> <green>"<yellow>$RCTF_REDIS_PASSWORD</yellow>"</green> ping`.
+4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf <dim>&&</dim> <red>docker</red> compose restart rctf`.
 5. **Check resource usage** to verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 
-For extended outages, push the competition end time back to make up for the lost time.
+If an outage materially reduces playing time, extend the event and announce the new end time clearly.
 
 ### Security incidents
 
-Security incidents require immediate attention. Common scenarios include the following:
+For security incidents:
 
-- If evidence of **flag sharing** between teams is identified, document the evidence and consider disqualification.
-- If challenge infrastructure is being targeted (e.g., DoS attacks), consider temporarily taking the affected challenge offline and implementing additional rate limiting or IP blocking.
-- If a flag is accidentally leaked (e.g., in a public announcement or challenge description), the flag must be rotated immediately. Update the challenge configuration in rCTF and redeploy any affected remote services.
+- For suspected **flag sharing**, preserve submission times, IP records, and the shared values before deciding on a penalty.
+- During a denial-of-service attack, take the affected challenge offline if necessary, preserve logs, and add rate limits or blocks before restoring it.
+- If a flag is leaked, rotate it in rCTF and every affected service immediately, then announce any file or service changes participants need to know about.
 
 ## Challenge issues
 
@@ -79,9 +79,9 @@ Be very careful when modifying challenges during the competition, since changes 
 
 ### Unintended solutions
 
-Unintended solutions (where participants solve a challenge through a method the author didn't anticipate) are common in CTFs. The usual call is to accept the unintended solution as valid. Penalizing creativity isn't fair to the participants who put in the effort to find an alternative approach.
+Accept unintended solutions unless they rely on attacking shared infrastructure or another team. Finding a valid path the author missed is part of solving the challenge.
 
-If the unintended solution trivializes the challenge (e.g., a configuration error exposing the flag directly), consider deploying a "revenge" variant with the vulnerability patched. Be aware that releasing a revenge challenge can inadvertently hint at the nature of the unintended solution.
+If a deployment mistake exposes the flag directly, fix the original only when necessary for fairness or stability. A separate patched variant can preserve the intended idea, but its release may reveal what was wrong with the first version.
 
 ### Attachment updates
 
@@ -89,7 +89,7 @@ If challenge attachments need updates (e.g., typo fixes or missing files), updat
 
 ## Hint policy
 
-As covered in the [prerequisites section](/meta/running-a-successful-ctf/prerequisites#hints), a strict no-hint policy is the default for fairness. That said, structured hint releases can be appropriate for unsolved challenges as the competition progresses. If you release hints, follow this procedure:
+Do not give private hints. If an unsolved challenge needs help, release the same information to everyone:
 
 1. Around the halfway point of the competition, ask interested participants to open support tickets describing their current progress on unsolved challenges.
 2. The challenge author reviews the submitted progress and decides whether a hint is warranted and what to provide.
@@ -100,11 +100,11 @@ Once a challenge has been solved, don't release any more hints for it. Doing so 
 :::
 
 :::tip[Timing considerations]
-Participating teams are usually spread across multiple time zones. Releasing a hint during one region's sleeping hours hands the rest an unfair advantage. Where possible, time hint releases for when most participants are likely to be active.
+Account for time zones when scheduling a hint. A release during one region's night gives teams elsewhere more useful playing time with it.
 :::
 
 :::note[Beginner-friendly challenges]
-For challenges marked as beginner-friendly, giving hints or guidance to novice teams who ask is usually fine. It helps them learn and encourages participation, as long as it doesn't affect the final competition rankings.
+Beginner challenges can allow more guidance when their purpose is teaching rather than ranking. State that policy in advance and apply it consistently.
 :::
 
 ## Announcements

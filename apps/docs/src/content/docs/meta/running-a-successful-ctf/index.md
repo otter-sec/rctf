@@ -5,7 +5,7 @@ order: 1
 scroll: true
 ---
 
-Running a CTF takes coordination across organization, challenge development, infrastructure, and communication. These pages walk through the full lifecycle of an event, from early planning to teardown, along with the mistakes that tend to recur along the way.
+Running a CTF takes coordination across organization, challenge development, infrastructure, and communication. These pages cover the work from early planning through teardown, along with mistakes that tend to recur along the way.
 
 ::::card-grid
 :::card[Prerequisites]{href=/meta/running-a-successful-ctf/prerequisites}

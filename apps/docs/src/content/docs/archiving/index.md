@@ -1,20 +1,20 @@
 ---
 title: Static export
-description: Generate a read-only static snapshot of a finished rCTF instance for indefinite hosting on Cloudflare Pages or GitHub Pages.
+description: Generate a read-only snapshot of a finished rCTF instance for Cloudflare Pages or GitHub Pages.
 order: 8
 ---
 
-The `rctf export{:sh}` command of the [rctf CLI](/admin/cli) turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
+The `$ <red>rctf</red> export` command of the [rctf CLI](/admin/cli) turns a running rCTF instance into a read-only static site. It preserves challenges, profiles, solves, the leaderboard, and uploaded files without requiring a database or API server.
 
 ## CLI
 
-The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build/{:dir}` exists, then invoke the export command:
+The exporter reads from a live rCTF API and copies a built SvelteKit frontend. Build the frontend first, then run the export command:
 
-```console
+```ansi
 $ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build
-$ <red>bun</red> rctf export \
-  <dim>--api-url</dim> https://ctf.example.com \
-  <dim>--backend</dim> cloudflare-pages \
+$ <red><dim>bun</dim> rctf</red> export <dim>\</dim>
+  <dim>--api-url</dim> https://ctf.example.com <dim>\</dim>
+  <dim>--backend</dim> cloudflare-pages <dim>\</dim>
   <dim>--output</dim> ./export-output
 ```
 
@@ -33,14 +33,14 @@ The output directory is deleted before each run. Point `<dim>--output</dim>` som
 
 The discovery phase fetches:
 
-- `<route>/api/v2/integrations/client/config</route>` with `<red>isArchived</red>` patched to `true{:ts}`.
-- `<route>/api/v2/challs</route>` and `<route>/api/v2/leaderboard/challs</route>`.
+- `/api/v2/integrations/client/config` with `<red>isArchived</red>` patched to `true{:ts}`.
+- `/api/v2/challs` and `/api/v2/leaderboard/challs`.
 - The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json{:file}`.
-- One `<route>/api/v2/users/:id</route>` response per unique user seen on the leaderboard.
+- One `/api/v2/users/:id` response per unique user seen on the leaderboard.
 - Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json{:file}` per challenge.
-- A static `<response>401 badToken</response>` stub for `<route>/api/v2/users/me</route>` so the frontend stays in a logged-out state.
+- A static `<response>401 badToken</response>` stub for `/api/v2/users/me` so the frontend stays in a logged-out state.
 
-Unless `<dim>--skip-uploads</dim>` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/{:dir}` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/<hash>/<filename>{:file}`, and the JSON files in `api-data/{:dir}` are rewritten to point at the local copies so the archive is self-contained.
+Unless `<dim>--skip-uploads</dim>` is set, the exporter downloads challenge files, avatars, sponsor icons, the favicon, logos, and the OG image. Files already under `/uploads/` keep that path. Files from S3, Discord, and other external hosts are stored under `uploads/external/<hash>/<filename>{:file}`. The saved JSON responses are updated to use the local copies.
 
 ## Output layout
 
@@ -70,7 +70,7 @@ The resulting directory is ready to upload to a static host:
   - .nojekyll github-pages only
 :::
 
-The injector also strips the `Content-Security-Policy{:http}` meta tag from `index.html{:file}` so the inline interceptor script can execute on the static host.
+The exporter removes the `Content-Security-Policy{:http}` meta tag from `index.html{:file}` because the static archive injects an inline request interceptor.
 
 ## Deployment
 
@@ -86,8 +86,8 @@ The `cloudflare-pages` backend writes:
 
 Deploy from the output directory:
 
-```console
-$ <red>npx</red> wrangler pages deploy ./export-output
+```ansi
+$ <red>npx</red> <red>wrangler</red> pages deploy ./export-output
 ```
 :::
 :::tab[GitHub Pages]
@@ -95,8 +95,8 @@ The `github-pages` backend writes an empty `.nojekyll{:file}` so files under `_a
 
 Publish with `$ <red>gh-pages</red>` from the repository root. The `<dim>--dotfiles</dim>` flag is required so `.nojekyll{:file}` is uploaded:
 
-```console
-$ <red>npx</red> gh-pages <dim>-d</dim> ./export-output <dim>--dotfiles</dim>
+```ansi
+$ <red>npx</red> <red>gh-pages</red> <dim>-d</dim> ./export-output <dim>--dotfiles</dim>
 ```
 
 Pages served from a project subpath (`username.github.io/repo`) need a custom domain or root deployment, since the injected interceptor and SvelteKit build both assume the site is served from `/`.
@@ -105,15 +105,15 @@ Pages served from a project subpath (`username.github.io/repo`) need a custom do
 
 ## Runtime behavior
 
-The injected script wraps `window.fetch{:ts}` and routes `<route>/api/*</route>` calls through static files:
+The injected script wraps `window.fetch{:ts}` and routes `/api/*` calls through static files:
 
 - Any non-`<route>GET</route>` request returns `<response>405 Method Not Allowed</response>` with `"kind": "badEndpoint"{:json}` and the message `"This is a read-only archive."{:json}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
-- `<route>/api/v2/leaderboard/with-graph</route>`, `<route>/api/v2/leaderboard/now</route>`, and `<route>/api/v2/leaderboard/graph</route>` are answered from `dump.json{:file}` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
-- `<route>/api/v2/challs/:id/solves</route>` is sliced from each challenge's `solves.json{:file}`.
-- `<route>/api/v2/integrations/analytics/script</route>` returns an empty `<response>404</response>` so the archived bundle does not ping a third-party analytics provider.
-- Every other `<route>/api/*</route>` `<route>GET</route>` is rewritten to `/api-data/<path>.json{:file}` and served from the static bundle. Missing files return a `<response>404 badEndpoint</response>`.
+- `/api/v2/leaderboard/with-graph`, `/api/v2/leaderboard/now`, and `/api/v2/leaderboard/graph` are answered from `dump.json{:file}` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
+- `/api/v2/challs/:id/solves` is sliced from each challenge's `solves.json{:file}`.
+- `/api/v2/integrations/analytics/script` returns an empty `<response>404</response>` so the archived bundle does not ping a third-party analytics provider.
+- Every other `/api/*` `<route>GET</route>` is rewritten to `/api-data/<path>.json{:file}` and served from the static bundle. Missing files return a `<response>404 badEndpoint</response>`.
 
-The frontend reads `<red>isArchived</red>` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
+When `<red>isArchived</red>` is set, the frontend hides flag submission, profile editing, account creation, and other interactive controls.
 
 ## Limitations
 
@@ -121,10 +121,10 @@ The frontend reads `<red>isArchived</red>` from the client config and hides inte
 The archive contains every JSON response the exporter saw at crawl time. Anything that requires authentication, server state, or live computation is absent.
 :::
 
-- No login, registration, password recovery, or token issuance. `<route>/api/v2/users/me</route>` always returns `<response>401 badToken</response>`.
+- No login, registration, password recovery, or token issuance. `/api/v2/users/me` always returns `<response>401 badToken</response>`.
 - No admin pages. Admin endpoints require an authenticated session that the archive cannot produce.
 - No live updates. The leaderboard reflects the moment the exporter ran. Re-run the export to refresh.
 - No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.
 - Captcha, analytics, and any other integration that calls back to the API or a third party is disabled.
 
-Re-run the exporter against the live instance to refresh the snapshot. The output directory is rebuilt from scratch on every invocation.
+To refresh the snapshot, run the exporter again while the live instance is still available. Each run rebuilds the output directory from scratch.

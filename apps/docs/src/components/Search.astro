@@ -23,7 +23,10 @@ import SearchIcon from '@/assets/icons/search.svg'
     padding: 0;
     background-color: var(--background);
     color: var(--foreground);
-    border: 2px solid var(--border);
+    background-color: light-dark(var(--gray-1), var(--gray-2));
+    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 8px 32px light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.5));
 
     &::backdrop {
       background-color: color-mix(in oklab, var(--background) 60%, transparent);
@@ -64,7 +67,9 @@ import SearchIcon from '@/assets/icons/search.svg'
 
   search-results {
     display: block;
-    border-block-start: 2px solid var(--border);
+    background-color: light-dark(var(--gray-2), var(--gray-3));
+    border-end-start-radius: var(--radius-xl);
+    border-end-end-radius: var(--radius-xl);
 
     [data-hint] {
       padding: var(--space-xs) var(--space-s);
@@ -80,10 +85,6 @@ import SearchIcon from '@/assets/icons/search.svg'
       max-block-size: min(24rem, 50svh);
       overflow-y: auto;
       overscroll-behavior: contain;
-
-      li + li {
-        border-block-start: 2px solid color-mix(in oklab, var(--border) 50%, transparent);
-      }
 
       a {
         display: block;

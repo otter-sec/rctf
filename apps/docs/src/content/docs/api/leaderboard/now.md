@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Current standings"
-description: "<route>GET /api/[v2,v1]/leaderboard/now</route>"
+title: "`<route>GET</route>` Current standings"
+description: "`<route>GET /api/[v2,v1]/leaderboard/now</route>`"
 order: 1
 ---
 
