@@ -18,7 +18,11 @@ Run the same checks CI runs:
 
 - `bun run test` (no external services needed)
 - `bun run typecheck`
-- `bun run prettier:check` (or `bun run prettier` to fix formatting)
+- `bun run lint` (or `bun run lint:fix` to apply safe fixes)
+- `bun run format:check` (or `bun run format` to fix formatting)
+
+Astro files temporarily use a
+narrow Prettier fallback because Oxfmt does not yet support Astro formatting.
 
 A few conventions:
 

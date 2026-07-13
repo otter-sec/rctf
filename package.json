@@ -37,59 +37,27 @@
     "test:against-v1": "cd tests/test-against-v1 && bun run test",
     "test:dynamic-scoring": "cd tests/dynamic-scoring && bun run test",
     "rctf": "bun run apps/cli/src/index.ts",
-    "prettier": "prettier --write \"**/*.{ts,tsx,svelte,astro,html,json,css,md,mdx}\" --ignore-path .gitignore --ignore-path .prettierignore --log-level warn",
-    "prettier:check": "prettier --check \"**/*.{ts,tsx,svelte,astro,html,json,css,md,mdx}\" --ignore-path .gitignore --ignore-path .prettierignore --log-level warn",
+    "lint": "oxlint --deny-warnings",
+    "lint:fix": "oxlint --fix",
+    "format": "bun run format:oxc && bun run format:astro",
+    "format:check": "bun run format:oxc:check && bun run format:astro:check",
+    "format:oxc": "oxfmt \"**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,svelte,html,json,jsonc,json5,css,md,mdx}\"",
+    "format:oxc:check": "oxfmt --check \"**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,svelte,html,json,jsonc,json5,css,md,mdx}\"",
+    "format:astro": "prettier --write \"apps/docs/src/**/*.astro\" --log-level warn",
+    "format:astro:check": "prettier --check \"apps/docs/src/**/*.astro\" --log-level warn",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun run --filter '@rctf/db' generate",
     "db:migrate": "bun run --filter '@rctf/db' migrate",
     "db:pull": "bun run --filter '@rctf/db' pull"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "4.7.1",
     "@types/bun": "1.3.14",
+    "oxfmt": "0.57.0",
+    "oxlint": "1.72.0",
     "prettier": "3.9.4",
-    "prettier-plugin-astro": "0.14.1",
-    "prettier-plugin-svelte": "4.1.1",
-    "prettier-plugin-tailwindcss": "0.8.0"
+    "prettier-plugin-astro": "0.14.1"
   },
   "peerDependencies": {
     "typescript": "7.0.2"
-  },
-  "prettier": {
-    "plugins": [
-      "@ianvs/prettier-plugin-sort-imports",
-      "prettier-plugin-svelte",
-      "prettier-plugin-astro",
-      "prettier-plugin-tailwindcss"
-    ],
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": false,
-    "singleQuote": true,
-    "quoteProps": "as-needed",
-    "trailingComma": "es5",
-    "bracketSpacing": true,
-    "arrowParens": "avoid",
-    "overrides": [
-      {
-        "files": "apps/docs/**/*",
-        "options": {
-          "printWidth": 100,
-          "proseWrap": "never"
-        }
-      },
-      {
-        "files": "*.astro",
-        "options": {
-          "parser": "astro"
-        }
-      },
-      {
-        "files": "*.svelte",
-        "options": {
-          "printWidth": 100
-        }
-      }
-    ]
   }
 }
