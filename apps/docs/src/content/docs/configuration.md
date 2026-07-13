@@ -379,7 +379,8 @@ homeContent: |
   **Markdown** is supported.
 sponsors:
   - name: Sponsor Name
-    icon: https://example.com/sponsor.png
+    iconLight: https://example.com/sponsor-light.png
+    iconDark: https://example.com/sponsor-dark.png
     description: Sponsor description
     url: https://sponsor.com
 meta:
@@ -394,7 +395,7 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>homeContent</red>` | `string{:ts}` | `"Home content. Markdown supported."{:ts}` | Home page content (Markdown) |
-| `<red>sponsors</red>` | `array{:ts}` | `[]{:json}` | List of sponsors (`<red>name</red>`, `<red>icon</red>`, `<red>description</red>`, `<red>url</red>`) |
+| `<red>sponsors</red>` | `array{:ts}` | `[]{:json}` | List of sponsors (`<red>name</red>`, `<red>iconLight</red>`, `<red>iconDark</red>`, `<red>description</red>`, `<red>url</red>`). Icons fall back to each other when only one is set; legacy `<red>icon</red>` is accepted and applies to both modes |
 | `<red>meta.description</red>` | `string{:ts}` | `"rCTF event description"{:ts}` | HTML meta description |
 | `<red>meta.imageUrl</red>` | `string{:ts}` | `""{:ts}` | HTML meta image URL |
 | `<red>faviconUrl</red>` | `string{:ts}` | rCTF default | Favicon URL |

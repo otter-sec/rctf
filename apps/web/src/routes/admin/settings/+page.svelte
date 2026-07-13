@@ -59,8 +59,14 @@
   let sponsorSelected = $state(0)
   let initialized = $state(false)
   let saving = $state(false)
-  let logoUploading = $state(false)
+  let uploading = $state(false)
   let logoInputs = $state<Record<'light' | 'dark', HTMLInputElement | null>>({
+    light: null,
+    dark: null,
+  })
+  let sponsorIconInputs = $state<
+    Record<'light' | 'dark', HTMLInputElement | null>
+  >({
     light: null,
     dark: null,
   })
@@ -69,6 +75,11 @@
     { key: 'light' as const, label: 'Light mode', fallback: wordmarkLight },
     { key: 'dark' as const, label: 'Dark mode', fallback: wordmarkDark },
   ]
+
+  const sponsorIconTargets = [
+    { key: 'light' as const, label: 'Light mode icon', field: 'iconLight' },
+    { key: 'dark' as const, label: 'Dark mode icon', field: 'iconDark' },
+  ] as const
 
   $effect(() => {
     const data = settingsQuery.data
@@ -137,32 +148,39 @@
     if (action.type !== 'select') markGroup('sponsors')
   }
 
-  async function uploadLogo(file: File, target: 'light' | 'dark') {
-    if (!form) return
+  async function uploadImage(file: File): Promise<string | null> {
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file.')
-      return
+      return null
     }
-    logoUploading = true
+    uploading = true
     try {
       const response = await apiRequest(UploadFilesRouteV2, { files: [file] })
       if (response.kind === GoodFilesUploadV2.kind) {
         const uploaded = response.data[0]
         if (!uploaded) {
           toast.error('Upload returned no file.')
-          return
+          return null
         }
-        if (target === 'light') form.logo.light = uploaded.url
-        else form.logo.dark = uploaded.url
-        markGroup('logo')
-      } else {
-        showApiError(response)
+        return uploaded.url
       }
+      showApiError(response)
+      return null
     } catch {
       toast.error('Failed to upload image.')
+      return null
     } finally {
-      logoUploading = false
+      uploading = false
     }
+  }
+
+  async function uploadLogo(file: File, target: 'light' | 'dark') {
+    if (!form) return
+    const url = await uploadImage(file)
+    if (url === null) return
+    if (target === 'light') form.logo.light = url
+    else form.logo.dark = url
+    markGroup('logo')
   }
 
   function onLogoFile(event: Event, target: 'light' | 'dark') {
@@ -177,6 +195,36 @@
     if (target === 'light') form.logo.light = ''
     else form.logo.dark = ''
     markGroup('logo')
+  }
+
+  async function uploadSponsorIcon(
+    file: File,
+    field: 'iconLight' | 'iconDark'
+  ) {
+    const url = await uploadImage(file)
+    if (url === null) return
+    dispatchSponsors({
+      type: 'update',
+      index: sponsorSelected,
+      field,
+      value: url,
+    })
+  }
+
+  function onSponsorIconFile(event: Event, field: 'iconLight' | 'iconDark') {
+    const input = event.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (file) uploadSponsorIcon(file, field)
+  }
+
+  function removeSponsorIcon(field: 'iconLight' | 'iconDark') {
+    dispatchSponsors({
+      type: 'update',
+      index: sponsorSelected,
+      field,
+      value: '',
+    })
   }
 
   async function save() {
@@ -349,7 +397,7 @@
                   <Button
                     size="sm"
                     onclick={() => logoInputs[target.key]?.click()}
-                    disabled={logoUploading}
+                    disabled={uploading}
                   >
                     <IconCloud />
                     {url ? 'Change' : 'Upload'}
@@ -360,7 +408,7 @@
                       variant="destructive"
                       aria-label="Remove {target.label} logo"
                       onclick={() => removeLogo(target.key)}
-                      disabled={logoUploading}
+                      disabled={uploading}
                     >
                       <IconTrash />
                     </Button>
@@ -479,22 +527,52 @@
                     />
                   {/snippet}
                 </Field>
-                <Field label="Icon URL">
-                  {#snippet children({ id })}
-                    <Input
-                      {id}
-                      value={sponsor.icon}
-                      placeholder="https://..."
-                      oninput={e =>
-                        dispatchSponsors({
-                          type: 'update',
-                          index: sponsorSelected,
-                          field: 'icon',
-                          value: e.currentTarget.value,
-                        })}
-                    />
-                  {/snippet}
-                </Field>
+                {#each sponsorIconTargets as target (target.key)}
+                  {@const url = sponsor[target.field]}
+                  <logo-row>
+                    <group-title>{target.label}</group-title>
+                    <logo-controls>
+                      <logo-preview data-mode={target.key}>
+                        {#if url}
+                          <img
+                            src={url}
+                            alt="{sponsor.name || 'Sponsor'} {target.label}"
+                          />
+                        {:else}
+                          <preview-empty>No icon</preview-empty>
+                        {/if}
+                      </logo-preview>
+                      <logo-actions>
+                        <input
+                          bind:this={sponsorIconInputs[target.key]}
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onchange={e => onSponsorIconFile(e, target.field)}
+                        />
+                        <Button
+                          size="sm"
+                          onclick={() => sponsorIconInputs[target.key]?.click()}
+                          disabled={uploading}
+                        >
+                          <IconCloud />
+                          {url ? 'Change' : 'Upload'}
+                        </Button>
+                        {#if url}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            aria-label="Remove {target.label}"
+                            onclick={() => removeSponsorIcon(target.field)}
+                            disabled={uploading}
+                          >
+                            <IconTrash />
+                          </Button>
+                        {/if}
+                      </logo-actions>
+                    </logo-controls>
+                  </logo-row>
+                {/each}
                 <Field label="Description" description="Markdown supported.">
                   <MarkdownEditor
                     rows={4}
@@ -692,6 +770,11 @@
       max-block-size: 2.5rem;
       max-inline-size: 14rem;
     }
+  }
+
+  preview-empty {
+    font-size: var(--step--1);
+    color: oklch(60% 0 0);
   }
 
   logo-actions {

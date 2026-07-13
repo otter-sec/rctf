@@ -275,12 +275,14 @@ describe('admin settings', () => {
       const sponsors = [
         {
           name: 'Acme',
-          icon: 'https://acme.com/logo.png',
+          iconLight: 'https://acme.com/logo.png',
+          iconDark: '',
           description: 'A sponsor',
         },
         {
           name: 'Beta',
-          icon: 'https://beta.com/logo.png',
+          iconLight: 'https://beta.com/logo.png',
+          iconDark: '',
           description: 'B',
           url: 'https://beta.com',
         },
@@ -304,6 +306,48 @@ describe('admin settings', () => {
       expect(body.data.overrides.sponsors).toEqual([])
     })
 
+    test('normalizes stored legacy sponsor icon into both modes', async () => {
+      const db = getDb()
+      await db.insert(settings).values({
+        id: 'value-0',
+        data: {
+          sponsors: [
+            {
+              name: 'Legacy',
+              icon: 'https://legacy.com/logo.png',
+              description: 'Stored before per-theme icons',
+            } as never,
+          ],
+        },
+      })
+      const redis = await createRedis()
+      await invalidateResolvedSettingsCache(redis)
+
+      const adminRes = await request(app, '/api/v2/admin/settings', {
+        headers: await authHeaders(settingsAdmin.user.id),
+      })
+      const adminBody = await expectResponse(adminRes, GoodAdminSettings)
+      expect(adminBody.data.overrides.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          iconLight: 'https://legacy.com/logo.png',
+          iconDark: 'https://legacy.com/logo.png',
+          description: 'Stored before per-theme icons',
+        },
+      ])
+
+      const configRes = await request(app, '/api/v2/integrations/client/config')
+      const configBody = await expectResponse(configRes, GoodClientConfigV2)
+      expect(configBody.data.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          iconLight: 'https://legacy.com/logo.png',
+          iconDark: 'https://legacy.com/logo.png',
+          description: 'Stored before per-theme icons',
+        },
+      ])
+    })
+
     test('sets all fields at once', async () => {
       const allFields = {
         ctfName: 'All',
@@ -313,7 +357,12 @@ describe('admin settings', () => {
         faviconUrl: 'all.ico',
         meta: { description: 'All desc', imageUrl: 'all.png' },
         sponsors: [
-          { name: 'All Sponsor', icon: 'all.png', description: 'All' },
+          {
+            name: 'All Sponsor',
+            iconLight: 'all.png',
+            iconDark: '',
+            description: 'All',
+          },
         ],
       }
       const res = await request(app, '/api/v2/admin/settings', {
@@ -409,7 +458,11 @@ describe('admin settings', () => {
         method: 'PUT',
         headers: await jsonHeaders(settingsAdmin.user.id),
         body: JSON.stringify({
-          data: { sponsors: [{ name: 'X', icon: 'x', description: 'x' }] },
+          data: {
+            sponsors: [
+              { name: 'X', iconLight: 'x', iconDark: '', description: 'x' },
+            ],
+          },
         }),
       })
 
@@ -475,7 +528,8 @@ describe('admin settings', () => {
     test('handles many sponsors', async () => {
       const sponsors = Array.from({ length: 20 }, (_, i) => ({
         name: `Sponsor ${i}`,
-        icon: `https://example.com/${i}.png`,
+        iconLight: `https://example.com/${i}.png`,
+        iconDark: '',
         description: `Description ${i}`,
       }))
       const res = await request(app, '/api/v2/admin/settings', {
@@ -618,7 +672,12 @@ describe('admin settings', () => {
 
     test('v2 client config uses DB overrides for sponsors', async () => {
       const sponsors = [
-        { name: 'TestSponsor', icon: 'test.png', description: 'Test' },
+        {
+          name: 'TestSponsor',
+          iconLight: 'test.png',
+          iconDark: '',
+          description: 'Test',
+        },
       ]
       await request(app, '/api/v2/admin/settings', {
         method: 'PUT',

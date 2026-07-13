@@ -15,14 +15,21 @@
     <Card title="Sponsors">
       <sponsor-grid>
         {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
+          {@const iconLight = sponsor.iconLight || sponsor.iconDark}
+          {@const iconDark = sponsor.iconDark || sponsor.iconLight}
           <svelte:element
             this={sponsor.url ? 'a' : 'article'}
             href={sponsor.url}
             target={sponsor.url ? '_blank' : undefined}
             rel={sponsor.url ? 'noopener noreferrer' : undefined}
           >
-            {#if sponsor.icon}
-              <img src={sponsor.icon} alt={sponsor.name} />
+            {#if iconLight}
+              <sponsor-icon-light>
+                <img src={iconLight} alt={sponsor.name} />
+              </sponsor-icon-light>
+              <sponsor-icon-dark>
+                <img src={iconDark} alt={sponsor.name} />
+              </sponsor-icon-dark>
             {/if}
             <h3>{sponsor.name}</h3>
             <Markdown content={sponsor.description} />
@@ -79,22 +86,41 @@
       background: var(--background-l3);
     }
 
+    sponsor-icon-light,
+    sponsor-icon-dark {
+      display: contents;
+    }
+
+    sponsor-icon-light {
+      :global(:root[data-theme='dark']) & {
+        display: none;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :global(:root:not([data-theme])) & {
+          display: none;
+        }
+      }
+    }
+
+    sponsor-icon-dark {
+      :global(:root[data-theme='light']) & {
+        display: none;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :global(:root:not([data-theme])) & {
+          display: none;
+        }
+      }
+    }
+
     img {
       inline-size: 100%;
       block-size: auto;
       max-block-size: 8rem;
       object-fit: contain;
       padding: var(--space-2xs);
-
-      :global(:root[data-theme='dark']) & {
-        filter: invert(1);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :global(:root:not([data-theme])) & {
-          filter: invert(1);
-        }
-      }
     }
 
     h3 {

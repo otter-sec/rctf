@@ -107,10 +107,17 @@ describe('buildPatch', () => {
     const state = cleanState()
     state.sponsors = {
       list: [
-        { name: 'osec', icon: '/osec.png', description: 'Research.', url: '' },
+        {
+          name: 'osec',
+          iconLight: '/osec.png',
+          iconDark: '',
+          description: 'Research.',
+          url: '',
+        },
         {
           name: 'acme',
-          icon: '/acme.png',
+          iconLight: '/acme.png',
+          iconDark: '',
           description: 'Widgets.',
           url: 'https://acme.example',
         },
@@ -119,10 +126,16 @@ describe('buildPatch', () => {
     }
     expect(buildPatch(state, {})).toEqual({
       sponsors: [
-        { name: 'osec', icon: '/osec.png', description: 'Research.' },
+        {
+          name: 'osec',
+          iconLight: '/osec.png',
+          iconDark: '',
+          description: 'Research.',
+        },
         {
           name: 'acme',
-          icon: '/acme.png',
+          iconLight: '/acme.png',
+          iconDark: '',
           description: 'Widgets.',
           url: 'https://acme.example',
         },
@@ -133,12 +146,22 @@ describe('buildPatch', () => {
   it('sends null sponsors when the edited list matches the defaults', () => {
     const state = cleanState()
     state.sponsors = {
-      list: [{ name: 'osec', icon: '/i.png', description: 'd', url: '' }],
+      list: [
+        {
+          name: 'osec',
+          iconLight: '/i.png',
+          iconDark: '',
+          description: 'd',
+          url: '',
+        },
+      ],
       dirty: true,
     }
     expect(
       buildPatch(state, {
-        sponsors: [{ name: 'osec', icon: '/i.png', description: 'd' }],
+        sponsors: [
+          { name: 'osec', iconLight: '/i.png', iconDark: '', description: 'd' },
+        ],
       })
     ).toEqual({ sponsors: null })
   })
@@ -177,13 +200,15 @@ describe('sponsorPayload', () => {
     expect(
       sponsorPayload({
         name: 'osec',
-        icon: '/i.png',
+        iconLight: '/i.png',
+        iconDark: '',
         description: 'd',
         url: 'https://osec.io',
       })
     ).toEqual({
       name: 'osec',
-      icon: '/i.png',
+      iconLight: '/i.png',
+      iconDark: '',
       description: 'd',
       url: 'https://osec.io',
     })
@@ -193,11 +218,17 @@ describe('sponsorPayload', () => {
     expect(
       sponsorPayload({
         name: 'osec',
-        icon: '/i.png',
+        iconLight: '/i.png',
+        iconDark: '',
         description: 'd',
         url: '',
       })
-    ).toEqual({ name: 'osec', icon: '/i.png', description: 'd' })
+    ).toEqual({
+      name: 'osec',
+      iconLight: '/i.png',
+      iconDark: '',
+      description: 'd',
+    })
   })
 })
 
@@ -217,7 +248,15 @@ describe('clampSelected', () => {
 
 describe('sponsorsReducer', () => {
   const base: SponsorsState = {
-    list: [{ name: 'osec', icon: '/i.png', description: 'd', url: '' }],
+    list: [
+      {
+        name: 'osec',
+        iconLight: '/i.png',
+        iconDark: '',
+        description: 'd',
+        url: '',
+      },
+    ],
     selected: 0,
   }
 
@@ -231,14 +270,14 @@ describe('sponsorsReducer', () => {
   it('removes a sponsor and clamps the selection', () => {
     const two: SponsorsState = {
       list: [
-        { name: 'a', icon: '', description: '', url: '' },
-        { name: 'b', icon: '', description: '', url: '' },
+        { name: 'a', iconLight: '', iconDark: '', description: '', url: '' },
+        { name: 'b', iconLight: '', iconDark: '', description: '', url: '' },
       ],
       selected: 1,
     }
     const next = sponsorsReducer(two, { type: 'remove', index: 1 })
     expect(next.list).toEqual([
-      { name: 'a', icon: '', description: '', url: '' },
+      { name: 'a', iconLight: '', iconDark: '', description: '', url: '' },
     ])
     expect(next.selected).toBe(0)
   })
@@ -257,8 +296,8 @@ describe('sponsorsReducer', () => {
   it('selects a sponsor by index', () => {
     const two: SponsorsState = {
       list: [
-        { name: 'a', icon: '', description: '', url: '' },
-        { name: 'b', icon: '', description: '', url: '' },
+        { name: 'a', iconLight: '', iconDark: '', description: '', url: '' },
+        { name: 'b', iconLight: '', iconDark: '', description: '', url: '' },
       ],
       selected: 0,
     }
@@ -293,10 +332,16 @@ describe('reset builders', () => {
     logoDarkUrl: '/dark.png',
     meta: { description: 'A CTF.', imageUrl: '/og.png' },
     sponsors: [
-      { name: 'osec', icon: '/osec.png', description: 'Research.' },
+      {
+        name: 'osec',
+        iconLight: '/osec.png',
+        iconDark: '',
+        description: 'Research.',
+      },
       {
         name: 'acme',
-        icon: '/acme.png',
+        iconLight: '/acme.png',
+        iconDark: '',
         description: 'Widgets.',
         url: 'https://acme.example',
       },
@@ -361,10 +406,17 @@ describe('reset builders', () => {
   it('resets sponsors from the default list, mapping missing urls to empty', () => {
     expect(resetGroup(defaults, 'sponsors')).toEqual({
       list: [
-        { name: 'osec', icon: '/osec.png', description: 'Research.', url: '' },
+        {
+          name: 'osec',
+          iconLight: '/osec.png',
+          iconDark: '',
+          description: 'Research.',
+          url: '',
+        },
         {
           name: 'acme',
-          icon: '/acme.png',
+          iconLight: '/acme.png',
+          iconDark: '',
           description: 'Widgets.',
           url: 'https://acme.example',
         },
@@ -403,7 +455,14 @@ describe('groupMatchesDefaults', () => {
     endTime: 200,
     logoLightUrl: '/light.svg',
     meta: { description: 'desc', imageUrl: '/og.png' },
-    sponsors: [{ name: 'acme', icon: '/i.png', description: 'sponsor' }],
+    sponsors: [
+      {
+        name: 'acme',
+        iconLight: '/i.png',
+        iconDark: '',
+        description: 'sponsor',
+      },
+    ],
   }
 
   it('matches when a scalar equals the default and diverges after an edit', () => {
@@ -449,7 +508,13 @@ describe('groupMatchesDefaults', () => {
   it('compares the sponsor list against normalized defaults', () => {
     const state = cleanState()
     state.sponsors.list = [
-      { name: 'acme', icon: '/i.png', description: 'sponsor', url: '' },
+      {
+        name: 'acme',
+        iconLight: '/i.png',
+        iconDark: '',
+        description: 'sponsor',
+        url: '',
+      },
     ]
     expect(groupMatchesDefaults(state, 'sponsors', defaults)).toBe(true)
     state.sponsors.list = []

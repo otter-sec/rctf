@@ -2,7 +2,8 @@ import { jsonb, pgTable, text } from 'drizzle-orm/pg-core'
 
 export interface EditableSponsor {
   name: string
-  icon: string
+  iconLight: string
+  iconDark: string
   description: string
   url?: string
 }
