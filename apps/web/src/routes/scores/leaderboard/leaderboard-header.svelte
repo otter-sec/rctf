@@ -39,8 +39,7 @@
   }
 
   type HeaderItem =
-    | { type: 'category'; group: CategoryGroup }
-    | { type: 'challenge'; challenge: ChallengeInfo }
+    { type: 'category'; group: CategoryGroup } | { type: 'challenge'; challenge: ChallengeInfo }
 
   const headerNameItems = $derived.by((): HeaderItem[] => {
     if (viewMode === 'categories') {

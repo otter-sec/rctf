@@ -40,8 +40,7 @@ export const instancerErrorSchema = z.object({
 })
 
 export type instanceDetailsOrError =
-  | z.output<typeof instanceDetailsSchema>
-  | z.output<typeof instancerErrorSchema>
+  z.output<typeof instanceDetailsSchema> | z.output<typeof instancerErrorSchema>
 
 export const instancerActionResultSchema = z.object({
   kind: z.literal('instancerActionResult'),
