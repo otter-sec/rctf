@@ -53,7 +53,7 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 
    The reactive props passed to `useMachine{:ts}` **must** be a thunk, or controlled state silently freezes:
 
-   ```svelte showLineNumbers=false
+   ```ts showLineNumbers=false
    const service = useMachine(dialog.machine, () => ({ id, open }))
    const api = $derived(dialog.connect(service, normalizeProps))
    ```

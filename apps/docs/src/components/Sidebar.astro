@@ -166,11 +166,12 @@ const section = NAVIGATION.find(
 
     a {
       display: block;
-      color: var(--muted-foreground);
+      color: var(--foreground);
+      opacity: 0.6;
 
       &:hover,
       &[aria-current='page'] {
-        color: var(--foreground);
+        opacity: 1;
       }
     }
 
