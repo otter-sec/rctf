@@ -1,7 +1,8 @@
 prose-content {
   blockquote {
-    border-inline-start: 2px solid var(--border);
-    padding-inline-start: 1.25em;
+    padding: 0.75em 1.25em;
+    background-color: var(--background-l1);
+    border-radius: var(--radius-lg);
     color: var(--muted-foreground);
 
     :is(p, li) {
@@ -11,7 +12,9 @@ prose-content {
 
   hr {
     margin-block: var(--space-l);
-    border-block-start: 1.5px solid var(--border);
+    block-size: 2px;
+    background-color: var(--background-l2);
+    border-radius: var(--radius-full);
   }
 
   :is(img, video) {
@@ -29,8 +32,10 @@ prose-content {
 
   .footnotes {
     margin-block-start: var(--space-l);
-    padding-block-start: var(--space-s);
-    border-block-start: 1.5px solid var(--border);
+    padding: var(--space-s) var(--space-s) var(--space-xs);
+    background-color: var(--background-l1);
+    border-radius: var(--radius-lg);
+    font-size: var(--step--1);
   }
 
   :is(math, math *) {
@@ -67,11 +72,6 @@ prose-content {
 
     .frame.is-terminal .header {
       font-weight: var(--font-weight-normal);
-      letter-spacing: var(--tracking-tight);
-    }
-
-    .frame.has-title:not(.is-terminal) .header {
-      border-block-end: var(--ec-brdWd) solid var(--border);
     }
 
     .expand {

@@ -28,13 +28,6 @@
       var(--grid-columns)
   );
   --bar-gutter: max(var(--grid-gutter), (100% - var(--measure)) / 2);
-  --bar-border-image: linear-gradient(
-      to right,
-      transparent 0 var(--bar-gutter),
-      var(--border) 0 calc(100% - var(--bar-gutter)),
-      transparent 0
-    )
-    1;
 
   --page-offset-top: var(--space-xl);
   --page-offset-bottom: var(--space-m);

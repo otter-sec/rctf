@@ -1,0 +1,38 @@
+:root {
+  /* https://utopia.fyi/type/calculator?c=328,16,1.125,1215,18,1.2,3,1,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l|s-m&g=s,m,2xl,12 */
+  --step--2: clamp(0.7813rem, 0.7935rem - 0.0164vw, 0.7901rem);
+  --step--1: clamp(0.8889rem, 0.8709rem + 0.0877vw, 0.9375rem);
+  --step-0:  clamp(1rem, 0.9538rem + 0.2255vw, 1.125rem);
+  --step-1:  clamp(1.125rem, 1.0418rem + 0.4059vw, 1.35rem);
+  --step-2:  clamp(1.2656rem, 1.1346rem + 0.6392vw, 1.62rem);
+  --step-3:  clamp(1.4238rem, 1.2315rem + 0.9383vw, 1.944rem);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 450;
+
+  --leading-offset: 0.65rem;
+
+  --measure: 40rem;
+}
+
+body {
+  font-family: var(--font-sans);
+  text-wrap: pretty;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--underline, transparent) 75%, transparent);
+  text-decoration-thickness: max(1px, 0.0625em);
+  text-decoration-skip-ink: none;
+  text-underline-position: under;
+  text-underline-offset: -0.06em;
+
+  &:hover {
+    text-decoration-color: var(--underline, currentColor);
+  }
+}

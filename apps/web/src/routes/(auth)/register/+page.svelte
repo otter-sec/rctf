@@ -3,62 +3,51 @@
     GoodLogin,
     GoodRegisterV2,
     GoodVerifySent,
+    LoginRoute,
     ProtectedAction,
     RegisterRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
-  import { setToken } from '$lib/api'
-  import { ArchivedNotice, Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { apiRequest, setToken } from '$lib/api'
+  import ArchivedNotice from '$lib/components/archived-notice.svelte'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import { useApiForm } from '$lib/forms'
-  import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
+  import { useApiForm } from '$lib/forms/use-api-form.svelte'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import Field from '$lib/ui/field.svelte'
+  import Input from '$lib/ui/input.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
+  import { buildLoginUrl } from '$lib/utils/auth'
   import { onMount } from 'svelte'
-  import { toast } from 'svelte-sonner'
   import ButtonCtftime from '../button-ctftime.svelte'
   import TeamTokenCard from '../team-token-card.svelte'
 
   const queryClient = useQueryClient()
-  const loginMutation = useLoginMutation()
-  const clientConfigQuery = useClientConfig()
-
-  const clientConfig = $derived(clientConfigQuery.data)
-  const isArchived = $derived(clientConfig?.isArchived ?? false)
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
 
   let verifySent = $state(false)
   let ctftimeToken = $state<string | null>(null)
-  let ctftimeName = $state<string | null>(null)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
+  const ctftimeLoginAction = createAsyncAction()
 
   const form = useApiForm(RegisterRouteV2, {
-    onSuccess: res => {
-      if (res.kind === GoodRegisterV2.kind) {
-        handleRegisterSuccess(res.data.authToken, res.data.teamToken)
-      } else if (res.kind === GoodVerifySent.kind) {
+    onSuccess: response => {
+      if (response.kind === GoodRegisterV2.kind) {
+        handleRegisterSuccess(response.data.authToken, response.data.teamToken)
+      } else if (response.kind === GoodVerifySent.kind) {
         verifySent = true
       }
     },
   })
 
-  const isPending = $derived(form.submitting || loginMutation.isPending)
-
-  onMount(() => {
-    const storedToken = sessionStorage.getItem('ctftimeToken')
-    const storedName = sessionStorage.getItem('ctftimeName')
-
-    if (storedToken && storedName) {
-      ctftimeToken = storedToken
-      ctftimeName = storedName
-      form.setData({ name: storedName, ctftimeToken: storedToken })
-      sessionStorage.removeItem('ctftimeToken')
-      sessionStorage.removeItem('ctftimeName')
-    }
-  })
-
-  function buildLoginUrl(teamToken: string) {
-    return `${window.location.origin}/login?token=${encodeURIComponent(teamToken)}`
-  }
+  const isPending = $derived(form.submitting || ctftimeLoginAction.pending)
 
   function handleRegisterSuccess(authToken: string, teamToken: string) {
     setToken(authToken)
@@ -68,50 +57,49 @@
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
   }
 
-  function handleSubmit(e: SubmitEvent) {
-    e.preventDefault()
-
+  function handleSubmit(event: SubmitEvent) {
+    event.preventDefault()
     if (ctftimeToken) {
       form.setData({ ctftimeToken })
     }
-
     form.submit()
   }
 
-  function handleCtftimeDone(ctftimeData: {
-    ctftimeToken: string
-    ctftimeName: string
-    ctftimeId: string
-  }) {
+  async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
     form.clearErrors()
-
-    loginMutation.mutate(
-      { ctftimeToken: ctftimeData.ctftimeToken },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodLogin.kind) {
-            setToken(response.data.authToken)
-            toast.success('Logged in successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-            goto('/')
-          } else {
-            ctftimeToken = ctftimeData.ctftimeToken
-            ctftimeName = ctftimeData.ctftimeName
-            form.setData({ name: ctftimeData.ctftimeName, ctftimeToken: ctftimeData.ctftimeToken })
-          }
-        },
-        onError: error => {
-          toast.error(error.message)
-        },
-      }
+    await ctftimeLoginAction.run(
+      async () => {
+        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        if (response.kind === GoodLogin.kind) {
+          setToken(response.data.authToken)
+          toast.success('Logged in successfully!')
+          queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          goto('/')
+        } else {
+          ctftimeToken = data.ctftimeToken
+          form.setData({ name: data.ctftimeName, ctftimeToken: data.ctftimeToken })
+        }
+      },
+      { errorMessage: 'CTFtime login failed' }
     )
   }
 
   function cancelCtftime() {
     ctftimeToken = null
-    ctftimeName = null
     form.reset()
   }
+
+  onMount(() => {
+    const storedToken = sessionStorage.getItem('ctftimeToken')
+    const storedName = sessionStorage.getItem('ctftimeName')
+
+    if (storedToken && storedName) {
+      ctftimeToken = storedToken
+      form.setData({ name: storedName, ctftimeToken: storedToken })
+      sessionStorage.removeItem('ctftimeToken')
+      sessionStorage.removeItem('ctftimeName')
+    }
+  })
 </script>
 
 <svelte:head>
@@ -120,182 +108,126 @@
   {/if}
 </svelte:head>
 
-{#if clientConfig && isArchived}
+{#if clientConfig?.isArchived}
   <ArchivedNotice message="Registration is not available." />
 {:else if clientConfig}
   {#if registeredTeamToken && registeredLoginUrl}
     <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
   {:else if verifySent}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl">Verification email sent</Card.Title>
-        <Card.Description>Check your inbox to complete registration</Card.Description>
-      </Card.Header>
-      <Card.Content class="prose">
+    <Card title="Verification email sent" description="Check your inbox to complete registration">
+      <auth-page>
         <p>
-          We've sent a verification email to <b class="font-medium">{form.data.email}</b>. Please
-          check your inbox and click the link to complete registration. If you didn't receive the
-          email, check your spam folder or
-          <button
-            class="text-foreground-prose-link cursor-pointer hover:underline"
-            onclick={() => (verifySent = false)}>try again</button
-          >.
+          We've sent a verification email to <strong>{form.data.email}</strong>. Please check your
+          inbox and click the link to complete registration. If you didn't receive the email, check
+          your spam folder or
+          <button type="button" onclick={() => (verifySent = false)}>try again</button>.
         </p>
-      </Card.Content>
-    </Card.Root>
+      </auth-page>
+    </Card>
   {:else if ctftimeToken}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl">Complete registration</Card.Title>
-        <Card.Description>Registering with CTFtime</Card.Description>
-      </Card.Header>
-      <Card.Content>
+    <Card title="Complete registration" description="Registering with CTFtime">
+      <auth-page>
         {#if form.errors._form}
-          <div
-            class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert"
-          >
-            {form.errors._form}
-          </div>
+          <p role="alert">{form.errors._form}</p>
         {/if}
-
-        <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-          <Field.Field data-invalid={!!form.errors.name || undefined}>
-            <Field.Label for="name">Team name</Field.Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Enter your team name"
-              autocomplete="username"
-              autocorrect="off"
-              minlength={2}
-              maxlength={64}
-              required
-              bind:value={form.data.name}
-              aria-invalid={!!form.errors.name}
-              oninput={() => form.validateField('name')}
-            />
-            <Field.Description
-              >You can use a different name than your CTFtime team name.</Field.Description
-            >
-            {#if form.errors.name}
-              <Field.Error>{form.errors.name}</Field.Error>
-            {/if}
-          </Field.Field>
-
-          <Button type="submit" disabled={isPending} class="w-full">
+        <form onsubmit={handleSubmit}>
+          <Field
+            label="Team name"
+            description="You can use a different name than your CTFtime team name."
+            error={form.errors.name}
+          >
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                name="name"
+                type="text"
+                placeholder="Enter your team name"
+                autocomplete="username"
+                autocorrect="off"
+                minlength={2}
+                maxlength={64}
+                required
+                aria-describedby={describedBy}
+                aria-invalid={!!form.errors.name || undefined}
+                bind:value={form.data.name}
+                oninput={() => form.validateField('name')}
+              />
+            {/snippet}
+          </Field>
+          <Button type="submit" disabled={isPending}>
             {#if isPending}
-              <Spinner class="size-4" />
+              <Spinner />
             {/if}
             Register
           </Button>
         </form>
-      </Card.Content>
-      <Card.Footer>
-        <p class="text-foreground-l3 text-sm">
-          Changed your mind? <button
-            type="button"
-            onclick={cancelCtftime}
-            class="text-foreground-prose-link cursor-pointer hover:underline"
-            >Register with email instead</button
-          >.
-        </p>
-      </Card.Footer>
-    </Card.Root>
+        <footer-note>
+          Changed your mind?
+          <button type="button" onclick={cancelCtftime}>Register with email instead</button>.
+        </footer-note>
+      </auth-page>
+    </Card>
   {:else}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl">Register</Card.Title>
-        <Card.Description>
-          Create an account for {clientConfig.ctfName}
-        </Card.Description>
-      </Card.Header>
-      <Card.Content>
-        <p class="text-foreground-l3 mb-4 text-sm">Please register only one account per team.</p>
-
+    <Card title="Register" description="Create an account for {clientConfig.ctfName}">
+      <auth-page>
+        <p>Please register only one account per team.</p>
         {#if form.errors._form}
-          <div
-            class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert"
-          >
-            {form.errors._form}
-          </div>
+          <p role="alert">{form.errors._form}</p>
         {/if}
-
-        <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-          <Field.Field data-invalid={!!form.errors.name || undefined}>
-            <Field.Label for="name">Team name</Field.Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Enter your team name"
-              autocomplete="username"
-              autocorrect="off"
-              minlength={2}
-              maxlength={64}
-              required
-              bind:value={form.data.name}
-              aria-invalid={!!form.errors.name}
-              oninput={() => form.validateField('name')}
-            />
-            {#if form.errors.name}
-              <Field.Error>{form.errors.name}</Field.Error>
-            {/if}
-          </Field.Field>
-
-          <Field.Field data-invalid={!!form.errors.email || undefined}>
-            <Field.Label for="email">Email</Field.Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email"
-              autocomplete="email"
-              required
-              bind:value={form.data.email}
-              aria-invalid={!!form.errors.email}
-              oninput={() => form.validateField('email')}
-            />
-            {#if form.errors.email}
-              <Field.Error>{form.errors.email}</Field.Error>
-            {/if}
-          </Field.Field>
-
-          <Button type="submit" disabled={isPending} class="w-full">
+        <form onsubmit={handleSubmit}>
+          <Field label="Team name" error={form.errors.name}>
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                name="name"
+                type="text"
+                placeholder="Enter your team name"
+                autocomplete="username"
+                autocorrect="off"
+                minlength={2}
+                maxlength={64}
+                required
+                aria-describedby={describedBy}
+                aria-invalid={!!form.errors.name || undefined}
+                bind:value={form.data.name}
+                oninput={() => form.validateField('name')}
+              />
+            {/snippet}
+          </Field>
+          <Field label="Email" error={form.errors.email}>
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                name="email"
+                type="email"
+                placeholder="Enter your email"
+                autocomplete="email"
+                required
+                aria-describedby={describedBy}
+                aria-invalid={!!form.errors.email || undefined}
+                bind:value={form.data.email}
+                oninput={() => form.validateField('email')}
+              />
+            {/snippet}
+          </Field>
+          <Button type="submit" disabled={isPending}>
             {#if isPending}
-              <Spinner class="size-4" />
+              <Spinner />
             {/if}
             Register
           </Button>
         </form>
-
         {#if clientConfig.ctftime}
-          <div class="mt-4 flex items-center gap-4">
-            <div class="bg-border h-px flex-1"></div>
-            <span class="text-foreground-l3 text-sm">or</span>
-            <div class="bg-border h-px flex-1"></div>
-          </div>
-
-          <div class="mt-4">
-            <ButtonCtftime
-              clientId={clientConfig.ctftime.clientId}
-              onCtftimeDone={handleCtftimeDone}
-              disabled={isPending}
-            />
-          </div>
+          <auth-divider aria-hidden="true">or</auth-divider>
+          <ButtonCtftime
+            clientId={clientConfig.ctftime.clientId}
+            onCtftimeDone={handleCtftimeDone}
+            disabled={isPending}
+          />
         {/if}
-      </Card.Content>
-      <Card.Footer class="flex flex-col gap-2">
-        <p class="text-foreground-l3 text-sm">
-          Already have an account? <a
-            href="/login"
-            class="text-foreground-prose-link hover:underline">Login here</a
-          >.
-        </p>
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.Register} class="mt-3" />
-      </Card.Footer>
-    </Card.Root>
+        <footer-note>Already have an account? <a href="/login">Login here</a>.</footer-note>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.Register} />
+      </auth-page>
+    </Card>
   {/if}
 {/if}

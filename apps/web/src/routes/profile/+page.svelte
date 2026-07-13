@@ -1,165 +1,91 @@
 <script lang="ts">
-  import { Button, Card, ScrollArea, Tabs } from '$lib/components'
-  import {
-    useClientConfig,
-    useCurrentUser,
-    useLeaderboardChallenges,
-    useUserGraph,
-  } from '$lib/query'
-  import ProfileAnalytics from './profile-analytics.svelte'
+  import { useClientConfig } from '$lib/query/config'
+  import { useLeaderboardChallenges, useSelfUserGraph } from '$lib/query/leaderboard'
+  import { useCurrentUser } from '$lib/query/user'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import { toChallengeInfos } from './analytics/analytics-data'
+  import ProfileAnalytics from './analytics/analytics.svelte'
+  import type { GraphSampleInput } from './analytics/graph-data'
   import ProfileHeader from './profile-header.svelte'
-  import ProfileSettingsAccount from './profile-settings-account.svelte'
-  import ProfileSettingsAvatar from './profile-settings-avatar.svelte'
-  import ProfileSettingsMembers from './profile-settings-members.svelte'
-  import ProfileSolves from './profile-solves.svelte'
+  import ProfileSettingsAccount from './settings/account.svelte'
+  import ProfileSettingsAvatar from './settings/avatar.svelte'
+  import ProfileSettingsCtftime from './settings/ctftime.svelte'
+  import ProfileSettingsMembers from './settings/members.svelte'
+  import ProfileShell from './shell.svelte'
+  import ProfileSolves from './solves/solves.svelte'
 
   const userQuery = useCurrentUser()
-  const clientConfigQuery = useClientConfig()
+  const configQuery = useClientConfig()
   const challengesQuery = useLeaderboardChallenges()
 
   const user = $derived(userQuery.data)
-  const clientConfig = $derived(clientConfigQuery.data)
-  const challenges = $derived(
-    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
-      id,
-      name: c.name,
-      category: c.category,
-      points: c.points,
-      solves: c.solves,
-      scoringKind: c.scoringKind,
-    }))
-  )
+  const clientConfig = $derived(configQuery.data)
+  const ctfName = $derived(clientConfig?.ctfName)
+  const isLoading = $derived(userQuery.isLoading || configQuery.isLoading)
 
-  const graphQuery = useUserGraph(
-    () => user?.id ?? '',
-    () => user?.globalPlace ?? null
+  const challenges = $derived(toChallengeInfos(challengesQuery.data))
+
+  const graphQuery = useSelfUserGraph(
+    () => user?.globalPlace ?? null,
+    () => user?.id ?? null
   )
-  const graphData = $derived(graphQuery.data ?? null)
+  const graphData = $derived<GraphSampleInput | null>(graphQuery.data ?? null)
+
+  const tabs = [
+    { value: 'challenges', label: 'Challenges' },
+    { value: 'analytics', label: 'Analytics' },
+    { value: 'settings', label: 'Settings' },
+  ]
+
+  const status = $derived(isLoading ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready')
 </script>
 
 <svelte:head>
-  {#if clientConfig}
-    <title>Profile | {clientConfig.ctfName}</title>
+  {#if ctfName}
+    <title>Profile | {ctfName}</title>
   {/if}
 </svelte:head>
 
-{#snippet solvesPanel()}
-  {#if user && clientConfig}
-    <ProfileSolves
-      {challenges}
-      solves={user.solves}
-      dynamicScores={user.dynamicScores}
-      showUnsolved={challenges.length > 0}
-      scrollable
-      class="min-h-0 flex-1"
-      ctfStartTime={clientConfig.startTime}
-    />
-  {/if}
-{/snippet}
+<ProfileShell {tabs} desktopColumn="settings" {status}>
+  {#snippet unavailable()}
+    <Card title="Profile">
+      <p>You need to be logged in to view your profile.</p>
+      <Button href="/login">Login</Button>
+    </Card>
+  {/snippet}
 
-{#snippet analyticsPanel()}
-  {#if user && clientConfig}
-    <ScrollArea
-      class="h-full"
-      fadeSize={32}
-      fadeColor="background-l1"
-      scrollbarYClasses="z-30 mt-4"
-      viewportTabIndex={-1}
-    >
-      <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
-    </ScrollArea>
-  {/if}
-{/snippet}
+  {#snippet header()}
+    {#if user && clientConfig}
+      <ProfileHeader {user} divisions={clientConfig.divisions} />
+    {/if}
+  {/snippet}
 
-{#snippet settingsPanel()}
-  {#if user && clientConfig}
-    <ScrollArea
-      class="min-h-0 flex-1"
-      fadeSize={32}
-      fadeColor="background-l1"
-      scrollbarYClasses="z-30 mt-4"
-      viewportTabIndex={-1}
-    >
-      <div class="flex flex-col gap-4 px-4 pt-4 pb-4">
+  {#snippet panel(tab: string)}
+    {#if user && clientConfig}
+      {#if tab === 'challenges'}
+        <ProfileSolves
+          {challenges}
+          solves={user.solves}
+          dynamicScores={user.dynamicScores}
+          showUnsolved={challenges.length > 0}
+          ctfStartTime={clientConfig.startTime}
+        />
+      {:else if tab === 'analytics'}
+        <ProfileAnalytics
+          solves={user.solves}
+          dynamicScores={user.dynamicScores}
+          {graphData}
+          {clientConfig}
+          {challenges}
+          splitDynamicScore={user.dynamicScores.length > 0}
+        />
+      {:else if tab === 'settings'}
         <ProfileSettingsAvatar {user} {clientConfig} />
         <ProfileSettingsAccount {user} {clientConfig} />
-        {#if clientConfig.userMembers}
-          <ProfileSettingsMembers />
-        {/if}
-      </div>
-    </ScrollArea>
-  {/if}
-{/snippet}
-
-<div class="flex flex-1 flex-col px-4 md:px-9">
-  {#if user && clientConfig}
-    <div
-      class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
-    >
-      <div class="bg-background-l1 z-10 shrink-0 pt-2">
-        <ProfileHeader {user} {clientConfig} />
-      </div>
-
-      <Tabs.Root value="challenges" class="min-h-0 flex-1">
-        <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
-          <Tabs.List class="grid h-10 w-full grid-cols-3">
-            <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
-            <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
-            <Tabs.Trigger value="settings">Settings</Tabs.Trigger>
-          </Tabs.List>
-        </div>
-
-        <Tabs.Content value="challenges" class="min-h-0">
-          {@render solvesPanel()}
-        </Tabs.Content>
-
-        <Tabs.Content value="analytics" class="min-h-0">
-          {@render analyticsPanel()}
-        </Tabs.Content>
-
-        <Tabs.Content value="settings" class="min-h-0">
-          {@render settingsPanel()}
-        </Tabs.Content>
-      </Tabs.Root>
-    </div>
-
-    <div class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-400 grid-cols-2 gap-4 lg:grid">
-      <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
-        <div class="bg-background-l1 z-10 shrink-0 pt-2">
-          <ProfileHeader {user} {clientConfig} />
-        </div>
-
-        <Tabs.Root value="challenges" class="flex min-h-0 flex-1 flex-col">
-          <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
-            <Tabs.List class="grid h-10 w-full grid-cols-2">
-              <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
-              <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
-            </Tabs.List>
-          </div>
-
-          <Tabs.Content value="challenges" class="min-h-0">
-            {@render solvesPanel()}
-          </Tabs.Content>
-
-          <Tabs.Content value="analytics" class="min-h-0">
-            {@render analyticsPanel()}
-          </Tabs.Content>
-        </Tabs.Root>
-      </div>
-
-      <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
-        {@render settingsPanel()}
-      </div>
-    </div>
-  {:else}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title class="text-xl font-medium">Profile</Card.Title>
-      </Card.Header>
-      <Card.Content class="flex flex-col gap-4">
-        <p class="text-foreground-l3">You need to be logged in to view your profile.</p>
-        <Button href="/login">Login</Button>
-      </Card.Content>
-    </Card.Root>
-  {/if}
-</div>
+        <ProfileSettingsCtftime {user} {clientConfig} />
+        <ProfileSettingsMembers {clientConfig} />
+      {/if}
+    {/if}
+  {/snippet}
+</ProfileShell>

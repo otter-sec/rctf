@@ -10,13 +10,13 @@ The interface is split across these directories.
 
 | Path | Contents |
 | --- | --- |
-| `apps/web-new/src/lib/ui/{:dir}` | Reusable controls and layout primitives |
-| `apps/web-new/src/lib/components/{:dir}` | Features such as the navigation bar and Markdown renderer |
-| `apps/web-new/src/lib/icons/{:dir}` | Local Svelte icon components, mostly sourced from [Phosphor Icons](https://phosphoricons.com/) |
+| `apps/web/src/lib/ui/{:dir}` | Reusable controls and layout primitives |
+| `apps/web/src/lib/components/{:dir}` | Features such as the navigation bar and Markdown renderer |
+| `apps/web/src/lib/icons/{:dir}` | Local Svelte icon components, mostly sourced from [Phosphor Icons](https://phosphoricons.com/) |
 
 Variants are represented with [data attributes](/theming/colors/), while layout components use custom tags such as `<ui-card>{:html}`.
 
-Components fall into three tiers by how much machinery they need.
+Components are grouped by how they handle behavior.
 
 :::table{cols="auto wrap"}
 
@@ -28,8 +28,6 @@ Components fall into three tiers by how much machinery they need.
 
 :::
 
-Native components use HTML and scoped CSS. Zag components add a state machine, while custom components handle the few interactions that do not fit one.
-
 ## Adding components
 
 When adding a component, choose the simplest tier that fits its behavior and keep its variants and state in data attributes. Most components only need a single Svelte file.
@@ -37,7 +35,7 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 :::steps
 1. **Create the component file**
 
-   Add a `kebab-case.svelte{:file}` file under `apps/web-new/src/lib/ui/{:dir}`. Give it a single `type Props = {...}{:ts}`, destructured with defaults. Boolean attributes are forwarded as `attr={value || undefined}{:svelte}` so they only appear when truthy.
+   Add a `kebab-case.svelte{:file}` file under `apps/web/src/lib/ui/{:dir}`. Give it a single `type Props = {...}{:ts}`, destructured with defaults. Boolean attributes are forwarded as `attr={value || undefined}{:svelte}` so they only appear when truthy.
 
 2. **Pick a tier**
 
@@ -55,7 +53,7 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 
    The reactive props passed to `useMachine{:ts}` **must** be a thunk, or controlled state silently freezes:
 
-   ```svelte showLineNumbers=false
+   ```ts showLineNumbers=false
    const service = useMachine(dialog.machine, () => ({ id, open }))
    const api = $derived(dialog.connect(service, normalizeProps))
    ```
@@ -64,7 +62,7 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 
 6. **Validate**
 
-   Run the Svelte MCP autofixer on the component, then `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web-new'</green> check` must be clean before committing.
+   Run the Svelte MCP autofixer on the component, then `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> check` must be clean before committing.
 
 :::
 

@@ -1,998 +1,866 @@
 <script lang="ts">
   import {
-    GoodAdminExternalAuthClientCreate,
-    GoodAdminExternalAuthClientDelete,
     GoodAdminSettingsUpdate,
     GoodFilesUploadV2,
+    Permissions,
     UpdateAdminSettingsRouteV2,
+    UploadFilesRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError, type InlineArgs } from '$lib/api'
-  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
+  import { apiRequest, showApiError } from '$lib/api'
+  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import MarkdownEditor from '$lib/components/markdown-editor.svelte'
+  import { IconCloud, IconTrash, IconWarningCircle, IconX } from '$lib/icons'
+  import { useAdminSettings } from '$lib/query/admin'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { useCurrentUser } from '$lib/query/user'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import Field from '$lib/ui/field.svelte'
+  import Input from '$lib/ui/input.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import StatusCard from '$lib/ui/status-card.svelte'
+  import { hasPermissions } from '$lib/utils/permissions'
+  import ExternalAuthClients from './external-auth-clients.svelte'
   import {
-    Button,
-    Card,
-    Dialog,
-    Field,
-    Input,
-    Markdown,
-    ScrollArea,
-    Section,
-    Spinner,
-    Tabs,
-    Textarea,
-  } from '$lib/components'
-  import { IconCloudUpload, IconCopy, IconPlus, IconTrashFilled, IconX } from '$lib/icons'
-  import {
-    queryKeys,
-    useAdminExternalAuthClients,
-    useAdminSettings,
-    useClientConfig,
-    useCreateExternalAuthClientMutation,
-    useDeleteExternalAuthClientMutation,
-    useUpdateSettingsMutation,
-    useUploadFilesMutation,
-  } from '$lib/query'
-  import { cn } from '$lib/utils'
-  import { toast } from 'svelte-sonner'
-
-  type SettingsPatch = InlineArgs<typeof UpdateAdminSettingsRouteV2>['data']
+    buildPatch,
+    clearDirty,
+    formatDatetimeLocal,
+    groupMatchesDefaults,
+    initialFormState,
+    parseDatetimeLocal,
+    resetGroup,
+    sponsorsReducer,
+    validateTiming,
+    type SettingsFormState,
+    type SponsorAction,
+  } from './settings-model'
 
   const queryClient = useQueryClient()
-  const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived(clientConfigQuery.data)
-  const settingsQuery = useAdminSettings()
-  const settings = $derived(settingsQuery.data)
-  const isPending = $derived(settingsQuery.isPending)
-  const mutation = useUpdateSettingsMutation()
-  const uploadMutation = useUploadFilesMutation()
+  const userQuery = useCurrentUser()
+  const user = $derived(userQuery.data)
+  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const canManageApps = $derived(hasPermissions(user, Permissions.usersWrite))
 
-  let logoLightInput: HTMLInputElement | null = $state(null)
-  let logoDarkInput: HTMLInputElement | null = $state(null)
+  const configQuery = useClientConfig()
+  const settingsQuery = useAdminSettings(() => canManageSettings)
 
-  function handleLogoUpload(file: File, target: 'light' | 'dark') {
-    uploadMutation.mutate(
-      { files: [file] },
-      {
-        onSuccess: res => {
-          if (res.kind === GoodFilesUploadV2.kind && res.data[0]) {
-            if (target === 'light') logoLightUrl = res.data[0].url
-            else logoDarkUrl = res.data[0].url
-            markOverridden('logo')
-          } else {
-            showApiError(res as any)
-          }
-        },
-        onError: () => toast.error('Failed to upload image.'),
-      }
-    )
-  }
+  const revealAfterLoading = settingsQuery.isPending
 
-  function handleLogoFileSelect(e: Event, target: 'light' | 'dark') {
-    const input = e.target as HTMLInputElement
-    const file = input.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file')
-      input.value = ''
-      return
-    }
-    handleLogoUpload(file, target)
-    input.value = ''
-  }
+  const ctfName = $derived(configQuery.data?.ctfName)
+  const defaults = $derived(settingsQuery.data?.defaults)
 
-  function formatDatetimeLocalValue(timestamp: number | null | undefined): string {
-    if (timestamp === null || timestamp === undefined) {
-      return ''
-    }
-
-    const date = new Date(timestamp)
-    if (Number.isNaN(date.getTime())) {
-      return ''
-    }
-
-    const pad = (value: number) => value.toString().padStart(2, '0')
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-  }
-
-  function parseDatetimeLocalValue(value: string): number | null {
-    if (!value) {
-      return null
-    }
-
-    const timestamp = new Date(value).getTime()
-    return Number.isNaN(timestamp) ? null : timestamp
-  }
-
-  let ctfName = $state('')
-  let startTime = $state<number | null>(null)
-  let endTime = $state<number | null>(null)
-  let faviconUrl = $state('')
-  let homeContent = $state('')
-  let metaDescription = $state('')
-  let metaImageUrl = $state('')
-  let logoLightUrl = $state('')
-  let logoDarkUrl = $state('')
-  let sponsors = $state<{ name: string; icon: string; description: string; url: string }[]>([])
-
-  let overrides = $state<Record<string, boolean>>({})
+  let form = $state<SettingsFormState | null>(null)
+  let sponsorSelected = $state(0)
   let initialized = $state(false)
+  let saving = $state(false)
+  let logoUploading = $state(false)
+  let logoInputs = $state<Record<'light' | 'dark', HTMLInputElement | null>>({
+    light: null,
+    dark: null,
+  })
+
+  const logoTargets = [
+    { key: 'light' as const, label: 'Light mode', fallback: wordmarkLight },
+    { key: 'dark' as const, label: 'Dark mode', fallback: wordmarkDark },
+  ]
 
   $effect(() => {
-    if (settings && !initialized) {
-      const o = settings.overrides
-      const d = settings.defaults
-
-      ctfName = o.ctfName ?? d.ctfName ?? ''
-      startTime = o.startTime ?? d.startTime ?? null
-      endTime = o.endTime ?? d.endTime ?? null
-      faviconUrl = o.faviconUrl ?? d.faviconUrl ?? ''
-      homeContent = o.homeContent ?? d.homeContent ?? ''
-      metaDescription = o.meta?.description ?? d.meta?.description ?? ''
-      metaImageUrl = o.meta?.imageUrl ?? d.meta?.imageUrl ?? ''
-      logoLightUrl = o.logoLightUrl ?? d.logoLightUrl ?? ''
-      logoDarkUrl = o.logoDarkUrl ?? d.logoDarkUrl ?? ''
-
-      const sponsorArr = o.sponsors ?? d.sponsors ?? []
-      sponsors = sponsorArr.map(s => ({
-        name: s.name,
-        icon: s.icon,
-        description: s.description,
-        url: s.url ?? '',
-      }))
-
-      overrides = {
-        ctfName: o.ctfName !== undefined,
-        timing: o.startTime !== undefined || o.endTime !== undefined,
-        faviconUrl: o.faviconUrl !== undefined,
-        homeContent: o.homeContent !== undefined,
-        meta: o.meta !== undefined,
-        logo: o.logoLightUrl !== undefined || o.logoDarkUrl !== undefined,
-        sponsors: o.sponsors !== undefined,
-      }
-
-      initialized = true
-    }
+    const data = settingsQuery.data
+    if (!data || initialized) return
+    form = initialFormState(data.overrides, data.defaults)
+    sponsorSelected = 0
+    initialized = true
   })
 
-  function resetField(field: string) {
-    if (!settings) return
-    const d = settings.defaults
-    switch (field) {
-      case 'ctfName':
-        ctfName = d.ctfName ?? ''
-        break
-      case 'timing':
-        startTime = d.startTime ?? null
-        endTime = d.endTime ?? null
-        break
-      case 'faviconUrl':
-        faviconUrl = d.faviconUrl ?? ''
-        break
-      case 'homeContent':
-        homeContent = d.homeContent ?? ''
-        break
-      case 'meta':
-        metaDescription = d.meta?.description ?? ''
-        metaImageUrl = d.meta?.imageUrl ?? ''
-        break
-      case 'logo':
-        logoLightUrl = d.logoLightUrl ?? ''
-        logoDarkUrl = d.logoDarkUrl ?? ''
-        break
-      case 'sponsors': {
-        const sponsorArr = d.sponsors ?? []
-        sponsors = sponsorArr.map(s => ({
-          name: s.name,
-          icon: s.icon,
-          description: s.description,
-          url: s.url ?? '',
-        }))
-        selectedSponsor = 0
-        break
-      }
-    }
-    overrides[field] = false
+  const timingError = $derived(
+    form && defaults
+      ? validateTiming(
+          form.timing.startTime,
+          form.timing.endTime,
+          !groupMatchesDefaults(form, 'timing', defaults)
+        )
+      : null
+  )
+  const selectedSponsor = $derived(form?.sponsors.list[sponsorSelected])
+
+  function markGroup(key: keyof SettingsFormState) {
+    if (!form) return
+    form[key].dirty = true
   }
 
-  function markOverridden(field: string) {
-    overrides[field] = true
+  function resetGeneral() {
+    if (!form || !defaults) return
+    form.ctfName = resetGroup(defaults, 'ctfName')
+    form.faviconUrl = resetGroup(defaults, 'faviconUrl')
   }
 
-  let selectedSponsor = $state(0)
-
-  $effect(() => {
-    if (selectedSponsor >= sponsors.length) selectedSponsor = Math.max(0, sponsors.length - 1)
-  })
-
-  function addSponsor() {
-    sponsors = [...sponsors, { name: '', icon: '', description: '', url: '' }]
-    selectedSponsor = sponsors.length - 1
-    markOverridden('sponsors')
+  function resetTiming() {
+    if (!form || !defaults) return
+    form.timing = resetGroup(defaults, 'timing')
   }
 
-  function removeSponsor(index: number) {
-    sponsors = sponsors.filter((_, i) => i !== index)
-    markOverridden('sponsors')
+  function resetLogo() {
+    if (!form || !defaults) return
+    form.logo = resetGroup(defaults, 'logo')
   }
 
-  // External apps (OAuth clients) are server-managed: create/delete hit the API directly
-  // and are not part of the settings "Save changes" patch.
-  const externalAuthQuery = useAdminExternalAuthClients()
-  const externalAuthClients = $derived(externalAuthQuery.data ?? [])
-  const createAppMutation = useCreateExternalAuthClientMutation()
-  const deleteAppMutation = useDeleteExternalAuthClientMutation()
-
-  let selectedAppId = $state<string | null>(null)
-  let creatingApp = $state(false)
-  let appName = $state('')
-  let appRedirectUri = $state('')
-  // The one-time secret to reveal in a dialog right after an app is created.
-  let secretDialog = $state<{ name: string; secret: string } | null>(null)
-  // The app pending deletion, confirmed in a dialog.
-  let deleteCandidate = $state<{ id: string; name: string } | null>(null)
-
-  const activeApp = $derived.by(() => {
-    if (creatingApp) return null
-    const byId = selectedAppId ? externalAuthClients.find(c => c.id === selectedAppId) : undefined
-    return byId ?? externalAuthClients[0] ?? null
-  })
-
-  const invalidateApps = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.adminExternalAuthClients })
-
-  function selectApp(id: string) {
-    selectedAppId = id
-    creatingApp = false
+  function resetHome() {
+    if (!form || !defaults) return
+    form.homeContent = resetGroup(defaults, 'homeContent')
   }
 
-  function startCreateApp() {
-    selectedAppId = null
-    creatingApp = true
-    appName = ''
-    appRedirectUri = ''
+  function resetMeta() {
+    if (!form || !defaults) return
+    form.meta = resetGroup(defaults, 'meta')
   }
 
-  function submitCreateApp(e: SubmitEvent) {
-    e.preventDefault()
-    const name = appName.trim()
-    const redirectUri = appRedirectUri.trim()
-    if (!name || !redirectUri) {
-      toast.error('Name and redirect URI are required.')
+  function resetSponsors() {
+    if (!form || !defaults) return
+    form.sponsors = resetGroup(defaults, 'sponsors')
+    sponsorSelected = 0
+  }
+
+  function dispatchSponsors(action: SponsorAction) {
+    if (!form) return
+    const next = sponsorsReducer({ list: form.sponsors.list, selected: sponsorSelected }, action)
+    form.sponsors.list = next.list
+    sponsorSelected = next.selected
+    if (action.type !== 'select') markGroup('sponsors')
+  }
+
+  async function uploadLogo(file: File, target: 'light' | 'dark') {
+    if (!form) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file.')
       return
     }
-    createAppMutation.mutate(
-      { name, redirectUri },
-      {
-        onSuccess: res => {
-          if (res.kind === GoodAdminExternalAuthClientCreate.kind) {
-            const { secret, ...client } = res.data
-            // Show the new app immediately, then reconcile with the server.
-            queryClient.setQueryData(
-              queryKeys.adminExternalAuthClients,
-              (old: typeof externalAuthClients | undefined) => [...(old ?? []), client]
-            )
-            invalidateApps()
-            selectedAppId = client.id
-            creatingApp = false
-            appName = ''
-            appRedirectUri = ''
-            secretDialog = { name: client.name, secret }
-          } else {
-            showApiError(res)
-          }
-        },
+    logoUploading = true
+    try {
+      const response = await apiRequest(UploadFilesRouteV2, { files: [file] })
+      if (response.kind === GoodFilesUploadV2.kind) {
+        const uploaded = response.data[0]
+        if (!uploaded) {
+          toast.error('Upload returned no file.')
+          return
+        }
+        if (target === 'light') form.logo.light = uploaded.url
+        else form.logo.dark = uploaded.url
+        markGroup('logo')
+      } else {
+        showApiError(response)
       }
+    } catch {
+      toast.error('Failed to upload image.')
+    } finally {
+      logoUploading = false
+    }
+  }
+
+  function onLogoFile(event: Event, target: 'light' | 'dark') {
+    const input = event.currentTarget as HTMLInputElement
+    const file = input.files?.[0]
+    input.value = ''
+    if (file) uploadLogo(file, target)
+  }
+
+  function removeLogo(target: 'light' | 'dark') {
+    if (!form) return
+    if (target === 'light') form.logo.light = ''
+    else form.logo.dark = ''
+    markGroup('logo')
+  }
+
+  async function save() {
+    if (!form || !defaults) return
+    const error = validateTiming(
+      form.timing.startTime,
+      form.timing.endTime,
+      !groupMatchesDefaults(form, 'timing', defaults)
     )
-  }
-
-  function confirmDeleteApp() {
-    const candidate = deleteCandidate
-    if (!candidate) return
-    deleteAppMutation.mutate(
-      { id: candidate.id },
-      {
-        onSuccess: res => {
-          if (res.kind === GoodAdminExternalAuthClientDelete.kind) {
-            toast.success('App deleted.')
-            if (selectedAppId === candidate.id) selectedAppId = null
-            deleteCandidate = null
-            invalidateApps()
-          } else {
-            showApiError(res)
-          }
-        },
-      }
-    )
-  }
-
-  function copyText(text: string, message: string) {
-    navigator.clipboard.writeText(text)
-    toast.success(message)
-  }
-
-  function formatAppDate(timestamp: string) {
-    return new Date(timestamp).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const isSaving = $derived(mutation.isPending)
-
-  async function handleSave() {
-    const patch: SettingsPatch = {}
-
-    if (overrides.ctfName) {
-      patch.ctfName = ctfName
-    } else if (settings?.overrides.ctfName !== undefined) {
-      patch.ctfName = null
+    if (error) {
+      toast.error(error)
+      return
     }
-
-    if (overrides.timing) {
-      if (startTime === null || endTime === null) {
-        toast.error('Start and end time are required.')
-        return
-      }
-      if (startTime >= endTime) {
-        toast.error('Start time must be before end time.')
-        return
-      }
-      patch.startTime = startTime
-      patch.endTime = endTime
-    } else {
-      if (settings?.overrides.startTime !== undefined) patch.startTime = null
-      if (settings?.overrides.endTime !== undefined) patch.endTime = null
-    }
-
-    if (overrides.faviconUrl) {
-      patch.faviconUrl = faviconUrl
-    } else if (settings?.overrides.faviconUrl !== undefined) {
-      patch.faviconUrl = null
-    }
-
-    if (overrides.homeContent) {
-      patch.homeContent = homeContent
-    } else if (settings?.overrides.homeContent !== undefined) {
-      patch.homeContent = null
-    }
-
-    if (overrides.meta) {
-      patch.meta = { description: metaDescription, imageUrl: metaImageUrl }
-    } else if (settings?.overrides.meta !== undefined) {
-      patch.meta = null
-    }
-
-    if (overrides.logo) {
-      patch.logoLightUrl = logoLightUrl
-      patch.logoDarkUrl = logoDarkUrl
-    } else {
-      if (settings?.overrides.logoLightUrl !== undefined) patch.logoLightUrl = null
-      if (settings?.overrides.logoDarkUrl !== undefined) patch.logoDarkUrl = null
-    }
-
-    if (overrides.sponsors) {
-      patch.sponsors = sponsors.map(s => ({
-        name: s.name,
-        icon: s.icon,
-        description: s.description,
-        ...(s.url ? { url: s.url } : {}),
-      }))
-    } else if (settings?.overrides.sponsors !== undefined) {
-      patch.sponsors = null
-    }
-
+    const patch = buildPatch(form, defaults)
     if (Object.keys(patch).length === 0) {
       toast.info('No changes to save.')
       return
     }
-
-    mutation.mutate(
-      { data: patch },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodAdminSettingsUpdate.kind) {
-            toast.success('Settings saved.')
-            queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
-          } else {
-            showApiError(response)
-          }
-        },
-        onError: () => {
-          toast.error('Failed to save settings.')
-        },
+    saving = true
+    try {
+      const response = await apiRequest(UpdateAdminSettingsRouteV2, { data: patch })
+      if (response.kind === GoodAdminSettingsUpdate.kind) {
+        toast.success('Settings saved.')
+        clearDirty(form)
+        queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
+      } else {
+        showApiError(response)
       }
-    )
+    } catch {
+      toast.error('Failed to save settings.')
+    } finally {
+      saving = false
+    }
   }
 </script>
 
 <svelte:head>
-  {#if clientConfig}
-    <title>Settings | {clientConfig.ctfName}</title>
+  {#if ctfName}
+    <title>Settings | {ctfName}</title>
   {/if}
 </svelte:head>
 
-{#snippet resetButton(field: string)}
-  {#if overrides[field]}
-    <button
-      class="text-foreground-l3 hover:text-foreground-l1 text-xs"
-      onclick={() => resetField(field)}
-    >
-      Reset to default
-    </button>
-  {/if}
+{#snippet groupHeader(title: string, onReset: () => void)}
+  <group-header>
+    <group-title>{title}</group-title>
+    <button type="button" data-reset onclick={onReset}>Reset to default</button>
+  </group-header>
 {/snippet}
 
-{#if settings && initialized}
-  <ScrollArea
-    class="h-[calc(100dvh-72px)]"
-    fadeSize={64}
-    fadeColor="background-l0"
-    fadeOffsets={{ bottom: 60 }}
-  >
-    <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-4 pb-24">
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>General</span>
-          {@render resetButton('ctfName')}
-        </Section.Header>
-        <Section.Content class="flex flex-col gap-3">
-          <Field.Field>
-            <Field.Label>CTF name</Field.Label>
-            <Input
-              value={ctfName}
-              oninput={e => {
-                ctfName = e.currentTarget.value
-                markOverridden('ctfName')
-              }}
-              placeholder={settings.defaults.ctfName}
-            />
-            {#if overrides.ctfName}
-              <Field.Hint>Config default: {settings.defaults.ctfName}</Field.Hint>
-            {/if}
-          </Field.Field>
+{#if canManageApps && !canManageSettings}
+  <settings-page>
+    <settings-form>
+      <ExternalAuthClients />
+    </settings-form>
+  </settings-page>
+{:else if !canManageSettings && user}
+  <settings-status>
+    <StatusCard
+      icon={IconWarningCircle}
+      title="Access denied"
+      subtitle="Your account does not have permission to manage settings."
+    >
+      <Button href="/admin/challenges">Back to admin</Button>
+    </StatusCard>
+  </settings-status>
+{:else if form && defaults}
+  {@const settingsDefaults = defaults}
+  {@const settingsForm = form}
+  <settings-page data-reveal={revealAfterLoading || undefined}>
+    <settings-form>
+      <settings-group>
+        {@render groupHeader('General', resetGeneral)}
+        <group-body>
+          <Field label="CTF name">
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                aria-describedby={describedBy}
+                value={settingsForm.ctfName.value}
+                placeholder={settingsDefaults.ctfName}
+                oninput={e => {
+                  settingsForm.ctfName.value = e.currentTarget.value
+                  markGroup('ctfName')
+                }}
+              />
+            {/snippet}
+          </Field>
+          <Field label="Favicon URL">
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                aria-describedby={describedBy}
+                value={settingsForm.faviconUrl.value}
+                placeholder={settingsDefaults.faviconUrl}
+                oninput={e => {
+                  settingsForm.faviconUrl.value = e.currentTarget.value
+                  markGroup('faviconUrl')
+                }}
+              />
+            {/snippet}
+          </Field>
+        </group-body>
+      </settings-group>
 
-          <Field.Field>
-            <Field.Label class="flex items-center justify-between">
-              Favicon URL
-              {@render resetButton('faviconUrl')}
-            </Field.Label>
-            <Input
-              value={faviconUrl}
-              oninput={e => {
-                faviconUrl = e.currentTarget.value
-                markOverridden('faviconUrl')
-              }}
-              placeholder={settings.defaults.faviconUrl}
-            />
-            {#if overrides.faviconUrl}
-              <Field.Hint>Config default: {settings.defaults.faviconUrl}</Field.Hint>
-            {/if}
-          </Field.Field>
-        </Section.Content>
-      </Section.Root>
+      <settings-group>
+        {@render groupHeader('Timing', resetTiming)}
+        <group-body>
+          <timing-grid>
+            <Field label="CTF start (local time)">
+              {#snippet children({ id, describedBy })}
+                <Input
+                  {id}
+                  aria-describedby={describedBy}
+                  type="datetime-local"
+                  value={formatDatetimeLocal(settingsForm.timing.startTime)}
+                  onchange={e => {
+                    settingsForm.timing.startTime = parseDatetimeLocal(e.currentTarget.value)
+                    markGroup('timing')
+                  }}
+                />
+              {/snippet}
+            </Field>
+            <Field label="CTF end (local time)">
+              {#snippet children({ id, describedBy })}
+                <Input
+                  {id}
+                  aria-describedby={describedBy}
+                  type="datetime-local"
+                  value={formatDatetimeLocal(settingsForm.timing.endTime)}
+                  onchange={e => {
+                    settingsForm.timing.endTime = parseDatetimeLocal(e.currentTarget.value)
+                    markGroup('timing')
+                  }}
+                />
+              {/snippet}
+            </Field>
+          </timing-grid>
+          {#if timingError}
+            <field-error role="alert">{timingError}</field-error>
+          {/if}
+        </group-body>
+      </settings-group>
 
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>Timing</span>
-          {@render resetButton('timing')}
-        </Section.Header>
-        <Section.Content class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field.Field>
-            <Field.Label>CTF start (local time)</Field.Label>
-            <Input
-              type="datetime-local"
-              value={formatDatetimeLocalValue(startTime)}
-              onchange={e => {
-                startTime = parseDatetimeLocalValue(e.currentTarget.value)
-                markOverridden('timing')
-              }}
-              placeholder={formatDatetimeLocalValue(settings.defaults.startTime)}
-            />
-            {#if overrides.timing}
-              <Field.Hint>
-                Config default: {formatDatetimeLocalValue(settings.defaults.startTime) || 'unset'}
-              </Field.Hint>
-            {/if}
-          </Field.Field>
-          <Field.Field>
-            <Field.Label>CTF end (local time)</Field.Label>
-            <Input
-              type="datetime-local"
-              value={formatDatetimeLocalValue(endTime)}
-              onchange={e => {
-                endTime = parseDatetimeLocalValue(e.currentTarget.value)
-                markOverridden('timing')
-              }}
-              placeholder={formatDatetimeLocalValue(settings.defaults.endTime)}
-            />
-            {#if overrides.timing}
-              <Field.Hint>
-                Config default: {formatDatetimeLocalValue(settings.defaults.endTime) || 'unset'}
-              </Field.Hint>
-            {/if}
-          </Field.Field>
-        </Section.Content>
-      </Section.Root>
-
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>Logo</span>
-          {@render resetButton('logo')}
-        </Section.Header>
-        <Section.Content class="flex flex-col gap-4">
-          <input
-            bind:this={logoLightInput}
-            type="file"
-            accept="image/*"
-            class="hidden"
-            onchange={e => handleLogoFileSelect(e, 'light')}
-          />
-          <input
-            bind:this={logoDarkInput}
-            type="file"
-            accept="image/*"
-            class="hidden"
-            onchange={e => handleLogoFileSelect(e, 'dark')}
-          />
-
-          {#each [{ label: 'Light mode', url: logoLightUrl, fallback: defaultWordmarkLight, bg: 'bg-[oklch(98%_0_0)]', inputRef: logoLightInput, target: 'light' as const }, { label: 'Dark mode', url: logoDarkUrl, fallback: defaultWordmarkDark, bg: 'bg-[oklch(15%_0_0)]', inputRef: logoDarkInput, target: 'dark' as const }] as item}
-            <Field.Field>
-              <Field.Label>{item.label}</Field.Label>
-              <div class="flex items-center gap-3">
-                <div class={cn('flex h-18 flex-1 items-center rounded-md border px-4', item.bg)}>
-                  <img
-                    src={item.url || item.fallback}
-                    alt="{item.label} logo"
-                    class="max-h-10 max-w-56"
+      <settings-group>
+        {@render groupHeader('Logo', resetLogo)}
+        <group-body>
+          {#each logoTargets as target (target.key)}
+            {@const url = settingsForm.logo[target.key]}
+            <logo-row>
+              <group-title>{target.label}</group-title>
+              <logo-controls>
+                <logo-preview data-mode={target.key}>
+                  <img src={url || target.fallback} alt="{target.label} logo" />
+                </logo-preview>
+                <logo-actions>
+                  <input
+                    bind:this={logoInputs[target.key]}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onchange={e => onLogoFile(e, target.key)}
                   />
-                </div>
-                <div class="flex shrink-0 gap-1.5">
                   <Button
                     size="sm"
-                    onclick={() => item.inputRef?.click()}
-                    disabled={uploadMutation.isPending}
+                    onclick={() => logoInputs[target.key]?.click()}
+                    disabled={logoUploading}
                   >
-                    <IconCloudUpload class="size-4" />
-                    {item.url ? 'Change' : 'Upload'}
+                    <IconCloud />
+                    {url ? 'Change' : 'Upload'}
                   </Button>
-                  {#if item.url}
+                  {#if url}
                     <Button
-                      variant="destructive"
                       size="sm"
-                      onclick={() => {
-                        if (item.target === 'light') logoLightUrl = ''
-                        else logoDarkUrl = ''
-                        markOverridden('logo')
-                      }}
+                      variant="destructive"
+                      aria-label="Remove {target.label} logo"
+                      onclick={() => removeLogo(target.key)}
+                      disabled={logoUploading}
                     >
-                      <IconTrashFilled class="size-4" />
+                      <IconTrash />
                     </Button>
                   {/if}
-                </div>
-              </div>
-            </Field.Field>
+                </logo-actions>
+              </logo-controls>
+            </logo-row>
           {/each}
-        </Section.Content>
-      </Section.Root>
+        </group-body>
+      </settings-group>
 
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>Home content</span>
-          {@render resetButton('homeContent')}
-        </Section.Header>
-        <Section.Content class="p-0">
-          <Tabs.Root value="edit">
-            <div class="flex items-center gap-2 px-4 pt-3">
-              <Tabs.List>
-                <Tabs.Trigger value="edit">Edit</Tabs.Trigger>
-                <Tabs.Trigger value="preview">Preview</Tabs.Trigger>
-              </Tabs.List>
-            </div>
-            <Tabs.Content value="edit" class="p-4">
-              <Textarea
-                class="font-mono text-sm"
-                value={homeContent}
+      <settings-group>
+        {@render groupHeader('Home content', resetHome)}
+        <group-body>
+          <MarkdownEditor
+            value={settingsForm.homeContent.value}
+            label="Home content"
+            placeholder="Markdown content for the home page..."
+            oninput={value => {
+              settingsForm.homeContent.value = value
+              markGroup('homeContent')
+            }}
+          />
+        </group-body>
+      </settings-group>
+
+      <settings-group>
+        {@render groupHeader('Open Graph', resetMeta)}
+        <group-body>
+          <Field label="OG Description">
+            {#snippet children({ id })}
+              <Input
+                {id}
+                value={settingsForm.meta.description}
+                placeholder={settingsDefaults.meta?.description}
                 oninput={e => {
-                  homeContent = e.currentTarget.value
-                  markOverridden('homeContent')
+                  settingsForm.meta.description = e.currentTarget.value
+                  markGroup('meta')
                 }}
-                rows={12}
-                placeholder="Markdown content for the home page..."
               />
-            </Tabs.Content>
-            <Tabs.Content value="preview" class="p-4">
-              <div class="min-h-32">
-                <Markdown content={homeContent} />
-              </div>
-            </Tabs.Content>
-          </Tabs.Root>
-        </Section.Content>
-      </Section.Root>
+            {/snippet}
+          </Field>
+          <Field label="OG Image URL">
+            {#snippet children({ id })}
+              <Input
+                {id}
+                value={settingsForm.meta.imageUrl}
+                placeholder={settingsDefaults.meta?.imageUrl}
+                oninput={e => {
+                  settingsForm.meta.imageUrl = e.currentTarget.value
+                  markGroup('meta')
+                }}
+              />
+            {/snippet}
+          </Field>
+        </group-body>
+      </settings-group>
 
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>Open Graph</span>
-          {@render resetButton('meta')}
-        </Section.Header>
-        <Section.Content class="flex flex-col gap-3">
-          <Field.Field>
-            <Field.Label>OG Description</Field.Label>
-            <Input
-              value={metaDescription}
-              oninput={e => {
-                metaDescription = e.currentTarget.value
-                markOverridden('meta')
-              }}
-              placeholder={settings.defaults.meta?.description}
-            />
-          </Field.Field>
-          <Field.Field>
-            <Field.Label>OG Image URL</Field.Label>
-            <Input
-              value={metaImageUrl}
-              oninput={e => {
-                metaImageUrl = e.currentTarget.value
-                markOverridden('meta')
-              }}
-              placeholder={settings.defaults.meta?.imageUrl}
-            />
-          </Field.Field>
-        </Section.Content>
-      </Section.Root>
-
-      <Section.Root class="bg-background-l1">
-        <Section.Header class="flex items-center justify-between">
-          <span>Sponsors</span>
-          {@render resetButton('sponsors')}
-        </Section.Header>
-        <Section.Content class="@container/panel p-0">
-          <div class="flex min-h-48 flex-col @md/panel:flex-row">
-            <div
-              class="flex w-full shrink-0 flex-col border-b-2 @md/panel:w-44 @md/panel:border-r-2 @md/panel:border-b-0"
-            >
-              <div
-                class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
-              >
-                {#if sponsors.length === 0}
-                  <p class="text-foreground-l4 px-2 py-1.5 text-sm">No sponsors</p>
+      <settings-group>
+        {@render groupHeader('Sponsors', resetSponsors)}
+        <group-body data-flush>
+          <sponsors-editor>
+            <sponsor-list>
+              <sponsor-items>
+                {#if settingsForm.sponsors.list.length === 0}
+                  <sponsor-empty>No sponsors</sponsor-empty>
                 {:else}
-                  {#each sponsors as sponsor, i (i)}
-                    {@const active = selectedSponsor === i}
-                    <div
-                      class={cn(
-                        'group flex max-w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-sm @md/panel:w-full @md/panel:gap-2',
-                        active
-                          ? 'bg-background-l4 text-foreground-l0'
-                          : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
-                      )}
-                      role="button"
-                      tabindex="0"
-                      onclick={() => (selectedSponsor = i)}
-                      onkeydown={e =>
-                        (e.key === 'Enter' || e.key === ' ') &&
-                        (e.preventDefault(), (selectedSponsor = i))}
-                    >
-                      <span class="truncate @md/panel:min-w-0 @md/panel:flex-1">
+                  {#each settingsForm.sponsors.list as sponsor, i (i)}
+                    <sponsor-item data-active={sponsorSelected === i ? '' : undefined}>
+                      <button
+                        type="button"
+                        data-select
+                        onclick={() => dispatchSponsors({ type: 'select', index: i })}
+                      >
                         {sponsor.name || `Sponsor ${i + 1}`}
-                      </span>
+                      </button>
                       <button
                         type="button"
-                        class={cn(
-                          'hover:bg-background-destructive hover:text-foreground-destructive shrink-0 rounded p-0.5',
-                          active
-                            ? 'opacity-100'
-                            : 'opacity-0 group-hover:opacity-100 @max-md/panel:opacity-100'
-                        )}
-                        onclick={e => (e.stopPropagation(), removeSponsor(i))}
+                        data-remove
+                        aria-label="Remove sponsor"
+                        onclick={() => dispatchSponsors({ type: 'remove', index: i })}
                       >
-                        <IconX class="size-3" />
+                        <IconX />
                       </button>
-                    </div>
+                    </sponsor-item>
                   {/each}
                 {/if}
-              </div>
-              <div class="shrink-0 border-t-2 p-2">
-                <Button size="sm" class="w-full" onclick={addSponsor}>
-                  <IconPlus class="size-4" />
-                  Add
-                </Button>
-              </div>
-            </div>
-            <div class="min-w-0 flex-1 p-4">
-              {#if sponsors[selectedSponsor] !== undefined}
-                {@const sponsor = sponsors[selectedSponsor]!}
-                <div class="flex flex-col gap-3">
-                  <Field.Field>
-                    <Field.Label>Name</Field.Label>
+              </sponsor-items>
+              <sponsor-footer>
+                <Button size="sm" onclick={() => dispatchSponsors({ type: 'add' })}>Add</Button>
+              </sponsor-footer>
+            </sponsor-list>
+            <sponsor-detail>
+              {#if selectedSponsor}
+                {@const sponsor = selectedSponsor}
+                <Field label="Name">
+                  {#snippet children({ id })}
                     <Input
+                      {id}
                       value={sponsor.name}
-                      oninput={e => {
-                        sponsor.name = e.currentTarget.value
-                        sponsors = sponsors
-                        markOverridden('sponsors')
-                      }}
                       placeholder="Sponsor name"
+                      oninput={e =>
+                        dispatchSponsors({
+                          type: 'update',
+                          index: sponsorSelected,
+                          field: 'name',
+                          value: e.currentTarget.value,
+                        })}
                     />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Icon URL</Field.Label>
+                  {/snippet}
+                </Field>
+                <Field label="Icon URL">
+                  {#snippet children({ id })}
                     <Input
+                      {id}
                       value={sponsor.icon}
-                      oninput={e => {
-                        sponsor.icon = e.currentTarget.value
-                        sponsors = sponsors
-                        markOverridden('sponsors')
-                      }}
                       placeholder="https://..."
+                      oninput={e =>
+                        dispatchSponsors({
+                          type: 'update',
+                          index: sponsorSelected,
+                          field: 'icon',
+                          value: e.currentTarget.value,
+                        })}
                     />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Description</Field.Label>
-                    <Textarea
-                      value={sponsor.description}
-                      oninput={e => {
-                        sponsor.description = e.currentTarget.value
-                        sponsors = sponsors
-                        markOverridden('sponsors')
-                      }}
-                      rows={3}
-                      placeholder="Sponsor description"
-                    />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>URL</Field.Label>
+                  {/snippet}
+                </Field>
+                <Field label="Description" description="Markdown supported.">
+                  <MarkdownEditor
+                    rows={4}
+                    value={sponsor.description}
+                    label="Sponsor description"
+                    placeholder="Sponsor description"
+                    oninput={value =>
+                      dispatchSponsors({
+                        type: 'update',
+                        index: sponsorSelected,
+                        field: 'description',
+                        value,
+                      })}
+                  />
+                </Field>
+                <Field label="URL">
+                  {#snippet children({ id })}
                     <Input
+                      {id}
                       value={sponsor.url}
-                      oninput={e => {
-                        sponsor.url = e.currentTarget.value
-                        sponsors = sponsors
-                        markOverridden('sponsors')
-                      }}
                       placeholder="https://..."
+                      oninput={e =>
+                        dispatchSponsors({
+                          type: 'update',
+                          index: sponsorSelected,
+                          field: 'url',
+                          value: e.currentTarget.value,
+                        })}
                     />
-                  </Field.Field>
-                </div>
+                  {/snippet}
+                </Field>
               {:else}
-                <div class="text-foreground-l4 flex h-full items-center justify-center text-sm">
-                  Add a sponsor to get started
-                </div>
+                <sponsor-placeholder>Add a sponsor to get started</sponsor-placeholder>
               {/if}
-            </div>
-          </div>
-        </Section.Content>
-      </Section.Root>
+            </sponsor-detail>
+          </sponsors-editor>
+        </group-body>
+      </settings-group>
 
-      <Section.Root class="bg-background-l1">
-        <Section.Header>External apps</Section.Header>
-        <Section.Content class="@container/panel p-0">
-          <div class="flex min-h-48 flex-col @md/panel:flex-row">
-            <div
-              class="flex w-full shrink-0 flex-col border-b-2 @md/panel:w-44 @md/panel:border-r-2 @md/panel:border-b-0"
-            >
-              <div
-                class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
-              >
-                {#if externalAuthQuery.isLoading}
-                  <div class="flex w-full justify-center p-4"><Spinner class="size-4" /></div>
-                {:else if externalAuthClients.length === 0}
-                  <p class="text-foreground-l4 px-2 py-1.5 text-sm">No apps</p>
-                {:else}
-                  {#each externalAuthClients as client (client.id)}
-                    {@const active = !creatingApp && activeApp?.id === client.id}
-                    <div
-                      class={cn(
-                        'group flex max-w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-sm @md/panel:w-full @md/panel:gap-2',
-                        active
-                          ? 'bg-background-l4 text-foreground-l0'
-                          : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
-                      )}
-                      role="button"
-                      tabindex="0"
-                      onclick={() => selectApp(client.id)}
-                      onkeydown={e =>
-                        (e.key === 'Enter' || e.key === ' ') &&
-                        (e.preventDefault(), selectApp(client.id))}
-                    >
-                      <span class="truncate @md/panel:min-w-0 @md/panel:flex-1">
-                        {client.name || 'Untitled app'}
-                      </span>
-                      <button
-                        type="button"
-                        class={cn(
-                          'hover:bg-background-destructive hover:text-foreground-destructive shrink-0 rounded p-0.5',
-                          active
-                            ? 'opacity-100'
-                            : 'opacity-0 group-hover:opacity-100 @max-md/panel:opacity-100'
-                        )}
-                        aria-label="Delete {client.name || 'app'}"
-                        onclick={e => (
-                          e.stopPropagation(),
-                          (deleteCandidate = { id: client.id, name: client.name })
-                        )}
-                      >
-                        <IconX class="size-3" />
-                      </button>
-                    </div>
-                  {/each}
-                {/if}
-              </div>
-              <div class="shrink-0 border-t-2 p-2">
-                <Button size="sm" class="w-full" onclick={startCreateApp}>
-                  <IconPlus class="size-4" />
-                  Add
-                </Button>
-              </div>
-            </div>
-            <div class="min-w-0 flex-1 p-4">
-              {#if creatingApp}
-                <form onsubmit={submitCreateApp} class="flex flex-col gap-3">
-                  <Field.Hint>
-                    The issued token grants full account access to the signing-in user. Only
-                    register services you trust.
-                  </Field.Hint>
-                  <Field.Field>
-                    <Field.Label for="external-app-name">App name</Field.Label>
-                    <Input
-                      id="external-app-name"
-                      bind:value={appName}
-                      placeholder="My Scoring Backend"
-                      required
-                      maxlength={100}
-                    />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label for="external-app-redirect">Redirect URI</Field.Label>
-                    <Input
-                      id="external-app-redirect"
-                      bind:value={appRedirectUri}
-                      placeholder="https://example.com/callback"
-                      required
-                      maxlength={1024}
-                    />
-                    <Field.Hint>Must match byte-for-byte at /authorize and /token.</Field.Hint>
-                  </Field.Field>
-                  <div class="flex justify-end gap-2">
-                    <Button type="button" variant="ghost" onclick={() => (creatingApp = false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createAppMutation.isPending}>
-                      {#if createAppMutation.isPending}<Spinner class="size-4" />{/if}
-                      Register
-                    </Button>
-                  </div>
-                </form>
-              {:else if activeApp}
-                {@const client = activeApp}
-                <div class="flex flex-col gap-4">
-                  <div class="flex flex-col">
-                    <span class="truncate">{client.name || 'Untitled app'}</span>
-                    <span class="text-foreground-l4 text-sm">
-                      Registered {formatAppDate(client.createdAt)}
-                    </span>
-                  </div>
+      {#if canManageApps}
+        <ExternalAuthClients />
+      {/if}
+    </settings-form>
 
-                  <Field.Field>
-                    <Field.Label>Client ID</Field.Label>
-                    <button
-                      type="button"
-                      onclick={() => copyText(client.id, 'Client ID copied.')}
-                      title="Click to copy"
-                      class="group bg-background-l2 hover:bg-background-l3 flex items-center justify-between gap-2 rounded-md px-2 py-2 text-left transition-colors"
-                    >
-                      <code class="truncate font-mono text-sm">{client.id}</code>
-                      <IconCopy
-                        class="text-foreground-l4 group-hover:text-foreground-l1 size-4 shrink-0 transition-colors"
-                      />
-                    </button>
-                  </Field.Field>
-
-                  <Field.Field>
-                    <Field.Label>Redirect URI</Field.Label>
-                    <code
-                      class="bg-background-l2 block rounded-md px-2 py-2 font-mono text-sm break-all"
-                    >
-                      {client.redirectUri}
-                    </code>
-                  </Field.Field>
-                </div>
-              {:else}
-                <div class="text-foreground-l4 flex h-full items-center justify-center text-sm">
-                  Add an app to get started
-                </div>
-              {/if}
-            </div>
-          </div>
-        </Section.Content>
-      </Section.Root>
-    </div>
-  </ScrollArea>
-
-  <div class="pointer-events-none fixed right-0 bottom-0 left-0 flex justify-center">
-    <div class="bg-background-l0 pointer-events-auto w-full max-w-3xl px-4 pt-2 pb-4">
-      <Button onclick={handleSave} disabled={isSaving} class="w-full">
-        {#if isSaving}
-          <Spinner class="size-4" />
-        {/if}
+    <save-bar>
+      <bar-fade aria-hidden="true"></bar-fade>
+      <Button onclick={save} disabled={saving}>
+        {#if saving}<Spinner />{/if}
         Save changes
       </Button>
-    </div>
-  </div>
-
-  <Dialog.Root open={!!secretDialog} onOpenChange={open => !open && (secretDialog = null)}>
-    <Dialog.Content class="sm:max-w-lg">
-      <Dialog.Header>
-        <Dialog.Title>App registered</Dialog.Title>
-        <Dialog.Description>
-          Copy the secret for "{secretDialog?.name}" now. It is shown only once and cannot be
-          retrieved later. If you lose it, delete the app and register a new one.
-        </Dialog.Description>
-      </Dialog.Header>
-      {#if secretDialog}
-        <div class="flex items-center gap-2">
-          <code
-            class="bg-background-l2 min-w-0 flex-1 truncate rounded-md border-2 p-2 font-mono text-sm"
-          >
-            {secretDialog.secret}
-          </code>
-          <Button
-            variant="outline"
-            class="shrink-0 border-2"
-            onclick={() => copyText(secretDialog!.secret, 'Secret copied.')}
-          >
-            <IconCopy class="size-4" />
-            Copy
-          </Button>
-        </div>
-      {/if}
-      <Dialog.Footer>
-        <Button onclick={() => (secretDialog = null)}>I have copied the secret</Button>
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog.Root>
-
-  <Dialog.Root open={!!deleteCandidate} onOpenChange={open => !open && (deleteCandidate = null)}>
-    <Dialog.Content class="sm:max-w-md">
-      <Dialog.Header>
-        <Dialog.Title>Delete external app</Dialog.Title>
-        <Dialog.Description>
-          Delete "{deleteCandidate?.name}"? Existing access tokens issued through this app stay
-          valid (they are regular rCTF auth tokens), but no new sign-ins will succeed.
-        </Dialog.Description>
-      </Dialog.Header>
-      <Dialog.Footer class="gap-2">
-        <Button variant="ghost" onclick={() => (deleteCandidate = null)}>Cancel</Button>
-        <Button
-          variant="destructive"
-          onclick={confirmDeleteApp}
-          disabled={deleteAppMutation.isPending}
-        >
-          {#if deleteAppMutation.isPending}<Spinner class="size-4" />{/if}
-          Delete app
-        </Button>
-      </Dialog.Footer>
-    </Dialog.Content>
-  </Dialog.Root>
-{:else if isPending}
-  <div class="flex flex-1 items-center justify-center">
-    <Spinner class="size-4" />
-  </div>
+    </save-bar>
+  </settings-page>
+{:else if settingsQuery.isError}
+  <settings-status>
+    <Card title="Settings">
+      <p>{settingsQuery.error?.message ?? 'Failed to load settings.'}</p>
+    </Card>
+  </settings-status>
 {:else}
-  <div class="flex flex-1 items-center justify-center p-4">
-    <div class="w-full max-w-md">
-      <Card.Root>
-        <Card.Header>
-          <Card.Title>Settings</Card.Title>
-        </Card.Header>
-        <Card.Content>
-          <p class="text-foreground-l3">
-            {settingsQuery.error?.message ?? 'Failed to load settings.'}
-          </p>
-        </Card.Content>
-      </Card.Root>
-    </div>
-  </div>
+  <settings-status>
+    <Spinner />
+  </settings-status>
 {/if}
+
+<style>
+  settings-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-l);
+
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
+
+    p {
+      margin: 0;
+      color: var(--foreground-l3);
+    }
+  }
+
+  settings-page {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 48rem;
+    margin-inline: auto;
+    padding-inline: var(--space-m);
+  }
+
+  settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  settings-group {
+    display: block;
+    overflow: clip;
+    background: var(--background-l1);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: 0.375rem var(--space-s);
+    background: var(--background-l3);
+  }
+
+  group-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    color: var(--foreground-l3);
+  }
+
+  button[data-reset] {
+    padding: 0;
+    font-size: var(--step--1);
+    color: var(--foreground-l4);
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground-l1);
+    }
+  }
+
+  group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: var(--space-s);
+
+    &[data-flush] {
+      padding: 0;
+    }
+  }
+
+  field-error {
+    display: block;
+    font-size: var(--step--1);
+    color: var(--foreground-destructive);
+  }
+
+  timing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-s);
+
+    @media (min-width: 32rem) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  logo-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+
+  logo-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+  }
+
+  logo-preview {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    block-size: 4.5rem;
+    padding-inline: var(--space-m);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+
+    &[data-mode='light'] {
+      background: oklch(98% 0 0);
+    }
+
+    &[data-mode='dark'] {
+      background: oklch(15% 0 0);
+    }
+
+    img {
+      max-block-size: 2.5rem;
+      max-inline-size: 14rem;
+    }
+  }
+
+  logo-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--space-2xs);
+  }
+
+  sponsors-editor {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 12rem;
+
+    @media (min-width: 40rem) {
+      flex-direction: row;
+    }
+  }
+
+  sponsor-list {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-block-end: 2px solid var(--border);
+
+    @media (min-width: 40rem) {
+      inline-size: 11rem;
+      border-block-end: none;
+      border-inline-end: 2px solid var(--border);
+    }
+  }
+
+  sponsor-items {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-3xs);
+    padding: var(--space-2xs);
+    overflow: hidden;
+
+    @media (min-width: 40rem) {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 2px;
+    }
+  }
+
+  sponsor-footer {
+    display: flex;
+    flex-shrink: 0;
+    padding: var(--space-2xs);
+    border-block-start: 2px solid var(--border);
+
+    :global(button) {
+      inline-size: 100%;
+    }
+  }
+
+  sponsor-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    max-inline-size: 100%;
+    border-radius: var(--radius-md);
+    color: var(--foreground-l4);
+
+    &:hover {
+      background: var(--background-l3);
+      color: var(--foreground-l0);
+    }
+
+    &[data-active] {
+      background: var(--background-l4);
+      color: var(--foreground-l0);
+    }
+
+    @media (min-width: 40rem) {
+      inline-size: 100%;
+    }
+
+    button[data-select] {
+      overflow: hidden;
+      flex: 1;
+      padding: 0.375rem var(--space-2xs);
+      color: inherit;
+      font-size: var(--step--1);
+      white-space: nowrap;
+      text-align: start;
+      text-overflow: ellipsis;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    button[data-remove] {
+      display: flex;
+      flex-shrink: 0;
+      margin-inline-end: var(--space-3xs);
+      padding: 0.125rem;
+      color: inherit;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      opacity: 0;
+
+      :global(svg) {
+        inline-size: 0.75rem;
+        block-size: 0.75rem;
+      }
+
+      &:hover {
+        color: var(--foreground-destructive);
+        background: var(--background-destructive);
+      }
+
+      &:focus-visible {
+        opacity: 1;
+      }
+    }
+
+    &:hover button[data-remove],
+    &[data-active] button[data-remove] {
+      opacity: 1;
+    }
+  }
+
+  sponsor-empty,
+  sponsor-placeholder {
+    display: block;
+    padding: 0.375rem var(--space-2xs);
+    font-size: var(--step--1);
+    color: var(--foreground-l4);
+  }
+
+  sponsor-placeholder {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    block-size: 100%;
+  }
+
+  sponsor-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-inline-size: 0;
+    flex: 1;
+    padding: var(--space-s);
+  }
+
+  save-bar {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+    display: flex;
+    padding-block: var(--space-s);
+    background: var(--background-l0);
+
+    :global(button) {
+      inline-size: 100%;
+    }
+  }
+
+  bar-fade {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 100%;
+    display: block;
+    block-size: 1.5rem;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--background-l0), transparent);
+    opacity: 0;
+
+    @supports (animation-timeline: scroll()) {
+      animation: bar-fade-out linear both;
+      animation-timeline: scroll(root);
+      animation-range: calc(100% - 1.5rem) 100%;
+    }
+  }
+
+  @keyframes bar-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+</style>

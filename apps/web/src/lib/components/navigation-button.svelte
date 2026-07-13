@@ -1,55 +1,68 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { cn } from '$lib/utils'
-  import type { Snippet } from 'svelte'
+  import type { Component } from 'svelte'
 
-  interface Props {
-    ref?: HTMLAnchorElement | HTMLButtonElement | null
+  type Props = {
     href?: string
     activePath?: string
-    icon: Snippet<[{ class: string }]>
-    class?: string
-    type?: 'button' | 'submit' | 'reset' | null | undefined
+    label: string
+    icon: Component
     [key: string]: unknown
   }
 
-  let {
-    ref = $bindable(null),
-    href,
-    activePath,
-    icon,
-    class: classNameProp,
-    type = 'button',
-    ...restProps
-  }: Props = $props()
+  let { href, activePath, label, icon: Icon, ...rest }: Props = $props()
 
-  const isActive = $derived.by(() => {
+  const active = $derived.by(() => {
     if (!activePath) return false
     if (activePath === '/') return page.url.pathname === '/'
     return page.url.pathname.startsWith(activePath)
   })
-
-  const className = $derived(
-    cn(
-      'flex items-center justify-center rounded-lg px-4 py-3 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-      isActive
-        ? 'bg-background-accent hover:bg-background-accent-hover'
-        : 'bg-background-l2 hover:bg-background-l3',
-      classNameProp
-    )
-  )
-
-  const iconClassName = $derived(
-    cn('size-6', isActive ? 'text-foreground-accent' : 'text-foreground-l2')
-  )
 </script>
 
 {#if href}
-  <a bind:this={ref} {href} class={className} {...restProps}>
-    {@render icon({ class: iconClassName })}
+  <a
+    {href}
+    aria-label={label}
+    aria-current={active ? 'page' : undefined}
+    data-active={active ? '' : undefined}
+    {...rest}
+  >
+    <Icon />
   </a>
 {:else}
-  <button bind:this={ref} {type} class={className} {...restProps}>
-    {@render icon({ class: iconClassName })}
+  <button type="button" aria-label={label} data-active={active ? '' : undefined} {...rest}>
+    <Icon />
   </button>
 {/if}
+
+<style>
+  a,
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    font-size: 1.5rem;
+    color: var(--foreground-l2);
+    background: var(--background-l2);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--background-l3);
+    }
+
+    &[data-active] {
+      color: var(--foreground-accent);
+      background: var(--background-accent);
+
+      &:hover {
+        background: var(--background-accent-hover);
+      }
+    }
+
+    :global(svg) {
+      flex-shrink: 0;
+    }
+  }
+</style>

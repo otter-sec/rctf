@@ -1,7 +1,7 @@
 import type { AdminBotProvider } from './base'
-import RctfJsProvider from './rctf-js'
+import RctfTsProvider from './rctf-ts'
 
 type AdminBotProviderConstructor = (options: any) => AdminBotProvider
 export const adminBotProviders: Record<string, AdminBotProviderConstructor> = {
-  'admin-bot/rctf-js': (options: any) => new RctfJsProvider(options),
+  'admin-bots/rctf-ts': (options: any) => new RctfTsProvider(options),
 }

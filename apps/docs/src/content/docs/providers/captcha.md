@@ -4,11 +4,11 @@ description: Configure captcha verification with reCAPTCHA, hCaptcha, or Cloudfl
 order: 1
 ---
 
-Captcha providers protect sensitive endpoints from automated abuse. rCTF supports three captcha services.
+rCTF can verify sensitive actions with reCAPTCHA, hCaptcha, or Cloudflare Turnstile.
 
 ## Configuration
 
-Captcha configuration has two parts: the provider (which service to use) and the protected endpoints (which actions require verification).
+Choose a provider, then list the actions that should require it.
 
 ```yaml
 captcha:
@@ -36,10 +36,10 @@ The `<red>protectedEndpoints</red>` array controls which actions require captcha
 | `<green>avatarUpload</green>`    | Uploading a team avatar                 |
 | `<green>adminBotSubmit</green>`  | Submitting a job to the admin bot       |
 
-Only the actions listed in `<red>protectedEndpoints</red>` will require captcha. Unlisted actions proceed without verification.
+Actions not listed in `<red>protectedEndpoints</red>` do not require captcha.
 
 :::note
-Captcha is not the only protection on email-sending endpoints. The `<green>register</green>` and `<green>recover</green>` actions are additionally [rate limited](/api#rate-limits) per client IP and per target email, regardless of captcha configuration.
+Registration and recovery remain [rate limited](/api#rate-limits) by client IP and destination email, even when captcha is enabled.
 :::
 
 ## Providers
@@ -59,8 +59,8 @@ captcha:
 
 | Option                 | Environment Variable             | Description          |
 | ---------------------- | -------------------------------- | -------------------- |
-| `<red>siteKey</red>`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
-| `<red>secretKey</red>` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_RECAPTCHA_SITE_KEY</yellow>`   | reCAPTCHA site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_RECAPTCHA_SECRET_KEY</yellow>` | reCAPTCHA secret key |
 
 :::
 :::tab[captcha/hcaptcha]
@@ -77,8 +77,8 @@ captcha:
 
 | Option                 | Environment Variable            | Description         |
 | ---------------------- | ------------------------------- | ------------------- |
-| `<red>siteKey</red>`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
-| `<red>secretKey</red>` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_HCAPTCHA_SITE_KEY</yellow>`   | hCaptcha site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_HCAPTCHA_SECRET_KEY</yellow>` | hCaptcha secret key |
 
 :::
 :::tab[captcha/turnstile]
@@ -95,15 +95,15 @@ captcha:
 
 | Option                 | Environment Variable             | Description          |
 | ---------------------- | -------------------------------- | -------------------- |
-| `<red>siteKey</red>`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
-| `<red>secretKey</red>` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
+| `<red>siteKey</red>`   | `<yellow>RCTF_TURNSTILE_SITE_KEY</yellow>`   | Turnstile site key   |
+| `<red>secretKey</red>` | `<yellow>RCTF_TURNSTILE_SECRET_KEY</yellow>` | Turnstile secret key |
 
 :::
 ::::
 
 ## Migrating from v1
 
-If you are using the legacy `<red>recaptcha</red>` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
+rCTF converts the v1 `<red>recaptcha</red>` block at startup, but new configuration should use the provider format:
 
 ::::tabs
 :::tab[v1 (deprecated)]

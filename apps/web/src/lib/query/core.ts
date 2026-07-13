@@ -1,13 +1,6 @@
-import {
-  BadNotStarted,
-  type AnyRouteDefinition,
-  type RouteResponse,
-} from '@rctf/types'
-import { createMutation, QueryClient } from '@tanstack/svelte-query'
-import { browser } from '$app/environment'
-import { apiRequest, type InlineArgs } from '$lib/api'
-
-export { QueryClientProvider } from '@tanstack/svelte-query'
+import { BadNotStarted } from '@rctf/types'
+import { QueryClient, type Query } from '@tanstack/svelte-query'
+import { queryKeys } from '$lib/query/keys'
 
 export class ApiError extends Error {
   constructor(
@@ -23,28 +16,45 @@ export class ApiError extends Error {
   }
 }
 
+export function unwrapData<
+  R extends { kind: string; message: string },
+  K extends R['kind'],
+>(
+  response: R,
+  good: { kind: K }
+): Extract<R, { kind: K }> extends { data: infer D } ? D : never {
+  if (response.kind !== good.kind) {
+    throw new ApiError(response.kind, response.message)
+  }
+  return (
+    response as unknown as {
+      data: Extract<R, { kind: K }> extends { data: infer D } ? D : never
+    }
+  ).data
+}
+
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        enabled: browser,
         staleTime: 1000 * 60,
-        retry: (failureCount, error) => {
-          if (error?.name === 'ApiError') {
-            return false
-          }
-          return failureCount < 3
-        },
+        retry: (failureCount, error) =>
+          error instanceof ApiError ? false : failureCount < 3,
       },
     },
   })
 }
 
-export function createApiMutation<TRoute extends AnyRouteDefinition>(
-  route: TRoute
-) {
-  return createMutation(() => ({
-    mutationFn: (args: InlineArgs<TRoute>) =>
-      apiRequest(route, args) as Promise<RouteResponse<TRoute>>,
-  }))
+function isSessionScoped(query: Query): boolean {
+  return query.queryKey[0] !== queryKeys.clientConfig[0]
+}
+
+export async function resetSessionQueries(
+  queryClient: QueryClient
+): Promise<void> {
+  queryClient.getMutationCache().clear()
+  await queryClient.resetQueries(
+    { predicate: isSessionScoped },
+    { cancelRefetch: true }
+  )
 }

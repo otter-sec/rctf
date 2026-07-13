@@ -1,27 +1,44 @@
 import {
-  IconBinaryTreeFilled,
-  IconBombFilled,
-  IconChessQueenFilled,
-  IconCloudComputingFilled,
-  IconCoinFilled,
-  IconDice6Filled,
-  IconEyeFilled,
-  IconFlagFilled,
-  IconKeyFilled,
-  IconMicroscopeFilled,
-  IconMoodHappyFilled,
-  IconPuzzleFilled,
-  type IconComponent,
+  IconBomb,
+  IconBoxingGlove,
+  IconCloud,
+  IconCrown,
+  IconDiceFive,
+  IconEye,
+  IconFingerprint,
+  IconFlagBanner,
+  IconGraph,
+  IconKey,
+  IconPiggyBank,
+  IconPuzzlePiece,
+  IconSmiley,
 } from '$lib/icons'
+import type { Component } from 'svelte'
+import type { SVGAttributes } from 'svelte/elements'
+
+export type IconComponent = Component<SVGAttributes<SVGSVGElement>>
+
+export type CategoryColor =
+  | 'crimson'
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'teal'
+  | 'sky'
+  | 'violet'
+  | 'plum'
+  | 'gray'
 
 export type CategoryConfig = {
   name: string
   icon: IconComponent
-  color: string
+  color: CategoryColor
 }
 
 export const categoryOrder = [
   'koth',
+  'ad',
   'sanity',
   'pwn',
   'reverse',
@@ -36,6 +53,7 @@ export const categoryOrder = [
 
 export const scoreboardCategoryOrder = [
   'koth',
+  'ad',
   'pwn',
   'reverse',
   'crypto',
@@ -57,64 +75,69 @@ export const categoryAliases: Record<string, string> = {
 export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
-    icon: IconMoodHappyFilled,
+    icon: IconSmiley,
     color: 'gray',
   },
   pwn: {
     name: 'Binary Exploitation',
-    icon: IconBombFilled,
+    icon: IconBomb,
     color: 'red',
   },
   reverse: {
     name: 'Reverse Engineering',
-    icon: IconPuzzleFilled,
+    icon: IconPuzzlePiece,
     color: 'orange',
   },
   crypto: {
     name: 'Cryptography',
-    icon: IconKeyFilled,
+    icon: IconKey,
     color: 'yellow',
   },
   forensics: {
     name: 'Forensics',
-    icon: IconMicroscopeFilled,
+    icon: IconFingerprint,
     color: 'green',
   },
   blockchain: {
     name: 'Blockchain',
-    icon: IconCoinFilled,
+    icon: IconPiggyBank,
     color: 'teal',
   },
   web: {
     name: 'Web',
-    icon: IconCloudComputingFilled,
-    color: 'blue',
+    icon: IconCloud,
+    color: 'sky',
   },
   misc: {
     name: 'Miscellaneous',
-    icon: IconDice6Filled,
-    color: 'purple',
+    icon: IconDiceFive,
+    color: 'violet',
   },
   ppc: {
     name: 'Professional Programming and Coding',
-    icon: IconBinaryTreeFilled,
-    color: 'fuchsia',
+    icon: IconGraph,
+    color: 'plum',
   },
   koth: {
     name: 'King of the Hill',
-    icon: IconChessQueenFilled,
-    color: 'pink',
+    icon: IconCrown,
+    color: 'plum',
+  },
+  ad: {
+    name: 'Attack-Defense',
+    icon: IconBoxingGlove,
+    color: 'crimson',
   },
   osint: {
     name: 'OSINT',
-    icon: IconEyeFilled,
+    icon: IconEye,
     color: 'gray',
   },
 }
 
 const defaultConfig: CategoryConfig = {
   name: '',
-  icon: IconFlagFilled,
+  icon: IconFlagBanner,
   color: 'gray',
 }
 
@@ -132,14 +155,25 @@ export function getCategoryConfig(category: string): CategoryConfig {
   return { ...defaultConfig, name: key }
 }
 
-export function getCategoryStyle(color: string): string {
-  return `--category-foreground-l0: var(--foreground-${color}-l0); --category-foreground-l1: var(--foreground-${color}-l1); --category-background-l0: var(--background-${color}-l0); --category-background-l1: var(--background-${color}-l1); --category-background-l1-hover: var(--background-${color}-l1-hover);`
-}
-
 export function getCategoryOrder(category: string): number {
   const key = getCategoryKeyOrAlias(category)
   const idx = categoryOrder.indexOf(key)
   return idx === -1 ? -1 : idx
+}
+
+export function compareCategories(a: string, b: string): number {
+  const orderA = getCategoryOrder(a)
+  const orderB = getCategoryOrder(b)
+  if (orderA === -1 && orderB === -1) {
+    return a.localeCompare(b)
+  }
+  if (orderA === -1) {
+    return 1
+  }
+  if (orderB === -1) {
+    return -1
+  }
+  return orderA - orderB
 }
 
 export function getScoreboardCategoryOrder(category: string): number {

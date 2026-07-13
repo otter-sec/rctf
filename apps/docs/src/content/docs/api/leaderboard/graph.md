@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Score graph"
-description: "<route>GET /api/[v2,v1]/leaderboard/graph</route>"
+title: "`<route>GET</route>` Score graph"
+description: "`<route>GET /api/[v2,v1]/leaderboard/graph</route>`"
 order: 3
 ---
 
@@ -45,7 +45,7 @@ order: 3
 
 Returns score graph data from the leaderboard cache.
 
-The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` controls how many teams are kept for graphing, and `leaderboard.graphSampleTime` controls sample cadence.
+The graph uses samples cached by the leaderboard worker. `leaderboard.graphMaxTeams` limits the number of teams in the graph, and `leaderboard.graphSampleTime` sets the interval between samples.
 
 ::::tabs{sync="leaderboard-graph-version"}
 

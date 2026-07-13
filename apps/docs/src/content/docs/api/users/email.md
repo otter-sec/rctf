@@ -1,6 +1,6 @@
 ---
-title: "<route>PUT</route> Set email auth"
-description: "<route>PUT /api/[v2,v1]/users/me/auth/email</route>"
+title: "`<route>PUT</route>` Set email auth"
+description: "`<route>PUT /api/[v2,v1]/users/me/auth/email</route>`"
 order: 5
 ---
 
@@ -44,11 +44,9 @@ order: 5
 
 ::route-meta{def="SetEmailRouteV2"}
 
-This route sets or changes the email address for the authenticated team.
+This route sets or changes the authenticated team's email. With an email provider configured, rCTF sends a verification message and returns `<response>200 goodVerifySent</response>`. Otherwise, it applies the change immediately and returns `<response>200 goodEmailSet</response>`.
 
-When email delivery is configured, the route sends a verification email and returns `<response>200 goodVerifySent</response>`. When email delivery is not configured, the email is updated immediately and the route returns `<response>200 goodEmailSet</response>`.
-
-Duplicate emails are not accepted. Email changes also need to keep the team inside its division ACL.
+The address must be unused and must still allow the team's current division under the division ACLs.
 
 ::::tabs{sync="users-email-version"}
 

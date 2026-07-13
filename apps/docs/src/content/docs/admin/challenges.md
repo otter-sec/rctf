@@ -4,13 +4,11 @@ description: Creating and managing challenges in rCTF.
 order: 1
 ---
 
-Challenges are managed through the admin panel at `/admin/challs`. This page covers the challenge data model, visibility controls, and related features.
+Create and manage challenges from `/admin/challs`.
 
 ## Creating and updating challenges
 
-Challenges are created and updated through the admin panel. Each challenge has a unique ID. Updating a challenge triggers an automatic leaderboard recalculation to reflect any point changes.
-
-Each challenge also picks a **scoring kind** (decay or dynamic). See [Scoring](/admin/scoring) for the full data model, including how to publish per-team scores to a dynamic challenge from an external service.
+Every challenge has a unique ID and uses either decay or dynamic scoring. Changes that affect points automatically recalculate the leaderboard. See [Scoring](/admin/scoring) for both models and the dynamic score API.
 
 ## Challenge visibility
 
@@ -19,15 +17,15 @@ Challenges support two visibility controls:
 - Setting **`<red>hidden</red>`** to **`true{:ts}`** completely hides the challenge from non-admin users.
 - Setting **`<red>releaseTime</red>`** to a Unix-millisecond timestamp makes the challenge visible only after that moment. Set it to `null{:ts}` to make the challenge visible immediately when the CTF starts.
 
-Use these to prepare challenges ahead of time and release them on schedule.
+Together, these fields let you upload a challenge early without showing it to participants.
 
 ## File attachments
 
-Challenge files are uploaded separately through the admin panel (see [Uploading](/admin/uploading)) and then referenced in the challenge data. Each file has a display name, URL, and size.
+Upload challenge files separately under [Uploading](/admin/uploading), then reference them from the challenge. Each file records its display name, URL, and size.
 
 ## Deleting challenges
 
-Challenges can be deleted through the admin panel. Deletion also removes all associated solves and triggers a leaderboard recalculation.
+Deleting a challenge also removes its solves and recalculates the leaderboard.
 
 :::warning
 Challenge deletion is irreversible and removes all solve records for that challenge.
@@ -38,4 +36,4 @@ Challenge deletion is irreversible and removes all solve records for that challe
 Challenges can optionally include extra configuration blocks:
 
 - **`<red>instancerConfig</red>`** holds the configuration for per-team instances. When set, it is validated against the instancer provider's schema. See [Instancer](/integrations/instancer) for details.
-- **`<red>adminBotConfig</red>`** holds JavaScript code for admin bot testing. The code defines inputs (with regex validation) and a timeout. The admin bot provider validates the configuration when saving. See [Admin bot](/integrations/admin-bot) for the handler API and the input schema.
+- **`<red>adminBotConfig</red>`** holds the trusted TypeScript handler for admin bot visits. The handler defines its inputs, validation, timeout, and browser behavior. See [Admin bot](/integrations/admin-bot) for the API.

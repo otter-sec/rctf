@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> List team members"
-description: "<route>GET /api/v1/users/me/members</route>"
+title: "`<route>GET</route>` List team members"
+description: "`<route>GET /api/v1/users/me/members</route>`"
 order: 9
 ---
 

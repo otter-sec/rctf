@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Own profile"
-description: "<route>GET /api/[v2,v1]/users/me</route>"
+title: "`<route>GET</route>` Own profile"
+description: "`<route>GET /api/[v2,v1]/users/me</route>`"
 order: 2
 ---
 

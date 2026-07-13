@@ -1,18 +1,12 @@
 <script lang="ts">
-  interface Props {
-    class?: string
-  }
+  import type { SVGAttributes } from 'svelte/elements'
 
-  let { class: className }: Props = $props()
+  type Props = SVGAttributes<SVGSVGElement>
+
+  let { ...rest }: Props = $props()
 </script>
 
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  width="1em"
-  height="1em"
-  viewBox="0 0 24 24"
-  class={className}
->
+<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...rest}>
   <path
     fill="none"
     stroke="currentColor"

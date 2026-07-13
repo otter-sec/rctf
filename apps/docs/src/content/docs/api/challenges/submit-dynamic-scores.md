@@ -1,15 +1,8 @@
 ---
-title: "<route>POST</route> Submit dynamic scores"
-description: "<route>POST /api/v2/challs/:id/scores</route>"
+title: "`<route>POST</route>` Submit dynamic scores"
+description: "`<route>POST /api/v2/challs/:id/scores</route>`"
 order: 4
 ---
-
-BadBody,
-  BadJson,
-  BadReplayedRequest,
-  BadSignature,
-  SubmitDynamicScoresRouteV2,
-} from '@rctf/types'
 
 :::aside
 
@@ -46,9 +39,7 @@ Publishes per-team scores for a `dynamic` challenge. The endpoint checks an HMAC
 
 :::warning[No event-timing gate]
 
-This route deliberately has neither `onlyWhenStarted` nor `onlyWhenNotFinished`. Backends can seed
-  scores before `startTime` and any deliveries that land after `endTime` are still applied to the
-  final tally. Cutting the feed off cleanly at end is the operator's job.
+This route accepts scores before `startTime` and after `endTime`. The scoring backend must stop sending updates when the event ends, or later requests will continue to change the final tally.
 
 :::
 
@@ -59,19 +50,19 @@ This route deliberately has neither `onlyWhenStarted` nor `onlyWhenNotFinished`.
 | `X-RCTF-Timestamp` | Unix milliseconds at signing time. Must be within a five-minute skew window of the server clock. |
 | `X-RCTF-Signature` | `sha256=` followed by the lowercase hex HMAC-SHA256 of `${timestamp}.${challenge_id}.${raw_body}` using the challenge's webhook `secret`. |
 
-Sign the raw request bytes, not the re-serialized JSON. Any difference between the signed bytes and the bytes on the wire (whitespace, key ordering, middleware re-serialization) will fail verification. The challenge ID in the signed string is the `:id` path parameter, so a signature is only valid for the challenge it was produced for.
+Sign the exact bytes sent in the request body. Changes to whitespace, key order, or serialization after signing will make the signature invalid. Include the `:id` path parameter in the signed value, which binds the signature to that challenge.
 
 Unknown challenge IDs, non-dynamic challenges, mismatched signatures, and timestamps outside the skew window all return the same `<response>401 badSignature</response>` so the endpoint can't be probed for which challenges accept a feed.
 
 rCTF also refuses to apply the same delivery twice. Each accepted signature is remembered for ten minutes, and re-sending the same signed bytes to the same challenge within that window returns `<response>409 badReplayedRequest</response>`, so a captured request can't be replayed against the scoreboard.
 
-Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. Because the challenge ID is part of the signed string, pushing the same payload to several challenges — even ones sharing a secret — means signing it once per challenge.
+Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request. It will either go through or return `<response>409 badReplayedRequest</response>`, confirming that the original attempt was accepted. Retry one attempt at a time, and sign a new request with a fresh timestamp whenever the scores change. Because the challenge ID is part of the signed string, the same payload must be signed separately for each challenge, even when several challenges share a secret.
 
 ::request-body{def="SubmitDynamicScoresRouteV2" source="params" title="Path parameters"}
 
 ::request-body{def="SubmitDynamicScoresRouteV2" title="Request body"}
 
-Each entry is an absolute setter for that team and challenge. A `<green>points</green>` value of `0` clears the team's score for the challenge, negative values are accepted, and teams omitted from the payload keep whatever score they already had. Entries for team IDs that don't exist are silently dropped - the response counts only reflect rows that actually landed.
+Each entry is an absolute setter for that team and challenge. A `<green>points</green>` value of `0` clears the team's score for the challenge, negative values are accepted, and teams omitted from the payload keep whatever score they already had. Entries for team IDs that don't exist are silently dropped. The response counts only reflect rows that were written.
 
 ::response-body{def="SubmitDynamicScoresRouteV2" response="goodDynamicScores" title="Response fields"}
 

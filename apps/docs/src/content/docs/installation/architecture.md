@@ -6,13 +6,13 @@ order: 3
 
 rCTF ships as a single container managed by `supervisord`. Inside the container, the Hono API server runs as a Bun process that also spawns the leaderboard worker as a Bun `Worker` thread. Alongside it, an nginx instance serves the SvelteKit static build and proxies `/api` and `/uploads` to the API.
 
-The container expects to sit behind a reverse proxy, with PostgreSQL and Redis running as external services. The bundled `compose.yml{:file}` wires those dependencies together for a single-node deployment.
+The container sits behind a reverse proxy and connects to PostgreSQL and Redis. The bundled `compose.yml{:file}` starts all three services for a single-server deployment.
 
-For deployment steps, see [Installation](/installation) and the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup). This page is a reference for the inner architecture.
+For deployment steps, see [Installation](/installation) and the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup). The sections below describe the production image itself.
 
 ## Container layout
 
-Paths inside the running container after the production stage finishes assembly:
+The production container has the following layout:
 
 :::file-tree
 - app/
@@ -47,9 +47,9 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 
 | Stage | Base | Role |
 | --- | --- | --- |
-| `build-base` | `oven/bun:1.3.14-alpine` (BUILDPLATFORM) | Build-platform scratch for cross-compile-friendly steps. |
-| `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Target-platform base reused by `prod-deps` and `production`. |
-| `package-configs` | `build-base` | Copies every workspace `package.json{:file}` plus `bun.lock{:file}` so dependency layers cache independently of source. |
+| `build-base` | `oven/bun:1.3.14-alpine` (BUILDPLATFORM) | Base for build steps that run on the build platform. |
+| `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Base for production dependencies and the final image. |
+| `package-configs` | `build-base` | Copies workspace manifests and `bun.lock{:file}` so source changes do not invalidate the dependency layer. |
 | `deps` | `build-base` | Full install (including devDependencies) for the API, web, and CLI workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, and the test workspaces. |
 | `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
 | `build-src` | `build-base` | Assembles the full sources plus dev `node_modules/{:dir}` as the shared base for the build stages. |
@@ -87,7 +87,7 @@ CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 | Program | Command | Role |
 | --- | --- | --- |
 | `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -144,7 +144,7 @@ server {
 
 ## Content Security Policy
 
-CSP is defined in `apps/web/svelte.config.ts{:file}` and applied by SvelteKit at build time. Because `apps/web/{:dir}` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">{:html}` tag in each rendered page, along with the auto-generated script hashes. nginx does not add a `Content-Security-Policy{:http}` header on its own.
+CSP is defined in `apps/web/svelte.config.ts{:file}` and applied during the SvelteKit build. The static adapter writes it into each page as a `<meta http-equiv="Content-Security-Policy">{:html}` tag with hashes for the generated scripts. nginx does not add a separate `Content-Security-Policy{:http}` header.
 
 ```ts title="apps/web/svelte.config.ts"
 csp: dev
@@ -172,7 +172,7 @@ The directives:
 | `form-action` | `<green>'self'</green>` |
 | `object-src` | `<green>'none'</green>` |
 
-The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime, so captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts{:file}` and rebuilding.
+The bundled build always includes every origin listed above, even when the corresponding provider is disabled. It cannot add new origins from configuration at runtime. To use self-hosted analytics, a custom S3-compatible service, or another frontend origin, update `apps/web/svelte.config.ts{:file}` and rebuild rCTF.
 
 :::warning[frame-ancestors]
 The CSP omits `frame-ancestors` because it is ignored from `<meta>{:html}` tags. Click-jacking protection is enforced via the nginx `X-Frame-Options: DENY{:http}` header instead.

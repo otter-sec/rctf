@@ -1,6 +1,6 @@
 ---
-title: "<route>DELETE</route> Remove a team member"
-description: "<route>DELETE /api/v1/users/me/members/:id</route>"
+title: "`<route>DELETE</route>` Remove a team member"
+description: "`<route>DELETE /api/v1/users/me/members/:id</route>`"
 order: 11
 ---
 

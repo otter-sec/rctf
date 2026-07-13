@@ -142,7 +142,8 @@ const title = asInline(titleLabel)
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        color: var(--muted-foreground);
+        color: var(--foreground);
+        opacity: 0.6;
       }
 
       > svg:last-of-type {
@@ -199,11 +200,12 @@ const title = asInline(titleLabel)
     gap: var(--space-3xs);
 
     a {
-      color: var(--muted-foreground);
+      color: var(--foreground);
+      opacity: 0.6;
 
       &:hover,
       &[data-active] {
-        color: var(--foreground);
+        opacity: 1;
       }
     }
 
@@ -254,7 +256,7 @@ const title = asInline(titleLabel)
       }
 
       details:not([open]):has(a[data-active]) summary a {
-        color: var(--foreground);
+        opacity: 1;
       }
     }
 

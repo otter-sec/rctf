@@ -1,10 +1,11 @@
 import type {
   AnyRouteDefinition,
+  ResponseDefinition,
   RouteErrorResponse,
   RouteSuccessResponse,
 } from '@rctf/types'
 import { apiRequest, type InlineArgs } from '$lib/api'
-import { prettifyError, type core } from 'zod/mini'
+import { flattenError, type core } from 'zod/mini'
 
 type FormErrors<T> = Partial<Record<keyof T | '_form', string>>
 
@@ -31,7 +32,7 @@ export function useApiForm<TRoute extends AnyRouteDefinition>(
   }
 
   function setData(values: Partial<Data>) {
-    data = { ...data, ...values }
+    Object.assign(data, values)
   }
 
   function clearErrors() {
@@ -40,11 +41,9 @@ export function useApiForm<TRoute extends AnyRouteDefinition>(
 
   function setError(field: keyof Data | '_form', message: string | null) {
     if (message) {
-      errors = { ...errors, [field]: message }
+      errors[field] = message
     } else {
-      const newErrors = { ...errors }
-      delete newErrors[field]
-      errors = newErrors
+      delete errors[field]
     }
   }
 
@@ -58,7 +57,7 @@ export function useApiForm<TRoute extends AnyRouteDefinition>(
     }
 
     const zodError = result.error as core.$ZodError
-    const fieldIssue = zodError.issues.find(issue => issue.path?.[0] === field)
+    const fieldIssue = zodError.issues.find(issue => issue.path[0] === field)
 
     if (fieldIssue) {
       setError(field, fieldIssue.message)
@@ -78,8 +77,22 @@ export function useApiForm<TRoute extends AnyRouteDefinition>(
       return true
     }
 
-    errors = { _form: prettifyError(result.error) } as FormErrors<Data>
+    const { formErrors, fieldErrors } = flattenError(
+      result.error as core.$ZodError<Data>
+    )
+    const nextErrors: FormErrors<Data> = {}
+    for (const [field, messages] of Object.entries(fieldErrors)) {
+      const first = (messages as string[] | undefined)?.[0]
+      if (first) nextErrors[field as keyof Data] = first
+    }
+    if (formErrors.length > 0) nextErrors._form = formErrors.join('\n')
+    errors = nextErrors
     return false
+  }
+
+  function isSuccessKind(kind: string): boolean {
+    const goodResponses: readonly ResponseDefinition[] = route.goodResponses
+    return goodResponses.some(definition => definition.kind === kind)
   }
 
   async function submit(e?: Event) {
@@ -96,7 +109,7 @@ export function useApiForm<TRoute extends AnyRouteDefinition>(
     try {
       const response = await apiRequest(route, data)
 
-      if (response.kind.startsWith('good')) {
+      if (isSuccessKind(response.kind)) {
         config.onSuccess?.(response as RouteSuccessResponse<TRoute>)
       } else {
         errors = { _form: response.message } as FormErrors<Data>

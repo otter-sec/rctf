@@ -18,11 +18,11 @@ externalAuthGroup.route(
       clientId: client.id,
     })
 
-    const sep = client.redirectUri.includes('?') ? '&' : '?'
-    const stateSuffix = body.state
-      ? `&state=${encodeURIComponent(body.state)}`
-      : ''
-    const redirectTo = `${client.redirectUri}${sep}code=${encodeURIComponent(code)}${stateSuffix}`
-    return res.goodExternalAuthAuthorize({ redirectTo })
+    const redirectTo = new URL(client.redirectUri)
+    redirectTo.searchParams.set('code', code)
+    if (body.state !== undefined) {
+      redirectTo.searchParams.set('state', body.state)
+    }
+    return res.goodExternalAuthAuthorize({ redirectTo: redirectTo.toString() })
   }
 )

@@ -1,77 +1,66 @@
 <script lang="ts">
-  import { ProtectedAction } from '@rctf/types'
-  import type { ClientConfig } from '@rctf/types'
-  import { cn, getCaptchaProvider, isCaptchaProtected } from '$lib/utils'
+  import type { ClientConfig, ProtectedAction } from '@rctf/types'
+  import { isCaptchaProtected } from '$lib/utils/captcha'
 
-  interface Props {
+  type Props = {
     config: ClientConfig | undefined | null
     action: ProtectedAction
-    class?: string
   }
 
-  let { config, action, class: className = '' }: Props = $props()
+  let { config, action }: Props = $props()
 
-  const provider = $derived(getCaptchaProvider(config))
-  const enabled = $derived(isCaptchaProtected(action, config))
+  const provider = $derived(config?.captcha?.provider)
 </script>
 
-{#if enabled && provider === 'captcha/recaptcha'}
-  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
-    This site is protected by reCAPTCHA. The Google
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://policies.google.com/privacy"
-      target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a
-    >
-    and
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://policies.google.com/terms"
-      target="_blank"
-      rel="noopener noreferrer">Terms of Service</a
-    >
-    apply.
-  </p>
-{:else if enabled && provider === 'captcha/hcaptcha'}
-  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
-    This site is protected by hCaptcha and its
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://www.hcaptcha.com/privacy"
-      target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a
-    >
-    and
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://www.hcaptcha.com/terms"
-      target="_blank"
-      rel="noopener noreferrer">Terms of Service</a
-    >
-    apply.
-  </p>
-{:else if enabled && provider === 'captcha/turnstile'}
-  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
-    This site is protected by Cloudflare Turnstile. The Cloudflare
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://www.cloudflare.com/privacypolicy/"
-      target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a
-    >
-    and
-    <a
-      class="text-foreground-prose-link hover:underline"
-      href="https://www.cloudflare.com/website-terms/"
-      target="_blank"
-      rel="noopener noreferrer">Terms of Service</a
-    >
-    apply.
-  </p>
-{:else if enabled && provider}
-  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
-    This site is protected by a captcha provider <code>{provider}</code>. No idea what are their
-    copyrights for this though.
-  </p>
+{#if isCaptchaProtected(action, config)}
+  <captcha-notice>
+    {#if provider === 'captcha/recaptcha'}
+      This site is protected by reCAPTCHA. The Google
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">
+        Privacy Policy
+      </a>
+      and
+      <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">
+        Terms of Service
+      </a>
+      apply.
+    {:else if provider === 'captcha/hcaptcha'}
+      This site is protected by hCaptcha and its
+      <a href="https://www.hcaptcha.com/privacy" target="_blank" rel="noopener noreferrer">
+        Privacy Policy
+      </a>
+      and
+      <a href="https://www.hcaptcha.com/terms" target="_blank" rel="noopener noreferrer">
+        Terms of Service
+      </a>
+      apply.
+    {:else if provider === 'captcha/turnstile'}
+      This site is protected by Cloudflare Turnstile. The Cloudflare
+      <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">
+        Privacy Policy
+      </a>
+      and
+      <a href="https://www.cloudflare.com/website-terms/" target="_blank" rel="noopener noreferrer">
+        Terms of Service
+      </a>
+      apply.
+    {:else}
+      This site is protected by a captcha provider {provider}. No idea what are their copyrights for
+      this though.
+    {/if}
+  </captcha-notice>
 {/if}
+
+<style>
+  captcha-notice {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--foreground-l4);
+    text-align: center;
+    text-wrap: balance;
+
+    a {
+      --underline: currentColor;
+    }
+  }
+</style>

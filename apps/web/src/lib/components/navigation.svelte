@@ -1,269 +1,339 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { goto } from '$app/navigation'
-  import { arrowNavigation } from '$lib/actions/arrow-navigation'
-  import { clearToken } from '$lib/api'
-  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
+  import { mergeProps } from '@zag-js/svelte'
+  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import NavigationButton from '$lib/components/navigation-button.svelte'
+  import NavigationCountdown from '$lib/components/navigation-countdown.svelte'
+  import NavigationMobile from '$lib/components/navigation-mobile.svelte'
+  import ThemeToggle from '$lib/components/theme-toggle.svelte'
   import {
-    Avatar,
-    DropdownMenu,
-    NavigationButton,
-    NavigationCountdown,
-    NavigationMobile,
-    ThemeToggle,
-    Tooltip,
-  } from '$lib/components'
-  import {
-    IconChartAreaLineFilled,
     IconCopy,
-    IconFlag3Filled,
+    IconFlagBannerFold,
     IconGavel,
-    IconHomeFilled,
-    IconLogin,
-    IconLogout,
-    IconSettingsFilled,
+    IconGear,
+    IconGlobeHemisphereWest,
+    IconHouse,
+    IconSignIn,
+    IconSignOut,
     IconTableFilled,
-    IconUserCog,
+    IconUserGear,
   } from '$lib/icons'
-  import { useClientConfig, useCurrentUser } from '$lib/query'
-  import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
-  import { mergeProps } from 'bits-ui'
-  import { toast } from 'svelte-sonner'
+  import { useClientConfig } from '$lib/query/config'
+  import { useCurrentUser } from '$lib/query/user'
+  import Avatar from '$lib/ui/avatar.svelte'
+  import Menu from '$lib/ui/menu.svelte'
+  import Tooltip from '$lib/ui/tooltip.svelte'
+  import { copyLoginUrl, logout } from '$lib/utils/auth'
+  import { countryCodeToFlagFilename } from '$lib/utils/flags'
+  import { ADMIN_PANEL_PERMISSIONS, hasAnyPermission, hasPermissions } from '$lib/utils/permissions'
+  import { createRovingFocus } from '$lib/utils/roving'
+
+  const rovingFocus = createRovingFocus()
 
   const queryClient = useQueryClient()
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
   const userQuery = useCurrentUser()
-  const clientConfigQuery = useClientConfig()
-  const user = $derived(userQuery.data ?? null)
-  const clientConfig = $derived(clientConfigQuery.data)
+  const user = $derived(userQuery.data)
+
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const wordmarkLight = $derived(clientConfig?.logoLightUrl || defaultWordmarkLight)
-  const wordmarkDark = $derived(clientConfig?.logoDarkUrl || defaultWordmarkDark)
+  const canReadChallenges = $derived(hasPermissions(user, Permissions.challsRead))
+  const canManageUsers = $derived(hasPermissions(user, Permissions.usersWrite))
+  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const isAdmin = $derived(hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS))
+
+  const lightLogo = $derived(clientConfig?.logoLightUrl || wordmarkLight)
+  const darkLogo = $derived(clientConfig?.logoDarkUrl || wordmarkDark)
 
   const divisionLabel = $derived(
     user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'
   )
 
-  const isAdmin = $derived(
-    user?.perms !== null && user?.perms !== undefined && (user.perms & Permissions.challsRead) !== 0
+  const adminMenuItems = $derived(
+    [
+      {
+        value: 'admin-challenges',
+        label: 'Manage challenges',
+        icon: IconFlagBannerFold,
+        href: '/admin/challenges',
+        show: canReadChallenges,
+      },
+      {
+        value: 'admin-teams',
+        label: 'Manage teams',
+        icon: IconUserGear,
+        href: '/admin/teams',
+        show: canManageUsers,
+      },
+      {
+        value: 'admin-submissions',
+        label: 'Submissions',
+        icon: IconTableFilled,
+        href: '/admin/submissions',
+        show: canReadChallenges && canManageUsers,
+      },
+      {
+        value: 'admin-settings',
+        label: 'Settings',
+        icon: IconGear,
+        href: '/admin/settings',
+        show: canManageSettings || canManageUsers,
+      },
+    ].filter(item => item.show)
   )
 
-  function handleLogout() {
-    clearToken()
-    queryClient.setQueryData(['user', 'self'], null)
-    goto('/login')
-  }
-
-  function copyLoginUrl() {
-    if (user?.teamToken) {
-      const url = `${window.location.origin}/login?token=${encodeURIComponent(user.teamToken)}`
-      navigator.clipboard.writeText(url)
-      toast.success('Login URL copied to clipboard!')
-    }
-  }
+  const userMenuItems = $derived([
+    {
+      value: 'copy-login-url',
+      label: 'Copy login URL',
+      icon: IconCopy,
+      onSelect: () => {
+        if (user?.teamToken) copyLoginUrl(user.teamToken)
+      },
+    },
+    { value: 'profile', label: 'Manage team', icon: IconUserGear, href: '/profile' },
+    { value: 'logout', label: 'Log out', icon: IconSignOut, onSelect: () => logout(queryClient) },
+  ])
 </script>
 
-<header
-  use:arrowNavigation
-  class="bg-background-l0 sticky top-0 z-50 flex items-center justify-between px-4 py-3 md:px-9"
->
-  <div class="flex items-center gap-4">
-    <a
-      href="/"
-      class="focus-visible:ring-ring/50 ring-offset-background-l0 flex shrink-0 items-center rounded-md ring-offset-6 outline-none focus-visible:ring-[3px]"
-    >
-      <img src={wordmarkLight} alt="Logo" class="block h-8 dark:hidden" />
-      <img src={wordmarkDark} alt="Logo" class="hidden h-8 dark:block" />
+<header>
+  <nav-start>
+    <a href="/" aria-label="Home">
+      <logo-light><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light>
+      <logo-dark><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark>
     </a>
-
-    <nav class="hidden items-center gap-2 md:flex">
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <NavigationButton {...props} href="/" activePath="/" aria-label="Home">
-              {#snippet icon({ class: className })}
-                <IconHomeFilled class={className} />
-              {/snippet}
-            </NavigationButton>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>Home</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <NavigationButton
-              {...props}
-              href="/challenges"
-              activePath="/challenges"
-              aria-label="Challenges"
-            >
-              {#snippet icon({ class: className })}
-                <IconFlag3Filled class={className} />
-              {/snippet}
-            </NavigationButton>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>Challenges</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <NavigationButton
-              {...props}
-              href="/scores"
-              activePath="/scores"
-              aria-label="Scoreboard"
-            >
-              {#snippet icon({ class: className })}
-                <IconChartAreaLineFilled class={className} />
-              {/snippet}
-            </NavigationButton>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
-      </Tooltip.Root>
+    <nav aria-label="Main" {@attach rovingFocus}>
+      <Tooltip label="Home">
+        {#snippet children({ props })}
+          <NavigationButton
+            {...props}
+            data-roving
+            href="/"
+            activePath="/"
+            label="Home"
+            icon={IconHouse}
+          />
+        {/snippet}
+      </Tooltip>
+      <Tooltip label="Challenges">
+        {#snippet children({ props })}
+          <NavigationButton
+            {...props}
+            data-roving
+            href="/challenges"
+            activePath="/challenges"
+            label="Challenges"
+            icon={IconFlagBannerFold}
+          />
+        {/snippet}
+      </Tooltip>
+      <Tooltip label="Scoreboard">
+        {#snippet children({ props })}
+          <NavigationButton
+            {...props}
+            data-roving
+            href="/scores"
+            activePath="/scores"
+            label="Scoreboard"
+            icon={IconGlobeHemisphereWest}
+          />
+        {/snippet}
+      </Tooltip>
       {#if isAdmin}
-        <Tooltip.Root>
-          <DropdownMenu.Root>
-            <Tooltip.Trigger>
-              {#snippet child({ props: tooltipProps })}
-                <DropdownMenu.Trigger>
-                  {#snippet child({ props: dropdownProps })}
-                    {@const triggerProps = mergeProps(dropdownProps, tooltipProps)}
-                    <NavigationButton {...triggerProps} activePath="/admin" aria-label="Admin menu">
-                      {#snippet icon({ class: className })}
-                        <IconGavel class={className} />
-                      {/snippet}
-                    </NavigationButton>
-                  {/snippet}
-                </DropdownMenu.Trigger>
+        <Tooltip label="Admin">
+          {#snippet children({ props: tooltipProps })}
+            <Menu label="Admin menu" items={adminMenuItems}>
+              {#snippet trigger({ props: menuProps })}
+                <NavigationButton
+                  {...mergeProps(tooltipProps, menuProps)}
+                  data-roving
+                  activePath="/admin"
+                  label="Admin menu"
+                  icon={IconGavel}
+                />
               {/snippet}
-            </Tooltip.Trigger>
-            <DropdownMenu.Content
-              align="start"
-              class="bg-background-l4 border-background-l5 w-48 border-2"
-            >
-              <DropdownMenu.Item
-                class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/challenges')}
-              >
-                <IconFlag3Filled class="size-5" />
-                Manage challenges
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/teams')}
-              >
-                <IconUserCog class="size-5" />
-                Manage teams
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/submissions')}
-              >
-                <IconTableFilled class="size-5" />
-                Submissions
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/settings')}
-              >
-                <IconSettingsFilled class="size-5" />
-                Settings
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
-          <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
-        </Tooltip.Root>
+            </Menu>
+          {/snippet}
+        </Tooltip>
       {/if}
     </nav>
-  </div>
+  </nav-start>
 
-  <div class="hidden items-center gap-2 md:flex">
+  <nav-end>
     <NavigationCountdown />
     {#if user && !isArchived}
+      {@const currentUser = user}
       {#await import('$lib/components/navigation-team-stats.svelte') then { default: NavigationTeamStats }}
         <NavigationTeamStats />
       {/await}
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger
-          class="hover:bg-background-l2 focus-visible:ring-ring/50 flex cursor-pointer items-center gap-3 rounded-lg pl-2 outline-none focus-visible:ring-[3px]"
-        >
-          <div class="flex flex-col items-end">
-            <span class="text-foreground-l0 max-w-64 truncate text-lg leading-tight">
-              {user.name}
-            </span>
-            <div class="flex items-center gap-1">
-              {#if user.countryCode}
-                {@const flagFilename = countryCodeToFlagFilename(user.countryCode)}
-                <img
-                  src="/flags/{flagFilename}"
-                  alt="{user.countryCode} flag"
-                  class="h-5 w-auto shrink-0"
-                />
-              {/if}
-              {#if user.countryCode && user.statusText}
-                <span class="text-foreground-l3 text-xl leading-none">·</span>
-              {/if}
-              {#if user.statusText}
-                <span class="text-foreground-l3 max-w-32 truncate text-base">{user.statusText}</span
-                >
-              {:else if !user.countryCode}
-                <span class="text-foreground-l3 text-base">{divisionLabel}</span>
-              {/if}
-            </div>
-          </div>
-
-          {#key user.avatarUrl}
-            <Avatar.Root class="size-12 rounded-lg">
-              {#if user.avatarUrl}
-                <Avatar.Image src={user.avatarUrl} alt={user.name} class="rounded-lg" />
-              {/if}
-              <Avatar.Fallback class="rounded-lg text-sm">
-                {getInitials(user.name)}
-              </Avatar.Fallback>
-            </Avatar.Root>
-          {/key}
-        </DropdownMenu.Trigger>
-
-        <DropdownMenu.Content align="end" class="bg-background-l4 w-56">
-          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={copyLoginUrl}>
-            Copy login URL
-            <IconCopy class="ml-auto size-5" />
-          </DropdownMenu.Item>
-          <DropdownMenu.Item
-            class="data-highlighted:bg-background-l5"
-            onclick={() => goto('/profile')}
-          >
-            Manage team
-            <IconUserCog class="ml-auto size-5" />
-          </DropdownMenu.Item>
-          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={handleLogout}>
-            Log out
-            <IconLogout class="ml-auto size-5" />
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+      <Menu label="Account" items={userMenuItems} placement="bottom-end">
+        {#snippet trigger({ props })}
+          <button {...props}>
+            <user-details>
+              <user-name>{currentUser.name}</user-name>
+              <user-meta>
+                {#if currentUser.countryCode}
+                  <img
+                    src="/flags/{countryCodeToFlagFilename(currentUser.countryCode)}"
+                    alt="{currentUser.countryCode} flag"
+                  />
+                {/if}
+                {#if currentUser.countryCode && currentUser.statusText}
+                  <meta-separator>·</meta-separator>
+                {/if}
+                {#if currentUser.statusText}
+                  <user-status>{currentUser.statusText}</user-status>
+                {:else if !currentUser.countryCode}
+                  <user-status>{divisionLabel}</user-status>
+                {/if}
+              </user-meta>
+            </user-details>
+            <Avatar src={currentUser.avatarUrl} name={currentUser.name} />
+          </button>
+        {/snippet}
+      </Menu>
     {:else if !isArchived}
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          {#snippet child({ props })}
-            <NavigationButton {...props} href="/login" aria-label="Login">
-              {#snippet icon({ class: className })}
-                <IconLogin class={className} />
-              {/snippet}
-            </NavigationButton>
-          {/snippet}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>Login</Tooltip.Content>
-      </Tooltip.Root>
+      <Tooltip label="Login">
+        {#snippet children({ props })}
+          <NavigationButton {...props} href="/login" label="Login" icon={IconSignIn} />
+        {/snippet}
+      </Tooltip>
     {/if}
     <ThemeToggle />
-  </div>
+  </nav-end>
 
-  <div class="md:hidden">
-    <NavigationMobile />
-  </div>
+  <NavigationMobile />
 </header>
+
+<style>
+  header {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: var(--layer-nav);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    block-size: var(--header-height);
+    padding: 0.75rem 1rem;
+    background: var(--background-l0);
+
+    @media (width >= 48rem) {
+      padding-inline: 2.25rem;
+    }
+  }
+
+  nav-start {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+
+    > a img {
+      display: block;
+      block-size: 2rem;
+    }
+  }
+
+  logo-light,
+  logo-dark {
+    display: contents;
+  }
+
+  logo-light {
+    :global(:root[data-theme='dark']) & {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
+    }
+  }
+
+  logo-dark {
+    :global(:root[data-theme='light']) & {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :global(:root:not([data-theme])) & {
+        display: none;
+      }
+    }
+  }
+
+  nav,
+  nav-end {
+    display: none;
+    align-items: center;
+    gap: var(--space-2xs);
+
+    @media (width >= 48rem) {
+      display: flex;
+    }
+  }
+
+  [data-scope='menu'][data-part='trigger'] {
+    --avatar-size: 3rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-inline-start: 0.5rem;
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+
+    &:hover {
+      background: var(--background-l2);
+    }
+  }
+
+  user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+  }
+
+  user-name {
+    display: block;
+    max-inline-size: 16rem;
+    overflow: hidden;
+    font-size: 1.125rem;
+    line-height: 1.25;
+    color: var(--foreground-l0);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  user-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+
+    img {
+      block-size: 1.25rem;
+      inline-size: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  meta-separator {
+    display: block;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--foreground-l3);
+  }
+
+  user-status {
+    display: block;
+    max-inline-size: 8rem;
+    overflow: hidden;
+    font-size: 1rem;
+    color: var(--foreground-l3);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

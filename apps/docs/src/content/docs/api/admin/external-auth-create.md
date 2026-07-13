@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Create external-auth client"
-description: "<route>POST /api/v2/admin/external-auth/clients</route>"
+title: "`<route>POST</route>` Create external-auth client"
+description: "`<route>POST /api/v2/admin/external-auth/clients</route>`"
 order: 29
 ---
 

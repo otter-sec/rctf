@@ -4,9 +4,9 @@ description: Deploy the rCTF Docker instancer with the bundled Compose stack and
 order: 1
 ---
 
-The Docker instancer is a Python FastAPI service that manages Docker containers, networks, volumes, Redis instance locks, Redis expirations, and Traefik labels. It's the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
+The Docker instancer runs per-team challenge services on a standalone Docker host. It creates the containers, networks, volumes, expiration records, and Traefik routes needed for each instance. The bundled Compose deployment includes everything required to run it.
 
-For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/integrations/instancer).
+For the participant controls, common `<red>instancerConfig</red>` fields, and available endpoint types, see [Instancer](/integrations/instancer).
 
 ## Deployment
 
@@ -34,7 +34,7 @@ ports:
   - '12237:1337'
 ```
 
-The API is authenticated by a shared `<red>AUTH_TOKEN</red>`, but the endpoint shouldn't be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
+The API is authenticated by a shared `<yellow>AUTH_TOKEN</yellow>`, but the endpoint shouldn't be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
 :::
 
 The environment file requires shared auth, Redis, and public instance host settings:
@@ -57,7 +57,7 @@ TRAEFIK_PERMANENT_REDIRECT_MIDDLEWARE_NAME=permanent-https-redirect@file
 
 The Docker instancer stack starts from the repository root:
 
-```console
+```ansi
 $ <red>docker</red> compose <dim>-f</dim> deploy/docker-instancer/compose.yml up <dim>-d</dim>
 ```
 
@@ -66,7 +66,7 @@ The same token belongs in rCTF:
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://tiny-instancer:1337
       authToken: <shared-secret>
@@ -77,7 +77,7 @@ When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL 
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://127.0.0.1:12237
       authToken: <shared-secret>
@@ -93,15 +93,15 @@ Traefik terminates TLS for every `<green>https</green>` and `<green>tcp-ssl</gre
       - privkey.pem Private key
 :::
 
-Instance hostnames are one label deep, so the single-level wildcard is enough; you don't need to enumerate `<hostPrefix>` values. Generate the cert with any ACME client that supports a DNS-01 challenge (wildcards can't use HTTP-01). With Certbot:
+Instance hostnames are one label deep, so a single-level wildcard covers every `<hostPrefix>`. Generate the certificate with an ACME client that supports DNS-01, since wildcard certificates cannot use HTTP-01. With Certbot:
 
-```console
+```ansi
 $ <red>certbot</red> certonly <dim>--manual</dim> <dim>--preferred-challenges</dim> dns <dim>-d</dim> <green>'*.instancer.example.com'</green>
 ```
 
 Copy the issued files into the mount, matching the names Traefik expects:
 
-```console
+```ansi
 $ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/fullchain.pem deploy/docker-instancer/certs/fullchain.pem
 $ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/privkey.pem deploy/docker-instancer/certs/privkey.pem
 ```
@@ -183,4 +183,6 @@ Services may only reference networks declared under `<red>config.networks</red>`
 
 ### Network isolation
 
-Challenge workloads are untrusted, so a container is never attached to Docker's shared default bridge unless you ask for it. A service with no `<red>networks</red>`, no `<red>expose</red>`, and no `<red>network_mode</red>` runs detached (`<red>network_mode: none</red>`) rather than on the default bridge. That's what the default config does. When a challenge's services need to talk to each other, declare an internal user-defined network (`<red>internal: true</red>`, as in the example above) and list it under each service's `<red>networks</red>`. That network keeps them off the host and the internet while still connecting them. Set a service's `<red>network_mode</red>` to `<red>bridge</red>` only when you want it on the host's default bridge.
+Services do not join Docker's shared default bridge unless configured to do so. With no `<red>networks</red>`, `<red>expose</red>`, or `<red>network_mode</red>`, a service gets `<red>network_mode: none</red>`.
+
+When several challenge services need to communicate, declare a user-defined network with `<red>internal: true</red>` and attach each service to it. They can then reach one another without reaching the host or internet. Use `<red>network_mode: bridge</red>` only when the service specifically needs Docker's default bridge.

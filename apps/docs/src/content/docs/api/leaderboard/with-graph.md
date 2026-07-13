@@ -1,6 +1,6 @@
 ---
-title: "<route>GET</route> Standings with graph"
-description: "<route>GET /api/v2/leaderboard/with-graph</route>"
+title: "`<route>GET</route>` Standings with graph"
+description: "`<route>GET /api/v2/leaderboard/with-graph</route>`"
 order: 2
 ---
 

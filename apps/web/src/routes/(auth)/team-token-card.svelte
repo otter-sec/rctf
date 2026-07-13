@@ -1,72 +1,100 @@
 <script lang="ts">
-  import { Button, Card } from '$lib/components'
-  import { IconCopy, IconLogin } from '$lib/icons'
-  import { toast } from 'svelte-sonner'
+  import { IconCopy, IconSignIn } from '$lib/icons'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import { copyText } from '$lib/utils/clipboard'
 
-  interface Props {
+  type Props = {
     teamToken: string
     loginUrl: string
   }
 
   let { teamToken, loginUrl }: Props = $props()
-
-  async function copyToken() {
-    try {
-      await navigator.clipboard.writeText(teamToken)
-      toast.success('Team token copied to clipboard')
-    } catch {
-      toast.error('Failed to copy team token')
-    }
-  }
-
-  async function copyLoginUrl() {
-    try {
-      await navigator.clipboard.writeText(loginUrl)
-      toast.success('Login URL copied to clipboard')
-    } catch {
-      toast.error('Failed to copy login URL')
-    }
-  }
 </script>
 
-<Card.Root>
-  <Card.Header>
-    <Card.Title class="text-xl">Save your team token</Card.Title>
-    <Card.Description>You will need this token to log in again.</Card.Description>
-  </Card.Header>
-  <Card.Content class="flex flex-col gap-4">
-    <div class="bg-background-l2 min-w-0 rounded-md p-3 pt-1">
-      <div class="mb-2 flex items-center justify-between gap-2">
-        <div class="text-foreground-l3 text-sm">Team token</div>
-        <Button variant="ghost" size="sm" onclick={copyToken} aria-label="Copy team token">
-          <IconCopy class="size-4" />
+<Card title="Save your team token" description="You will need this token to log in again.">
+  <team-token-card>
+    <token-box>
+      <box-header>
+        <span>Team token</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="Copy team token"
+          onclick={() =>
+            copyText(teamToken, 'Team token copied to clipboard', 'Failed to copy team token')}
+        >
+          <IconCopy />
           Copy
         </Button>
-      </div>
-      <code class="text-foreground-l1 block font-mono text-sm break-all select-all">
-        {teamToken}
-      </code>
-    </div>
-    <div class="bg-background-l2 min-w-0 rounded-md p-3 pt-1">
-      <div class="mb-2 flex items-center justify-between gap-2">
-        <div class="text-foreground-l3 text-sm">Login URL</div>
-        <Button variant="ghost" size="sm" onclick={copyLoginUrl} aria-label="Copy login URL">
-          <IconCopy class="size-4" />
+      </box-header>
+      <code>{teamToken}</code>
+    </token-box>
+    <token-box>
+      <box-header>
+        <span>Login URL</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label="Copy login URL"
+          onclick={() =>
+            copyText(loginUrl, 'Login URL copied to clipboard', 'Failed to copy login URL')}
+        >
+          <IconCopy />
           Copy
         </Button>
-      </div>
-      <code class="text-foreground-l1 block font-mono text-sm break-all select-all">
-        {loginUrl}
-      </code>
-    </div>
-    <p class="text-foreground-l3 text-sm">
-      Store your team token somewhere safe. It is the easiest way back into this account.
-    </p>
-  </Card.Content>
-  <Card.Footer>
-    <Button href="/" variant="secondary" class="w-full">
-      <IconLogin class="size-4" />
+      </box-header>
+      <code>{loginUrl}</code>
+    </token-box>
+    <p>Store your team token somewhere safe. It is the easiest way back into this account.</p>
+    <Button href="/" variant="secondary">
+      <IconSignIn />
       Continue
     </Button>
-  </Card.Footer>
-</Card.Root>
+  </team-token-card>
+</Card>
+
+<style>
+  team-token-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+
+    > :global(a) {
+      inline-size: 100%;
+    }
+  }
+
+  token-box {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding: var(--space-2xs) var(--space-xs) var(--space-xs);
+    background: var(--background-l2);
+    border-radius: var(--radius-md);
+  }
+
+  box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+
+    span {
+      font-size: var(--step--1);
+      color: var(--foreground-l3);
+    }
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    word-break: break-all;
+    user-select: all;
+  }
+
+  p {
+    font-size: var(--step--1);
+    color: var(--foreground-l3);
+  }
+</style>

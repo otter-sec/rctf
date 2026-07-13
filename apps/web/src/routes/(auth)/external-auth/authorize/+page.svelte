@@ -4,19 +4,24 @@
     GetExternalAuthClientRouteV2,
     GoodExternalAuthAuthorize,
     GoodExternalAuthClient,
+    isHttpUrl,
   } from '@rctf/types'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
-  import { ArchivedNotice, Button, Card, Spinner } from '$lib/components'
-  import { useClientConfig, useCurrentUser } from '$lib/query'
+  import ArchivedNotice from '$lib/components/archived-notice.svelte'
+  import { useClientConfig } from '$lib/query/config'
+  import { useCurrentUser } from '$lib/query/user'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
   import { onMount } from 'svelte'
 
-  const clientConfigQuery = useClientConfig()
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
   const userQuery = useCurrentUser()
-  const clientConfig = $derived(clientConfigQuery.data)
   const user = $derived(userQuery.data)
-  const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   const clientId = $derived(page.url.searchParams.get('client_id') ?? '')
   const redirectUri = $derived(page.url.searchParams.get('redirect_uri') ?? '')
@@ -26,18 +31,13 @@
   let loadError = $state<string | null>(null)
   let approving = $state(false)
 
-  // build the same-origin path used by ?next= on login so we come back here after auth
-  const selfPath = $derived(page.url.pathname + page.url.search)
-
-  function redirectWithError(err: string) {
-    if (!redirectUri) {
-      goto('/')
+  onMount(() => {
+    if (!isAuthenticated()) {
+      goto('/login?next=' + encodeURIComponent(page.url.pathname + page.url.search))
       return
     }
-    const sep = redirectUri.includes('?') ? '&' : '?'
-    const stateSuffix = stateParam ? `&state=${encodeURIComponent(stateParam)}` : ''
-    window.location.href = `${redirectUri}${sep}error=${encodeURIComponent(err)}${stateSuffix}`
-  }
+    loadClient()
+  })
 
   async function loadClient() {
     if (!clientId || !redirectUri) {
@@ -45,54 +45,60 @@
       return
     }
     try {
-      const res = await apiRequest(GetExternalAuthClientRouteV2, { id: clientId })
-      if (res.kind !== GoodExternalAuthClient.kind) {
+      const response = await apiRequest(GetExternalAuthClientRouteV2, { id: clientId })
+      if (response.kind !== GoodExternalAuthClient.kind) {
         loadError = 'This integration is not recognized.'
         return
       }
-      // bytes-exact match: backend will also reject, but failing fast in the UI
-      // avoids issuing a code that won't redirect anywhere useful
-      if (res.data.redirectUri !== redirectUri) {
+      if (response.data.redirectUri !== redirectUri) {
         loadError = 'The redirect URI does not match what was registered for this integration.'
         return
       }
-      client = res.data
-    } catch (err) {
-      loadError = (err as Error).message ?? 'Failed to look up integration.'
+      if (!isHttpUrl(response.data.redirectUri)) {
+        loadError = 'This integration has an unsafe redirect URI.'
+        return
+      }
+      client = response.data
+    } catch (error) {
+      loadError = error instanceof Error ? error.message : 'Failed to look up integration.'
     }
   }
-
-  onMount(() => {
-    if (!isAuthenticated()) {
-      goto('/login?next=' + encodeURIComponent(selfPath))
-      return
-    }
-    loadClient()
-  })
 
   async function approve() {
     if (!client || approving) return
     approving = true
     try {
-      const res = await apiRequest(AuthorizeExternalAuthRouteV2, {
+      const response = await apiRequest(AuthorizeExternalAuthRouteV2, {
         clientId: client.id,
         redirectUri: client.redirectUri,
         ...(stateParam ? { state: stateParam } : {}),
       })
-      if (res.kind === GoodExternalAuthAuthorize.kind) {
-        window.location.href = res.data.redirectTo
+      if (response.kind === GoodExternalAuthAuthorize.kind) {
+        if (!isHttpUrl(response.data.redirectTo)) {
+          toast.error('Authorization returned an unsafe redirect URI')
+          approving = false
+          return
+        }
+        window.location.assign(response.data.redirectTo)
         return
       }
-      showApiError(res)
+      showApiError(response)
       approving = false
-    } catch (err) {
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Authorization failed')
       approving = false
-      throw err
     }
   }
 
   function deny() {
-    redirectWithError('access_denied')
+    if (!client || !isHttpUrl(client.redirectUri)) {
+      goto('/')
+      return
+    }
+    const target = new URL(client.redirectUri)
+    target.searchParams.set('error', 'access_denied')
+    if (stateParam !== null) target.searchParams.set('state', stateParam)
+    window.location.assign(target)
   }
 </script>
 
@@ -102,45 +108,55 @@
   {/if}
 </svelte:head>
 
-{#if clientConfig && isArchived}
+{#if clientConfig?.isArchived}
   <ArchivedNotice message="Authorization is not available." />
 {:else if clientConfig}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">Authorize app</Card.Title>
-      <Card.Description>
-        {#if client}
-          Grant <span class="text-foreground-l1 font-medium">{client.name}</span> access to your
-          {clientConfig.ctfName} account
-        {:else}
-          Review and approve access to your {clientConfig.ctfName} account
-        {/if}
-      </Card.Description>
-    </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
+  <Card
+    title="Authorize app"
+    description={client
+      ? `Grant ${client.name} access to your ${clientConfig.ctfName} account`
+      : `Review and approve access to your ${clientConfig.ctfName} account`}
+  >
+    <auth-page>
       {#if loadError}
-        <p class="text-foreground-destructive text-sm">{loadError}</p>
-        <Button onclick={() => goto('/')} variant="outline" class="w-full">Go home</Button>
+        <p role="alert">{loadError}</p>
+        <Button variant="outline" onclick={() => goto('/')}>Go home</Button>
       {:else if !client || !user}
-        <div class="flex justify-center p-6"><Spinner class="size-6" /></div>
+        <spinner-row><Spinner /></spinner-row>
       {:else}
-        <p class="text-sm">
-          <span class="font-semibold">{client.name}</span>
-          wants to sign you in as
-          <span class="font-semibold">{user.name}</span>. After you authorize, it will receive a
-          token that lets it act on your account with the same access you have.
+        <p>
+          <strong>{client.name}</strong> wants to sign you in as <strong>{user.name}</strong>. After
+          you authorize, it will receive a token that lets it act on your account with the same
+          access you have.
         </p>
-        <p class="text-foreground-l3 text-xs">
-          Redirects to <code class="break-all">{client.redirectUri}</code>
-        </p>
-        <div class="flex flex-col gap-2">
-          <Button onclick={approve} disabled={approving} class="w-full">
-            {#if approving}<Spinner class="size-4" />{/if}
-            Authorize
-          </Button>
-          <Button variant="ghost" onclick={deny} class="w-full">Cancel</Button>
-        </div>
+        <p data-part="redirect-note">Redirects to <code>{client.redirectUri}</code></p>
+        <Button onclick={approve} disabled={approving}>
+          {#if approving}
+            <Spinner />
+          {/if}
+          Authorize
+        </Button>
+        <Button variant="ghost" onclick={deny}>Cancel</Button>
       {/if}
-    </Card.Content>
-  </Card.Root>
+    </auth-page>
+  </Card>
 {/if}
+
+<style>
+  auth-page > p[data-part='redirect-note'] {
+    font-size: 0.75rem;
+
+    code {
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
+  }
+
+  spinner-row {
+    display: flex;
+    justify-content: center;
+    padding-block: var(--space-s);
+    font-size: var(--step-2);
+    color: var(--foreground-l3);
+  }
+</style>

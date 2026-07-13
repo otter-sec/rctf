@@ -1,12 +1,14 @@
 import { z } from 'zod/mini'
 import { defineRoute } from '../../internal'
 import {
+  BadBody,
   BadExternalAuthRequest,
   BadToken,
   GoodExternalAuthAuthorize,
   GoodExternalAuthClient,
   GoodExternalAuthToken,
 } from '../../responses'
+import { HttpUrl } from '../../util/types'
 
 const ClientIdParam = z.object({
   id: z.string().check(z.describe('Public client id.')),
@@ -25,13 +27,13 @@ export const AuthorizeExternalAuthRouteV2 = defineRoute({
   path: '/v2/external-auth/authorize',
   method: 'POST',
   goodResponses: [GoodExternalAuthAuthorize],
-  badResponses: [BadExternalAuthRequest, BadToken],
+  badResponses: [BadBody, BadExternalAuthRequest, BadToken],
   authRequired: true,
   body: z.object({
     clientId: z.string().check(z.describe('Public client ID.')),
-    redirectUri: z
-      .string()
-      .check(z.describe('Redirect URI; must match the client registration.')),
+    redirectUri: HttpUrl.check(
+      z.describe('HTTP(S) redirect URI; must match the client registration.')
+    ),
     state: z
       .optional(z.string())
       .check(z.describe('Opaque value echoed back on redirect.')),

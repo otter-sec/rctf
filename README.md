@@ -11,7 +11,7 @@
 
 rCTF is a platform for hosting cybersecurity [capture-the-flag](<https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)>) competitions.
 
-At its core, rCTF is designed for (1) indestructible performance and (2) uniform composition. The platform is intentionally minimal, ships as a single bundled deployment, and exposes every major integration as a swapable provider behind one configuration contract. Organizers start with what their event needs and add what they want through configuration, rather than modification.
+rCTF keeps deployment simple without locking organizers into one set of services. The platform runs as a single bundle, and its major integrations use replaceable providers with a common configuration format. An event can use only what it needs and change providers later without rewriting the platform.
 
 To get started with rCTF, visit the [documentation](https://rctf.osec.io). If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
 
@@ -87,7 +87,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
 
    # instancers:
    #   docker:
-   #     name: 'instancer/docker-instancer'
+   #     name: 'instancers/docker'
    #     options:
    #       authToken: 'changeme!'
    #       apiUrl: 'http://tiny-instancer:1337'
@@ -123,7 +123,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
 
    # adminBot:
    #   provider:
-   #     name: 'admin-bot/rctf-js'
+   #     name: 'admin-bots/rctf-ts'
    #     options:
    #       secretKey: beans
    #       endpoint: 'http://admin-bot:21337'

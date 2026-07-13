@@ -1,27 +1,25 @@
 <script lang="ts">
   import { getClientConfig } from '$lib/api'
-  import { onDestroy } from 'svelte'
+  import { intervalToDuration } from '$lib/utils/time'
 
   const clientConfig = getClientConfig()
 
   const startTime = clientConfig?.startTime ?? 0
   const endTime = clientConfig?.endTime ?? 0
+  const isArchived = clientConfig?.isArchived ?? false
 
   let now = $state(Date.now())
-  const interval = setInterval(() => (now = Date.now()), 1000)
-  onDestroy(() => clearInterval(interval))
-
-  const isArchived = clientConfig?.isArchived ?? false
 
   const hasStarted = $derived(now >= startTime)
   const hasEnded = $derived(now >= endTime)
   const targetTime = $derived(hasStarted ? endTime : startTime)
+  const duration = $derived(intervalToDuration(targetTime - now))
 
-  const timeLeft = $derived(Math.max(0, targetTime - now))
-  const days = $derived(Math.floor(timeLeft / (1000 * 60 * 60 * 24)))
-  const hours = $derived(Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)))
-  const minutes = $derived(Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)))
-  const seconds = $derived(Math.floor((timeLeft % (1000 * 60)) / 1000))
+  $effect(() => {
+    if (isArchived || hasEnded) return
+    const interval = setInterval(() => (now = Date.now()), 1000)
+    return () => clearInterval(interval)
+  })
 
   const label = $derived(
     isArchived
@@ -32,39 +30,84 @@
           ? 'CTF ends in'
           : 'CTF starts in'
   )
+
+  const pad = (value: number) => String(value).padStart(2, '0')
 </script>
 
-<div class="not-prose my-4 flex flex-col items-center gap-2">
-  <span class="text-foreground-l3 text-sm">{label}</span>
+<markdown-timer>
+  <timer-label>{label}</timer-label>
   {#if !hasEnded}
-    <div class="flex items-start gap-2">
-      {#if days > 0}
-        <div class="flex flex-col items-center">
-          <span class="text-foreground-l0 text-2xl tabular-nums">{days}</span>
-          <span class="text-foreground-l4 text-xs">days</span>
-        </div>
-        <span class="text-foreground-l4 text-2xl leading-8">:</span>
+    <timer-units>
+      {#if duration.days > 0}
+        <timer-unit>
+          <timer-value>{duration.days}</timer-value>
+          <timer-caption>days</timer-caption>
+        </timer-unit>
+        <timer-separator>:</timer-separator>
       {/if}
-      <div class="flex flex-col items-center">
-        <span class="text-foreground-l0 text-2xl tabular-nums"
-          >{String(hours).padStart(2, '0')}</span
-        >
-        <span class="text-foreground-l4 text-xs">hours</span>
-      </div>
-      <span class="text-foreground-l4 text-2xl leading-8">:</span>
-      <div class="flex flex-col items-center">
-        <span class="text-foreground-l0 text-2xl tabular-nums"
-          >{String(minutes).padStart(2, '0')}</span
-        >
-        <span class="text-foreground-l4 text-xs">mins</span>
-      </div>
-      <span class="text-foreground-l4 text-2xl leading-8">:</span>
-      <div class="flex flex-col items-center">
-        <span class="text-foreground-l0 text-2xl tabular-nums"
-          >{String(seconds).padStart(2, '0')}</span
-        >
-        <span class="text-foreground-l4 text-xs">secs</span>
-      </div>
-    </div>
+      <timer-unit>
+        <timer-value>{pad(duration.hours)}</timer-value>
+        <timer-caption>hours</timer-caption>
+      </timer-unit>
+      <timer-separator>:</timer-separator>
+      <timer-unit>
+        <timer-value>{pad(duration.minutes)}</timer-value>
+        <timer-caption>mins</timer-caption>
+      </timer-unit>
+      <timer-separator>:</timer-separator>
+      <timer-unit>
+        <timer-value>{pad(duration.seconds)}</timer-value>
+        <timer-caption>secs</timer-caption>
+      </timer-unit>
+    </timer-units>
   {/if}
-</div>
+</markdown-timer>
+
+<style>
+  markdown-timer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2xs);
+    margin-block: var(--space-s);
+    color: var(--foreground-l3);
+    font-size: var(--step--1);
+  }
+
+  timer-units {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+  }
+
+  timer-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  timer-value,
+  timer-separator {
+    display: block;
+    font-size: var(--step-2);
+    line-height: 1.2;
+  }
+
+  timer-value {
+    color: var(--foreground-l0);
+    font-variant-numeric: tabular-nums;
+  }
+
+  timer-separator,
+  timer-caption {
+    color: var(--foreground-l4);
+  }
+
+  timer-caption {
+    display: block;
+  }
+
+  timer-label {
+    display: block;
+  }
+</style>

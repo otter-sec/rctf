@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Register a team"
-description: "<route>POST /api/[v2,v1]/auth/register</route>"
+title: "`<route>POST</route>` Register a team"
+description: "`<route>POST /api/[v2,v1]/auth/register</route>`"
 order: 1
 ---
 
@@ -48,7 +48,7 @@ Creates a team account. Most deployments ask the team to prove ownership of an e
 
 For new clients, prefer the V2 route. The V1 route remains available for clients that already use the original registration fields.
 
-Verification email delivery is rate limited independently of captcha. Each client IP has a burst of `20` requests with a refill window of `600000` ms, and each target email has a burst of `2` requests with a refill window of `3600000` ms. Requests over either budget return `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. Registrations that complete without a verification email, such as CTFtime registrations or deployments without an email provider, do not consume these buckets.
+The verification email limits apply even when captcha is enabled. They are consumed only when rCTF would send an email, so immediate registrations and CTFtime registrations do not count against them. Exceeding either limit returns `<response>429 badRateLimit</response>` with the wait in `data.timeLeft`.
 
 ::::tabs{sync="register-version"}
 
@@ -86,4 +86,4 @@ If no verification step is needed, the route creates the team immediately and re
 
 ::::
 
-Email registrations are checked against division ACLs before the verification email is sent. The server chooses the default allowed division for the email address, so the client does not send a division in this request. CTFtime registrations do not go through email ACLs.
+For email registration, rCTF checks division ACLs before sending the verification message and chooses the default division allowed for that address. The client does not send a division. CTFtime registration bypasses email ACLs.

@@ -54,6 +54,11 @@ export const codeToneData = new AttachedPluginData<{
 export function pluginCodeTones(): ExpressiveCodePlugin {
   return definePlugin({
     name: 'Code Tones',
+    baseStyles: `
+      .code-tone {
+        color: var(--tone, inherit);
+      }
+    `,
     hooks: {
       preprocessCode: ({ codeBlock }) => {
         if (codeBlock.metaOptions.getBoolean('tones') === false) return

@@ -4,11 +4,11 @@ description: Overview of rCTF administration, permissions, and settings manageme
 order: 5
 ---
 
-The rCTF admin panel handles challenge management, user administration, and platform settings from the web interface.
+The admin panel manages challenges, teams, solves, and runtime settings.
 
 ## Permissions
 
-rCTF uses a bitwise permission system. Each permission is a flag, and you combine them to build different admin roles.
+Each admin permission has a numeric value. Add the values together to grant several permissions to one account.
 
 | Permission         | Value | Description                                         |
 | ------------------ | ----- | --------------------------------------------------- |
@@ -19,37 +19,36 @@ rCTF uses a bitwise permission system. Each permission is a flag, and you combin
 | `usersWrite`       | 16    | Manage users and generate team tokens               |
 | `settingsWrite`    | 32    | Modify platform settings                            |
 
-A full admin has all permissions combined for a total of `1 + 2 + 4 + 8 + 16 + 32 = 63`.
+A full admin uses `63`, the sum of every permission.
 
 ### Creating admin accounts
 
 After registering a normal account, grant admin permissions with the [rctf CLI](/admin/cli):
 
-```console
-# Full admin (all permissions)
-$ <red>bun</red> rctf user promote admin@example.com
-
-# Challenge editor (read + write challenges)
-$ <red>bun</red> rctf user promote author@example.com <dim>--perms</dim> challsRead,challsWrite
-```
+- For full admin:
+   ```ansi
+   $ <red><dim>bun</dim> rctf</red> user promote admin@example.com
+   ```
+- For challenge editors (read + write challenges):
+   ```ansi
+   $ <red><dim>bun</dim> rctf</red> user promote author@example.com <dim>--perms</dim> challsRead,challsWrite
+   ```
 
 If using Docker:
 
-```console
-$ <red>docker</red> exec rctf-rctf-1 rctf user promote admin@example.com
+```ansi
+$ <red>docker</red> exec rctf-rctf-1 <red>rctf</red> user promote admin@example.com
 ```
 
-Use `rctf user demote <email>{:sh}` to revoke all permissions and `rctf user list-admins{:sh}` to see who currently has any.
+Use `$ <red>rctf</red> user demote <cyan><email></cyan>` to revoke all permissions and `$ <red>rctf</red> user list-admins` to see who currently has any.
 
 ### Permission bypass
 
-Users with the right permissions can bypass competition timeline restrictions. A user with `challsRead`, for example, can view challenges before the CTF starts.
+Some permissions also bypass event timing. For example, `challsRead` can view released challenges before the CTF starts.
 
 ## Runtime settings
 
-You can change platform settings at runtime without restarting the server. This requires the `settingsWrite` permission.
-
-Editable settings:
+An account with `settingsWrite` can change the following settings without restarting rCTF.
 
 | Setting           | Description                                 |
 | ----------------- | ------------------------------------------- |

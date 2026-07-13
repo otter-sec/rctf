@@ -21,6 +21,9 @@ const config: Config = {
       precompress: true,
       strict: true,
     }),
+    alias: {
+      $routes: 'src/routes',
+    },
     typescript: {
       config: cfg => {
         cfg.extends = '../../../tsconfig.json'
@@ -85,7 +88,7 @@ const config: Config = {
               // turnstile
               'https://challenges.cloudflare.com',
             ],
-            // NOTE(es3n1n): frame-ancestors is ignored from meta tags, we set `X-Frame-Options` from nginx
+            // NOTE: frame-ancestors is ignored in meta tags; nginx sets X-Frame-Options
             'base-uri': ['self'],
             'form-action': ['self'],
             'object-src': ['none'],

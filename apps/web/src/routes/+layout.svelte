@@ -1,17 +1,47 @@
 <script lang="ts">
-  import '../app.css'
+  import '../styles/reset.css'
+  import '../styles/fonts.css'
+  import '../styles/color.css'
+  import '../styles/typography.css'
+  import '../styles/layout.css'
+  import '../styles/shape.css'
+  import '../styles/layers.css'
+  import '../styles/prose.css'
+  import '../styles/reveal.css'
+  import { QueryClientProvider } from '@tanstack/svelte-query'
   import favicon from '$lib/assets/favicon.svg'
-  import { Brainrot, Navigation, Toaster, Tooltip } from '$lib/components'
-  import { QueryClientProvider } from '$lib/query'
+  import Brainrot from '$lib/components/brainrot.svelte'
+  import Navigation from '$lib/components/navigation.svelte'
+  import RootEdgeFades from '$lib/components/root-edge-fades.svelte'
+  import { resetSessionQueries } from '$lib/query/core'
+  import ToastHost from '$lib/ui/toast-host.svelte'
   import { initAnalytics } from '$lib/utils/analytics'
+  import { initFadeFallback } from '$lib/utils/fade-fallback'
   import { onMount } from 'svelte'
+  import type { LayoutProps } from './$types'
 
-  let { data, children } = $props()
+  const { data, children }: LayoutProps = $props()
 
   onMount(() => {
     initAnalytics(data.clientConfig)
+    const cleanupFadeFallback = initFadeFallback()
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'token') void resetSessionQueries(data.queryClient)
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      cleanupFadeFallback?.()
+      window.removeEventListener('storage', handleStorage)
+    }
   })
+
+  function onAnimationEnd(event: AnimationEvent) {
+    if (event.animationName !== 'reveal-fade-in') return
+    if (event.target instanceof HTMLElement) event.target.removeAttribute('data-reveal')
+  }
 </script>
+
+<svelte:document onanimationend={onAnimationEnd} />
 
 <svelte:head>
   <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
@@ -29,7 +59,6 @@
   <meta name="theme-color" content="#111111" />
   <link rel="canonical" href={data.clientConfig.origin} />
 
-  <!-- TODO(es3n1n): inject these somehow at serve time so that twitter/other platforms can parse these -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content={data.clientConfig.ctfName} />
   <meta property="og:description" content={data.clientConfig.meta.description} />
@@ -44,16 +73,51 @@
 </svelte:head>
 
 <QueryClientProvider client={data.queryClient}>
-  <Tooltip.Provider delayDuration={300} disableHoverableContent>
-    <div class="flex min-h-screen flex-col">
-      <Navigation />
+  <app-shell>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <Navigation />
 
-      <main class="flex flex-1 flex-col">
-        {@render children()}
-      </main>
-    </div>
-  </Tooltip.Provider>
+    <main id="main-content" tabindex="-1">
+      {@render children()}
+    </main>
+
+    <RootEdgeFades />
+  </app-shell>
 </QueryClientProvider>
 
-<Toaster />
+<ToastHost />
+
 <Brainrot />
+
+<style>
+  app-shell {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+    padding-block-start: var(--header-height);
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    outline: none;
+  }
+
+  .skip-link {
+    position: fixed;
+    inset-block-start: var(--space-3xs);
+    inset-inline-start: var(--space-3xs);
+    z-index: var(--layer-toast);
+    padding: var(--space-3xs) var(--space-2xs);
+    color: var(--foreground-l0);
+    background: var(--background-l1);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+
+    &:not(:focus-visible) {
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+</style>

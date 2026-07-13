@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Log in"
-description: "<route>POST /api/v1/auth/login</route>"
+title: "`<route>POST</route>` Log in"
+description: "`<route>POST /api/v1/auth/login</route>`"
 order: 5
 ---
 

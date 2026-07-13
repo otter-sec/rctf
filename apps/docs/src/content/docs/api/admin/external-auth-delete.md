@@ -1,6 +1,6 @@
 ---
-title: "<route>DELETE</route> Delete external-auth client"
-description: "<route>DELETE /api/v2/admin/external-auth/clients/:id</route>"
+title: "`<route>DELETE</route>` Delete external-auth client"
+description: "`<route>DELETE /api/v2/admin/external-auth/clients/:id</route>`"
 order: 30
 ---
 
@@ -22,7 +22,7 @@ order: 30
 
 Removes an external-auth client. After this returns, `<route>POST /api/v2/external-auth/token</route>` exchanges with that `clientId` always fail with `<response>400 badExternalAuthRequest</response>`.
 
-Access tokens that were already minted through this client stay valid. There is no per-app token registry, so per-client revocation is not possible. If you need to invalidate outstanding tokens, rotate the global `tokenKey` (this invalidates every token in the system).
+Deleting a client does not revoke access tokens it already issued. Rotating the global `tokenKey` invalidates them, but also invalidates every other rCTF token.
 
 Unknown client IDs return `<response>400 badExternalAuthRequest</response>`.
 

@@ -1,6 +1,6 @@
 ---
-title: "<route>POST</route> Submit admin bot job"
-description: "<route>POST /api/v2/integrations/challs/:id/admin-bot</route>"
+title: "`<route>POST</route>` Submit admin bot job"
+description: "`<route>POST /api/v2/integrations/challs/:id/admin-bot</route>`"
 order: 8
 ---
 

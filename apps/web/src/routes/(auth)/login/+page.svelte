@@ -3,115 +3,91 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { setToken, showApiError } from '$lib/api'
-  import { ArchivedNotice, Button, Card, Field, Input, Spinner } from '$lib/components'
-  import { useApiForm } from '$lib/forms'
-  import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
+  import { apiRequest, isAuthenticated, setToken, showApiError } from '$lib/api'
+  import ArchivedNotice from '$lib/components/archived-notice.svelte'
+  import { useApiForm } from '$lib/forms/use-api-form.svelte'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Card from '$lib/ui/card.svelte'
+  import Field from '$lib/ui/field.svelte'
+  import Input from '$lib/ui/input.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { createAsyncAction } from '$lib/utils/async-action.svelte'
+  import { getRedirectPath } from '$lib/utils/redirect'
   import { onMount } from 'svelte'
-  import { toast } from 'svelte-sonner'
   import ButtonCtftime from '../button-ctftime.svelte'
 
   const queryClient = useQueryClient()
-  const loginMutation = useLoginMutation()
-  const clientConfigQuery = useClientConfig()
-
-  const clientConfig = $derived(clientConfigQuery.data)
-  const isArchived = $derived(clientConfig?.isArchived ?? false)
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
 
   const form = useApiForm(LoginRoute, {
-    onSuccess: res => {
-      if (res.kind === GoodLogin.kind) {
-        handleLoginSuccess(res.data.authToken)
-      }
-    },
+    onSuccess: response => handleLoginSuccess(response.data.authToken),
   })
 
-  onMount(() => {
-    const urlToken = page.url.searchParams.get('token')
-    if (urlToken) {
-      handleTokenLogin(urlToken)
-    }
-  })
+  const ctftimeLoginAction = createAsyncAction()
+  let loginLinkSupplied = $state(false)
+  let replacingSession = $state(false)
+  const isPending = $derived(form.submitting || ctftimeLoginAction.pending)
 
   function handleLoginSuccess(authToken: string) {
     setToken(authToken)
     toast.success('Logged in successfully!')
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-    goto(getRedirectPath(page.url.searchParams.get('next')))
+    goto(getRedirectPath(page.url.searchParams.get('next'), page.url.origin))
   }
 
-  // TODO: this should be moved to some util function and used in the other places like this
-  function getRedirectPath(next: string | null) {
-    if (!next?.startsWith('/')) return '/'
-
-    try {
-      const url = new URL(next, page.url.origin)
-      const redirectPath = `${url.pathname}${url.search}${url.hash}`
-      return url.origin === page.url.origin && !redirectPath.startsWith('//') ? redirectPath : '/'
-    } catch {
-      return '/'
-    }
-  }
-
-  function handleTokenLogin(token: string) {
-    loginMutation.mutate(
-      { teamToken: token },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodLogin.kind) {
-            handleLoginSuccess(response.data.authToken)
-          } else {
-            form.data = { teamToken: token }
-            form.clearErrors()
-          }
-        },
-      }
+  async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
+    await ctftimeLoginAction.run(
+      async () => {
+        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        if (response.kind === GoodLogin.kind) {
+          handleLoginSuccess(response.data.authToken)
+        } else if (response.kind === BadUnknownUser.kind) {
+          sessionStorage.setItem('ctftimeToken', data.ctftimeToken)
+          sessionStorage.setItem('ctftimeName', data.ctftimeName)
+          goto('/register')
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Login failed' }
     )
   }
 
-  function handleSubmit(e: SubmitEvent) {
-    e.preventDefault()
-
-    let token = form.data.teamToken ?? ''
+  function handleSubmit(event: SubmitEvent) {
+    event.preventDefault()
+    const value = form.data.teamToken ?? ''
     try {
-      const url = new URL(token)
+      const url = new URL(value)
       const urlToken = url.searchParams.get('token')
       if (urlToken) {
-        token = urlToken
-        form.setData({ teamToken: token })
+        form.setData({ teamToken: urlToken })
       }
     } catch {}
-
     form.submit()
   }
 
-  function handleCtftimeDone(ctftimeData: {
-    ctftimeToken: string
-    ctftimeName: string
-    ctftimeId: string
-  }) {
-    loginMutation.mutate(
-      { ctftimeToken: ctftimeData.ctftimeToken },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodLogin.kind) {
-            handleLoginSuccess(response.data.authToken)
-          } else if (response.kind === BadUnknownUser.kind) {
-            sessionStorage.setItem('ctftimeToken', ctftimeData.ctftimeToken)
-            sessionStorage.setItem('ctftimeName', ctftimeData.ctftimeName)
-            goto('/register')
-          } else {
-            showApiError(response)
-          }
-        },
-        onError: error => {
-          toast.error(error.message)
-        },
-      }
-    )
-  }
+  onMount(() => {
+    const cleanUrl = new URL(page.url)
+    const token = cleanUrl.searchParams.get('token')
+    if (token === null) return
 
-  const isPending = $derived(form.submitting || loginMutation.isPending)
+    cleanUrl.searchParams.delete('token')
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`
+    )
+    if (!token) return
+
+    replacingSession = isAuthenticated()
+    loginLinkSupplied = true
+    form.setData({ teamToken: token })
+    form.clearErrors()
+  })
 </script>
 
 <svelte:head>
@@ -120,74 +96,54 @@
   {/if}
 </svelte:head>
 
-{#if clientConfig && isArchived}
+{#if clientConfig?.isArchived}
   <ArchivedNotice message="Authentication is not available." />
 {:else if clientConfig}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">Login</Card.Title>
-      <Card.Description>Log in to {clientConfig.ctfName}</Card.Description>
-    </Card.Header>
-    <Card.Content>
-      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-        <Field.Field data-invalid={!!form.errors.teamToken || !!form.errors._form || undefined}>
-          <Field.Label for="teamToken">Team token</Field.Label>
-          <Input
-            id="teamToken"
-            name="teamToken"
-            type="password"
-            placeholder="Enter your team token"
-            autocomplete="current-password"
-            required
-            bind:value={form.data.teamToken}
-            aria-invalid={!!form.errors.teamToken || !!form.errors._form}
-            oninput={() => form.validateField('teamToken')}
-          />
-          {#if form.errors.teamToken}
-            <Field.Error>{form.errors.teamToken}</Field.Error>
-          {/if}
-          {#if form.errors._form}
-            <Field.Error>{form.errors._form}</Field.Error>
-          {/if}
-        </Field.Field>
-
+  <Card title="Login" description="Log in to {clientConfig.ctfName}">
+    <auth-page>
+      {#if loginLinkSupplied}
+        <p role="status">
+          {replacingSession
+            ? 'This link contains a team token. Click Login to replace your current session.'
+            : 'This link contains a team token. Click Login to confirm that you want to sign in.'}
+        </p>
+      {/if}
+      <form onsubmit={handleSubmit}>
+        <Field label="Team token" error={form.errors.teamToken ?? form.errors._form}>
+          {#snippet children({ id, describedBy })}
+            <Input
+              {id}
+              name="teamToken"
+              type="password"
+              placeholder="Enter your team token"
+              autocomplete="current-password"
+              required
+              aria-describedby={describedBy}
+              aria-invalid={!!form.errors.teamToken || !!form.errors._form || undefined}
+              bind:value={form.data.teamToken}
+              oninput={() => form.validateField('teamToken')}
+            />
+          {/snippet}
+        </Field>
         {#if clientConfig.emailEnabled}
-          <p class="text-sm">
-            <a href="/recover" class="text-foreground-prose-link hover:underline"
-              >Lost your team token?</a
-            >
-          </p>
+          <p><a href="/recover">Lost your team token?</a></p>
         {/if}
-
-        <Button type="submit" disabled={isPending} class="w-full">
+        <Button type="submit" disabled={isPending}>
           {#if isPending}
-            <Spinner class="size-4" />
+            <Spinner />
           {/if}
           Login
         </Button>
       </form>
-
       {#if clientConfig.ctftime}
-        <div class="mt-4 flex items-center gap-4">
-          <div class="bg-border h-px flex-1"></div>
-          <span class="text-foreground-l3 text-sm">or</span>
-          <div class="bg-border h-px flex-1"></div>
-        </div>
-
-        <div class="mt-4">
-          <ButtonCtftime
-            clientId={clientConfig.ctftime.clientId}
-            onCtftimeDone={handleCtftimeDone}
-            disabled={isPending}
-          />
-        </div>
+        <auth-divider aria-hidden="true">or</auth-divider>
+        <ButtonCtftime
+          clientId={clientConfig.ctftime.clientId}
+          onCtftimeDone={handleCtftimeDone}
+          disabled={isPending}
+        />
       {/if}
-    </Card.Content>
-    <Card.Footer class="flex flex-col gap-2">
-      <p class="text-foreground-l3 text-sm">
-        Don't have an account?
-        <a href="/register" class="text-foreground-prose-link hover:underline">Register here</a>.
-      </p>
-    </Card.Footer>
-  </Card.Root>
+      <footer-note>Don't have an account? <a href="/register">Register here</a>.</footer-note>
+    </auth-page>
+  </Card>
 {/if}
