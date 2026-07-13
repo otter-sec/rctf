@@ -19,11 +19,17 @@
     --fade-inset-bottom: 0px;
 
     &[data-self-edge='top'] {
-      --fade-inset-top: calc(5rem + var(--space-3xs));
+      --fade-inset-top: var(
+        --fade-self-inset-top,
+        calc(5rem + var(--space-3xs))
+      );
     }
 
     &[data-self-edge='bottom'] {
-      --fade-inset-bottom: calc(4rem + var(--space-3xs));
+      --fade-inset-bottom: var(
+        --fade-self-inset-bottom,
+        calc(4rem + var(--space-3xs))
+      );
     }
   }
 

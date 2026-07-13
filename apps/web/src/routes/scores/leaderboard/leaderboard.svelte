@@ -152,11 +152,16 @@
   })
   const searchActive = $derived(!!urlState.search)
 
+  const hasSelf = $derived(
+    !!data.currentUser &&
+      (data.isLoading || data.currentUser.globalPlace !== null)
+  )
+
+  const stickySelf = $derived(hasSelf && !searchActive)
+
   const selfEdge = $derived(
     resolvePinnedEdge({
-      hasSelf:
-        !!data.currentUser &&
-        (data.isLoading || data.currentUser.globalPlace !== null),
+      hasSelf,
       selfIndex: selfIndex === -1 ? null : selfIndex,
       viewportClip: selfClip,
       searchActive,
@@ -282,12 +287,11 @@
         </header-content>
       </header-row>
 
-      {#if selfEdge === 'top' && selfRow}
+      {#if stickySelf && selfRow}
         <ScoresSelfRow
           {data}
           entry={selfRow.entry}
           index={selfRow.index}
-          edge="top"
           viewMode={urlState.viewMode}
           sortMode={urlState.sortMode}
           focusedChallengeId={urlState.focusedChallengeId}
@@ -301,12 +305,15 @@
       <virtual-list style:block-size={`${virtual.totalSize}px`}>
         {#each virtual.virtualItems as item (item.key)}
           {@const entry = data.entries[item.index]}
+          {@const coveredBySticky = stickySelf && item.index === selfRow?.index}
           <virtual-row
-            data-loading={entry ? undefined : true}
+            data-loading={entry || coveredBySticky ? undefined : true}
             data-team-id={entry?.id}
             style:--row-y={`${item.start - headerOffset}px`}
           >
-            {#if entry}
+            {#if coveredBySticky}
+              <!-- sticky self row -->
+            {:else if entry}
               {@render teamRow(entry, item.index)}
             {:else}
               {@render skeletonRow()}
@@ -314,22 +321,6 @@
           </virtual-row>
         {/each}
       </virtual-list>
-
-      {#if selfEdge === 'bottom' && selfRow}
-        <ScoresSelfRow
-          {data}
-          entry={selfRow.entry}
-          index={selfRow.index}
-          edge="bottom"
-          viewMode={urlState.viewMode}
-          sortMode={urlState.sortMode}
-          focusedChallengeId={urlState.focusedChallengeId}
-          {divisions}
-          {showDivision}
-          hoveredColumnId={hover.hoveredColumnId}
-          hovered={hover.hoveredRowId === selfRow.entry.id}
-        />
-      {/if}
     </scores-table>
   </scores-scroll>
 
@@ -429,7 +420,10 @@
 
   edge-fade {
     position: absolute;
-    z-index: 20;
+    /* below the pinned self row: its opacity tracks scroll on the compositor
+       while its inset updates from JS a frame later, so it must never be able
+       to paint over the row occupying the edge in the meantime */
+    z-index: 14;
     display: block;
     pointer-events: none;
     opacity: 0;

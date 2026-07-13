@@ -4,6 +4,7 @@
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { resolvePinnedEdge } from '$lib/components/pinned-self-row'
   import {
+    blockPaddingInsets,
     createScrollGeometry,
     deriveSelfRowClip,
   } from '$lib/components/scroll-geometry.svelte'
@@ -73,7 +74,13 @@
   const captureSelfRow = captureElement<HTMLElement>(
     node => (selfRowNode = node)
   )
-  const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
+  let listNode = $state<HTMLElement | null>(null)
+  const captureList = captureElement<HTMLElement>(node => (listNode = node))
+  const selfClip = deriveSelfRowClip(
+    geometry,
+    () => selfRowNode,
+    () => ({ ...blockPaddingInsets(listNode), bottom: 0 })
+  )
 
   const pinnedEdge = $derived(
     resolvePinnedEdge({
@@ -132,7 +139,7 @@
       data-fade-scope
     >
       <solves-scroll {@attach captureScroll} data-fade-source tabindex="-1">
-        <solves-list>
+        <solves-list {@attach captureList}>
           {#each allSolves as solve, index (solve.id)}
             {@const rank = index + 1}
             {@const isCurrentUser = !!(
@@ -255,7 +262,7 @@
   self-overlay {
     position: absolute;
     inset-inline: 0;
-    z-index: 1;
+    z-index: 2;
     padding-inline: 1.25rem;
     pointer-events: none;
     background: var(--background-l2);

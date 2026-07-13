@@ -84,17 +84,38 @@ export function createScrollGeometry(
   }
 }
 
+export interface EdgeInsets {
+  top: number
+  bottom: number
+}
+
+export function blockPaddingInsets(el: HTMLElement | null): EdgeInsets {
+  if (!el) return { top: 0, bottom: 0 }
+  const style = getComputedStyle(el)
+  return {
+    top: parseFloat(style.paddingBlockStart) || 0,
+    bottom: parseFloat(style.paddingBlockEnd) || 0,
+  }
+}
+
 export function deriveSelfRowClip(
   geometry: ScrollGeometry,
-  getNode: () => HTMLElement | null
+  getNode: () => HTMLElement | null,
+  getInsets?: () => EdgeInsets
 ): { readonly edge: 'top' | 'bottom' | null } {
+  const insets = $derived.by(() => getInsets?.() ?? { top: 0, bottom: 0 })
   const edge = $derived.by((): 'top' | 'bottom' | null => {
     const node = getNode()
     if (!node || geometry.clientHeight === 0) return null
     const rowTop = node.offsetTop
     const rowBottom = rowTop + node.offsetHeight
-    if (rowTop < geometry.scrollTop) return 'top'
-    if (rowBottom > geometry.scrollTop + geometry.clientHeight) return 'bottom'
+    if (rowTop < geometry.scrollTop + insets.top) return 'top'
+    if (
+      rowBottom >
+      geometry.scrollTop + geometry.clientHeight - insets.bottom
+    ) {
+      return 'bottom'
+    }
     return null
   })
   return {

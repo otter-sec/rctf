@@ -3,6 +3,7 @@
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import {
+    blockPaddingInsets,
     createScrollGeometry,
     deriveSelfRowClip,
   } from '$lib/components/scroll-geometry.svelte'
@@ -114,7 +115,11 @@
   const captureSelfRow = captureElement<HTMLElement>(
     node => (selfRowNode = node)
   )
-  const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
+  const selfClip = deriveSelfRowClip(
+    geometry,
+    () => selfRowNode,
+    () => blockPaddingInsets(listNode)
+  )
 
   const pinnedEdge = $derived.by((): 'top' | 'bottom' | null => {
     if (myPosition === null || !currentUser) return null
@@ -335,6 +340,9 @@
     position: relative;
     flex: 1;
     min-block-size: 0;
+
+    --fade-self-inset-top: calc(4.75rem + var(--space-3xs));
+    --fade-self-inset-bottom: calc(5rem + var(--space-3xs));
   }
 
   scores-scroll {
@@ -375,14 +383,14 @@
   self-overlay {
     position: absolute;
     inset-inline: 0;
-    z-index: 1;
+    z-index: 2;
     padding-inline: 1.25rem;
     pointer-events: none;
     background: var(--background-l2);
 
     &[data-edge='top'] {
       inset-block-start: 0;
-      padding-block-start: 1rem;
+      padding-block-start: 0.75rem;
       padding-block-end: var(--space-3xs);
     }
 
