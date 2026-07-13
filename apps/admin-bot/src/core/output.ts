@@ -126,7 +126,7 @@ export class BufferedOutputHandler extends OutputHandler {
 
     // null = disable limit (do not do that)
     this.maxLines = maxLines === undefined ? defaultMaxLogLines : maxLines
-    // oxlint-disable-next-line unicorn/no-new-array -- This intentionally allocates a sparse fixed-size ring buffer.
+    // oxlint-disable-next-line unicorn/no-new-array -- this intentionally allocates a fixed-size ring buffer
     this.buffer = this.maxLines !== null ? new Array(this.maxLines) : []
   }
 

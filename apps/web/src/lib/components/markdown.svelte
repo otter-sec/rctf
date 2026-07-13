@@ -15,7 +15,7 @@
 
   let { content }: Props = $props()
 
-  // oxlint-disable-next-line no-unassigned-vars -- Svelte's bind:this directive assigns this element reference.
+  // oxlint-disable-next-line no-unassigned-vars -- svelte's bind:this directive assigns this element reference
   let container: HTMLElement
   const html = $derived(parseMarkdown(content))
 

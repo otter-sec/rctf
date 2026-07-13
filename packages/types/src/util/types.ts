@@ -52,7 +52,7 @@ export const NumericString = z.pipe(
   z.string()
 )
 
-// oxlint-disable-next-line no-control-regex -- Upload names must explicitly reject NUL bytes.
+// oxlint-disable-next-line no-control-regex -- upload names must explicitly reject NUL bytes
 const UPLOAD_FILE_NAME_PATTERN = /^(?!\.{1,2}$)[^/\\\u0000:]{1,255}$/
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/i
 

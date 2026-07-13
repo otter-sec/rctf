@@ -141,7 +141,7 @@ const createMockDb = (
     select: mock((_selection: any) => {
       const whereNode = mock((_condition: any) => ({
         orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
-        // oxlint-disable-next-line unicorn/no-thenable -- This Drizzle query mock must remain Promise-like.
+        // oxlint-disable-next-line unicorn/no-thenable -- this Drizzle query mock must remain promise-like
         then: (resolve: (rows: never[]) => unknown) =>
           Promise.resolve(resolve([])),
       }))

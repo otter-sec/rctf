@@ -68,7 +68,7 @@ export const USER_REGEX =
   /^(?:[a-z_][a-z0-9_-]*|[0-9]+)(?::[a-z_][a-z0-9_-]*|:[0-9]+)?$/i
 
 // /path/to/file
-// oxlint-disable-next-line no-control-regex -- Container paths must explicitly reject NUL bytes.
+// oxlint-disable-next-line no-control-regex -- container paths must explicitly reject NUL bytes
 export const ABSOLUTE_PATH_REGEX = /^\/(?:[^/\u0000]+\/?)*$/
 
 // environment variable name

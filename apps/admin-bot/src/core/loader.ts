@@ -69,7 +69,7 @@ export class ChallengeLoader {
         )
       }
 
-      // oxlint-disable-next-line no-eval -- Trusted challenge code must run inside this CommonJS-style wrapper.
+      // oxlint-disable-next-line no-eval -- the challenge code is trusted
       eval(transpiled)(
         moduleExports,
         customRequire,
