@@ -49,11 +49,7 @@ const buildDecayScoreContext = (
 })
 
 export type RecomputeSource =
-  | 'decay-recompute'
-  | 'algo-change'
-  | 'flag'
-  | 'ban'
-  | 'delete'
+  'decay-recompute' | 'algo-change' | 'flag' | 'ban' | 'delete'
 
 export const recomputeSourceCanChangeMaxSolves = (
   source: RecomputeSource

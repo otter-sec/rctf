@@ -21,12 +21,7 @@ const sanitizeOptions = (
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'fatal'
 export type LogPrefix =
-  | 'console'
-  | 'navigation'
-  | 'network'
-  | 'admin-bot'
-  | 'challenge'
-  | 'dialog'
+  'console' | 'navigation' | 'network' | 'admin-bot' | 'challenge' | 'dialog'
 
 export abstract class OutputHandler {
   protected readonly maxValueChars: number | null

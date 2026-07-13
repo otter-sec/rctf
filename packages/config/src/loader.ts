@@ -45,7 +45,7 @@ const loadFile = (filePath: string): ConfigLayer | undefined => {
 }
 
 const findConfigDir = (start: string = DEFAULT_SEARCH_ROOT): string => {
-  for (let current = path.resolve(start); ; ) {
+  for (let current = path.resolve(start); ;) {
     const candidate = path.join(current, CONFIG_DIRECTORY_NAME)
     if (existsSync(candidate)) {
       return candidate

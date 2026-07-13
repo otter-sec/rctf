@@ -71,8 +71,7 @@
     wrap="off"
     oninput={e => oninput(e.currentTarget.value)}
     {onblur}
-    onscroll={syncScroll}
-  ></textarea>
+    onscroll={syncScroll}></textarea>
 </code-editor-shell>
 
 <style>

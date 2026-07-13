@@ -114,6 +114,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdbus-glib-1-2 \
     libxt6 \
     libxtst6 \
+    unzip \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*
 

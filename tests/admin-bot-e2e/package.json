@@ -6,12 +6,12 @@
     "test": "bun test"
   },
   "dependencies": {
-    "hono": "4.12.23"
+    "hono": "4.12.28"
   },
   "devDependencies": {
     "@types/bun": "1.3.14"
   },
   "peerDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "7.0.2"
   }
 }

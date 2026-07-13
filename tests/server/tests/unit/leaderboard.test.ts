@@ -110,8 +110,7 @@ type MockScoreEventRow = {
 
 const createMockDb = (
   scoreEventRows:
-    | Array<MockScoreEventRow>
-    | Array<Array<MockScoreEventRow>> = []
+    Array<MockScoreEventRow> | Array<Array<MockScoreEventRow>> = []
 ) => {
   const scoreEventQueue = Array.isArray(scoreEventRows[0])
     ? [...(scoreEventRows as Array<Array<MockScoreEventRow>>)]
