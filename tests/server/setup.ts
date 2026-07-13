@@ -2,7 +2,7 @@ import path from 'path'
 import { PGlite } from '@electric-sql/pglite'
 import { citext } from '@electric-sql/pglite/contrib/citext'
 import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm'
-import { mock } from 'bun:test'
+import { afterAll, mock } from 'bun:test'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
@@ -22,6 +22,10 @@ const pgliteClient = new PGlite({
   extensions: { citext, pg_trgm },
 })
 await pgliteClient.waitReady
+
+afterAll(async () => {
+  await pgliteClient.close()
+})
 
 const rawPgliteDb = drizzle(pgliteClient, { schema })
 await migrate(rawPgliteDb, { migrationsFolder })
