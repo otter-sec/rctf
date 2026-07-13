@@ -16,12 +16,17 @@ const parseCol = (token: string): { role: ColRole; width?: string } => {
 }
 
 const prop = (node: Readonly<Element>, name: string): string | undefined => {
-  const camel = name.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase())
+  const camel = name.replace(/-([a-z])/g, (_, char: string) =>
+    char.toUpperCase()
+  )
   const value = node.properties?.[name] ?? node.properties?.[camel]
   return typeof value === 'string' ? value : undefined
 }
 
-const collectRows = (node: Readonly<Element>, rows: Element[] = []): Element[] => {
+const collectRows = (
+  node: Readonly<Element>,
+  rows: Element[] = []
+): Element[] => {
   for (const child of node.children ?? []) {
     if (child.type !== 'element') continue
     if (child.tagName === 'tr') rows.push(child)
@@ -34,7 +39,9 @@ export const tableDirective = defineMdastPlugin({
   name: 'table-directive',
   containerDirective(node, ctx) {
     if (node.name !== 'table') return
-    const table = node.children?.find((child): child is Table => child.type === 'table')
+    const table = node.children?.find(
+      (child): child is Table => child.type === 'table'
+    )
     if (!table) return
     ctx.setProperty(table, 'data', {
       hProperties: {

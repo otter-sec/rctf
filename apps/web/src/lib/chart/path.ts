@@ -55,6 +55,7 @@ export function monotoneCubicPath(points: Point[]): string {
     secant.push(h === 0 ? 0 : (b.y - a.y) / h)
   }
 
+  // oxlint-disable-next-line unicorn/no-new-array -- The algorithm assigns this sparse working array by index.
   const tangent = new Array<number>(n)
   for (let i = 1; i < n - 1; i++) {
     tangent[i] = interiorTangent(secant[i - 1]!, secant[i]!, dx[i - 1]!, dx[i]!)

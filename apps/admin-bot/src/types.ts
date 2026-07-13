@@ -73,7 +73,7 @@ export class Challenge {
     ): void => {
       try {
         new RegExp(pattern, flags)
-      } catch (err) {
+      } catch {
         throw new Error(`Regex pattern ${pattern} of ${name} is invalid`)
       }
     }

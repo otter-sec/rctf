@@ -49,7 +49,11 @@
     {/each}
   </editor-modes>
 
-  <editor-panel role="tabpanel" id="{id}-panel-{mode}" aria-labelledby="{id}-tab-{mode}">
+  <editor-panel
+    role="tabpanel"
+    id="{id}-panel-{mode}"
+    aria-labelledby="{id}-tab-{mode}"
+  >
     <editor-edit hidden={mode !== 'edit' || undefined}>
       <CodeEditor
         language="markdown"

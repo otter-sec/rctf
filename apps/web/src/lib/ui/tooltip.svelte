@@ -13,10 +13,16 @@
   let { label, disabled = false, children }: Props = $props()
 
   const id = $props.id()
-  const service = useMachine(tooltip.machine, () => ({ id, openDelay: 300, disabled }))
+  const service = useMachine(tooltip.machine, () => ({
+    id,
+    openDelay: 300,
+    disabled,
+  }))
   const api = $derived(tooltip.connect(service, normalizeProps))
 
-  const triggerProps = $derived(api.getTriggerProps() as Record<string, unknown>)
+  const triggerProps = $derived(
+    api.getTriggerProps() as Record<string, unknown>
+  )
 </script>
 
 {@render children({ props: triggerProps })}

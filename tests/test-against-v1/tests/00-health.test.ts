@@ -1,12 +1,10 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import {
   all,
   assertAllKind,
   assertAllSuccess,
   assertSame,
-  docker,
   instances,
-  PROJECT,
   waitUntilSame,
 } from '../lib/harness'
 

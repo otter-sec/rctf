@@ -9,7 +9,9 @@
     multiple?: boolean
     items: string[]
     onValueChange?: (value: string[]) => void
-    header: Snippet<[{ value: string; props: Record<string, unknown>; expanded: boolean }]>
+    header: Snippet<
+      [{ value: string; props: Record<string, unknown>; expanded: boolean }]
+    >
     content: Snippet<[{ value: string; props: Record<string, unknown> }]>
   }
 
@@ -42,12 +44,18 @@
     <div {...api.getItemProps({ value: item })}>
       {@render header({
         value: item,
-        props: api.getItemTriggerProps({ value: item }) as Record<string, unknown>,
+        props: api.getItemTriggerProps({ value: item }) as Record<
+          string,
+          unknown
+        >,
         expanded: state.expanded,
       })}
       {@render content({
         value: item,
-        props: api.getItemContentProps({ value: item }) as Record<string, unknown>,
+        props: api.getItemContentProps({ value: item }) as Record<
+          string,
+          unknown
+        >,
       })}
     </div>
   {/each}

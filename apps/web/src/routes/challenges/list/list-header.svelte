@@ -1,6 +1,11 @@
 <script lang="ts">
   import { mergeProps } from '@zag-js/svelte'
-  import { IconArrowsInLineVertical, IconEye, IconEyeClosed, IconSearch } from '$lib/icons'
+  import {
+    IconArrowsInLineVertical,
+    IconEye,
+    IconEyeClosed,
+    IconSearch,
+  } from '$lib/icons'
   import Tooltip from '$lib/ui/tooltip.svelte'
 
   interface Props {
@@ -66,7 +71,9 @@
             data-slot="hide-solved"
             data-active={hideSolved || undefined}
             aria-pressed={hideSolved}
-            aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
+            aria-label={hideSolved
+              ? 'Show solved challenges'
+              : 'Hide solved challenges'}
           >
             {#if hideSolved}
               <IconEyeClosed />
@@ -84,7 +91,9 @@
             type="button"
             data-slot="collapse"
             data-active={!anyOpen || undefined}
-            aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
+            aria-label={anyOpen
+              ? 'Collapse all categories'
+              : 'Expand all categories'}
           >
             <IconArrowsInLineVertical />
           </button>

@@ -229,7 +229,7 @@ export class BrowserManager {
         args,
         executablePath,
         extraPrefsFirefox,
-        ...(options.puppeteerLaunchOptionsExtra ?? {}),
+        ...options.puppeteerLaunchOptionsExtra,
       }),
       LAUNCH_TIMEOUT_MS,
       () => {

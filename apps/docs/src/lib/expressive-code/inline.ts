@@ -8,7 +8,10 @@ import {
   type ExpressiveCode,
   type ExpressiveCodeTheme,
 } from 'satteri-expressive-code'
-import { parseCodeAnnotations, stripCodeAnnotationTags } from '../code-annotations'
+import {
+  parseCodeAnnotations,
+  stripCodeAnnotationTags,
+} from '../code-annotations'
 import { loadIcon } from '../icons'
 import { ecRenderer } from './config'
 
@@ -57,11 +60,13 @@ function pathChildren(code: string, kind: 'folder' | 'file'): ElementContent[] {
   let last = 0
   for (const match of code.matchAll(PLACEHOLDER)) {
     const start = match.index ?? 0
-    if (start > last) children.push({ type: 'text', value: code.slice(last, start) })
+    if (start > last)
+      children.push({ type: 'text', value: code.slice(last, start) })
     children.push(h('span', { className: ['code-placeholder'] }, match[0]))
     last = start + match[0].length
   }
-  if (last < code.length) children.push({ type: 'text', value: code.slice(last) })
+  if (last < code.length)
+    children.push({ type: 'text', value: code.slice(last) })
   return children
 }
 
@@ -76,7 +81,11 @@ async function highlightLanguage(
   return tokens ?? [{ type: 'text', value: code }]
 }
 
-function highlightScope(ec: ExpressiveCode, code: string, scope: string): ElementContent[] {
+function highlightScope(
+  ec: ExpressiveCode,
+  code: string,
+  scope: string
+): ElementContent[] {
   const [light, dark] = ec.styleVariants
   const c0 = resolveScopeColor(light.theme, scope)
   const c1 = resolveScopeColor(dark.theme, scope)
@@ -85,13 +94,17 @@ function highlightScope(ec: ExpressiveCode, code: string, scope: string): Elemen
 
 function resolveScopeColor(theme: ExpressiveCodeTheme, scope: string): string {
   const best = (theme.settings ?? [])
-    .flatMap(rule => (rule.scope ?? []).map(s => ({ s, fg: rule.settings.foreground })))
+    .flatMap(rule =>
+      (rule.scope ?? []).map(s => ({ s, fg: rule.settings.foreground }))
+    )
     .filter(({ s, fg }) => fg && (scope === s || scope.startsWith(`${s}.`)))
     .sort((a, b) => b.s.length - a.s.length)[0]
   return best?.fg ?? theme.fg
 }
 
-export async function renderInlineCodeValue(value: string): Promise<RenderedInlineCode | null> {
+export async function renderInlineCodeValue(
+  value: string
+): Promise<RenderedInlineCode | null> {
   const annotation = parseAnnotation(value)
   let code = annotation?.code ?? value
   const command = code.startsWith('$ ') && code.length > 2

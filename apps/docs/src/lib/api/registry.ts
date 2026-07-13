@@ -67,27 +67,35 @@ const routeEntries: ReadonlyArray<readonly [string, unknown]> = [
   ...Object.entries(Types),
   ...localRoutes,
 ]
-const responseEntries: ReadonlyArray<readonly [string, unknown]> = Object.entries(Types)
+const responseEntries: ReadonlyArray<readonly [string, unknown]> =
+  Object.entries(Types)
 
 const routes = new Map<string, ResolvedRoute>(
-  routeEntries.filter((entry): entry is readonly [string, ResolvedRoute] => isRoute(entry[1]))
+  routeEntries.filter((entry): entry is readonly [string, ResolvedRoute] =>
+    isRoute(entry[1])
+  )
 )
 
 const responses = new Map<string, ResolvedResponse>(
-  responseEntries.filter((entry): entry is readonly [string, ResolvedResponse] =>
-    isResponse(entry[1])
+  responseEntries.filter(
+    (entry): entry is readonly [string, ResolvedResponse] =>
+      isResponse(entry[1])
   )
 )
 
 export function resolveRoute(name: string | undefined): ResolvedRoute {
   const route = name ? routes.get(name) : undefined
-  if (!route) throw new Error(`Unknown @rctf/types route export: ${name ?? '(missing)'}`)
+  if (!route)
+    throw new Error(`Unknown @rctf/types route export: ${name ?? '(missing)'}`)
   return route
 }
 
 export function resolveResponse(name: string | undefined): ResolvedResponse {
   const response = name ? responses.get(name) : undefined
-  if (!response) throw new Error(`Unknown @rctf/types response export: ${name ?? '(missing)'}`)
+  if (!response)
+    throw new Error(
+      `Unknown @rctf/types response export: ${name ?? '(missing)'}`
+    )
   return response
 }
 

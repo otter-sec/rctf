@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { DeleteChallengeSolveRouteV2, GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
+  import {
+    DeleteChallengeSolveRouteV2,
+    GoodChallengeSolveDeleteV2,
+    Permissions,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
   import { captureElement } from '$lib/attachments/capture-element'
@@ -17,7 +21,10 @@
   import { hasPermissions } from '$lib/utils/permissions'
   import type { Attachment } from 'svelte/attachments'
   import ChallengeDetailsRow from '../../../challenges/details/details-row.svelte'
-  import { rankVariant, solveTimeLabels } from '../../../challenges/model/solve-times'
+  import {
+    rankVariant,
+    solveTimeLabels,
+  } from '../../../challenges/model/solve-times'
   import ConfirmDialog from '../../profile/confirm-dialog.svelte'
 
   interface Props {
@@ -37,14 +44,18 @@
 
   const revealAfterLoading = solvesQuery.isPending
 
-  const canRevoke = $derived(hasPermissions(userQuery.data, Permissions.challsSolveWrite))
+  const canRevoke = $derived(
+    hasPermissions(userQuery.data, Permissions.challsSolveWrite)
+  )
   const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )
 
-  const allSolves = $derived(solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
+  const allSolves = $derived(
+    solvesQuery.data?.pages.flatMap(page => page.solves) ?? []
+  )
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
   let scrollRoot = $state<HTMLElement | null>(null)
@@ -56,7 +67,11 @@
     const observer = new IntersectionObserver(
       entries => {
         for (const entry of entries) {
-          if (entry.isIntersecting && solvesQuery.hasNextPage && !solvesQuery.isFetchingNextPage) {
+          if (
+            entry.isIntersecting &&
+            solvesQuery.hasNextPage &&
+            !solvesQuery.isFetchingNextPage
+          ) {
             solvesQuery.fetchNextPage()
           }
         }
@@ -88,7 +103,9 @@
         })
         if (response.kind === GoodChallengeSolveDeleteV2.kind) {
           toast.success(`Revoked ${target.userName}'s solve.`)
-          queryClient.invalidateQueries({ queryKey: queryKeys.challengeSolvesInfinite(id) })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.challengeSolvesInfinite(id),
+          })
           queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
           queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
         } else {
@@ -122,7 +139,10 @@
       subtitle="This challenge has not been solved yet."
     />
   {:else}
-    <solves-viewport data-reveal={revealAfterLoading || undefined} data-fade-scope>
+    <solves-viewport
+      data-reveal={revealAfterLoading || undefined}
+      data-fade-scope
+    >
       <solves-scroll {@attach captureScroll} data-fade-source tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}
@@ -158,7 +178,8 @@
                       disabled={revokeAction.pending}
                       onclick={() => requestRevoke(solve)}
                     >
-                      {#if revokeAction.key === solve.userId}<Spinner />{:else}<IconTrash />{/if}
+                      {#if revokeAction.key === solve.userId}<Spinner
+                        />{:else}<IconTrash />{/if}
                     </Button>
                   {/if}
                 </solve-trailing>
@@ -167,7 +188,9 @@
           {/each}
 
           {#if solvesQuery.isFetchingNextPage}
-            <solves-loading><Spinner label="Loading more solves" /></solves-loading>
+            <solves-loading
+              ><Spinner label="Loading more solves" /></solves-loading
+            >
           {/if}
 
           <solves-sentinel {@attach loadMore}></solves-sentinel>

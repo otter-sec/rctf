@@ -14,11 +14,16 @@
     onSelect: () => void
   }
 
-  let { challenge, category, solved, bloodTier, selected, onSelect }: Props = $props()
+  let { challenge, category, solved, bloodTier, selected, onSelect }: Props =
+    $props()
 
-  const isDynamic = $derived(challenge.scoringKind === ChallengeScoringKind.DYNAMIC)
+  const isDynamic = $derived(
+    challenge.scoringKind === ChallengeScoringKind.DYNAMIC
+  )
   const showsScore = $derived(challenge.hasFlag || isDynamic)
-  const displayPoints = $derived(isDynamic ? (challenge.yourScore ?? 0) : challenge.points)
+  const displayPoints = $derived(
+    isDynamic ? (challenge.yourScore ?? 0) : challenge.points
+  )
   const solvesLabel = $derived(
     `${challenge.solves.toLocaleString()} ${challenge.solves === 1 ? 'solve' : 'solves'}`
   )
@@ -80,7 +85,11 @@
     padding: 0.75rem 2.25rem;
     text-align: start;
     cursor: pointer;
-    --edge-soft: color-mix(in srgb, var(--edge-color, transparent) 20%, transparent);
+    --edge-soft: color-mix(
+      in srgb,
+      var(--edge-color, transparent) 20%,
+      transparent
+    );
 
     &:hover {
       background: var(--category-background-l1-hover);
@@ -123,7 +132,8 @@
     }
 
     &[data-selected] {
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
+      box-shadow: inset 0 0 0 2px
+        color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
 
       &::after {
         content: '';
@@ -132,7 +142,11 @@
         inset-inline-end: 0;
         inline-size: 24rem;
         pointer-events: none;
-        background: linear-gradient(to left, var(--category-background-l0), transparent);
+        background: linear-gradient(
+          to left,
+          var(--category-background-l0),
+          transparent
+        );
       }
     }
 

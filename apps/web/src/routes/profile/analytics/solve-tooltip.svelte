@@ -34,10 +34,20 @@
     score,
   }: Props = $props()
 
-  const deltaLabel = $derived(points === null ? '+n/a' : `+${points.toLocaleString()}`)
+  const deltaLabel = $derived(
+    points === null ? '+n/a' : `+${points.toLocaleString()}`
+  )
 </script>
 
-<ChartTip {x} {y} {chartWidth} {chartHeight} {time} {startTime} categoryColor={color}>
+<ChartTip
+  {x}
+  {y}
+  {chartWidth}
+  {chartHeight}
+  {time}
+  {startTime}
+  categoryColor={color}
+>
   <solve-challenge>
     <CategoryIcon width="14" height="14" />
     <span data-cat>{catShort} /</span>

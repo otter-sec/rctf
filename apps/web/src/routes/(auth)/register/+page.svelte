@@ -65,11 +65,16 @@
     form.submit()
   }
 
-  async function handleCtftimeDone(data: { ctftimeToken: string; ctftimeName: string }) {
+  async function handleCtftimeDone(data: {
+    ctftimeToken: string
+    ctftimeName: string
+  }) {
     form.clearErrors()
     await ctftimeLoginAction.run(
       async () => {
-        const response = await apiRequest(LoginRoute, { ctftimeToken: data.ctftimeToken })
+        const response = await apiRequest(LoginRoute, {
+          ctftimeToken: data.ctftimeToken,
+        })
         if (response.kind === GoodLogin.kind) {
           setToken(response.data.authToken)
           toast.success('Logged in successfully!')
@@ -77,7 +82,10 @@
           goto('/')
         } else {
           ctftimeToken = data.ctftimeToken
-          form.setData({ name: data.ctftimeName, ctftimeToken: data.ctftimeToken })
+          form.setData({
+            name: data.ctftimeName,
+            ctftimeToken: data.ctftimeToken,
+          })
         }
       },
       { errorMessage: 'CTFtime login failed' }
@@ -112,15 +120,23 @@
   <ArchivedNotice message="Registration is not available." />
 {:else if clientConfig}
   {#if registeredTeamToken && registeredLoginUrl}
-    <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
+    <TeamTokenCard
+      teamToken={registeredTeamToken}
+      loginUrl={registeredLoginUrl}
+    />
   {:else if verifySent}
-    <Card title="Verification email sent" description="Check your inbox to complete registration">
+    <Card
+      title="Verification email sent"
+      description="Check your inbox to complete registration"
+    >
       <auth-page>
         <p>
-          We've sent a verification email to <strong>{form.data.email}</strong>. Please check your
-          inbox and click the link to complete registration. If you didn't receive the email, check
-          your spam folder or
-          <button type="button" onclick={() => (verifySent = false)}>try again</button>.
+          We've sent a verification email to <strong>{form.data.email}</strong>.
+          Please check your inbox and click the link to complete registration.
+          If you didn't receive the email, check your spam folder or
+          <button type="button" onclick={() => (verifySent = false)}
+            >try again</button
+          >.
         </p>
       </auth-page>
     </Card>
@@ -163,12 +179,17 @@
         </form>
         <footer-note>
           Changed your mind?
-          <button type="button" onclick={cancelCtftime}>Register with email instead</button>.
+          <button type="button" onclick={cancelCtftime}
+            >Register with email instead</button
+          >.
         </footer-note>
       </auth-page>
     </Card>
   {:else}
-    <Card title="Register" description="Create an account for {clientConfig.ctfName}">
+    <Card
+      title="Register"
+      description="Create an account for {clientConfig.ctfName}"
+    >
       <auth-page>
         <p>Please register only one account per team.</p>
         {#if form.errors._form}
@@ -225,8 +246,14 @@
             disabled={isPending}
           />
         {/if}
-        <footer-note>Already have an account? <a href="/login">Login here</a>.</footer-note>
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.Register} />
+        <footer-note
+          >Already have an account? <a href="/login">Login here</a
+          >.</footer-note
+        >
+        <CaptchaNotice
+          config={clientConfig}
+          action={ProtectedAction.Register}
+        />
       </auth-page>
     </Card>
   {/if}

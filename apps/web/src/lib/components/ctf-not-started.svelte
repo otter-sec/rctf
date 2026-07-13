@@ -33,7 +33,10 @@
 </script>
 
 <ctf-not-started>
-  <Card title="CTF not started" description="The competition has not started yet. Check back soon!">
+  <Card
+    title="CTF not started"
+    description="The competition has not started yet. Check back soon!"
+  >
     <countdown-display>
       {#if duration.days > 0}
         <countdown-segment>

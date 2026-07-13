@@ -104,8 +104,14 @@
     {@render toolbar()}
   </admin-toolbar>
 
-  <admin-scroll {@attach virtual.scrollContainer} {@attach captureScroll} tabindex="-1">
-    <admin-min style:--admin-min-width={minTableWidth ? `${minTableWidth}px` : undefined}>
+  <admin-scroll
+    {@attach virtual.scrollContainer}
+    {@attach captureScroll}
+    tabindex="-1"
+  >
+    <admin-min
+      style:--admin-min-width={minTableWidth ? `${minTableWidth}px` : undefined}
+    >
       <admin-header style:block-size={`${headerHeight}px`}>
         {@render header()}
       </admin-header>
@@ -128,7 +134,10 @@
               {:else if expandable && detailRow && isDetailRowIndex(item.index, expandedIndex)}
                 {@render detailRow(rows[expandedIndex] as T)}
               {:else}
-                {@const index = rowIndexForVirtualRow(item.index, expandedIndex)}
+                {@const index = rowIndexForVirtualRow(
+                  item.index,
+                  expandedIndex
+                )}
                 {@render row(rows[index] as T, index)}
               {/if}
             </admin-row>

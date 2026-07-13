@@ -30,7 +30,12 @@
     <Icon />
   </a>
 {:else}
-  <button type="button" aria-label={label} data-active={active ? '' : undefined} {...rest}>
+  <button
+    type="button"
+    aria-label={label}
+    data-active={active ? '' : undefined}
+    {...rest}
+  >
     <Icon />
   </button>
 {/if}

@@ -17,7 +17,7 @@ const restrictionChecks: {
     const re = new RegExp(value)
     return email => (email === undefined ? false : re.test(email))
   },
-  any: value => email => true,
+  any: _value => _email => true,
 }
 
 const compileACLs = (): CompiledACL[] => {

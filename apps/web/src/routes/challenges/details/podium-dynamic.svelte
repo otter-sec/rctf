@@ -3,7 +3,11 @@
   import { useChallengeScores } from '$lib/query/challenges'
   import { useCurrentUser } from '$lib/query/user'
   import ChallengeDetailsPodiumGrid from './podium-grid.svelte'
-  import { resolvePodiumSlots, type PodiumEntry, type PodiumSelf } from './podium-slots'
+  import {
+    resolvePodiumSlots,
+    type PodiumEntry,
+    type PodiumSelf,
+  } from './podium-slots'
 
   interface Props {
     challenge: Challenge
@@ -23,7 +27,8 @@
   const topScores = $derived(scoresQuery.data?.scores.slice(0, 4) ?? [])
   const myPosition = $derived(scoresQuery.data?.myPosition ?? null)
 
-  const formatPoints = (points: number): string => `${points.toLocaleString()} pts`
+  const formatPoints = (points: number): string =>
+    `${points.toLocaleString()} pts`
 
   const slots = $derived.by(() => {
     const top: PodiumEntry[] = topScores.map(score => ({
@@ -45,7 +50,11 @@
         : null
 
     const placeholder = currentUser
-      ? { name: currentUser.name, avatarUrl: currentUser.avatarUrl, detail: 'No score' }
+      ? {
+          name: currentUser.name,
+          avatarUrl: currentUser.avatarUrl,
+          detail: 'No score',
+        }
       : null
 
     return resolvePodiumSlots({
@@ -57,4 +66,8 @@
   })
 </script>
 
-<ChallengeDetailsPodiumGrid {slots} loading={scoresQuery.isPending} reveal={revealAfterLoading} />
+<ChallengeDetailsPodiumGrid
+  {slots}
+  loading={scoresQuery.isPending}
+  reveal={revealAfterLoading}
+/>

@@ -1,6 +1,8 @@
 <script lang="ts">
   import Axis from '$lib/chart/axis.svelte'
-  import ChartTooltip, { type TooltipRow } from '$lib/chart/chart-tooltip.svelte'
+  import ChartTooltip, {
+    type TooltipRow,
+  } from '$lib/chart/chart-tooltip.svelte'
   import Crosshair from '$lib/chart/crosshair.svelte'
   import Line from '$lib/chart/line.svelte'
   import { nearestPoint, type Series } from '$lib/chart/nearest'
@@ -90,25 +92,33 @@
 
   const maxScore = $derived.by(() => {
     let max = 0
-    for (const entry of windowed) for (const point of entry.points) max = Math.max(max, point.score)
+    for (const entry of windowed)
+      for (const point of entry.points) max = Math.max(max, point.score)
     return max
   })
 
   const maxTime = $derived.by(() => {
     let max = -Infinity
-    for (const entry of windowed) for (const point of entry.points) max = Math.max(max, point.time)
+    for (const entry of windowed)
+      for (const point of entry.points) max = Math.max(max, point.time)
     return max
   })
 
-  const xMax = $derived(Number.isFinite(maxTime) ? Math.max(maxTime, startTime) : startTime)
+  const xMax = $derived(
+    Number.isFinite(maxTime) ? Math.max(maxTime, startTime) : startTime
+  )
   const yTicks = $derived(niceLinearTicks(maxScore, 4))
 
   const innerLeft = PAD_LEFT
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = $derived(Math.max(PAD_TOP, height - PAD_BOTTOM))
 
-  const xScale = $derived(createTimeScale([startTime, xMax], [innerLeft, innerRight]))
-  const yScale = $derived(createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP]))
+  const xScale = $derived(
+    createTimeScale([startTime, xMax], [innerLeft, innerRight])
+  )
+  const yScale = $derived(
+    createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP])
+  )
   const xTicks = $derived(ctfRelativeTicks(startTime, xMax, 7))
 
   interface RenderSeries extends WindowedSeries {
@@ -121,13 +131,17 @@
     windowed.map(entry => ({
       ...entry,
       width: entry.isSelf ? 3 : 2,
-      scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
+      scaled: entry.points.map(p => ({
+        x: xScale(p.time),
+        y: yScale(p.score),
+      })),
     }))
   )
 
   const renderSeries = $derived.by<RenderSeries[]>(() => {
     const out = scaledSeries.map(entry => {
-      const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
+      const dimmed =
+        hoveredTeamId !== null && hoveredTeamId !== entry.id && !entry.isSelf
       return { ...entry, opacity: dimmed ? 0.15 : entry.isContext ? 0.3 : 1 }
     })
     return out.sort((a, b) => {
@@ -139,7 +153,9 @@
     })
   })
 
-  const nearestSeries = $derived<Series[]>(scaledSeries.map(s => ({ id: s.id, points: s.scaled })))
+  const nearestSeries = $derived<Series[]>(
+    scaledSeries.map(s => ({ id: s.id, points: s.scaled }))
+  )
 
   const nearest = $derived.by(() => {
     if (!hover || nearestSeries.length === 0) return null
@@ -173,7 +189,10 @@
         best = point
         break
       }
-      if (Math.abs(point.time - solveHighlight.time) < Math.abs(best.time - solveHighlight.time)) {
+      if (
+        Math.abs(point.time - solveHighlight.time) <
+        Math.abs(best.time - solveHighlight.time)
+      ) {
         best = point
       }
     }
@@ -207,12 +226,22 @@
       onpointerleave={interactive ? handleLeave : undefined}
     >
       {#if renderSeries.length > 0}
-        <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
+        <Axis
+          ticks={xTicks}
+          scale={xScale}
+          y={innerBottom}
+          left={innerLeft}
+          right={innerRight}
+        />
       {/if}
 
       {#each renderSeries as series (series.id)}
         <g data-series-role={series.role}>
-          <Line points={series.scaled} width={series.width} opacity={series.opacity} />
+          <Line
+            points={series.scaled}
+            width={series.width}
+            opacity={series.opacity}
+          />
         </g>
       {/each}
 
@@ -230,9 +259,21 @@
       {/if}
 
       {#if hoverPx && hoveredSeries}
-        <line data-hover-crosshair x1={hoverPx.x} y1={PAD_TOP} x2={hoverPx.x} y2={innerBottom} />
+        <line
+          data-hover-crosshair
+          x1={hoverPx.x}
+          y1={PAD_TOP}
+          x2={hoverPx.x}
+          y2={innerBottom}
+        />
         <g data-series-role={hoveredSeries.role}>
-          <circle data-hover-dot cx={hoverPx.x} cy={hoverPx.y} r="3.5" fill="currentColor" />
+          <circle
+            data-hover-dot
+            cx={hoverPx.x}
+            cy={hoverPx.y}
+            r="3.5"
+            fill="currentColor"
+          />
         </g>
       {/if}
     </svg>
@@ -251,7 +292,12 @@
 
   {#if interactive}
     <graph-controls-slot>
-      <GraphControls {showTop3Context} {showSelfContext} {onToggleTop3} {onToggleSelf} />
+      <GraphControls
+        {showTop3Context}
+        {showSelfContext}
+        {onToggleTop3}
+        {onToggleSelf}
+      />
     </graph-controls-slot>
   {/if}
 </graph-root>

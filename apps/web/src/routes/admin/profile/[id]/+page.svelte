@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { DeleteChallengeSolveRouteV2, GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
+  import {
+    DeleteChallengeSolveRouteV2,
+    GoodChallengeSolveDeleteV2,
+    Permissions,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
@@ -47,8 +51,12 @@
   )
   const graphData = $derived<GraphSampleInput | null>(graphQuery.data ?? null)
 
-  const canRevoke = $derived(hasPermissions(currentUserQuery.data, Permissions.challsSolveWrite))
-  const canViewSubmissions = $derived(hasPermissions(currentUserQuery.data, Permissions.usersWrite))
+  const canRevoke = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.challsSolveWrite)
+  )
+  const canViewSubmissions = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.usersWrite)
+  )
 
   const tabs = [
     { value: 'settings', label: 'Manage' },
@@ -57,7 +65,11 @@
   ]
 
   const status = $derived(
-    userQuery.isPending ? 'loading' : !user || !clientConfig ? 'unavailable' : 'ready'
+    userQuery.isPending
+      ? 'loading'
+      : !user || !clientConfig
+        ? 'unavailable'
+        : 'ready'
   )
 
   const revokeAction = createAsyncAction<string>()
@@ -85,7 +97,9 @@
         })
         if (response.kind === GoodChallengeSolveDeleteV2.kind) {
           toast.success('Solve revoked.')
-          queryClient.invalidateQueries({ queryKey: queryKeys.userById(userId) })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.userById(userId),
+          })
           queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
         } else {
           showApiError(response)
@@ -110,7 +124,8 @@
       <StatusCard
         icon={IconQuestion}
         title="Team not found"
-        subtitle={userQuery.error?.message ?? 'The requested team could not be found.'}
+        subtitle={userQuery.error?.message ??
+          'The requested team could not be found.'}
       >
         <Button href="/admin/teams">Back to teams</Button>
       </StatusCard>
@@ -134,7 +149,9 @@
             showUnsolved={challenges.length > 0}
             ctfStartTime={clientConfig.startTime}
             onRevoke={canRevoke ? requestRevoke : undefined}
-            onViewSubmissions={canViewSubmissions ? viewChallengeSubmissions : undefined}
+            onViewSubmissions={canViewSubmissions
+              ? viewChallengeSubmissions
+              : undefined}
             revokingId={revokeAction.key}
           />
         {:else if tab === 'analytics'}

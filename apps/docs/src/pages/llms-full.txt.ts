@@ -12,9 +12,13 @@ export const GET: APIRoute = async ({ site }) => {
     const entry = byHref.get(doc.href)
     if (!entry) return []
     return [
-      [`# ${doc.title}`, `URL: ${new URL(doc.href, base)}`, '', (entry.body ?? '').trim(), ''].join(
-        '\n'
-      ),
+      [
+        `# ${doc.title}`,
+        `URL: ${new URL(doc.href, base)}`,
+        '',
+        (entry.body ?? '').trim(),
+        '',
+      ].join('\n'),
     ]
   })
 

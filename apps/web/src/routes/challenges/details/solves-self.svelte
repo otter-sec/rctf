@@ -11,13 +11,16 @@
     showDivision: boolean
   }
 
-  let { rank, createdAt, firstBloodTime, ctfStartTime, showDivision }: Props = $props()
+  let { rank, createdAt, firstBloodTime, ctfStartTime, showDivision }: Props =
+    $props()
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)
 
   const variant = $derived(rankVariant(rank, true))
-  const labels = $derived(solveTimeLabels({ createdAt, rank, ctfStartTime, firstBloodTime }))
+  const labels = $derived(
+    solveTimeLabels({ createdAt, rank, ctfStartTime, firstBloodTime })
+  )
 </script>
 
 {#if user}

@@ -38,11 +38,15 @@
   const listMinSize = $derived(innerWidth < WIDE_MIN_WIDTH ? 40 : 20)
 
   const drawerTitle = $derived(
-    isCreating ? 'New challenge' : (editor.challenge?.name ?? 'Challenge details')
+    isCreating
+      ? 'New challenge'
+      : (editor.challenge?.name ?? 'Challenge details')
   )
 
   let drawerDismissed = $state(false)
-  const drawerOpen = $derived(isMobile && (selectedId !== null || isCreating) && !drawerDismissed)
+  const drawerOpen = $derived(
+    isMobile && (selectedId !== null || isCreating) && !drawerDismissed
+  )
 
   function handleSelect(challenge: AdminChallenge) {
     editor = select(editor, challenge)

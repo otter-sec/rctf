@@ -39,7 +39,8 @@
   }
 
   type HeaderItem =
-    { type: 'category'; group: CategoryGroup } | { type: 'challenge'; challenge: ChallengeInfo }
+    | { type: 'category'; group: CategoryGroup }
+    | { type: 'challenge'; challenge: ChallengeInfo }
 
   const headerNameItems = $derived.by((): HeaderItem[] => {
     if (viewMode === 'categories') {
@@ -55,7 +56,8 @@
 
   function fixedCategoryPoints(group: CategoryGroup): number {
     return group.challenges.reduce(
-      (sum, challenge) => sum + (isDynamicChallenge(challenge) ? 0 : challenge.points),
+      (sum, challenge) =>
+        sum + (isDynamicChallenge(challenge) ? 0 : challenge.points),
       0
     )
   }
@@ -75,20 +77,29 @@
   {@const dynamic = challenge ? isDynamicChallenge(challenge) : false}
   {@const canFocus = challenge !== null}
   {@const isFocused = challenge !== null && focusedChallengeId === challenge.id}
-  {@const isDimmed = challenge !== null && focusedChallengeId !== null && !isFocused}
+  {@const isDimmed =
+    challenge !== null && focusedChallengeId !== null && !isFocused}
   <header-name-slot
-    data-category-color={isCategory ? item.group.config.color : item.challenge.config.color}
+    data-category-color={isCategory
+      ? item.group.config.color
+      : item.challenge.config.color}
     data-dimmed={isDimmed || undefined}
     style:--slot-width={`${width}px`}
     style:z-index={stackIndex}
     data-tooltip-cell
-    data-kind={isCategory ? CELL_KIND.headerCategory : CELL_KIND.headerChallenge}
+    data-kind={isCategory
+      ? CELL_KIND.headerCategory
+      : CELL_KIND.headerChallenge}
     data-col={isCategory ? item.group.category : item.challenge.id}
     data-name={isCategory ? item.group.config.name : item.challenge.name}
     data-category={isCategory ? item.group.category : item.challenge.category}
-    data-points={isCategory ? fixedCategoryPoints(item.group) : item.challenge.points}
+    data-points={isCategory
+      ? fixedCategoryPoints(item.group)
+      : item.challenge.points}
     data-count={isCategory ? item.group.challenges.length : undefined}
-    data-dynamic-count={isCategory ? dynamicCount(item.group) || undefined : undefined}
+    data-dynamic-count={isCategory
+      ? dynamicCount(item.group) || undefined
+      : undefined}
     data-dynamic={dynamic ? '' : undefined}
   >
     {#if canFocus && challenge}
@@ -137,7 +148,9 @@
     {#each headerNameItems as item, index (item.type === 'category' ? `category:${item.group.category}` : `challenge:${item.challenge.id}`)}
       {@render nameLabel(
         item,
-        item.type === 'category' ? SCORE_CELL_WIDTH_PX : getChallengeCellWidth(item.challenge),
+        item.type === 'category'
+          ? SCORE_CELL_WIDTH_PX
+          : getChallengeCellWidth(item.challenge),
         headerNameItems.length - index
       )}
     {/each}
@@ -166,7 +179,8 @@
       </category-row>
     {:else if sortMode === 'categories'}
       {#each categoryGroups as group (group.category)}
-        {@const groupDimmed = focusedChallengeId !== null && !groupHasFocused(group)}
+        {@const groupDimmed =
+          focusedChallengeId !== null && !groupHasFocused(group)}
         <category-block
           data-category-color={group.config.color}
           data-dimmed={groupDimmed || undefined}
@@ -184,12 +198,17 @@
           <category-points data-challenge>
             {#each group.challenges as challenge (challenge.id)}
               {@const cellDimmed =
-                !groupDimmed && focusedChallengeId !== null && focusedChallengeId !== challenge.id}
+                !groupDimmed &&
+                focusedChallengeId !== null &&
+                focusedChallengeId !== challenge.id}
               <challenge-point
                 data-dimmed={cellDimmed || undefined}
                 style:--point-width={`${getChallengeCellWidth(challenge)}px`}
               >
-                {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
+                {@render pointsBadge(
+                  challenge.points,
+                  isDynamicChallenge(challenge)
+                )}
               </challenge-point>
             {/each}
           </category-points>
@@ -201,7 +220,8 @@
       {/each}
     {:else}
       {#each challenges as challenge (challenge.id)}
-        {@const blockDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id}
+        {@const blockDimmed =
+          focusedChallengeId !== null && focusedChallengeId !== challenge.id}
         <category-block
           data-category-color={challenge.config.color}
           data-dimmed={blockDimmed || undefined}
@@ -212,7 +232,10 @@
             <col-highlight></col-highlight>
           {/if}
           <category-points>
-            {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
+            {@render pointsBadge(
+              challenge.points,
+              isDynamicChallenge(challenge)
+            )}
           </category-points>
           {@render categoryFooter(challenge.config, null)}
         </category-block>

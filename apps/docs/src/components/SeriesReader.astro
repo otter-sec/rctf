@@ -16,7 +16,9 @@
 <script>
   import { hashId, normalizePath } from '@/lib/utils'
 
-  const articles = [...document.querySelectorAll<HTMLElement>('article[data-url]')]
+  const articles = [
+    ...document.querySelectorAll<HTMLElement>('article[data-url]'),
+  ]
 
   const list = document.querySelector('page-nav nav > ul > li > ul')
   const parentLink = list?.querySelector('a')
@@ -41,7 +43,9 @@
   const localTarget = (link: HTMLAnchorElement) => {
     if (link.getAttribute('href')?.startsWith('#')) return hashTarget(link.hash)
     if (link.origin !== location.origin || link.search) return null
-    const article = articles.find(article => article.dataset.url === normalizePath(link.pathname))
+    const article = articles.find(
+      article => article.dataset.url === normalizePath(link.pathname)
+    )
     if (!article) return null
     return link.hash ? (hashTarget(link.hash) ?? article) : article
   }
@@ -55,15 +59,16 @@
     } else {
       crumb.hidden = false
       crumbLink.href = article.dataset.url ?? ''
-      crumbLink.textContent = article.querySelector('header h1')?.textContent ?? ''
+      crumbLink.textContent =
+        article.querySelector('header h1')?.textContent ?? ''
       crumbLink.setAttribute('aria-current', 'page')
       parentLink.removeAttribute('aria-current')
     }
   }
 
-  const treeLinks = [...document.querySelectorAll<HTMLAnchorElement>('sidebar-tree a[href]')].map(
-    link => [normalizePath(link.pathname), link] as const
-  )
+  const treeLinks = [
+    ...document.querySelectorAll<HTMLAnchorElement>('sidebar-tree a[href]'),
+  ].map(link => [normalizePath(link.pathname), link] as const)
 
   const syncTree = (url: string) => {
     for (const [href, link] of treeLinks) {
@@ -82,10 +87,21 @@
   }
 
   document.addEventListener('click', event => {
-    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    if (
+      event.defaultPrevented ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
       return
     const link = (event.target as Element).closest?.('a[href]')
-    if (!(link instanceof HTMLAnchorElement) || link.target || link.hasAttribute('download')) return
+    if (
+      !(link instanceof HTMLAnchorElement) ||
+      link.target ||
+      link.hasAttribute('download')
+    )
+      return
     const target = localTarget(link)
     const article = target?.closest<HTMLElement>('article[data-url]')
     if (!target || !article) return
@@ -118,7 +134,8 @@
       return
     }
     const hash =
-      location.hash && hashTarget(location.hash)?.closest('article[data-url]') === current
+      location.hash &&
+      hashTarget(location.hash)?.closest('article[data-url]') === current
         ? location.hash
         : ''
     sync(current, hash)

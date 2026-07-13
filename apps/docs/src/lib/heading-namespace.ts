@@ -13,7 +13,9 @@ function isScrollDir(indexPath: string): boolean {
 
   let scroll = false
   try {
-    const frontmatter = /^---\n([\s\S]*?)\n---/.exec(readFileSync(indexPath, 'utf8'))?.[1]
+    const frontmatter = /^---\n([\s\S]*?)\n---/.exec(
+      readFileSync(indexPath, 'utf8')
+    )?.[1]
     scroll = !!frontmatter && /^scroll:\s*true\s*$/m.test(frontmatter)
   } catch {}
 
@@ -40,7 +42,11 @@ export function headingNamespace() {
       visit(node, ctx) {
         const prefix = ctx.fileURL && namespace(ctx.fileURL.pathname)
         if (!prefix) return
-        ctx.setProperty(node, 'id', `${prefix}-${slugger.slug(ctx.textContent(node))}`)
+        ctx.setProperty(
+          node,
+          'id',
+          `${prefix}-${slugger.slug(ctx.textContent(node))}`
+        )
       },
     },
   })

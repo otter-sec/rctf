@@ -22,7 +22,10 @@
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
-  import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
+  import {
+    getCategoryConfig,
+    getCategoryKeyOrAlias,
+  } from '$lib/utils/categories'
   import { formatCtfOffset, formatLocalTime } from '$lib/utils/time'
   import type {
     ChallengeInfo,
@@ -81,10 +84,14 @@
   const displayResult = $derived(
     buildDisplayRows({ challenges, solves, dynamicScores, showUnsolved })
   )
-  const filteredRows = $derived(filterRows(displayResult.rows, { search: searchQuery, hideSolved }))
+  const filteredRows = $derived(
+    filterRows(displayResult.rows, { search: searchQuery, hideSolved })
+  )
   const sortedRows = $derived(sortRowsByMode(filteredRows, sortMode))
   const groups = $derived(groupRowsByCategory(filteredRows))
-  const rowsByCategory = $derived(new Map(groups.map(group => [group.category, group.rows])))
+  const rowsByCategory = $derived(
+    new Map(groups.map(group => [group.category, group.rows]))
+  )
   const categoryNames = $derived(groups.map(group => group.category))
   const stats = $derived(
     computeSolvesStats({
@@ -123,7 +130,9 @@
   }
 
   function solveTime(timestamp: number): string {
-    return formatCtfOffset(timestamp, ctfStartTime) || formatLocalTime(timestamp)
+    return (
+      formatCtfOffset(timestamp, ctfStartTime) || formatLocalTime(timestamp)
+    )
   }
 </script>
 
@@ -170,7 +179,9 @@
                 type="button"
                 data-slot="collapse"
                 data-active={!anyOpen || undefined}
-                aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
+                aria-label={anyOpen
+                  ? 'Collapse all categories'
+                  : 'Expand all categories'}
               >
                 <IconArrowsInLineVertical />
               </button>
@@ -181,13 +192,17 @@
         <Tooltip label={hideSolved ? 'Show solved' : 'Hide solved'}>
           {#snippet children({ props })}
             <button
-              {...mergeProps(props, { onclick: () => (hideSolved = !hideSolved) })}
+              {...mergeProps(props, {
+                onclick: () => (hideSolved = !hideSolved),
+              })}
               type="button"
               data-slot="hide-solved"
               data-flat={sortMode !== 'category' || undefined}
               data-active={hideSolved || undefined}
               aria-pressed={hideSolved}
-              aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
+              aria-label={hideSolved
+                ? 'Show solved challenges'
+                : 'Hide solved challenges'}
             >
               {#if hideSolved}
                 <IconEyeClosed />
@@ -200,7 +215,12 @@
 
         <Menu label="Sort challenges" items={sortItems} placement="bottom-end">
           {#snippet trigger({ props })}
-            <button {...props} type="button" data-slot="sort" aria-label={sortModeLabels[sortMode]}>
+            <button
+              {...props}
+              type="button"
+              data-slot="sort"
+              aria-label={sortModeLabels[sortMode]}
+            >
               {#if sortMode === 'category'}
                 <IconFlagBanner />
               {:else if sortMode === 'time'}
@@ -221,7 +241,9 @@
       <EmptyState
         icon={IconQuestion}
         title="No challenges"
-        subtitle={emptyState === 'no-matches' ? 'No matches found' : 'No challenge data available'}
+        subtitle={emptyState === 'no-matches'
+          ? 'No matches found'
+          : 'No challenge data available'}
       />
     {:else if sortMode === 'category'}
       <Accordion items={categoryNames} bind:value={openCategories}>
@@ -229,7 +251,9 @@
           {@const config = getCategoryConfig(value)}
           {@const entries = rowsByCategory.get(value) ?? []}
           {@const staticEntries = entries.filter(entry => !entry.isDynamic)}
-          {@const solvedCount = staticEntries.filter(entry => entry.isSolved).length}
+          {@const solvedCount = staticEntries.filter(
+            entry => entry.isSolved
+          ).length}
           <solves-group-header data-category-color={config.color}>
             <button {...props} data-expanded={expanded || undefined}>
               <config.icon data-slot="icon" />
@@ -283,7 +307,8 @@
     {/if}
 
     <row-main>
-      <span data-part="category">{getCategoryKeyOrAlias(entry.category)} /</span>
+      <span data-part="category">{getCategoryKeyOrAlias(entry.category)} /</span
+      >
       <span data-part="name">{entry.name}</span>
     </row-main>
 
@@ -323,7 +348,9 @@
       {/if}
 
       {#if entry.points !== null}
-        <span data-part="points"><strong>{entry.points.toLocaleString()}</strong> pts</span>
+        <span data-part="points"
+          ><strong>{entry.points.toLocaleString()}</strong> pts</span
+        >
       {/if}
     </row-meta>
   </li>
@@ -570,7 +597,11 @@
     inline-size: 100%;
     padding: 0.5rem 2.25rem;
     background: var(--category-background-l1);
-    --edge-soft: color-mix(in srgb, var(--edge-color, transparent) 20%, transparent);
+    --edge-soft: color-mix(
+      in srgb,
+      var(--edge-color, transparent) 20%,
+      transparent
+    );
 
     &[data-solved] {
       --edge-color: var(--foreground-success);

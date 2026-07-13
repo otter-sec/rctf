@@ -16,7 +16,9 @@
     user.countryCode ? countryCodeToFlagFilename(user.countryCode) : null
   )
   const countryName = $derived(
-    user.countryCode ? (ALL_REGIONS.find(r => r.code === user.countryCode)?.name ?? null) : null
+    user.countryCode
+      ? (ALL_REGIONS.find(r => r.code === user.countryCode)?.name ?? null)
+      : null
   )
 </script>
 

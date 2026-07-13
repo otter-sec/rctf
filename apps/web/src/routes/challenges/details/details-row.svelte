@@ -1,7 +1,9 @@
 <script module lang="ts">
   import { ALL_REGIONS } from '@rctf/util'
 
-  const COUNTRY_NAMES = new Map(ALL_REGIONS.map(region => [region.code, region.name]))
+  const COUNTRY_NAMES = new Map(
+    ALL_REGIONS.map(region => [region.code, region.name])
+  )
 </script>
 
 <script lang="ts">
@@ -45,8 +47,12 @@
     children,
   }: Props = $props()
 
-  const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
-  const countryName = $derived(countryCode ? (COUNTRY_NAMES.get(countryCode) ?? countryCode) : null)
+  const flagFilename = $derived(
+    countryCode ? countryCodeToFlagFilename(countryCode) : null
+  )
+  const countryName = $derived(
+    countryCode ? (COUNTRY_NAMES.get(countryCode) ?? countryCode) : null
+  )
   const showDivision = $derived(!!division && !!divisionPlace)
 
   let tooltipReady = $state(false)
@@ -74,7 +80,12 @@
         {#if tooltipReady && countryName}
           <Tooltip label={countryName}>
             {#snippet children({ props })}
-              <img {...props} src="/flags/{flagFilename}" alt="{countryCode} flag" data-flag />
+              <img
+                {...props}
+                src="/flags/{flagFilename}"
+                alt="{countryCode} flag"
+                data-flag
+              />
             {/snippet}
           </Tooltip>
         {:else}
@@ -106,7 +117,8 @@
         {@render children()}
       {:else}
         {#if primaryValue}<span data-part="primary">{primaryValue}</span>{/if}
-        {#if secondaryValue}<span data-part="secondary">{secondaryValue}</span>{/if}
+        {#if secondaryValue}<span data-part="secondary">{secondaryValue}</span
+          >{/if}
       {/if}
     </row-trailing>
   {/if}

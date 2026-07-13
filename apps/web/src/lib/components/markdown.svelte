@@ -15,6 +15,7 @@
 
   let { content }: Props = $props()
 
+  // oxlint-disable-next-line no-unassigned-vars -- Svelte's bind:this directive assigns this element reference.
   let container: HTMLElement
   const html = $derived(parseMarkdown(content))
 
@@ -24,7 +25,7 @@
   }
 
   $effect(() => {
-    html
+    void html
     const instances = [
       ...[...container.querySelectorAll('[data-alert]')].map(el => {
         const type = getAlertType(el)

@@ -64,9 +64,11 @@ describe('auth-cache', () => {
 
     const result = await getCachedUser(redis, 'user-123')
 
-    expect(result?.id).toBe('user-123')
-    expect(result?.name).toBe('Test User')
-    expect(new Date(result?.createdAt!).getTime()).toBe(createdAt.getTime())
+    expect(result).not.toBeNull()
+    if (!result) throw new Error('expected a cached user')
+    expect(result.id).toBe('user-123')
+    expect(result.name).toBe('Test User')
+    expect(new Date(result.createdAt).getTime()).toBe(createdAt.getTime())
   })
 
   test('handles invalid cached user JSON by deleting the entry', async () => {

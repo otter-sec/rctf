@@ -1,6 +1,11 @@
 <script lang="ts">
   import { ChallengeScoringKind, type AdminChallenge } from '@rctf/types'
-  import { IconCloud, IconEyeClosed, IconGlobeHemisphereWest, IconRobot } from '$lib/icons'
+  import {
+    IconCloud,
+    IconEyeClosed,
+    IconGlobeHemisphereWest,
+    IconRobot,
+  } from '$lib/icons'
   import { pointsLabel } from './list-logic'
 
   interface Props {
@@ -12,15 +17,24 @@
 
   let { challenge, category, selected, onSelect }: Props = $props()
 
-  const isDynamic = $derived(challenge.scoring?.kind === ChallengeScoringKind.DYNAMIC)
+  const isDynamic = $derived(
+    challenge.scoring?.kind === ChallengeScoringKind.DYNAMIC
+  )
   const hasStatusIcon = $derived(
-    challenge.hidden || !!challenge.instancerConfig || !!challenge.adminBotConfig || isDynamic
+    challenge.hidden ||
+      !!challenge.instancerConfig ||
+      !!challenge.adminBotConfig ||
+      isDynamic
   )
   const points = $derived(pointsLabel(challenge))
 </script>
 
 <li>
-  <button type="button" onclick={onSelect} data-selected={selected ? '' : undefined}>
+  <button
+    type="button"
+    onclick={onSelect}
+    data-selected={selected ? '' : undefined}
+  >
     <item-title>
       <span data-part="category">{category} /</span>
       <span data-part="name">{challenge.name}</span>
@@ -78,7 +92,8 @@
     }
 
     &[data-selected] {
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
+      box-shadow: inset 0 0 0 2px
+        color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
 
       &::after {
         content: '';
@@ -87,7 +102,11 @@
         inset-inline-end: 0;
         inline-size: 24rem;
         pointer-events: none;
-        background: linear-gradient(to left, var(--category-background-l0), transparent);
+        background: linear-gradient(
+          to left,
+          var(--category-background-l0),
+          transparent
+        );
       }
     }
   }

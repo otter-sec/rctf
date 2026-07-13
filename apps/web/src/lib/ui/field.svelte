@@ -23,8 +23,9 @@
 
   const uid = $props.id()
   const describedBy = $derived(
-    [description && `${uid}-description`, error && `${uid}-error`].filter(Boolean).join(' ') ||
-      undefined
+    [description && `${uid}-description`, error && `${uid}-error`]
+      .filter(Boolean)
+      .join(' ') || undefined
   )
 </script>
 
@@ -34,7 +35,8 @@
 >
   {#if label}
     <label for={uid}>
-      {label}{#if required}<field-required aria-hidden="true">*</field-required>{/if}
+      {label}{#if required}<field-required aria-hidden="true">*</field-required
+        >{/if}
       {#if hint}<field-hint>({hint})</field-hint>{/if}
     </label>
   {/if}

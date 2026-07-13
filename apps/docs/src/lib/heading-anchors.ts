@@ -11,7 +11,9 @@ export function headingAnchors() {
       visit(node, ctx) {
         const existing = node.properties.id
         const id =
-          typeof existing === 'string' && existing ? existing : slugger.slug(ctx.textContent(node))
+          typeof existing === 'string' && existing
+            ? existing
+            : slugger.slug(ctx.textContent(node))
         if (!id) return
         if (existing !== id) ctx.setProperty(node, 'id', id)
         ctx.appendChild(

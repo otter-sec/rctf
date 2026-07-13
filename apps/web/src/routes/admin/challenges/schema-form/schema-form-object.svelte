@@ -58,7 +58,9 @@
       {/each}
       {#if isNullable}
         <sf-nullable-actions>
-          <Button size="sm" variant="ghost" onclick={disableObject} {disabled}>Disable</Button>
+          <Button size="sm" variant="ghost" onclick={disableObject} {disabled}
+            >Disable</Button
+          >
         </sf-nullable-actions>
       {/if}
     </sf-fields>
@@ -69,7 +71,8 @@
   <sf-object-group>
     {#if label}
       <sf-object-heading>
-        {label}{#if required}<sf-required aria-hidden="true">*</sf-required>{/if}
+        {label}{#if required}<sf-required aria-hidden="true">*</sf-required
+          >{/if}
       </sf-object-heading>
     {/if}
     {@render body()}

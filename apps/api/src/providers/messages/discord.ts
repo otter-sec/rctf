@@ -15,7 +15,7 @@ export default class DiscordMessagesProvider implements MessageProvider {
   }
 
   escapeText(text: string): string {
-    return text.replace(/[_*~`|\\<>:!\[\]()]/g, '\\$&')
+    return text.replace(/[_*~`|\\<>:![\]()]/g, '\\$&')
   }
 
   escapeUrl(text: string): string {

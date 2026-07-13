@@ -11,7 +11,9 @@ const cleanForToc = (children: ElementContent[]): ElementContent[] =>
   children.flatMap(child => {
     if (child.type !== 'element') return [child]
     if (child.tagName === 'a') {
-      return hasClass(child, 'heading-anchor') ? [] : cleanForToc(child.children)
+      return hasClass(child, 'heading-anchor')
+        ? []
+        : cleanForToc(child.children)
     }
     if (child.tagName === 'copy-command') return cleanForToc(child.children)
     if (child.tagName === 'span' && hasClass(child, 'shell-prompt')) return []
@@ -26,8 +28,9 @@ export const captureTocHeadings = defineHastPlugin({
       const id = node.properties.id
       if (typeof id !== 'string' || !id) return
 
-      const frontmatter = (ctx.data.astro as { frontmatter?: Record<string, unknown> } | undefined)
-        ?.frontmatter
+      const frontmatter = (
+        ctx.data.astro as { frontmatter?: Record<string, unknown> } | undefined
+      )?.frontmatter
       if (!frontmatter) return
 
       const toc = (frontmatter.tocHtml ??= {}) as Record<string, string>

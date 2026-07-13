@@ -20,7 +20,11 @@ const TONE_TAGS = [
 const ROUTE_TAG = 'route'
 const RESPONSE_TAG = 'response'
 
-export const CODE_ANNOTATION_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
+export const CODE_ANNOTATION_TAGS = [
+  ROUTE_TAG,
+  RESPONSE_TAG,
+  ...TONE_TAGS,
+] as const
 
 const TONE_ALIASES = new Map<string, string>([
   ['gray', 'black'],
@@ -40,7 +44,8 @@ const TONE_COLORS = new Map<string, string>([
   ['white', 'color-mix(in oklab, var(--foreground) 88%, transparent)'],
 ])
 
-const tagRegex = (tags: readonly string[]) => new RegExp(`<\\/?(${tags.join('|')})>`, 'g')
+const tagRegex = (tags: readonly string[]) =>
+  new RegExp(`<\\/?(${tags.join('|')})>`, 'g')
 
 const CODE_ANNOTATION_TAG_RE = tagRegex(CODE_ANNOTATION_TAGS)
 const CODE_TONE_TAG_RE = tagRegex(TONE_TAGS)
@@ -58,13 +63,20 @@ const METHOD_TONES = new Map<string, string>([
 ])
 
 const METHOD_PATTERN = METHODS.join('|')
-const METHOD_GROUP_RE = new RegExp(`^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`)
-const ROUTE_RE = new RegExp(`^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`)
+const METHOD_GROUP_RE = new RegExp(
+  `^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`
+)
+const ROUTE_RE = new RegExp(
+  `^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`
+)
 const RESPONSE_RE = /^([1-5](?:\d{2}|XX))(?:\s+(.+))?$/i
 
 const textNode = (value: string): Text => ({ type: 'text', value })
 
-const spanNode = (className: string[], children: ElementContent[]): Element => ({
+const spanNode = (
+  className: string[],
+  children: ElementContent[]
+): Element => ({
   type: 'element',
   tagName: 'span',
   properties: { className },
@@ -132,7 +144,11 @@ function routeChildren(value: string): ElementContent[] {
 
   const endpoint = route.match(ROUTE_RE)
   if (endpoint)
-    return [...methodNodes(endpoint[1] ?? ''), textNode(' '), ...routePathNodes(endpoint[2] ?? '')]
+    return [
+      ...methodNodes(endpoint[1] ?? ''),
+      textNode(' '),
+      ...routePathNodes(endpoint[2] ?? ''),
+    ]
 
   if (route.startsWith('/')) return routePathNodes(route)
   return [textNode(value)]
@@ -236,20 +252,29 @@ function parseTagTree(input: string, re: RegExp): ParsedTree | null {
 }
 
 function flatText(nodes: ParsedNode[]): string {
-  return nodes.map(n => (n.type === 'text' ? n.value : flatText(n.children))).join('')
+  return nodes
+    .map(n => (n.type === 'text' ? n.value : flatText(n.children)))
+    .join('')
 }
 
-function renderNodes(nodes: ParsedNode[], parentTone: string | null = null): ElementContent[] {
+function renderNodes(
+  nodes: ParsedNode[],
+  parentTone: string | null = null
+): ElementContent[] {
   return nodes.map(node => {
     if (node.type === 'text') return textNode(node.value)
     if (node.tag === ROUTE_TAG) {
       return spanNode(['code-route'], routeChildren(flatText(node.children)))
     }
     if (node.tag === RESPONSE_TAG) {
-      return spanNode(['code-response'], responseChildren(flatText(node.children)))
+      return spanNode(
+        ['code-response'],
+        responseChildren(flatText(node.children))
+      )
     }
     const tone = normalizeTone(node.tag)
-    const classTone = isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
+    const classTone =
+      isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
     const childTone = isDimTone(tone) ? parentTone : tone
     return toneNode(classTone, renderNodes(node.children, childTone))
   })
@@ -276,11 +301,15 @@ export function parseCodeToneRanges(value: string): ParsedCodeTones | null {
   if (!parsed) return null
 
   const ranges: CodeToneRange[] = []
-  const walk = (nodes: ParsedNode[], parentTone: string | null = null): void => {
+  const walk = (
+    nodes: ParsedNode[],
+    parentTone: string | null = null
+  ): void => {
     for (const node of nodes) {
       if (node.type === 'text') continue
       const tone = normalizeTone(node.tag)
-      const rangeTone = isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
+      const rangeTone =
+        isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
       if (node.start < node.end) {
         ranges.push({ tone: rangeTone, start: node.start, end: node.end })
       }

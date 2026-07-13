@@ -15,7 +15,13 @@
     sparkline?: SparklinePoint[]
   }
 
-  let { challenge, rank, rankDelta, showDivision, sparkline = [] }: Props = $props()
+  let {
+    challenge,
+    rank,
+    rankDelta,
+    showDivision,
+    sparkline = [],
+  }: Props = $props()
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)

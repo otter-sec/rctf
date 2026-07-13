@@ -24,7 +24,14 @@
     deepLinkTarget: string | null
   }
 
-  let { challenges, solvedIds, bloodIds, selectedId, onSelect, deepLinkTarget }: Props = $props()
+  let {
+    challenges,
+    solvedIds,
+    bloodIds,
+    selectedId,
+    onSelect,
+    deepLinkTarget,
+  }: Props = $props()
 
   const initialPrefs = loadPreferences()
   let searchQuery = $state('')
@@ -41,12 +48,15 @@
     })
     if (!hideSolved) return searched
     return searched.filter(
-      challenge => challenge.id === deepLinkTarget || !solvedIds.has(challenge.id)
+      challenge =>
+        challenge.id === deepLinkTarget || !solvedIds.has(challenge.id)
     )
   })
 
   const groups = $derived(groupChallenges(visibleChallenges))
-  const groupByCategory = $derived(new Map(groups.map(group => [group.category, group])))
+  const groupByCategory = $derived(
+    new Map(groups.map(group => [group.category, group]))
+  )
   const allCategories = $derived(groups.map(group => group.category))
 
   const deepLinkCategory = $derived.by(() => {
@@ -56,14 +66,20 @@
   })
 
   const accordionValue = $derived(
-    deriveAccordionValue({ allCategories, collapsedCategories, searching, deepLinkCategory })
+    deriveAccordionValue({
+      allCategories,
+      collapsedCategories,
+      searching,
+      deepLinkCategory,
+    })
   )
   const anyOpen = $derived(accordionValue.length > 0)
 
   const stats = $derived(computeStats(challenges, solvedIds))
 
   const emptySubtitle = $derived.by(() => {
-    if (searching && hideSolved) return 'Try a different search or show solved challenges'
+    if (searching && hideSolved)
+      return 'Try a different search or show solved challenges'
     if (searching) return 'Try a different search term'
     if (hideSolved) return 'All challenges have been solved!'
     return 'No challenges available'
@@ -107,7 +123,9 @@
 
   function toggleCollapseAll() {
     const rendered = new Set(allCategories)
-    const preserved = collapsedCategories.filter(category => !rendered.has(category))
+    const preserved = collapsedCategories.filter(
+      category => !rendered.has(category)
+    )
     const next = anyOpen ? [...preserved, ...allCategories] : preserved
     const deduped = [...new Set(next)]
     collapsedCategories = deduped
@@ -131,13 +149,23 @@
 
   <list-scroll tabindex="-1">
     {#if groups.length === 0}
-      <EmptyState icon={IconQuestion} title="No challenges found" subtitle={emptySubtitle} />
+      <EmptyState
+        icon={IconQuestion}
+        title="No challenges found"
+        subtitle={emptySubtitle}
+      />
     {:else}
-      <Accordion items={allCategories} value={accordionValue} onValueChange={handleValueChange}>
+      <Accordion
+        items={allCategories}
+        value={accordionValue}
+        onValueChange={handleValueChange}
+      >
         {#snippet header({ value, props, expanded })}
           {@const config = getCategoryConfig(value)}
           {@const entries = groupByCategory.get(value)?.challenges ?? []}
-          {@const solvedInCategory = entries.filter(c => solvedIds.has(c.id)).length}
+          {@const solvedInCategory = entries.filter(c =>
+            solvedIds.has(c.id)
+          ).length}
           <challenges-list-group-header data-category-color={config.color}>
             <button {...props} data-expanded={expanded || undefined}>
               <config.icon data-slot="icon" />
@@ -153,7 +181,10 @@
         {#snippet content({ value, props })}
           {@const config = getCategoryConfig(value)}
           {@const entries = groupByCategory.get(value)?.challenges ?? []}
-          <challenges-list-group-body data-category-color={config.color} {...props}>
+          <challenges-list-group-body
+            data-category-color={config.color}
+            {...props}
+          >
             <ul>
               {#each entries as challenge (challenge.id)}
                 <ChallengesListItem

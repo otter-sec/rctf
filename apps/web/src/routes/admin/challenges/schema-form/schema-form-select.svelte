@@ -35,7 +35,12 @@
 
 <Menu {label} {items} sameWidth>
   {#snippet trigger({ props })}
-    <button type="button" {disabled} data-placeholder={current ? undefined : ''} {...props}>
+    <button
+      type="button"
+      {disabled}
+      data-placeholder={current ? undefined : ''}
+      {...props}
+    >
       <span>{current?.label ?? placeholder}</span>
       <IconCaretDown />
     </button>

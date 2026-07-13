@@ -31,7 +31,9 @@
   const text = $derived.by(() => {
     if (hasEnded) return '--:--:--'
     const targetTime = hasStarted ? endTime : startTime
-    const { days, hours, minutes, seconds } = intervalToDuration(Math.max(0, targetTime - now))
+    const { days, hours, minutes, seconds } = intervalToDuration(
+      Math.max(0, targetTime - now)
+    )
     const pad = (value: number) => String(value).padStart(2, '0')
     const clock = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
     return days > 0 ? `${days}d ${clock}` : clock

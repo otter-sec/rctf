@@ -16,11 +16,15 @@
   const itemSchema = $derived(arrayItemSchema(schema))
   const label = $derived(fieldLabel(schema, path, 'Items'))
   const description = $derived(schema.description)
-  const isNumeric = $derived(itemSchema.type === 'number' || itemSchema.type === 'integer')
+  const isNumeric = $derived(
+    itemSchema.type === 'number' || itemSchema.type === 'integer'
+  )
   const enumValues = $derived(itemSchema.enum as unknown[] | undefined)
   const selected = $derived(new Set(items.map(String)))
 
-  const { error, incomplete } = $derived(errorsContext?.display(path) ?? NO_FIELD_ERROR)
+  const { error, incomplete } = $derived(
+    errorsContext?.display(path) ?? NO_FIELD_ERROR
+  )
 
   function validate(entry: string): boolean {
     if (isNumeric) {
@@ -50,7 +54,8 @@
         {#each enumValues as option (String(option))}
           <Checkbox
             checked={selected.has(String(option))}
-            onchange={event => toggle(String(option), event.currentTarget.checked)}
+            onchange={event =>
+              toggle(String(option), event.currentTarget.checked)}
             {disabled}
           >
             {option}

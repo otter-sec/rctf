@@ -47,7 +47,9 @@
     onVerify,
   }: Props = $props()
 
-  const isAdmin = $derived(row.kind === 'registered' && deriveTeamStatus(row.team) === 'admin')
+  const isAdmin = $derived(
+    row.kind === 'registered' && deriveTeamStatus(row.team) === 'admin'
+  )
 </script>
 
 {#snippet action(opts: {
@@ -101,7 +103,8 @@
         icon: IconGavel,
         destructive: !team.banned,
         loading: updatingId === team.id,
-        onclick: () => onBan({ id: team.id, name: team.name, banned: team.banned }),
+        onclick: () =>
+          onBan({ id: team.id, name: team.name, banned: team.banned }),
       })}
       {@render action({
         label: 'Delete team',
@@ -168,7 +171,11 @@
       color: var(--foreground-destructive);
 
       &:hover {
-        background: color-mix(in srgb, var(--foreground-destructive) 16%, var(--background-l4));
+        background: color-mix(
+          in srgb,
+          var(--foreground-destructive) 16%,
+          var(--background-l4)
+        );
       }
     }
 

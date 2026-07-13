@@ -19,9 +19,13 @@
 
   const rank = $derived(entry.globalPlace ?? index + 1)
   const delta = $derived(data.rankDeltaByTeam.get(entry.id))
-  const color = $derived(data.teamColorMap.get(entry.id) ?? 'var(--foreground-l3)')
+  const color = $derived(
+    data.teamColorMap.get(entry.id) ?? 'var(--foreground-l3)'
+  )
   const sparkline = $derived(data.sparklineDataByTeam.get(entry.id) ?? [])
-  const solveCount = $derived(getVisibleSolveCount(entry.solves, data.challengesData))
+  const solveCount = $derived(
+    getVisibleSolveCount(entry.solves, data.challengesData)
+  )
   const flagFilename = $derived(
     entry.countryCode ? countryCodeToFlagFilename(entry.countryCode) : null
   )

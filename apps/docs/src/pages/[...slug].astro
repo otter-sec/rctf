@@ -52,24 +52,33 @@ const tocSections = rendered.map(({ entry: chained, headings }, i) => ({
   label: entryInline(chained, 'title'),
   open: chained.id === entry.id,
   headings: enrichHeadings(
-    headings.filter(({ depth, text }) => depth >= 2 && depth <= 4 && text.trim()),
+    headings.filter(
+      ({ depth, text }) => depth >= 2 && depth <= 4 && text.trim()
+    ),
     chained.rendered?.metadata?.frontmatter
   ),
 }))
-const hasToc = tocSections.length > 1 || tocSections.some(({ headings }) => headings.length > 0)
+const hasToc =
+  tocSections.length > 1 ||
+  tocSections.some(({ headings }) => headings.length > 0)
 
 const first = flat.findIndex(doc => doc.href === docsHref(chain[0].id))
-const last = flat.findIndex(doc => doc.href === docsHref(chain[chain.length - 1].id))
+const last = flat.findIndex(
+  doc => doc.href === docsHref(chain[chain.length - 1].id)
+)
 const prev = flat[first - 1]
 const next = flat[last + 1]
 
 const lastUpdatedOf = (chained: DocsEntry) =>
   chained.data.lastUpdated ??
-  (DOCS.lastUpdated && chained.filePath ? gitLastUpdated(chained.filePath) : null)
+  (DOCS.lastUpdated && chained.filePath
+    ? gitLastUpdated(chained.filePath)
+    : null)
 const editUrlOf = (chained: DocsEntry) =>
   chained.data.editUrl === false
     ? null
-    : (chained.data.editUrl ?? (chained.filePath ? `${DOCS.editUrlBase}${chained.filePath}` : null))
+    : (chained.data.editUrl ??
+      (chained.filePath ? `${DOCS.editUrlBase}${chained.filePath}` : null))
 ---
 
 <Layout tree={tree} wide={reference}>
@@ -78,11 +87,17 @@ const editUrlOf = (chained: DocsEntry) =>
     title={entry.data.title}
     description={entry.data.description}
     image={`/og/${entry.id}.png`}
-    canonical={isChain && entry.id !== chain[0].id ? docsHref(chain[0].id) : undefined}
+    canonical={isChain && entry.id !== chain[0].id
+      ? docsHref(chain[0].id)
+      : undefined}
   />
   {
     hasToc && !reference && (
-      <TableOfContents slot="toc" title={entryInline(chain[0], 'title')} sections={tocSections} />
+      <TableOfContents
+        slot="toc"
+        title={entryInline(chain[0], 'title')}
+        sections={tocSections}
+      />
     )
   }
   <PostActions slot="actions" prev={prev} next={next} />

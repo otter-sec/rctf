@@ -110,7 +110,8 @@ type MockScoreEventRow = {
 
 const createMockDb = (
   scoreEventRows:
-    Array<MockScoreEventRow> | Array<Array<MockScoreEventRow>> = []
+    | Array<MockScoreEventRow>
+    | Array<Array<MockScoreEventRow>> = []
 ) => {
   const scoreEventQueue = Array.isArray(scoreEventRows[0])
     ? [...(scoreEventRows as Array<Array<MockScoreEventRow>>)]
@@ -140,6 +141,7 @@ const createMockDb = (
     select: mock((_selection: any) => {
       const whereNode = mock((_condition: any) => ({
         orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
+        // oxlint-disable-next-line unicorn/no-thenable -- This Drizzle query mock must remain Promise-like.
         then: (resolve: (rows: never[]) => unknown) =>
           Promise.resolve(resolve([])),
       }))

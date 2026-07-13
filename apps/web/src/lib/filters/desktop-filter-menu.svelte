@@ -33,15 +33,27 @@
   const searching = $derived(normalized.length > 0)
 
   const familyMatches = $derived(
-    searching ? families.filter(family => rootFilterFamilyMatchesSearch(family, normalized)) : []
+    searching
+      ? families.filter(family =>
+          rootFilterFamilyMatchesSearch(family, normalized)
+        )
+      : []
   )
   const timeMatches = $derived(
-    searching && !!timeFamily && rootFilterFamilyMatchesSearch(timeFamily, normalized)
+    searching &&
+      !!timeFamily &&
+      rootFilterFamilyMatchesSearch(timeFamily, normalized)
   )
   const optionMatches = $derived(
-    searching ? families.flatMap(family => rootSearchMatchesForFamily(family, normalized)) : []
+    searching
+      ? families.flatMap(family =>
+          rootSearchMatchesForFamily(family, normalized)
+        )
+      : []
   )
-  const hasMatches = $derived(familyMatches.length > 0 || timeMatches || optionMatches.length > 0)
+  const hasMatches = $derived(
+    familyMatches.length > 0 || timeMatches || optionMatches.length > 0
+  )
 
   const activeLabel = $derived(
     active === 'time' ? (timeFamily?.label ?? 'Time') : (active?.label ?? '')
@@ -125,7 +137,11 @@
               {@render timeRow()}
             {/if}
             {#each optionMatches as match (rootFilterOptionKey(match))}
-              <FilterOption family={match.family} option={match.option} showPath />
+              <FilterOption
+                family={match.family}
+                option={match.option}
+                showPath
+              />
             {/each}
             {#if !hasMatches}
               <funnel-status data-empty>No filters found</funnel-status>

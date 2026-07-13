@@ -63,7 +63,8 @@ function parseSource(value: string | undefined): SourceName {
 }
 
 function asExampleObject(value: ExampleValue): ExampleObject | undefined {
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) return value
+  if (value !== null && typeof value === 'object' && !Array.isArray(value))
+    return value
   return undefined
 }
 
@@ -79,7 +80,11 @@ function sourceFromCode(node: Code): SourceName | undefined {
       .replace(/^source=/, '')
       .replace(/^title=/, '')
       .replace(/^["']|["']$/g, '')
-    if (normalized === 'body' || normalized === 'query' || normalized === 'params')
+    if (
+      normalized === 'body' ||
+      normalized === 'query' ||
+      normalized === 'params'
+    )
       return normalized
   }
   return undefined
@@ -155,7 +160,9 @@ function responseSyncId(kind: string): string {
 
 function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
   const def = resolveRoute(attr(node.attributes, 'def'))
-  const extra = listAttr(attr(node.attributes, 'extra')).map(name => resolveResponse(name))
+  const extra = listAttr(attr(node.attributes, 'extra')).map(name =>
+    resolveResponse(name)
+  )
   const responses = collectResponses(def, extra)
   if (responses.length === 0) return undefined
 
@@ -197,7 +204,9 @@ interface FieldsPlan {
   list: Html
 }
 
-async function planRequestBody(node: Readonly<LeafDirective>): Promise<FieldsPlan | null> {
+async function planRequestBody(
+  node: Readonly<LeafDirective>
+): Promise<FieldsPlan | null> {
   const def = resolveRoute(attr(node.attributes, 'def'))
   const source = parseSource(attr(node.attributes, 'source'))
   const schema: ZodSchema | undefined =
@@ -211,7 +220,9 @@ async function planRequestBody(node: Readonly<LeafDirective>): Promise<FieldsPla
   }
 }
 
-async function planResponseBody(node: Readonly<LeafDirective>): Promise<FieldsPlan | null> {
+async function planResponseBody(
+  node: Readonly<LeafDirective>
+): Promise<FieldsPlan | null> {
   const def = resolveRoute(attr(node.attributes, 'def'))
   const responseKind = attr(node.attributes, 'response')
   const resp = [...def.goodResponses, ...def.badResponses].find(
@@ -228,7 +239,12 @@ async function planResponseBody(node: Readonly<LeafDirective>): Promise<FieldsPl
 
 // TODO: switch to `ctx.report` once the compile result exposes diagnostics
 // (bruits/satteri#59 has the plumbing; tracked in bruits/satteri#87).
-function warnDropped(syntax: string, name: string, error: unknown, fileURL: URL | undefined): void {
+function warnDropped(
+  syntax: string,
+  name: string,
+  error: unknown,
+  fileURL: URL | undefined
+): void {
   const reason = error instanceof Error ? error.message : String(error)
   console.warn(
     `[markdown] api-reference directive ${syntax}${name} failed and was dropped from output: ${reason} (${fileURL?.pathname ?? 'unknown file'})`
@@ -262,7 +278,9 @@ export function apiReferenceDirectives() {
         switch (node.name) {
           case 'route-meta': {
             const def = resolveRoute(attr(node.attributes, 'def'))
-            return htmlNode(await routeMetaHtml(def, attr(node.attributes, 'rateLimit')))
+            return htmlNode(
+              await routeMetaHtml(def, attr(node.attributes, 'rateLimit'))
+            )
           }
           case 'request-body':
           case 'response-body': {

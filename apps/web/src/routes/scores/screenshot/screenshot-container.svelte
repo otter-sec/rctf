@@ -13,7 +13,8 @@
     endTime: number | null
   }
 
-  let { open, onOpenChange, urlState, ctfName, startTime, endTime }: Props = $props()
+  let { open, onOpenChange, urlState, ctfName, startTime, endTime }: Props =
+    $props()
 
   const data = createScoresData({
     division: () => urlState.division,

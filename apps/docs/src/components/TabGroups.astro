@@ -2,13 +2,16 @@
   const groups = [...document.querySelectorAll<HTMLElement>('tab-group')]
 
   const tabsOf = (group: HTMLElement) => [
-    ...group.querySelectorAll<HTMLButtonElement>(":scope > [role='tablist'] > [role='tab']"),
+    ...group.querySelectorAll<HTMLButtonElement>(
+      ":scope > [role='tablist'] > [role='tab']"
+    ),
   ]
   const panelsOf = (group: HTMLElement) => [
     ...group.querySelectorAll<HTMLElement>(":scope > [role='tabpanel']"),
   ]
 
-  const keyOf = (tab: HTMLElement) => tab.dataset.syncId ?? tab.textContent?.trim() ?? ''
+  const keyOf = (tab: HTMLElement) =>
+    tab.dataset.syncId ?? tab.textContent?.trim() ?? ''
 
   const activate = (
     group: HTMLElement,
@@ -21,7 +24,9 @@
       tab.setAttribute('aria-selected', String(i === index))
       tab.tabIndex = i === index ? 0 : -1
     })
-    panelsOf(group).forEach((panel, i) => panel.toggleAttribute('hidden', i !== index))
+    panelsOf(group).forEach((panel, i) =>
+      panel.toggleAttribute('hidden', i !== index)
+    )
     if (focus) tabs[index].focus()
 
     const sync = group.dataset.sync
@@ -46,7 +51,8 @@
 
   document.addEventListener('keydown', event => {
     const tab = event.target
-    if (!(tab instanceof HTMLElement) || tab.getAttribute('role') !== 'tab') return
+    if (!(tab instanceof HTMLElement) || tab.getAttribute('role') !== 'tab')
+      return
     const group = tab.closest<HTMLElement>('tab-group')
     if (!group) return
     const tabs = tabsOf(group)

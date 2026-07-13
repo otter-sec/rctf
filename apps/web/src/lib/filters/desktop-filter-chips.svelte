@@ -27,9 +27,17 @@
 {#snippet chipValue(family: ValueFilterFamily, option: ValueFilterOption)}
   {@const view = family.optionView(option)}
   {@const OptionIcon = view.icon}
-  <chip-rich data-category-color={view.categoryColor} data-result-tone={view.resultTone}>
+  <chip-rich
+    data-category-color={view.categoryColor}
+    data-result-tone={view.resultTone}
+  >
     {#if view.avatar}
-      <avatar-slot><Avatar src={view.avatar.avatarUrl} name={view.avatar.name} /></avatar-slot>
+      <avatar-slot
+        ><Avatar
+          src={view.avatar.avatarUrl}
+          name={view.avatar.name}
+        /></avatar-slot
+      >
     {/if}
     {#if OptionIcon}
       <OptionIcon aria-hidden="true" data-tone={view.iconTone} />
@@ -48,7 +56,8 @@
 {#snippet chip(family: ValueFilterFamily)}
   {@const filter = filterFor(family)}
   {@const Icon = family.icon}
-  {@const single = filter.selected.length === 1 ? filter.selected[0] : undefined}
+  {@const single =
+    filter.selected.length === 1 ? filter.selected[0] : undefined}
   <filter-chip data-width={family.chipWidth}>
     <chip-label>
       <Icon aria-hidden="true" />
@@ -61,13 +70,18 @@
       onSelect={mode => setFilterMode(filter, mode)}
     />
 
-    <FilterPopover label={`${family.label} values`} width={menuWidths[family.menuSize]}>
+    <FilterPopover
+      label={`${family.label} values`}
+      width={menuWidths[family.menuSize]}
+    >
       {#snippet trigger({ props })}
         <button {...props} type="button" data-chip-value>
           {#if single !== undefined}
             {@render chipValue(family, single)}
           {:else}
-            <chip-count>{filter.selected.length} {family.pluralLabel}</chip-count>
+            <chip-count
+              >{filter.selected.length} {family.pluralLabel}</chip-count
+            >
           {/if}
           <IconCaretDown aria-hidden="true" data-chevron />
         </button>

@@ -34,7 +34,9 @@
 
   <footer>
     Powered by
-    <a href="https://rctf.osec.io" target="_blank" rel="noopener noreferrer">rCTF</a>
+    <a href="https://rctf.osec.io" target="_blank" rel="noopener noreferrer"
+      >rCTF</a
+    >
   </footer>
 </home-page>
 

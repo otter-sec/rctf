@@ -79,7 +79,9 @@
   {#if node.status}
     <tree-row-status
       aria-hidden="true"
-      title={node.status === 'invalid' ? 'Contains errors' : 'Required fields missing'}
+      title={node.status === 'invalid'
+        ? 'Contains errors'
+        : 'Required fields missing'}
     >
       {node.status === 'invalid' ? '!' : '●'}
     </tree-row-status>
@@ -95,12 +97,18 @@
         data-invalid={node.status === 'invalid' ? '' : undefined}
         data-incomplete={node.status === 'incomplete' ? '' : undefined}
       >
-        <span {...api.getBranchTriggerProps(nodeProps)} aria-label="Toggle {node.label}">
+        <span
+          {...api.getBranchTriggerProps(nodeProps)}
+          aria-label="Toggle {node.label}"
+        >
           <span {...api.getBranchIndicatorProps(nodeProps)}>
             <IconCaretDown />
           </span>
         </span>
-        {@render rowContent(node, api.getBranchTextProps(nodeProps) as Record<string, unknown>)}
+        {@render rowContent(
+          node,
+          api.getBranchTextProps(nodeProps) as Record<string, unknown>
+        )}
       </div>
       <div {...api.getBranchContentProps(nodeProps)}>
         {#each node.children as child, index (child.id)}
@@ -114,7 +122,10 @@
       data-invalid={node.status === 'invalid' ? '' : undefined}
       data-incomplete={node.status === 'incomplete' ? '' : undefined}
     >
-      {@render rowContent(node, api.getItemTextProps(nodeProps) as Record<string, unknown>)}
+      {@render rowContent(
+        node,
+        api.getItemTextProps(nodeProps) as Record<string, unknown>
+      )}
     </div>
   {/if}
 {/snippet}
@@ -140,7 +151,9 @@
     margin-block-end: 0.125rem;
     padding-block: 0.25rem;
     padding-inline-end: var(--space-2xs);
-    padding-inline-start: calc(var(--space-3xs) + (var(--depth) - 1) * var(--space-s));
+    padding-inline-start: calc(
+      var(--space-3xs) + (var(--depth) - 1) * var(--space-s)
+    );
     font-size: var(--step--1);
     cursor: pointer;
     border-radius: var(--radius-sm);
@@ -166,7 +179,8 @@
 
   [data-part='item'] {
     padding-inline-start: calc(
-      var(--space-3xs) + (var(--depth) - 1) * var(--space-s) + 1.25rem + var(--space-3xs)
+      var(--space-3xs) + (var(--depth) - 1) * var(--space-s) + 1.25rem +
+        var(--space-3xs)
     );
   }
 

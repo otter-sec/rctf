@@ -44,7 +44,9 @@
   let filterText = $state('')
   const filtered = $derived(
     filterText
-      ? items.filter(entry => entry.label.toLowerCase().includes(filterText.toLowerCase()))
+      ? items.filter(entry =>
+          entry.label.toLowerCase().includes(filterText.toLowerCase())
+        )
       : items
   )
   const collection = $derived(
@@ -93,7 +95,11 @@
       <combobox-prefix aria-hidden="true">{@render prefix()}</combobox-prefix>
     {/if}
     <input {...inputProps} data-has-prefix={prefix ? '' : undefined} />
-    <button {...api.getTriggerProps()} type="button" aria-label="Toggle options">
+    <button
+      {...api.getTriggerProps()}
+      type="button"
+      aria-label="Toggle options"
+    >
       <IconCaretDown />
     </button>
   </div>

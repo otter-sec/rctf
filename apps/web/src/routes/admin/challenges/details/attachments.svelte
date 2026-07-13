@@ -50,7 +50,8 @@
   function onDrop(event: DragEvent) {
     event.preventDefault()
     dragging = false
-    if (!disabled && event.dataTransfer?.files.length) upload(event.dataTransfer.files)
+    if (!disabled && event.dataTransfer?.files.length)
+      upload(event.dataTransfer.files)
   }
 
   function onDragOver(event: DragEvent) {
@@ -84,11 +85,21 @@
         <Spinner label="Uploading files" />
       {:else}
         <IconFiles />
-        <zone-title>{dragging ? 'Drop files here' : 'Click to upload or drag and drop'}</zone-title>
+        <zone-title
+          >{dragging
+            ? 'Drop files here'
+            : 'Click to upload or drag and drop'}</zone-title
+        >
         <zone-hint>Any file type supported</zone-hint>
       {/if}
     </upload-zone>
-    <input bind:this={fileInput} type="file" multiple hidden onchange={onPick} />
+    <input
+      bind:this={fileInput}
+      type="file"
+      multiple
+      hidden
+      onchange={onPick}
+    />
   {/if}
 
   {#if files.length > 0}

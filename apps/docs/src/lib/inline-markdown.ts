@@ -13,7 +13,11 @@ export async function renderInline(value: string): Promise<string> {
   const result = await Promise.resolve(markdownToHtml(value, RENDER_OPTIONS))
   const html = result.html.trim()
   const inner = html.slice(3, -4)
-  return html.startsWith('<p>') && html.endsWith('</p>') && !inner.includes('</p>') ? inner : html
+  return html.startsWith('<p>') &&
+    html.endsWith('</p>') &&
+    !inner.includes('</p>')
+    ? inner
+    : html
 }
 
 type TextNode = MdastNode & { value?: string; children?: MdastNode[] }

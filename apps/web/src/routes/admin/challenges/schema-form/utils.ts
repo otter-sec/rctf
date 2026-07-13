@@ -226,7 +226,7 @@ export function parseNumber(str: string): number | undefined {
 }
 
 export function collectDefs(schema: JsonSchema): Record<string, JsonSchema> {
-  return { ...(schema.definitions ?? {}), ...(schema.$defs ?? {}) }
+  return { ...schema.definitions, ...schema.$defs }
 }
 
 export function resolveRefs(

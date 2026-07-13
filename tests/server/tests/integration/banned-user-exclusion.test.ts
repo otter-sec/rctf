@@ -11,7 +11,6 @@ import {
 } from '@rctf/db'
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
-import type { Hono } from 'hono'
 import {
   countNonBannedSolvesForChallenge,
   getChallengeSolves,
@@ -22,11 +21,10 @@ import {
 import { getApp } from '../../app'
 import { generateRealTestUser } from '../../util'
 
-let app: Hono<any>
 const getDb = () => createDatabase(config.database.sql).db
 
 beforeAll(async () => {
-  app = await getApp()
+  await getApp()
 })
 
 const now = () => new Date().toISOString()

@@ -48,7 +48,9 @@
   const selectedClient = $derived(clients[index])
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.adminExternalAuthClients })
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.adminExternalAuthClients,
+    })
 
   function openCreate() {
     creating = true
@@ -130,8 +132,8 @@
   </group-header>
   <group-body>
     <group-note>
-      The issued token grants full account access to the signing-in user. Only register services you
-      trust.
+      The issued token grants full account access to the signing-in user. Only
+      register services you trust.
     </group-note>
     <clients-editor data-reveal={revealAfterLoading || undefined}>
       <client-list>
@@ -140,15 +142,22 @@
             <client-empty>No external apps</client-empty>
           {:else}
             {#each clients as client, i (client.id)}
-              <client-item data-active={!creating && index === i ? '' : undefined}>
-                <button type="button" data-select onclick={() => selectClient(i)}>
+              <client-item
+                data-active={!creating && index === i ? '' : undefined}
+              >
+                <button
+                  type="button"
+                  data-select
+                  onclick={() => selectClient(i)}
+                >
                   {client.name || 'Untitled app'}
                 </button>
                 <button
                   type="button"
                   data-remove
                   aria-label="Delete {client.name || 'app'}"
-                  onclick={() => (deleteTarget = { id: client.id, name: client.name })}
+                  onclick={() =>
+                    (deleteTarget = { id: client.id, name: client.name })}
                 >
                   <IconX />
                 </button>
@@ -195,7 +204,11 @@
               {/snippet}
             </Field>
             <form-actions>
-              <Button type="button" variant="ghost" onclick={() => (creating = false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onclick={() => (creating = false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={createAction.pending}>
@@ -208,7 +221,11 @@
           {@const client = selectedClient}
           <client-heading>
             <client-name>{client.name || 'Untitled app'}</client-name>
-            <client-date>Registered {dateFormat.format(new Date(client.createdAt))}</client-date>
+            <client-date
+              >Registered {dateFormat.format(
+                new Date(client.createdAt)
+              )}</client-date
+            >
           </client-heading>
           <Field label="Client ID">
             <button
@@ -228,14 +245,16 @@
             <Button
               size="sm"
               variant="destructive"
-              onclick={() => (deleteTarget = { id: client.id, name: client.name })}
+              onclick={() =>
+                (deleteTarget = { id: client.id, name: client.name })}
             >
               <IconTrash />
               Delete
             </Button>
           </client-actions>
         {:else}
-          <client-placeholder>Register an app to get started</client-placeholder>
+          <client-placeholder>Register an app to get started</client-placeholder
+          >
         {/if}
       </client-detail>
     </clients-editor>
@@ -252,7 +271,10 @@
     {#if secretReveal}
       <secret-row>
         <code>{secretReveal.secret}</code>
-        <Button variant="outline" onclick={() => copyText(secretReveal!.secret, 'Secret copied.')}>
+        <Button
+          variant="outline"
+          onclick={() => copyText(secretReveal!.secret, 'Secret copied.')}
+        >
           <IconCopy />
           Copy
         </Button>
@@ -271,8 +293,13 @@
   description="Existing access tokens issued through this app stay valid (they are regular rCTF auth tokens) but no new sign-ins will succeed."
 >
   <dialog-actions>
-    <Button variant="ghost" onclick={() => (deleteTarget = null)}>Cancel</Button>
-    <Button variant="destructive" onclick={confirmDelete} disabled={deleteAction.pending}>
+    <Button variant="ghost" onclick={() => (deleteTarget = null)}>Cancel</Button
+    >
+    <Button
+      variant="destructive"
+      onclick={confirmDelete}
+      disabled={deleteAction.pending}
+    >
       {#if deleteAction.pending}<Spinner />{/if}
       Delete app
     </Button>

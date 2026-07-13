@@ -40,7 +40,14 @@
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
   <row-content data-current data-hovered={hovered || undefined}>
-    <ScoresSolveCells {data} {entry} {viewMode} {sortMode} {focusedChallengeId} {hoveredColumnId} />
+    <ScoresSolveCells
+      {data}
+      {entry}
+      {viewMode}
+      {sortMode}
+      {focusedChallengeId}
+      {hoveredColumnId}
+    />
   </row-content>
 </self-row>
 

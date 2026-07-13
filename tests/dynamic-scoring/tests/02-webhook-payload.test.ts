@@ -1,7 +1,5 @@
-import { createHmac } from 'node:crypto'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
-  api,
   cleanupChallenge,
   cleanupUser,
   createDecayChallenge,

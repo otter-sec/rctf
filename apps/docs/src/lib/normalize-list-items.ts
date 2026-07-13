@@ -95,9 +95,13 @@ const isText = (node: ElementContent): node is Text => node.type === 'text'
 
 const isRaw = (node: ElementContent): node is Raw => node.type === 'raw'
 
-const isWhitespace = (node: ElementContent) => isText(node) && node.value.trim() === ''
+const isWhitespace = (node: ElementContent) =>
+  isText(node) && node.value.trim() === ''
 
-const lineBreakBefore = (children: readonly ElementContent[], index: number) => {
+const lineBreakBefore = (
+  children: readonly ElementContent[],
+  index: number
+) => {
   const previous = children[index - 1]
   return !previous || (isText(previous) && /\n\s*$/.test(previous.value))
 }
@@ -107,7 +111,11 @@ const lineBreakAfter = (children: readonly ElementContent[], index: number) => {
   return !next || (isText(next) && /^\s*\n/.test(next.value))
 }
 
-const isBlockRaw = (node: ElementContent, children: readonly ElementContent[], index: number) => {
+const isBlockRaw = (
+  node: ElementContent,
+  children: readonly ElementContent[],
+  index: number
+) => {
   if (!isRaw(node)) return false
   const tagName = rawTagName(node.value)
   if (!tagName) return false
@@ -120,7 +128,9 @@ const isBlockRaw = (node: ElementContent, children: readonly ElementContent[], i
   )
 }
 
-const splitFusedRawText = (children: ElementContent[]): ElementContent[] | undefined => {
+const splitFusedRawText = (
+  children: ElementContent[]
+): ElementContent[] | undefined => {
   let changed = false
   const out: ElementContent[] = []
 
@@ -159,7 +169,11 @@ const splitFusedRawText = (children: ElementContent[]): ElementContent[] | undef
   return changed ? out : undefined
 }
 
-const isBlockChild = (node: ElementContent, children: readonly ElementContent[], index: number) => {
+const isBlockChild = (
+  node: ElementContent,
+  children: readonly ElementContent[],
+  index: number
+) => {
   if (isWhitespace(node)) return false
   if (isBlockRaw(node, children, index)) return true
   return (
@@ -186,7 +200,8 @@ const isPhrasingChild = (
   if (node.type === 'text' || node.type === 'comment') return true
   if (isRaw(node)) return !isBlockRaw(node, children, index)
   return (
-    node.type === 'element' && (PHRASING_TAGS.has(node.tagName) || node.tagName.endsWith('-span'))
+    node.type === 'element' &&
+    (PHRASING_TAGS.has(node.tagName) || node.tagName.endsWith('-span'))
   )
 }
 
@@ -252,7 +267,9 @@ export const normalizeListItemFlow = defineHastPlugin({
       const original = [...(node.children ?? [])] as ElementContent[]
       const children = splitFusedRawText(original) ?? original
       const needsFlow = children.some(
-        (child, i) => isBlockChild(child, children, i) || isStandaloneImage(child, children, i)
+        (child, i) =>
+          isBlockChild(child, children, i) ||
+          isStandaloneImage(child, children, i)
       )
       if (!needsFlow) return
 

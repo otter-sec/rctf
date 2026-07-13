@@ -16,7 +16,10 @@
 
 code[data-ec] :where(span[style^='--']:not([class])) {
   color: light-dark(var(--0, inherit), var(--1, inherit));
-  background-color: light-dark(var(--0bg, transparent), var(--1bg, transparent));
+  background-color: light-dark(
+    var(--0bg, transparent),
+    var(--1bg, transparent)
+  );
   font-style: light-dark(var(--0fs, inherit), var(--1fs, inherit));
   font-weight: light-dark(var(--0fw, inherit), var(--1fw, inherit));
   text-decoration: light-dark(var(--0td, inherit), var(--1td, inherit));

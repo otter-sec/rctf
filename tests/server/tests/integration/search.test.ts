@@ -483,9 +483,7 @@ describe('admin users search', () => {
   ) =>
     request(app, `/api/v2/admin/users${query}`, {
       method: 'GET',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
 
   test('no search param returns all users', async () => {

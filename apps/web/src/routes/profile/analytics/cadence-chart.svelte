@@ -28,7 +28,9 @@
 
   const innerRight = $derived(Math.max(PAD_LEFT, width - PAD_RIGHT))
   const innerBottom = $derived(Math.max(PAD_TOP, height - PAD_BOTTOM))
-  const bandWidth = $derived(data.length > 0 ? (innerRight - PAD_LEFT) / data.length : 0)
+  const bandWidth = $derived(
+    data.length > 0 ? (innerRight - PAD_LEFT) / data.length : 0
+  )
 
   const yTicks = $derived(
     niceLinearTicks(
@@ -36,10 +38,16 @@
       3
     )
   )
-  const yScale = $derived(createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP]))
+  const yScale = $derived(
+    createLinearScale([0, yTicks.max], [innerBottom, PAD_TOP])
+  )
 
-  const activeIndex = $derived(hover.activeKey === null ? null : Number(hover.activeKey))
-  const active = $derived(activeIndex === null ? null : (data[activeIndex] ?? null))
+  const activeIndex = $derived(
+    hover.activeKey === null ? null : Number(hover.activeKey)
+  )
+  const active = $derived(
+    activeIndex === null ? null : (data[activeIndex] ?? null)
+  )
 
   function barX(index: number): number {
     return PAD_LEFT + index * bandWidth + BAR_INSET
@@ -84,7 +92,9 @@
               rx="4"
             />
           {/if}
-          <text data-x-label x={cx} y={innerBottom} dy={16} text-anchor="middle">{item.label}</text>
+          <text data-x-label x={cx} y={innerBottom} dy={16} text-anchor="middle"
+            >{item.label}</text
+          >
           <rect
             data-bar-hit
             data-index={index}
@@ -95,12 +105,23 @@
           />
         {/each}
 
-        <line data-axis-rule x1={PAD_LEFT} y1={innerBottom} x2={innerRight} y2={innerBottom} />
+        <line
+          data-axis-rule
+          x1={PAD_LEFT}
+          y1={innerBottom}
+          x2={innerRight}
+          y2={innerBottom}
+        />
       </svg>
     </div>
 
     {#if active && hover.tip}
-      <ChartTip x={hover.tip.x} y={hover.tip.y} chartWidth={width} chartHeight={height}>
+      <ChartTip
+        x={hover.tip.x}
+        y={hover.tip.y}
+        chartWidth={width}
+        chartHeight={height}
+      >
         <span data-count>{active.count.toLocaleString()} solves</span>
         <span data-range>
           {formatRelativeHoursMinutes(active.start, ctfStart)}

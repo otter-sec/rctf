@@ -11,7 +11,11 @@
   let { delta, variant = 'points' }: Props = $props()
 
   const trend = $derived(
-    delta && delta > 0 ? 'positive' : delta && delta < 0 ? 'negative' : 'neutral'
+    delta && delta > 0
+      ? 'positive'
+      : delta && delta < 0
+        ? 'negative'
+        : 'neutral'
   )
   const value = $derived(Math.abs(delta ?? 0).toLocaleString())
 </script>

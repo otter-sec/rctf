@@ -1,13 +1,19 @@
 import type { Element, ElementContent } from 'hast'
 import { defineHastPlugin } from 'satteri'
 
-const isElement = (node: ElementContent | undefined, tagName?: string): node is Element =>
-  node?.type === 'element' && (tagName === undefined || node.tagName === tagName)
+const isElement = (
+  node: ElementContent | undefined,
+  tagName?: string
+): node is Element =>
+  node?.type === 'element' &&
+  (tagName === undefined || node.tagName === tagName)
 
 const prop = (node: Readonly<Element>, name: string): string | undefined => {
   const value =
     node.properties?.[name] ??
-    node.properties?.[name.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase())]
+    node.properties?.[
+      name.replace(/-([a-z])/g, (_, char: string) => char.toUpperCase())
+    ]
   return typeof value === 'string' ? value : undefined
 }
 
@@ -27,10 +33,14 @@ export const normalizeTabPanels = defineHastPlugin({
   element: {
     filter: ['tab-group'],
     visit(group, ctx) {
-      const tablist = directChildren(group).find(child => prop(child, 'role') === 'tablist')
+      const tablist = directChildren(group).find(
+        child => prop(child, 'role') === 'tablist'
+      )
       if (!tablist) return
 
-      const tabs = directChildren(tablist, 'button').filter(child => prop(child, 'role') === 'tab')
+      const tabs = directChildren(tablist, 'button').filter(
+        child => prop(child, 'role') === 'tab'
+      )
       const panels = directChildren(group, 'section')
       if (panels.length > 0 && panels.every(isCodeOnlyPanel)) {
         ctx.setProperty(group, 'dataCodeTabs', '')
@@ -42,7 +52,9 @@ export const normalizeTabPanels = defineHastPlugin({
 
         const tabId = prop(tab, 'id')
         const panelId =
-          prop(tab, 'aria-controls') ?? prop(panel, 'id') ?? (tabId ? `${tabId}-panel` : undefined)
+          prop(tab, 'aria-controls') ??
+          prop(panel, 'id') ??
+          (tabId ? `${tabId}-panel` : undefined)
 
         ctx.setProperty(panel, 'role', 'tabpanel')
         if (panelId) ctx.setProperty(panel, 'id', panelId)

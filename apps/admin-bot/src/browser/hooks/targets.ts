@@ -86,7 +86,7 @@ export class TargetTracker {
             'Runtime.consoleAPICalled',
             createConsoleCallback(this.output, this.config, serviceId)
           )
-        } catch (err) {
+        } catch {
           if (this.config.showBrowserErrors) {
             this.output.error(
               'navigation',

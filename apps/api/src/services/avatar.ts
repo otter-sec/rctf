@@ -14,7 +14,9 @@ import { avatarModerationProvider, uploadProvider } from '../providers'
 import { updateUserAvatar } from './users'
 
 export type SetUserAvatarError =
-  'badAvatarFile' | 'badAvatarFileSize' | 'badModerationNotPassed'
+  | 'badAvatarFile'
+  | 'badAvatarFileSize'
+  | 'badModerationNotPassed'
 
 export type SetUserAvatarResult =
   | { success: true; url: string | null }

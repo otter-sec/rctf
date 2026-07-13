@@ -25,7 +25,9 @@
   const resolved = $derived(resolveValue(schema, value) as boolean | undefined)
   const displayValue = $derived(resolved ?? false)
 
-  const { error, incomplete } = $derived(errorsContext?.display(path) ?? NO_FIELD_ERROR)
+  const { error, incomplete } = $derived(
+    errorsContext?.display(path) ?? NO_FIELD_ERROR
+  )
 </script>
 
 <Field

@@ -65,14 +65,22 @@
   const status = $derived(instanceQuery.data?.status ?? InstanceStatus.STOPPED)
   const endpoints = $derived(instanceQuery.data?.endpoints ?? [])
   const formattedEndpoints = $derived(
-    endpoints.map((endpoint, index) => formatEndpoint(endpoint, index, endpoints.length))
+    endpoints.map((endpoint, index) =>
+      formatEndpoint(endpoint, index, endpoints.length)
+    )
   )
 
   const transitioning = $derived(
     status === InstanceStatus.STARTING || status === InstanceStatus.STOPPING
   )
 
-  type PanelView = 'archived' | 'login' | 'loading' | 'error' | 'stopped' | 'running'
+  type PanelView =
+    | 'archived'
+    | 'login'
+    | 'loading'
+    | 'error'
+    | 'stopped'
+    | 'running'
 
   const view = $derived.by((): PanelView => {
     if (isArchived) return 'archived'
@@ -84,13 +92,18 @@
   })
 
   const instanceAction = createAsyncAction<string>()
-  const actionsDisabled = $derived(instanceAction.pending || status === InstanceStatus.STOPPING)
+  const actionsDisabled = $derived(
+    instanceAction.pending || status === InstanceStatus.STOPPING
+  )
 
   const instanceKey = $derived(queryKeys.challengeInstance(challengeId))
 
   let timeLeft = $derived(instanceQuery.data?.timeLeftMilliseconds ?? null)
   $effect(() => {
-    if (status !== InstanceStatus.RUNNING && status !== InstanceStatus.STARTING) {
+    if (
+      status !== InstanceStatus.RUNNING &&
+      status !== InstanceStatus.STARTING
+    ) {
       return
     }
     const tick = setInterval(() => {
@@ -195,7 +208,9 @@
 
 <instancer-panel data-view={view}>
   {#if view === 'archived'}
-    <instancer-message>Instancer is not available in archived mode.</instancer-message>
+    <instancer-message
+      >Instancer is not available in archived mode.</instancer-message
+    >
   {:else if view === 'login'}
     <instancer-empty>
       <instancer-message>Login to use the instancer.</instancer-message>
@@ -220,7 +235,10 @@
         {#if instanceAction.key === 'start'}<Spinner />{/if}
         Start instance
       </Button>
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} />
+      <CaptchaNotice
+        config={clientConfig}
+        action={ProtectedAction.InstancerStart}
+      />
     </instancer-empty>
   {:else}
     <instancer-running>
@@ -229,7 +247,9 @@
       {:else if status === InstanceStatus.STOPPING}
         <instancer-status><Spinner /><span>Stopping…</span></instancer-status>
       {:else if status === InstanceStatus.ERRORED}
-        <instancer-status data-tone="error"><span>Errored</span></instancer-status>
+        <instancer-status data-tone="error"
+          ><span>Errored</span></instancer-status
+        >
       {/if}
 
       {#each formattedEndpoints as endpoint, index (index)}
@@ -245,7 +265,11 @@
                 type="button"
                 aria-label="Copy {endpoint.label}"
                 onclick={() =>
-                  copyText(endpoint.copyValue, 'Copied to clipboard', 'Failed to copy')}
+                  copyText(
+                    endpoint.copyValue,
+                    'Copied to clipboard',
+                    'Failed to copy'
+                  )}
               >
                 <IconCopy />
               </button>
@@ -274,13 +298,21 @@
             </Button>
           {/each}
           {#if instancerExtendable}
-            <Button variant="secondary" onclick={extend} disabled={actionsDisabled}>
+            <Button
+              variant="secondary"
+              onclick={extend}
+              disabled={actionsDisabled}
+            >
               {#if instanceAction.key === 'extend'}<Spinner />{/if}
               Extend
             </Button>
           {/if}
           {#if instancerStoppable}
-            <Button variant="destructive" onclick={stop} disabled={actionsDisabled}>
+            <Button
+              variant="destructive"
+              onclick={stop}
+              disabled={actionsDisabled}
+            >
               {#if instanceAction.key === 'stop'}<Spinner />{/if}
               Stop
             </Button>
@@ -288,7 +320,10 @@
         </instancer-actions>
       {/if}
 
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerExtend} />
+      <CaptchaNotice
+        config={clientConfig}
+        action={ProtectedAction.InstancerExtend}
+      />
     </instancer-running>
   {/if}
 </instancer-panel>

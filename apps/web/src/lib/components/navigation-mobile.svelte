@@ -25,7 +25,11 @@
   import Dialog from '$lib/ui/dialog.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
-  import { ADMIN_PANEL_PERMISSIONS, hasAnyPermission, hasPermissions } from '$lib/utils/permissions'
+  import {
+    ADMIN_PANEL_PERMISSIONS,
+    hasAnyPermission,
+    hasPermissions,
+  } from '$lib/utils/permissions'
 
   const queryClient = useQueryClient()
   const configQuery = useClientConfig()
@@ -34,9 +38,13 @@
   const user = $derived(userQuery.data)
 
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const canReadChallenges = $derived(hasPermissions(user, Permissions.challsRead))
+  const canReadChallenges = $derived(
+    hasPermissions(user, Permissions.challsRead)
+  )
   const canManageUsers = $derived(hasPermissions(user, Permissions.usersWrite))
-  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const canManageSettings = $derived(
+    hasPermissions(user, Permissions.settingsWrite)
+  )
   const isAdmin = $derived(hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS))
 
   const lightLogo = $derived(clientConfig?.logoLightUrl || wordmarkLight)
@@ -50,7 +58,13 @@
 
   const navItems = $derived(
     [
-      { href: '/', activePath: '/', label: 'Home', icon: IconHouse, show: true },
+      {
+        href: '/',
+        activePath: '/',
+        label: 'Home',
+        icon: IconHouse,
+        show: true,
+      },
       {
         href: '/challenges',
         activePath: '/challenges',
@@ -104,7 +118,9 @@
   )
 
   const isActive = (activePath: string) =>
-    activePath === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(activePath)
+    activePath === '/'
+      ? page.url.pathname === '/'
+      : page.url.pathname.startsWith(activePath)
 </script>
 
 <mobile-nav>
@@ -117,8 +133,12 @@
     {#snippet children({ closeProps })}
       <sheet-header>
         <a href="/" aria-label="Home">
-          <logo-light><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light>
-          <logo-dark><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark>
+          <logo-light
+            ><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light
+          >
+          <logo-dark
+            ><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark
+          >
         </a>
         <button {...closeProps} aria-label="Close navigation">
           <IconX />
@@ -127,7 +147,10 @@
       <nav aria-label="Main">
         {#each navItems as item (item.href)}
           {@const Icon = item.icon}
-          <a href={item.href} data-active={isActive(item.activePath) ? '' : undefined}>
+          <a
+            href={item.href}
+            data-active={isActive(item.activePath) ? '' : undefined}
+          >
             <Icon />
             {item.label}
           </a>
@@ -143,7 +166,8 @@
                 <button
                   {...mergeProps(props, {
                     onclick: () => {
-                      if (currentUser.teamToken) copyLoginUrl(currentUser.teamToken)
+                      if (currentUser.teamToken)
+                        copyLoginUrl(currentUser.teamToken)
                     },
                   })}
                   aria-label="Copy login URL"

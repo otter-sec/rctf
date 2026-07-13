@@ -22,7 +22,9 @@
   }))
   const api = $derived(splitter.connect(service, normalizeProps))
 
-  const resizeTriggerId = $derived(`${panels[0].id}:${panels[1].id}` as `${string}:${string}`)
+  const resizeTriggerId = $derived(
+    `${panels[0].id}:${panels[1].id}` as `${string}:${string}`
+  )
 </script>
 
 <div {...api.getRootProps()}>

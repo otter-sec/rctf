@@ -77,7 +77,10 @@
       for (const finding of nodeFindings) {
         const id = encodeNodeId(finding.fieldPath)
         const existing = map.get(id)
-        if (!existing || (existing.severity === 'missing' && finding.severity === 'invalid')) {
+        if (
+          !existing ||
+          (existing.severity === 'missing' && finding.severity === 'invalid')
+        ) {
           map.set(id, { severity: finding.severity, message: finding.message })
         }
       }
@@ -90,10 +93,16 @@
     if (exact) return exact
     for (const [id, error] of fieldErrors) {
       const errorPath = decodeNodeId(id)
-      if (errorPath.length <= path.length || !pathStartsWith(errorPath, path)) continue
+      if (errorPath.length <= path.length || !pathStartsWith(errorPath, path))
+        continue
       const segment = errorPath[path.length] ?? ''
-      const position = /^\d+$/.test(segment) ? `Item ${Number(segment) + 1}` : segment
-      return { severity: error.severity, message: `${position}: ${error.message}` }
+      const position = /^\d+$/.test(segment)
+        ? `Item ${Number(segment) + 1}`
+        : segment
+      return {
+        severity: error.severity,
+        message: `${position}: ${error.message}`,
+      }
     }
     return null
   }
@@ -133,7 +142,11 @@
 
   const selectedId = $derived.by(() => {
     if (nodeMap.has(selected)) return selected
-    let path = nearestSurvivingPath(decodeNodeId(selected), resolvedSchema, value)
+    let path = nearestSurvivingPath(
+      decodeNodeId(selected),
+      resolvedSchema,
+      value
+    )
     while (path.length > 0 && !nodeMap.has(encodeNodeId(path))) {
       path = path.slice(0, -1)
     }
@@ -160,18 +173,36 @@
   const selectedPath = $derived(decodeNodeId(selectedId))
   const selectedNode = $derived(nodeMap.get(selectedId) ?? null)
   const selectedSchema = $derived(schemaAtPath(resolvedSchema, selectedPath))
-  const selectedEffective = $derived(selectedSchema ? getEffectiveSchema(selectedSchema) : null)
+  const selectedEffective = $derived(
+    selectedSchema ? getEffectiveSchema(selectedSchema) : null
+  )
   const selectedValue = $derived(valueAtPath(value, selectedPath))
-  const selectedKind = $derived(selectedSchema ? classifyHeavy(selectedSchema) : null)
-  const selectedNullable = $derived(selectedSchema ? isNullable(selectedSchema) : false)
+  const selectedKind = $derived(
+    selectedSchema ? classifyHeavy(selectedSchema) : null
+  )
+  const selectedNullable = $derived(
+    selectedSchema ? isNullable(selectedSchema) : false
+  )
 
   const crumbs = $derived.by(() => {
-    const items = [{ id: encodeNodeId([]), path: [] as string[], label: rootLabel, isNode: true }]
+    const items = [
+      {
+        id: encodeNodeId([]),
+        path: [] as string[],
+        label: rootLabel,
+        isNode: true,
+      },
+    ]
     for (let length = 1; length <= selectedPath.length; length++) {
       const path = selectedPath.slice(0, length)
       const id = encodeNodeId(path)
       const node = nodeMap.get(id)
-      items.push({ id, path, label: node?.label ?? path[length - 1] ?? '', isNode: node != null })
+      items.push({
+        id,
+        path,
+        label: node?.label ?? path[length - 1] ?? '',
+        isNode: node != null,
+      })
     }
     return items
   })
@@ -202,14 +233,17 @@
         return
       }
       if (target === 'key') {
-        const keyInput = detailEl?.querySelector<HTMLElement>('key-rename input')
+        const keyInput =
+          detailEl?.querySelector<HTMLElement>('key-rename input')
         if (keyInput) {
           keyInput.focus()
           return
         }
       }
       detailEl
-        ?.querySelector<HTMLElement>('detail-body input, detail-body textarea, detail-body button')
+        ?.querySelector<HTMLElement>(
+          'detail-body input, detail-body textarea, detail-body button'
+        )
         ?.focus()
     })
   }
@@ -237,7 +271,11 @@
   }
 
   function arrayEntryRemoved(arrayPath: string[], index: number) {
-    const remapped = remapPathForArrayRemoval(decodeNodeId(selectedId), arrayPath, index)
+    const remapped = remapPathForArrayRemoval(
+      decodeNodeId(selectedId),
+      arrayPath,
+      index
+    )
     selected = encodeNodeId(remapped ?? arrayPath)
     detailEpoch++
     expanded = expanded.flatMap(id => {
@@ -264,7 +302,9 @@
   }
 
   const parentSchema = $derived(
-    selectedPath.length > 0 ? schemaAtPath(resolvedSchema, selectedPath.slice(0, -1)) : null
+    selectedPath.length > 0
+      ? schemaAtPath(resolvedSchema, selectedPath.slice(0, -1))
+      : null
   )
   const renamableKey = $derived.by(() => {
     if (!parentSchema) return null
@@ -280,7 +320,11 @@
     const nextKey = keyNameInput.trim()
     if (!nextKey || nextKey === renamableKey) return null
     const parentValue = valueAtPath(value, selectedPath.slice(0, -1))
-    if (parentValue && typeof parentValue === 'object' && Object.hasOwn(parentValue, nextKey)) {
+    if (
+      parentValue &&
+      typeof parentValue === 'object' &&
+      Object.hasOwn(parentValue, nextKey)
+    ) {
       return `A "${nextKey}" entry already exists`
     }
     return null
@@ -291,14 +335,22 @@
     const oldKey = renamableKey
     const nextKey = keyNameInput.trim()
     const parentPath = selectedPath.slice(0, -1)
-    const next = renameRecordEntry(valueAtPath(value, parentPath), oldKey, nextKey)
+    const next = renameRecordEntry(
+      valueAtPath(value, parentPath),
+      oldKey,
+      nextKey
+    )
     if (!next) {
       keyNameInput = oldKey
       return
     }
-    selected = encodeNodeId(remapPathForRename(selectedPath, parentPath, oldKey, nextKey))
+    selected = encodeNodeId(
+      remapPathForRename(selectedPath, parentPath, oldKey, nextKey)
+    )
     expanded = expanded.map(id =>
-      encodeNodeId(remapPathForRename(decodeNodeId(id), parentPath, oldKey, nextKey))
+      encodeNodeId(
+        remapPathForRename(decodeNodeId(id), parentPath, oldKey, nextKey)
+      )
     )
     onChange(setValueAtPath(value, parentPath, next) as Record<string, unknown>)
   }
@@ -334,13 +386,22 @@
     {#if hasTree}
       <nav aria-label="Configuration path">
         {#each crumbs as crumb, index (crumb.id)}
-          {#if index > 0}<crumb-separator aria-hidden="true">/</crumb-separator>{/if}
+          {#if index > 0}<crumb-separator aria-hidden="true">/</crumb-separator
+            >{/if}
           {#if index === crumbs.length - 1}
-            <crumb-current bind:this={headingEl} tabindex="-1" aria-current="page">
+            <crumb-current
+              bind:this={headingEl}
+              tabindex="-1"
+              aria-current="page"
+            >
               {crumb.label}
             </crumb-current>
           {:else if crumb.isNode}
-            <button type="button" onclick={() => selectNode(crumb.path)} {disabled}>
+            <button
+              type="button"
+              onclick={() => selectNode(crumb.path)}
+              {disabled}
+            >
               {crumb.label}
             </button>
           {:else}
@@ -377,7 +438,9 @@
               {#if selectedNode?.notConfigured && (selectedKind === 'record' || selectedKind === 'array')}
                 <detail-gate>
                   <detail-gate-empty>Not configured</detail-gate-empty>
-                  <Button size="sm" onclick={enableCollection} {disabled}>Enable</Button>
+                  <Button size="sm" onclick={enableCollection} {disabled}
+                    >Enable</Button
+                  >
                 </detail-gate>
               {:else if selectedKind === 'record'}
                 <SchemaFormRecordList

@@ -88,7 +88,8 @@
             emptyPlaceholder="teammate@example.com"
           />
           {#if memberForm.errors._form}
-            <members-error role="alert">{memberForm.errors._form}</members-error>
+            <members-error role="alert">{memberForm.errors._form}</members-error
+            >
           {/if}
         </members-field>
       {/if}

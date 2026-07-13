@@ -10,8 +10,6 @@
         "oxlint": "1.72.0",
         "prettier": "3.9.4",
         "prettier-plugin-astro": "0.14.1",
-      },
-      "peerDependencies": {
         "typescript": "7.0.2",
       },
     },

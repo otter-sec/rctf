@@ -23,7 +23,9 @@
   const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
 
-  const { error, incomplete } = $derived(errorsContext?.display(path) ?? NO_FIELD_ERROR)
+  const { error, incomplete } = $derived(
+    errorsContext?.display(path) ?? NO_FIELD_ERROR
+  )
 
   function handleInput(event: Event) {
     const raw = (event.currentTarget as HTMLInputElement).value

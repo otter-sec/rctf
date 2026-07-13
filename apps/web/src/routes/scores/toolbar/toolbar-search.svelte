@@ -13,7 +13,9 @@
   let { value, pending, oninput, onclear }: Props = $props()
 
   let inputEl = $state<HTMLInputElement | null>(null)
-  const captureInput = captureElement<HTMLInputElement>(node => (inputEl = node))
+  const captureInput = captureElement<HTMLInputElement>(
+    node => (inputEl = node)
+  )
 
   function handleWindowKeydown(event: KeyboardEvent) {
     if (event.altKey || !(event.ctrlKey || event.metaKey)) return

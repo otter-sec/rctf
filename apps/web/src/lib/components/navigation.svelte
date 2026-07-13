@@ -27,7 +27,11 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
-  import { ADMIN_PANEL_PERMISSIONS, hasAnyPermission, hasPermissions } from '$lib/utils/permissions'
+  import {
+    ADMIN_PANEL_PERMISSIONS,
+    hasAnyPermission,
+    hasPermissions,
+  } from '$lib/utils/permissions'
   import { createRovingFocus } from '$lib/utils/roving'
 
   const rovingFocus = createRovingFocus()
@@ -39,16 +43,22 @@
   const user = $derived(userQuery.data)
 
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const canReadChallenges = $derived(hasPermissions(user, Permissions.challsRead))
+  const canReadChallenges = $derived(
+    hasPermissions(user, Permissions.challsRead)
+  )
   const canManageUsers = $derived(hasPermissions(user, Permissions.usersWrite))
-  const canManageSettings = $derived(hasPermissions(user, Permissions.settingsWrite))
+  const canManageSettings = $derived(
+    hasPermissions(user, Permissions.settingsWrite)
+  )
   const isAdmin = $derived(hasAnyPermission(user, ADMIN_PANEL_PERMISSIONS))
 
   const lightLogo = $derived(clientConfig?.logoLightUrl || wordmarkLight)
   const darkLogo = $derived(clientConfig?.logoDarkUrl || wordmarkDark)
 
   const divisionLabel = $derived(
-    user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'
+    user?.division
+      ? (clientConfig?.divisions[user.division] ?? user.division)
+      : 'No Division'
   )
 
   const adminMenuItems = $derived(
@@ -93,15 +103,27 @@
         if (user?.teamToken) copyLoginUrl(user.teamToken)
       },
     },
-    { value: 'profile', label: 'Manage team', icon: IconUserGear, href: '/profile' },
-    { value: 'logout', label: 'Log out', icon: IconSignOut, onSelect: () => logout(queryClient) },
+    {
+      value: 'profile',
+      label: 'Manage team',
+      icon: IconUserGear,
+      href: '/profile',
+    },
+    {
+      value: 'logout',
+      label: 'Log out',
+      icon: IconSignOut,
+      onSelect: () => logout(queryClient),
+    },
   ])
 </script>
 
 <header>
   <nav-start>
     <a href="/" aria-label="Home">
-      <logo-light><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light>
+      <logo-light
+        ><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light
+      >
       <logo-dark><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark>
     </a>
     <nav aria-label="Main" {@attach rovingFocus}>
@@ -176,7 +198,9 @@
               <user-meta>
                 {#if currentUser.countryCode}
                   <img
-                    src="/flags/{countryCodeToFlagFilename(currentUser.countryCode)}"
+                    src="/flags/{countryCodeToFlagFilename(
+                      currentUser.countryCode
+                    )}"
                     alt="{currentUser.countryCode} flag"
                   />
                 {/if}
@@ -197,7 +221,12 @@
     {:else if !isArchived}
       <Tooltip label="Login">
         {#snippet children({ props })}
-          <NavigationButton {...props} href="/login" label="Login" icon={IconSignIn} />
+          <NavigationButton
+            {...props}
+            href="/login"
+            label="Login"
+            icon={IconSignIn}
+          />
         {/snippet}
       </Tooltip>
     {/if}

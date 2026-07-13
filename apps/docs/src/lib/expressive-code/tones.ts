@@ -69,7 +69,9 @@ export function pluginCodeTones(): ExpressiveCodePlugin {
           codeToneData.getOrCreateFor(codeBlock).tonedLines.add(index)
           line.editText(0, line.text.length, parsed.text)
           for (const range of parsed.ranges) {
-            line.addAnnotation(new CodeToneAnnotation(range.tone, range.start, range.end))
+            line.addAnnotation(
+              new CodeToneAnnotation(range.tone, range.start, range.end)
+            )
           }
         })
       },

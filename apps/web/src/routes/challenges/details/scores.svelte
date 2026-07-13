@@ -2,16 +2,25 @@
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
-  import { createScrollGeometry, deriveSelfRowClip } from '$lib/components/scroll-geometry.svelte'
+  import {
+    createScrollGeometry,
+    deriveSelfRowClip,
+  } from '$lib/components/scroll-geometry.svelte'
   import { IconGlobeHemisphereWest } from '$lib/icons'
-  import { useChallengeScores, useChallengeScoresInfinite } from '$lib/query/challenges'
+  import {
+    useChallengeScores,
+    useChallengeScoresInfinite,
+  } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
   import { toast } from '$lib/toast'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
-  import { getRankTier, getSparklineDataByTeam } from '../../scores/model/transforms'
+  import {
+    getRankTier,
+    getSparklineDataByTeam,
+  } from '../../scores/model/transforms'
   import ChallengePointDelta from '../model/point-delta.svelte'
   import { rankVariant } from '../model/solve-times'
   import ChallengeDetailsRow from './details-row.svelte'
@@ -44,10 +53,14 @@
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )
 
-  const allScores = $derived(scoresQuery.data?.pages.flatMap(page => page.scores) ?? [])
+  const allScores = $derived(
+    scoresQuery.data?.pages.flatMap(page => page.scores) ?? []
+  )
   const total = $derived(scoresQuery.data?.pages[0]?.total ?? 0)
 
-  type GraphSeries = NonNullable<typeof scoresQuery.data>['pages'][number]['graph'][number]
+  type GraphSeries = NonNullable<
+    typeof scoresQuery.data
+  >['pages'][number]['graph'][number]
   const graph = $derived.by(() => {
     const seen = new Set<string>()
     const series: GraphSeries[] = []
@@ -55,7 +68,10 @@
       for (const entry of page.graph) {
         if (!seen.has(entry.id)) {
           seen.add(entry.id)
-          series.push({ ...entry, points: [...entry.points].sort((a, b) => a.time - b.time) })
+          series.push({
+            ...entry,
+            points: [...entry.points].sort((a, b) => a.time - b.time),
+          })
         }
       }
     }
@@ -68,9 +84,13 @@
 
   const myPosition = $derived(selfQuery.data?.myPosition ?? null)
   const userScoreIndex = $derived(
-    currentUser ? allScores.findIndex(score => score.userId === currentUser.id) : -1
+    currentUser
+      ? allScores.findIndex(score => score.userId === currentUser.id)
+      : -1
   )
-  const selfRankDelta = $derived(currentUser ? rankDeltas.get(currentUser.id) : undefined)
+  const selfRankDelta = $derived(
+    currentUser ? rankDeltas.get(currentUser.id) : undefined
+  )
 
   let scrollRoot = $state<HTMLElement | null>(null)
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
@@ -91,7 +111,9 @@
   }
 
   let selfRowNode = $state<HTMLElement | null>(null)
-  const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
+  const captureSelfRow = captureElement<HTMLElement>(
+    node => (selfRowNode = node)
+  )
   const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
 
   const pinnedEdge = $derived.by((): 'top' | 'bottom' | null => {
@@ -103,7 +125,9 @@
   let listNode = $state<HTMLElement | null>(null)
   const captureList = captureElement<HTMLElement>(node => (listNode = node))
   let overlayNode = $state<HTMLElement | null>(null)
-  const captureOverlay = captureElement<HTMLElement>(node => (overlayNode = node))
+  const captureOverlay = captureElement<HTMLElement>(
+    node => (overlayNode = node)
+  )
 
   const rowMetrics = $derived.by(() => {
     if (geometry.clientWidth === 0 || geometry.scrollHeight === 0) return null
@@ -122,11 +146,20 @@
     const loaded = allScores.length
     if (rowMetrics && loaded > 0 && geometry.clientHeight > 0) {
       const overlayHeight = pinnedEdge ? (overlayNode?.offsetHeight ?? 0) : 0
-      const bandTop = geometry.scrollTop + (pinnedEdge === 'top' ? overlayHeight : 0)
+      const bandTop =
+        geometry.scrollTop + (pinnedEdge === 'top' ? overlayHeight : 0)
       const bandBottom =
-        geometry.scrollTop + geometry.clientHeight - (pinnedEdge === 'bottom' ? overlayHeight : 0)
-      first = Math.max(0, Math.ceil((bandTop - rowMetrics.mid0) / rowMetrics.stride))
-      last = Math.min(loaded - 1, Math.ceil((bandBottom - rowMetrics.mid0) / rowMetrics.stride) - 1)
+        geometry.scrollTop +
+        geometry.clientHeight -
+        (pinnedEdge === 'bottom' ? overlayHeight : 0)
+      first = Math.max(
+        0,
+        Math.ceil((bandTop - rowMetrics.mid0) / rowMetrics.stride)
+      )
+      last = Math.min(
+        loaded - 1,
+        Math.ceil((bandBottom - rowMetrics.mid0) / rowMetrics.stride) - 1
+      )
       if (last < first) {
         first = -1
         last = -1
@@ -155,7 +188,11 @@
     const observer = new IntersectionObserver(
       entries => {
         for (const entry of entries) {
-          if (entry.isIntersecting && scoresQuery.hasNextPage && !scoresQuery.isFetchingNextPage) {
+          if (
+            entry.isIntersecting &&
+            scoresQuery.hasNextPage &&
+            !scoresQuery.isFetchingNextPage
+          ) {
             scoresQuery.fetchNextPage()
           }
         }
@@ -206,7 +243,10 @@
           {#each allScores as score, index (score.userId)}
             {@const rank = index + 1}
             {@const isSelf = !!(currentUser && score.userId === currentUser.id)}
-            <row-slot data-team-id={score.userId} {@attach isSelf && captureSelfRow}>
+            <row-slot
+              data-team-id={score.userId}
+              {@attach isSelf && captureSelfRow}
+            >
               <ChallengeDetailsRow
                 variant={rankVariant(rank, isSelf)}
                 {rank}
@@ -220,7 +260,10 @@
                 {isSelf}
               >
                 {#snippet rankAccessory()}
-                  <ChallengePointDelta delta={rankDeltas.get(score.userId)} variant="rank" />
+                  <ChallengePointDelta
+                    delta={rankDeltas.get(score.userId)}
+                    variant="rank"
+                  />
                 {/snippet}
                 <ScoreTrailing
                   points={score.points}
@@ -234,7 +277,9 @@
           {/each}
 
           {#if scoresQuery.isFetchingNextPage}
-            <scores-loading><Spinner label="Loading more scores" /></scores-loading>
+            <scores-loading
+              ><Spinner label="Loading more scores" /></scores-loading
+            >
           {/if}
 
           <scores-sentinel {@attach loadMore}></scores-sentinel>
@@ -252,7 +297,8 @@
             rank={myPosition}
             rankDelta={selfRankDelta}
             {showDivision}
-            sparkline={(currentUser && sparklineByTeam.get(currentUser.id)) ?? []}
+            sparkline={(currentUser && sparklineByTeam.get(currentUser.id)) ??
+              []}
           />
         </self-overlay>
       {/if}

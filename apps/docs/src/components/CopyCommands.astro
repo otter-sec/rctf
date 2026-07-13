@@ -25,7 +25,8 @@
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return
     const pill = event.target
-    if (!(pill instanceof HTMLElement) || pill.tagName !== 'COPY-COMMAND') return
+    if (!(pill instanceof HTMLElement) || pill.tagName !== 'COPY-COMMAND')
+      return
     event.preventDefault()
     copy(pill)
   })

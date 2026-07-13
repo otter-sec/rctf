@@ -22,7 +22,13 @@
 <g data-chart-axis>
   <line data-axis-rule x1={left} y1={y} x2={right} y2={y} />
   {#each ticks as tick, index (index)}
-    <text data-axis-tick x={scale(tick.value)} {y} dy={16} text-anchor={anchor(index)}>
+    <text
+      data-axis-tick
+      x={scale(tick.value)}
+      {y}
+      dy={16}
+      text-anchor={anchor(index)}
+    >
       {tick.label}
     </text>
   {/each}

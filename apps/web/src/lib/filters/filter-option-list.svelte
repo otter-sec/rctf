@@ -26,7 +26,10 @@
   />
 {/if}
 
-<option-list data-mobile={mobile || undefined} data-scroll={searchable || undefined}>
+<option-list
+  data-mobile={mobile || undefined}
+  data-scroll={searchable || undefined}
+>
   {#if loading}
     <option-status><Spinner />{family.loadingLabel}</option-status>
   {:else if options.length === 0}

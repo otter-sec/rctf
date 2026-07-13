@@ -49,7 +49,12 @@
   <CtfNotStarted />
 {:else}
   <scores-page>
-    <ScoresToolbar {data} {urlState} {divisions} onScreenshot={() => (screenshotOpen = true)} />
+    <ScoresToolbar
+      {data}
+      {urlState}
+      {divisions}
+      onScreenshot={() => (screenshotOpen = true)}
+    />
 
     {#if data.isLoading || focusFetching}
       <scores-leaderboard-slot>

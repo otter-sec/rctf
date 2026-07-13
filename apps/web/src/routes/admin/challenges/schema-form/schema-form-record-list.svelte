@@ -31,10 +31,14 @@
 
   const errorsContext = getSchemaFormErrors()
 
-  const entries = $derived(Object.entries((value ?? {}) as Record<string, unknown>))
+  const entries = $derived(
+    Object.entries((value ?? {}) as Record<string, unknown>)
+  )
   const valueSchema = $derived(recordValueSchema(schema))
 
-  const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
+  const keyEnumValues = $derived(
+    schema.propertyNames?.enum as string[] | undefined
+  )
   const availableKeys = $derived(
     keyEnumValues?.filter(k => !entries.some(([ek]) => ek === k)) ?? []
   )
@@ -59,7 +63,9 @@
     onChange(path, removeRecordEntry(value, key))
     onRemoved?.(key)
     void tick().then(() =>
-      listEl?.querySelector<HTMLElement>('sf-list-add input, sf-list-add button')?.focus()
+      listEl
+        ?.querySelector<HTMLElement>('sf-list-add input, sf-list-add button')
+        ?.focus()
     )
   }
 
@@ -110,7 +116,11 @@
           placeholder="key"
           bind:value={newKeyInput}
           onkeydown={event => {
-            if (event.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
+            if (
+              event.key === 'Enter' &&
+              newKeyInput.trim() &&
+              !isDuplicateKey
+            ) {
               event.preventDefault()
               addEntry(newKeyInput.trim())
             }
@@ -124,12 +134,15 @@
       size="icon"
       aria-label="Add entry"
       onclick={addFromControls}
-      disabled={disabled || (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}
+      disabled={disabled ||
+        (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}
     >
       +
     </Button>
   </sf-list-add>
-  {#if isDuplicateKey}<sf-list-error role="alert">Key already exists</sf-list-error>{/if}
+  {#if isDuplicateKey}<sf-list-error role="alert"
+      >Key already exists</sf-list-error
+    >{/if}
 </sf-list>
 
 <style>

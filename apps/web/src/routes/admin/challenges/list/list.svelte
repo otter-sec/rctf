@@ -13,10 +13,17 @@
   import Accordion from '$lib/ui/accordion.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
-  import { getCategoryConfig, getCategoryKeyOrAlias } from '$lib/utils/categories'
+  import {
+    getCategoryConfig,
+    getCategoryKeyOrAlias,
+  } from '$lib/utils/categories'
   import { hasPermissions } from '$lib/utils/permissions'
   import AdminChallengesListItem from './list-item.svelte'
-  import { accordionValue, filterChallenges, groupChallenges } from './list-logic'
+  import {
+    accordionValue,
+    filterChallenges,
+    groupChallenges,
+  } from './list-logic'
 
   interface Props {
     challenges: AdminChallenge[]
@@ -26,10 +33,13 @@
     onCreateNew: () => void
   }
 
-  let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props = $props()
+  let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props =
+    $props()
 
   const userQuery = useCurrentUser()
-  const canWrite = $derived(hasPermissions(userQuery.data, Permissions.challsWrite))
+  const canWrite = $derived(
+    hasPermissions(userQuery.data, Permissions.challsWrite)
+  )
 
   let searchQuery = $state('')
   let collapsed = $state<string[]>([])
@@ -38,7 +48,9 @@
 
   const filtered = $derived(filterChallenges(challenges, searchQuery))
   const groups = $derived(groupChallenges(filtered))
-  const groupByCategory = $derived(new Map(groups.map(group => [group.category, group])))
+  const groupByCategory = $derived(
+    new Map(groups.map(group => [group.category, group]))
+  )
   const categories = $derived(groups.map(group => group.category))
 
   const value = $derived(accordionValue(groups, collapsed, searching))
@@ -46,11 +58,14 @@
 
   const stats = $derived({
     challenges: challenges.length,
-    categories: new Set(challenges.map(c => getCategoryKeyOrAlias(c.category))).size,
+    categories: new Set(challenges.map(c => getCategoryKeyOrAlias(c.category)))
+      .size,
   })
 
   const emptySubtitle = $derived(
-    searching ? 'Try a different search term' : 'Create your first challenge to get started'
+    searching
+      ? 'Try a different search term'
+      : 'Create your first challenge to get started'
   )
 
   function handleValueChange(open: string[]) {
@@ -99,7 +114,9 @@
               type="button"
               data-slot="collapse"
               data-active={!anyOpen || undefined}
-              aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
+              aria-label={anyOpen
+                ? 'Collapse all categories'
+                : 'Expand all categories'}
             >
               <IconArrowsInLineVertical />
             </button>

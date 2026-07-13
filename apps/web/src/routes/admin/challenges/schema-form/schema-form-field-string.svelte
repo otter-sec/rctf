@@ -29,23 +29,37 @@
 
   const label = $derived(fieldLabel(schema, path))
   const description = $derived(schema.description)
-  const isTextarea = $derived((schema.maxLength ?? 0) > 100 || schema.format === 'textarea')
+  const isTextarea = $derived(
+    (schema.maxLength ?? 0) > 100 || schema.format === 'textarea'
+  )
 
   const effectiveSchema = $derived(getEffectiveSchema(schema))
   const enumValues = $derived(effectiveSchema.enum as unknown[] | undefined)
   const isNullable = $derived(checkNullable(schema))
-  const displayValue = $derived(String(resolveValue(effectiveSchema, value) ?? ''))
+  const displayValue = $derived(
+    String(resolveValue(effectiveSchema, value) ?? '')
+  )
 
   const choices = $derived([
     ...(isNullable ? [{ value: null as unknown, label: 'None' }] : []),
-    ...(enumValues ?? []).map(option => ({ value: option, label: String(option) })),
+    ...(enumValues ?? []).map(option => ({
+      value: option,
+      label: String(option),
+    })),
   ])
   const options = $derived(
-    choices.map((choice, index) => ({ value: String(index), label: choice.label }))
+    choices.map((choice, index) => ({
+      value: String(index),
+      label: choice.label,
+    }))
   )
-  const selected = $derived(String(choices.findIndex(choice => choice.value === value)))
+  const selected = $derived(
+    String(choices.findIndex(choice => choice.value === value))
+  )
 
-  const { error, incomplete } = $derived(errorsContext?.display(path) ?? NO_FIELD_ERROR)
+  const { error, incomplete } = $derived(
+    errorsContext?.display(path) ?? NO_FIELD_ERROR
+  )
 
   function handleInput(event: Event) {
     const target = event.currentTarget as HTMLInputElement | HTMLTextAreaElement

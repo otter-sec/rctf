@@ -42,7 +42,13 @@
   })
 
   const placeVariant = $derived(
-    globalPlace === 1 ? 'gold' : globalPlace === 2 ? 'silver' : globalPlace === 3 ? 'bronze' : 'nth'
+    globalPlace === 1
+      ? 'gold'
+      : globalPlace === 2
+        ? 'silver'
+        : globalPlace === 3
+          ? 'bronze'
+          : 'nth'
   )
 
   const gradientId = $props.id()
@@ -64,7 +70,11 @@
             <stop offset="100%" />
           </linearGradient>
         </defs>
-        <path d={path} stroke="url(#{gradientId})" vector-effect="non-scaling-stroke" />
+        <path
+          d={path}
+          stroke="url(#{gradientId})"
+          vector-effect="non-scaling-stroke"
+        />
       </svg>
     {:else}
       <sparkline-placeholder></sparkline-placeholder>

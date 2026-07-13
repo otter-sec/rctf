@@ -44,7 +44,10 @@
 
     const points: Point[] = data.map(point => ({
       x: PAD_X + ((point.time - minT) / tRange) * innerW,
-      y: sRange === 0 ? HEIGHT / 2 : PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
+      y:
+        sRange === 0
+          ? HEIGHT / 2
+          : PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
     }))
     return monotoneCubicPath(points)
   })
@@ -52,7 +55,11 @@
 
 {#if pathD}
   <score-sparkline>
-    <svg viewBox="0 0 {WIDTH} {HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 {WIDTH} {HEIGHT}"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
       <defs>
         <linearGradient
           id={gradientId}

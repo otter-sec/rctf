@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { GoodEmailSet, GoodRegisterV2, GoodVerify, VerifyRouteV2 } from '@rctf/types'
+  import {
+    GoodEmailSet,
+    GoodRegisterV2,
+    GoodVerify,
+    VerifyRouteV2,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
@@ -31,7 +36,9 @@
   const verifyAction = createAsyncAction()
 
   const verifyInfoError = $derived(
-    !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
+    !verifyToken
+      ? 'No verification token provided.'
+      : (verifyInfoQuery.error?.message ?? null)
   )
   const isVerifyDisabled = $derived(
     verifyAction.pending || verifyInfoQuery.isPending || !!verifyInfoError
@@ -60,7 +67,8 @@
       default:
         return {
           title: 'Verify email',
-          description: 'Click the button below to verify your email and continue',
+          description:
+            'Click the button below to verify your email and continue',
           button: 'Verify email',
         }
     }
@@ -114,7 +122,10 @@
 </svelte:head>
 
 {#if registeredTeamToken && registeredLoginUrl}
-  <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
+  <TeamTokenCard
+    teamToken={registeredTeamToken}
+    loginUrl={registeredLoginUrl}
+  />
 {:else if emailSet}
   <Card title="Email verified">
     <auth-page>
