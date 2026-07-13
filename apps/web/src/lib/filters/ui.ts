@@ -5,7 +5,7 @@ export type ValueFilterOption = unknown
 
 export type ValueFilterId = string
 
-export type ResultTone = 'success' | 'warning' | 'danger'
+export type ResultTone = 'success' | 'warning' | 'danger' | 'accent'
 
 export type TeamFilterOption = {
   id: string

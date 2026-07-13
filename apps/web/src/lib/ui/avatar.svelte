@@ -46,7 +46,7 @@
     justify-content: center;
     inline-size: 100%;
     block-size: 100%;
-    font-size: var(--step--1);
+    font-size: min(var(--step--1), calc(var(--avatar-size, 2.5rem) * 0.5));
     color: var(--foreground-l3);
     background: var(--background-l4);
     border: 1.5px solid var(--gray-a3);

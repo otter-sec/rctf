@@ -17,7 +17,13 @@
   import AvatarUpload from '$lib/components/avatar-upload.svelte'
   import DivisionMenu from '$lib/components/division-menu.svelte'
   import FlagPicker from '$lib/components/flag-picker.svelte'
-  import { IconCopy, IconFunnel, IconKey, IconTrash } from '$lib/icons'
+  import {
+    IconCopy,
+    IconFunnel,
+    IconGavel,
+    IconKey,
+    IconTrash,
+  } from '$lib/icons'
   import { invalidateAdminTeamQueries, useAdminUser } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -405,6 +411,8 @@
         <Button variant="secondary" disabled={busy} onclick={requestBanToggle}>
           {#if action.key === 'ban'}
             <Spinner />
+          {:else}
+            <IconGavel />
           {/if}
           {adminUser.banned ? 'Unban team' : 'Ban team'}
         </Button>
@@ -461,13 +469,7 @@
 
   manage-actions {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--space-2xs);
-
-    :global(a),
-    :global(button) {
-      justify-content: flex-start;
-      inline-size: 100%;
-    }
   }
 </style>

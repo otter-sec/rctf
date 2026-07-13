@@ -18,16 +18,16 @@ import {
   type TeamStatusValue,
 } from './teams-model'
 
-function statusResultTone(status: TeamStatusValue): ResultTone | undefined {
+function statusResultTone(status: TeamStatusValue): ResultTone {
   switch (status) {
     case AdminTeamStatus.ACTIVE:
       return 'success'
     case AdminTeamStatus.BANNED:
       return 'danger'
+    case AdminTeamStatus.ADMIN:
+      return 'accent'
     case 'unverified':
       return 'warning'
-    default:
-      return undefined
   }
 }
 

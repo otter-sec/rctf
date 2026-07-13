@@ -84,6 +84,9 @@
     &[data-result-tone='danger'] {
       --result-color: var(--foreground-destructive);
     }
+    &[data-result-tone='accent'] {
+      --result-color: var(--foreground-accent);
+    }
 
     &:hover,
     &:focus-visible {
