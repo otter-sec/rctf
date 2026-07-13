@@ -17,7 +17,7 @@ providerField:
     key: value
 ```
 
-The `<red>name</red>` selects the provider, while `<red>options</red>` contains its settings. Most of those settings can also be supplied through environment variables.
+The `<red>name</red>` selects the provider, while `<red>options</red>` contains its settings. Most of those settings can also be supplied through environment variables. Name categories are plural or mass nouns.
 
 ## Available providers
 
@@ -30,8 +30,8 @@ The `<red>name</red>` selects the provider, while `<red>options</red>` contains 
 | [Moderation](/providers/moderation) | `<red>avatarsModeration.provider</red>` | `<green>moderation/openai</green>` | None (disabled) |
 | [Messages](/integrations/bloodbot)\* | `<red>bloodBot.destinations[].provider</red>` | `<green>messages/discord</green>`, `<green>messages/telegram</green>` | None (disabled) |
 | [Analytics](/providers/analytics) | `<red>analytics.provider</red>` | `<green>analytics/google</green>`, `<green>analytics/cloudflare</green>` | None (disabled) |
-| [Instancer](/integrations/instancer) | `<red>instancers</red>` | `<green>instancer/docker-instancer</green>`, `<green>instancer/k8s-instancer</green>` | None (disabled) |
-| [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>` | `<green>admin-bot/rctf-js</green>` | None (disabled) |
+| [Instancer](/integrations/instancer) | `<red>instancers</red>` | `<green>instancers/docker</green>`, `<green>instancers/k8s</green>` | None (disabled) |
+| [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>` | `<green>admin-bots/rctf-ts</green>` | None (disabled) |
 
 Providers marked "None (disabled)" are optional. Their features remain unavailable until a provider is configured.
 

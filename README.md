@@ -87,7 +87,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
 
    # instancers:
    #   docker:
-   #     name: 'instancer/docker-instancer'
+   #     name: 'instancers/docker'
    #     options:
    #       authToken: 'changeme!'
    #       apiUrl: 'http://tiny-instancer:1337'
@@ -123,7 +123,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
 
    # adminBot:
    #   provider:
-   #     name: 'admin-bot/rctf-js'
+   #     name: 'admin-bots/rctf-ts'
    #     options:
    #       secretKey: beans
    #       endpoint: 'http://admin-bot:21337'

@@ -44,12 +44,12 @@ Define instancers under the `<red>instancers</red>` map in `rctf.d/{:dir}`. Each
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://tiny-instancer:1337
       authToken: <shared-secret>
   k8s:
-    name: instancer/k8s-instancer
+    name: instancers/k8s
     options:
       apiUrl: https://k8s.example.com
       authToken: <service-account-token>
@@ -65,7 +65,7 @@ A single-instancer deployment only needs one entry, and `<red>defaultInstancer</
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://tiny-instancer:1337
       authToken: <shared-secret>
@@ -73,7 +73,7 @@ instancers:
 
 ::::tabs
 :::tab[Docker]
-`<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API.
+`<green>instancers/docker</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API.
 
 | Field or variable | Purpose |
 | --- | --- |
@@ -85,7 +85,7 @@ instancers:
 See [Docker instancer](/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
 :::
 :::tab[Kubernetes]
-`<green>instancer/k8s-instancer</green>` creates cluster-scoped `ChallengeInstance` custom resources.
+`<green>instancers/k8s</green>` creates cluster-scoped `ChallengeInstance` custom resources.
 
 | Field or variable | Purpose |
 | --- | --- |

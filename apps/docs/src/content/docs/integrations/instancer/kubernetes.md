@@ -6,7 +6,7 @@ order: 2
 
 The Kubernetes instancer runs each team's challenge instance in its own namespace. A controller inside the cluster watches `ChallengeInstance` resources and creates the pods, network rules, services, and Traefik routes they describe.
 
-rCTF communicates with the Kubernetes API through the `<green>instancer/k8s-instancer</green>` provider. The controller handles the resources inside the cluster.
+rCTF communicates with the Kubernetes API through the `<green>instancers/k8s</green>` provider. The controller handles the resources inside the cluster.
 
 :::warning[Hostile workloads]
 Challenge images run untrusted code. Review any change that widens RBAC permissions, mounts credentials, grants host access, or weakens the default network policies.
@@ -171,7 +171,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
    ```yaml title="rctf.d/instancer.yaml"
    instancers:
      k8s:
-       name: instancer/k8s-instancer
+       name: instancers/k8s
        options:
          apiUrl: https://203.0.113.10
          authToken: <rctf_instancer_auth_token>
@@ -185,7 +185,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
 5. **Verify end-to-end**
 
-   Create an instanced challenge that uses the `<green>instancer/k8s-instancer</green>` provider and start it as a participant. The controller should create the `inst-<challenge-id>-<team-id>` namespace, and Traefik should serve the `<hostPrefix>-<uid>.<instancer-host>` hostname over HTTPS.
+   Create an instanced challenge that uses the `<green>instancers/k8s</green>` provider and start it as a participant. The controller should create the `inst-<challenge-id>-<team-id>` namespace, and Traefik should serve the `<hostPrefix>-<uid>.<instancer-host>` hostname over HTTPS.
 :::
 
 ## What Terraform provisions

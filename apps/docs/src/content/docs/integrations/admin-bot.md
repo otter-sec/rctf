@@ -39,14 +39,14 @@ The backend config enables the provider and gives rCTF the worker's URL.
 ```yaml title="rctf.d/admin-bot.yaml"
 adminBot:
   provider:
-    name: admin-bot/rctf-js
+    name: admin-bots/rctf-ts
     options:
       endpoint: http://admin-bot:21337
       secretKey: <shared-secret>
   maxLogsPerUserChallenge: 5
 ```
 
-`admin-bot/rctf-js{:yaml}` is the built-in provider for TypeScript challenge configs. It accepts provider options from config files or environment variables:
+`admin-bots/rctf-ts{:yaml}` is the built-in provider for TypeScript challenge configs. It accepts provider options from config files or environment variables:
 
 | Field or variable | Purpose |
 | --- | --- |

@@ -16,7 +16,7 @@ export const TestEndpointResponseSchema = z.object({
   requireInstancerInstancesRunning: z.boolean(),
 })
 
-export default class RctfJSProvider implements AdminBotProvider {
+export default class RctfTSProvider implements AdminBotProvider {
   readonly configLanguage = AdminBotConfigLanguage.TypeScript
   readonly configFileExtension = '.ts'
   readonly authMiddleware

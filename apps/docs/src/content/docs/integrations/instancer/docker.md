@@ -66,7 +66,7 @@ The same token belongs in rCTF:
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://tiny-instancer:1337
       authToken: <shared-secret>
@@ -77,7 +77,7 @@ When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL 
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://127.0.0.1:12237
       authToken: <shared-secret>

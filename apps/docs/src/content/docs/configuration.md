@@ -248,7 +248,42 @@ ctftime:
 Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `<red>loginTimeout</red>`.
 :::
 
-### Captcha
+### Providers
+
+Providers are pluggable integrations, each selected by `<red>name</red>` with provider-specific `<red>options</red>`. Names follow a `<category>/<provider>` scheme where the category is a plural or mass noun. The [Providers](/providers) section documents every provider in detail.
+
+#### Uploads
+
+```yaml
+uploadProvider:
+  name: uploads/s3
+  options:
+    bucketName: my-bucket
+    awsKeyId: AKIAIOSFODNN7EXAMPLE
+    awsKeySecret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    awsRegion: us-east-1
+```
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
+
+See [Upload Providers](/providers/uploads) for provider-specific options.
+
+#### Scoring
+
+```yaml
+scoreProvider:
+  name: scores/classic
+```
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
+
+See [Scoring Providers](/providers/scores) for provider-specific options.
+
+#### Captcha
 
 ```yaml
 captcha:
@@ -269,33 +304,24 @@ captcha:
 
 Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
 
-See [Captcha Providers](/providers/captcha) for provider-specific configuration.
+See [Captcha Providers](/providers/captcha) for provider-specific options.
 
-### Providers
+#### Instancers
 
 ```yaml
-uploadProvider:
-  name: uploads/s3
-  options:
-    bucketName: my-bucket
-    awsKeyId: AKIAIOSFODNN7EXAMPLE
-    awsKeySecret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    awsRegion: us-east-1
-scoreProvider:
-  name: scores/classic
 instancers:
   docker:
-    name: instancer/docker-instancer
+    name: instancers/docker
     options:
       apiUrl: http://localhost:8000
       authToken: secret
   k8s:
-    name: instancer/k8s-instancer
+    name: instancers/k8s
     options:
       apiUrl: https://k8s.example.com
       authToken: <service-account-token>
   k8s-arm:
-    name: instancer/k8s-instancer
+    name: instancers/k8s
     options:
       apiUrl: https://k8s-arm.example.com
       authToken: <service-account-token>
@@ -304,19 +330,17 @@ defaultInstancer: k8s
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
-| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
 | `<red>instancers</red>` | `object{:ts}` | - | Map of named challenge instancer providers (optional). Each key is an instancer name a challenge can target. |
 | `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined. When there is only one, rCTF selects it automatically. |
 
-See the [Providers](/providers) section for detailed configuration of each provider.
+See [Instancer](/integrations/instancer) for the available instancers and their options.
 
 ### Admin bot
 
 ```yaml
 adminBot:
   provider:
-    name: admin-bot/rctf-js
+    name: admin-bots/rctf-ts
     options: {}
   maxLogsPerUserChallenge: 5
 ```
