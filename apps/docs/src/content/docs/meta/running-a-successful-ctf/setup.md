@@ -62,7 +62,7 @@ All the examples will use `example.com` which refers to the domain name hosting 
    After each configuration change, you need to restart rCTF by running the following command:
 
    ```console
-   $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
+   $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim>
    ```
 :::
 
