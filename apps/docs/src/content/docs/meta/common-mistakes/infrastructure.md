@@ -4,7 +4,7 @@ description: Cloud-provider, Kubernetes, runtime, host, and network mistakes tha
 order: 1
 ---
 
-These are the infrastructure-side failure modes: cloud quota, cluster posture, per-challenge runtime limits, host hardening, and the proxy chain in front of the platform. Most of them are recoverable, but only if you find them before participants do.
+This page covers recurring problems with cloud quotas, cluster security, challenge limits, host configuration, and reverse proxies. Most are recoverable when they are found during testing rather than during the event.
 
 ## Cloud providers
 
@@ -26,7 +26,7 @@ Region choice matters. Some instance families are easier to approve in one regio
 :::tab[Azure]
 For Azure, check regional vCPU limits by family before committing to a region. Like the other providers, credit or sponsorship doesn't automatically grant the compute quota an event needs.
 
-Ask for more than the steady-state estimate. Burst, retries, node replacement, and pre-pulled images can chew through more capacity than a simple team count would suggest.
+Request more capacity than the steady-state estimate. Traffic bursts, retries, node replacement, and cached container images can consume much more than a simple team count suggests.
 :::
 ::::
 
@@ -64,7 +64,7 @@ The bundled GKE Terraform module provisions an IPv4-only cluster, so the IPv6 IM
 
 A pod without `<red>resources.limits</red>` can use whatever the node has free. A fork bomb or memory leak in one instance can take down other instances on the same node.
 
-The usual shape of this bug is a PodSpec with only `<red>requests</red>`, limits sized from a single happy-path test, and no `<red>terminationGracePeriodSeconds</red>` cap.
+This often happens when a PodSpec defines `<red>requests</red>` but no limits, uses values measured from only one successful test, or leaves `<red>terminationGracePeriodSeconds</red>` unbounded.
 
 The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field is a real PodSpec. Set `<red>resources.requests/limits</red>` directly.
 
@@ -124,7 +124,7 @@ Docker `json-file` logs have no rotation unless `max-size` and `max-file` are se
 
 ### Client-IP extraction not tested end-to-end
 
-Every layer in front of the platform (Cloudflare, an L7 load balancer, nginx, Traefik) can rewrite the source address. If the chain isn't configured correctly, the platform and challenges may see the proxy IP rather than the participant IP. The failure is often silent until rate limits or bans behave incorrectly. A bad chain can ban a shared Cloudflare edge IP and lock participants out, or make every request appear to come from `127.0.0.1`. The challenge-side version is also important. A web challenge that trusts `X-Forwarded-For` without validating the upstream hop can be spoofed by participants.
+Cloudflare, load balancers, nginx, and Traefik can all replace the source address as they forward a request. If their trust settings disagree, rCTF may record a proxy address instead of the participant's IP. Rate limits can then group unrelated participants together, and bans may block an entire proxy. Challenges have the opposite risk when they trust `X-Forwarded-For` from any client, since participants can supply that header themselves.
 
 Send a request through the real DNS from a known external IP and confirm the admin or audit log shows that IP. Then test a challenge through the same path and confirm the challenge sees the same address. A staging path without the full proxy chain isn't enough for this check.
 
@@ -138,4 +138,4 @@ The first few minutes after start pile up concurrent registrations, logins, chal
 
 Turn on captcha for sensitive unauthenticated actions, verify rate limits on sensitive platform paths, and configure trusted proxy IP ranges before the load test. The test should use the production proxy chain, not a local or staging shortcut.
 
-rCTF helps with this through the leaderboard worker and Redis cache, nginx brotli and gzip support, immutable cache headers, [Docker](/integrations/instancer/docker) and [Kubernetes](/integrations/instancer/kubernetes) instancers for per-team lifecycles, GKE module autoscaling, captcha integrations for [reCAPTCHA, hCaptcha, and Turnstile](/providers/captcha), and default route rate limits.
+rCTF caches leaderboard reads, compresses and caches static assets, and rate limits sensitive routes. Instanced challenges can also scale separately through the [Docker](/integrations/instancer/docker) or [Kubernetes](/integrations/instancer/kubernetes) backend. These protections still need to be tested through the production proxy and DNS path.

@@ -4,22 +4,22 @@ description: Deploy the rCTF Kubernetes instancer on GKE with the bundled Terraf
 order: 2
 ---
 
-The Kubernetes instancer is the scalable backend for per-team challenge instances. An operator runs inside the cluster, turning a `ChallengeInstance` custom resource into a namespace, network policies, deployments, services, and Traefik routes.
+The Kubernetes instancer runs each team's challenge instance in its own namespace. A controller inside the cluster watches `ChallengeInstance` resources and creates the pods, network rules, services, and Traefik routes they describe.
 
-The rCTF API only talks to the Kubernetes API server through the `<green>instancer/k8s-instancer</green>` provider. The operator handles every other moving piece.
+rCTF communicates with the Kubernetes API through the `<green>instancer/k8s-instancer</green>` provider. The controller handles the resources inside the cluster.
 
 :::warning[Hostile workloads]
-Challenge images run untrusted code. The defaults assume strict isolation, but new variables, wider RBAC, or any other "sensitive" config changes can quickly break that assumption.
+Challenge images run untrusted code. Review any change that widens RBAC permissions, mounts credentials, grants host access, or weakens the default network policies.
 :::
 
-## Architecture
+## How requests become instances
 
-A working deployment has three cooperating components:
+A deployment has three main components:
 
 | Component | Source | Responsibility |
 | --- | --- | --- |
-| `<green>K8sInstancerProvider</green>` | `apps/api/src/providers/instancer/k8s-instancer.ts{:file}` | Translates rCTF lifecycle calls into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
-| `<green>k8s-operator</green>` | `apps/k8s-operator/{:dir}` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
+| `<green>K8sInstancerProvider</green>` | `apps/api/src/providers/instancer/k8s-instancer.ts{:file}` | Translates rCTF instance requests into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
+| `<green>k8s-operator</green>` | `apps/k8s-operator/{:dir}` | Go controller that watches `ChallengeInstance` resources and keeps the corresponding cluster resources up to date. |
 | `<green>Traefik</green>` | `deploy/terraform/instancer/modules/k8s/traefik.tf{:file}` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
 
 A participant request flows through these in order:
@@ -27,11 +27,11 @@ A participant request flows through these in order:
 :::steps
 1. **rCTF creates the custom resource**
 
-   The API receives `<route>PUT /api/v2/integrations/challs/:id/instance</route>`, validates the challenge config with the provider schema, then creates a cluster-scoped `ChallengeInstance` resource in the `rctf.osec.io/v1` API group. The CR carries the challenge ID, team ID, expiry, pod specs, and expose entries.
+   After validating the challenge config, rCTF creates a cluster-wide `ChallengeInstance` resource in the `rctf.osec.io/v1` API group. It contains the challenge and team IDs, expiration time, pod definitions, and exposed endpoints.
 
-2. **The controller reconciles**
+2. **The controller creates the Kubernetes resources**
 
-   The operator watches `ChallengeInstance` events and runs its reconciliation loop. It adds the `<red>rctf.osec.io/finalizer</red>` finalizer, then creates a namespace, network policies, deployments, services, and Traefik `<red>IngressRoute</red>` or `<red>IngressRouteTCP</red>` resources for each expose entry.
+   The controller watches for `ChallengeInstance` changes and creates the matching namespace, network policies, deployments, services, and Traefik routes. It also adds a Kubernetes finalizer, which prevents the `ChallengeInstance` from disappearing before its namespace has been removed.
 
 3. **Traefik routes participant traffic**
 
@@ -39,10 +39,10 @@ A participant request flows through these in order:
 
 4. **The controller cleans up at expiry**
 
-   When `<red>time.Now()</red>` passes `<red>spec.expiresAt</red>`, the controller deletes the `ChallengeInstance`. The deletion timestamp triggers the finalizer, which deletes the namespace and removes the finalizer once the namespace is gone. Manual deletion through the rCTF API follows the same path.
+   At `<red>spec.expiresAt</red>`, the controller deletes the `ChallengeInstance` and its namespace. Stopping an instance through rCTF follows the same cleanup path.
 :::
 
-Namespaces are deterministic and named `<red>inst-<challenge-id>-<team-id></red>` so the controller can find them across restarts. Every child resource inherits owner references from the `ChallengeInstance`, so cluster-level garbage collection acts as a safety net behind the explicit finalizer.
+Namespaces use the predictable name `<red>inst-<challenge-id>-<team-id></red>`. Child resources point back to their `ChallengeInstance`, allowing Kubernetes garbage collection to remove anything left behind after cleanup.
 
 ## Prerequisites
 
@@ -60,7 +60,7 @@ The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone><
 
 ## Controller image
 
-The operator image is published at `ghcr.io/otter-sec/rctf-new/k8s-operator`, and the matching `install.yaml{:file}` ships in the repo at `apps/k8s-operator/dist/install.yaml{:file}`. The Terraform `k8s` module reads that file directly and substitutes the configured hostname into the `INSTANCER_HOST` placeholder, so there's nothing to build or push before running `$ <red>terraform</red> apply`.
+The operator image is published at `ghcr.io/otter-sec/rctf-new/k8s-operator`. The Terraform module installs it from `apps/k8s-operator/dist/install.yaml{:file}` and fills in the configured `INSTANCER_HOST`, so you do not need to build or publish an image before running `$ <red>terraform</red> apply`.
 
 ## Terraform variables
 
@@ -215,7 +215,7 @@ Traefik is configured with three ports:
 | `443{:ts}`  | `websecure` | HTTPS routes terminated with the ACME wildcard.                     |
 | `1337{:ts}` | `tcp`       | Raw TCP with SNI routing for `<green>tcp-ssl</green>` expose kinds. |
 
-Terraform provisions the wildcard certificate outside the cluster, keeping DNS provider credentials away from cluster workloads. If the cluster is compromised, it can only expose certificates Terraform has already issued.
+Terraform requests the wildcard certificate outside the cluster, so DNS provider credentials are never stored there. A compromised cluster can expose the issued certificate, but it cannot use those credentials to request new ones or change DNS records.
 
 ## Network policies
 
@@ -227,7 +227,7 @@ The controller creates three `NetworkPolicy` resources in every instance namespa
 | `ingress-traefik` | `rctf.osec.io/exposed=true` | Allows ingress from Traefik pods in the `traefik` namespace. Applied only to pods that match an `<red>expose[].containerName</red>` entry. |
 | `egress` | `rctf.osec.io/egress=true` | Allows egress to `0.0.0.0/0` except RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`). |
 
-The `<red>exposed</red>` label is applied automatically based on whether a pod is named by any `<red>expose[]</red>` entry. The `<red>egress</red>` label comes from the per-pod `egress: true{:yml}` flag in `<red>instancerConfig</red>`. Challenges that shouldn't reach the internet leave it `false{:yml}`.
+The controller labels a pod as exposed when it appears in an `<red>expose[]</red>` entry. It adds the egress label only when that pod sets `egress: true{:yml}` in `<red>instancerConfig</red>`. Leave it `false{:yml}` when the challenge does not need internet access.
 
 :::note[Cluster network plugin]
 Network policies only enforce isolation when the cluster's CNI supports them. The bundled GKE Terraform module enables GKE Dataplane V2, which enforces them. On a bare-metal cluster, make sure the chosen CNI honors `NetworkPolicy`.
@@ -275,7 +275,7 @@ instancerConfig:
 
 ## Per-pod safety checklist
 
-Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every resource cap, and the controller deploys what you give it verbatim. Set these on every pod you ship through `<red>instancerConfig.config.pods[]</red>`:
+Kubernetes does not expose every resource limit directly in a PodSpec, and the controller does not add limits to the pod definition you provide. Set the following values on every pod under `<red>instancerConfig.config.pods[]</red>`.
 
 | Setting | Why it matters |
 | --- | --- |
@@ -417,7 +417,7 @@ For the rest of the Konata schema, see [Konata](/integrations/konata).
 | Instances stuck in `<green>starting</green>` | Inspect the `ChallengeInstance` status conditions with `$ <red>kubectl</red> get challengeinstance <dim>-A</dim> <dim>-o</dim> yaml`. The `<red>NamespaceDeployed</red>`, `<red>DeploymentsDeployed</red>`, and `<red>ServicesDeployed</red>` conditions narrow down the failing stage. |
 | 502 from the wildcard host | Traefik is reachable but the backing pod isn't ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
 | 404 on the wildcard host | The catch-all `<red>IngressRoute</red>` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `<red>IngressRoute</red>` has a higher priority than `1{:ts}`. |
-| rCTF returns `<response>400 badInstancerConfig</response>` | The challenge `<red>config</red>` failed the provider's Zod schema. Fetch the schema from `<route>/api/v2/admin/instancer/schema</route>` and validate the challenge manifest against it. |
+| rCTF returns `<response>400 badInstancerConfig</response>` | The challenge `<red>config</red>` failed the provider's Zod schema. Fetch it with `<route>GET /api/v2/admin/instancer/schema</route>` and validate the challenge manifest against it. |
 | Namespace stuck `Terminating` | A child resource still holds a finalizer. The controller waits one second per reconcile while the namespace drains. Check Traefik CRDs in the namespace if the wait doesn't resolve. |
 
-The controller exposes Kubernetes events through standard `$ <red>kubectl</red> describe` output. Pair `$ <red>kubectl</red> describe challengeinstance <name>` with the controller logs (`$ <red>kubectl</red> logs <dim>-n</dim> rctf-operator-system <dim>-l</dim> control-plane=controller-manager`) to trace down any reconciliation failure.
+Kubernetes events appear in `$ <red>kubectl</red> describe challengeinstance <name>`. Compare them with the controller logs from `$ <red>kubectl</red> logs <dim>-n</dim> rctf-operator-system <dim>-l</dim> control-plane=controller-manager` when the resources for an instance are not being created or removed correctly.

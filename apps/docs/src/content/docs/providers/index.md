@@ -1,10 +1,10 @@
 ---
 title: Providers
-description: Overview of rCTF's pluggable provider system for captcha, email, uploads, scoring, moderation, and more.
+description: Configure services for captcha, email, uploads, scoring, moderation, and more.
 order: 3
 ---
 
-rCTF uses a pluggable provider system, so you can swap implementations for major platform features. Each provider is configured with a `<red>name</red>` and an `<red>options</red>` object in your [configuration](/configuration).
+Providers connect rCTF to services such as email, object storage, captcha, and scoring. You choose an implementation with `<red>name</red>` and configure it through `<red>options</red>`.
 
 ## Provider format
 
@@ -17,7 +17,7 @@ providerField:
     key: value
 ```
 
-The `<red>name</red>` identifies which implementation to load, and `<red>options</red>` is passed directly to the provider's constructor. Most providers also support environment variable fallbacks for their options.
+The `<red>name</red>` selects the provider, while `<red>options</red>` contains its settings. Most of those settings can also be supplied through environment variables.
 
 ## Available providers
 
@@ -33,6 +33,6 @@ The `<red>name</red>` identifies which implementation to load, and `<red>options
 | [Instancer](/integrations/instancer) | `<red>instancers</red>` | `<green>instancer/docker-instancer</green>`, `<green>instancer/k8s-instancer</green>` | None (disabled) |
 | [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>` | `<green>admin-bot/rctf-js</green>` | None (disabled) |
 
-Providers marked as "None (disabled)" are optional features. The platform functions without them, but the associated features will be unavailable.
+Providers marked "None (disabled)" are optional. Their features remain unavailable until a provider is configured.
 
 \* Unlike the other providers, message providers are not selected by a top-level config field. They are nested inside each [blood bot](/integrations/bloodbot) destination entry, so the same deployment can post to multiple destinations using different providers.

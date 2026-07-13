@@ -4,7 +4,7 @@ description: Configure per-team challenge instances with Docker or Kubernetes.
 order: 2
 ---
 
-The instancer integration creates one isolated challenge service per team. rCTF owns the user-facing lifecycle, and an instancer provider owns the compute backend that creates, reads, extends, and deletes the running instance.
+The instancer gives each team its own isolated copy of a challenge service. Participants start, extend, inspect, and stop their instance through rCTF, while Docker or Kubernetes runs it behind the scenes.
 
 Instanced challenges work well when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
 
@@ -14,32 +14,32 @@ Treat challenge images as hostile. Set resource limits, keep containers or pods 
 
 ## Pick a backend
 
-Both providers share the same challenge fields and participant lifecycle, but each backend has its own deployment guide.
+Both providers give participants the same controls and use the same shared challenge fields, but each backend has its own deployment guide.
 
 - [Docker instancer](/integrations/instancer/docker) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
 - [Kubernetes instancer](/integrations/instancer/kubernetes) is a Go operator driving GKE, Traefik, and Terraform.
 
-## Architecture
+## How it fits together
 
 The instancer path has three layers:
 
 :::steps
 1. **Select a provider**
 
-   The rCTF API loads the `<red>instancers</red>` map from `rctf.d/{:dir}`. You can define more than one named instancer, and each challenge targets one by name (falling back to `<red>defaultInstancer</red>`). The chosen provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
+   Define one or more named instancers in the `<red>instancers</red>` map. Each challenge can choose one by name, or use `<red>defaultInstancer</red>`. The selected provider validates the challenge config and sends the corresponding operations to Docker or Kubernetes.
 
 2. **Configure a challenge**
 
-   Each instanced challenge stores `<red>instancerConfig</red>` in challenge data. The common fields cover the stable challenge integration ID, timeout, exposed endpoints, and provider-specific config.
+   Add `<red>instancerConfig</red>` to the challenge with its ID, timeout, public endpoints, and Docker or Kubernetes settings.
 
 3. **Run participant instances**
 
-   Participants create, extend, inspect, and delete their instance from the challenge page. rCTF returns provider status and endpoints in the same order as the challenge's `<red>expose</red>` array, so the frontend can line them up cleanly.
+   Participants manage their instance from the challenge page. rCTF reports its status and shows the configured endpoints in the order listed under `<red>expose</red>`.
 :::
 
 ## Provider configuration
 
-Instancers are defined under the `<red>instancers</red>` map in `rctf.d/{:dir}`. Each key is a name you choose; challenges target an instancer by that name. `<red>defaultInstancer</red>` picks the one used when a challenge doesn't name its own. It's required once more than one instancer is defined, and auto-selected when only one is:
+Define instancers under the `<red>instancers</red>` map in `rctf.d/{:dir}`. Each key is a name you choose, and challenges use that name to select an instancer. `<red>defaultInstancer</red>` chooses the fallback for challenges that don't specify one. It is required when you configure more than one instancer. With only one, rCTF selects it automatically.
 
 ```yaml title="rctf.d/instancer.yaml"
 instancers:
@@ -78,7 +78,7 @@ instancers:
 | Field or variable | Purpose |
 | --- | --- |
 | `<red>options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
-| `<red>options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
+| `<red>options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` when rCTF creates, reads, extends, or deletes an instance. |
 | `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 
@@ -106,7 +106,7 @@ The `DOCKER_INSTANCER_*{:sh}` and `K8S_INSTANCER_*{:sh}` environment variables a
 
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape.
+Each instanced challenge needs `<red>instancerConfig</red>`. Its ID, timeout, extension setting, and exposed endpoints work the same with either provider. The contents of `<red>config</red>` depend on whether the challenge uses Docker or Kubernetes.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
@@ -127,7 +127,7 @@ instancerConfig:
 
 | Field | Purpose |
 | --- | --- |
-| `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. Don't change it after launch. |
+| `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and instance requests. Don't change it after launch. |
 | `<red>instancer</red>` | Name of the instancer (a key in the `<red>instancers</red>` map) this challenge runs on. Omit to use `<red>defaultInstancer</red>`. The admin challenge editor exposes this as a dropdown of configured instancers. |
 | `<red>timeoutMilliseconds</red>` | Instance lifetime for create and extend operations. |
 | `<red>extendable</red>` | Lets participants extend their instance when set to `true{:ts}`. |
@@ -156,9 +156,9 @@ Endpoint support is provider-specific:
 | `<green>tcp</green>` | Rewritten to `<green>tcp-ssl</green>` because Traefik needs SNI routing. | Returned as `unsupported-by-instancer` with port `0{:ts}`. Kubernetes configs should use `<green>tcp-ssl</green>`. |
 | `<green>tcp-ssl</green>` | Traefik TCP router with TLS and HostSNI on the configured TCP port. The default is `1337{:ts}`. | Traefik `IngressRouteTCP` with TLS and HostSNI on port `1337{:ts}`. |
 
-## Lifecycle and API behavior
+## Participant actions and API routes
 
-Participant lifecycle routes are under `<route>/api/v2/integrations/challs/:id/instance</route>`:
+The instance routes are under `/api/v2/integrations/challs/:id/instance`:
 
 | Method                  | Action                                                |
 | ----------------------- | ----------------------------------------------------- |
@@ -178,12 +178,12 @@ captcha:
     - instancerExtend
 ```
 
-## Provider schema and the admin UI
+## Provider schemas and the admin UI
 
-The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
+The fields shared by both providers remain the same. Only `<red>config</red>` differs. Docker accepts a Compose-like service definition, while Kubernetes accepts `<red>pods[]</red>`. Each provider publishes a JSON Schema that describes and validates its version of `<red>config</red>`.
 
-The schema endpoint returns one entry per configured instancer (each with its own JSON Schema) plus the `<red>defaultInstancer</red>` name, so the response always matches what each provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
+The schema endpoint returns the schema for each configured instancer and identifies the default. Deployment tools can use the same endpoint to validate a challenge before sending it to rCTF.
 
 ### Dynamic admin UI
 
-The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. When multiple instancers are configured, an instancer dropdown lets you pick which one the challenge runs on (the `<red>defaultInstancer</red>` is marked as such), and the form re-renders from the selected instancer's schema without any frontend rebuild, since every field, type, and validation rule comes from that provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
+The challenge editor builds its form from these schemas. If several instancers are configured, selecting one updates the available fields and validation rules. Use the advanced YAML editor when a setting cannot be represented by the generated form.

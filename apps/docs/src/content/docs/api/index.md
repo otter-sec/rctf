@@ -4,7 +4,7 @@ description: "Reference for rCTF API versions, authentication, envelopes, permis
 order: 6
 ---
 
-The rCTF API is a JSON REST API served from `<route>/api</route>`. Route definitions are exported from the `@rctf/types` package, and the API server registers each route by prefixing the typed path with `<route>/api</route>`.
+rCTF exposes a JSON REST API under `/api`. The `@rctf/types` package exports the route definitions and TypeScript types used by both the server and API clients.
 
 ## Versions
 
@@ -12,10 +12,10 @@ Both API versions are available at the same time:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
-| V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
-| V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+| V1 | `/api/v1` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `/api/v2` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-The two versions overlap rather than forming separate complete APIs. Use V2 where a V2 route exists, and fall back to V1 routes for actions that don't have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, and similar additions).
+Neither version contains every operation. Use V2 when the route exists and V1 for operations that have no V2 replacement. Equivalent routes often use the same response `<red>kind</red>`, though V2 may return additional fields such as avatars, country codes, or blood indices.
 
 ## Typed route contract
 
@@ -33,7 +33,7 @@ type Query = RouteQueryInput<typeof GetChallengesRouteV2>
 type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 ```
 
-`RouteBodyInput<T>{:ts}` describes the client-side input shape before any zod coercions and transforms have run. The matching `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` helpers do the same for query strings and path parameters.
+`RouteBodyInput<T>{:ts}` gives the request body type that a client sends, before server-side Zod parsing or conversion. `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` provide the corresponding query-string and path-parameter types.
 
 ## Authentication
 
@@ -64,9 +64,9 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 
 Tokens are encrypted with AES-GCM using the configured `tokenKey`. Changing `tokenKey` invalidates every token that was issued before the rotation.
 
-## Response envelope
+## Response format
 
-Most API routes return a JSON envelope:
+Most API responses wrap their fields in the following object:
 
 ```json
 {
@@ -76,7 +76,7 @@ Most API routes return a JSON envelope:
 }
 ```
 
-Routes whose response definition has no data schema omit the `data` field:
+Responses without additional data omit the `data` field:
 
 ```json
 {
@@ -101,7 +101,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
+The first part of `reason` identifies whether the invalid value came from the request `body`, `query`, or `params`. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
 
 ## Permissions
 

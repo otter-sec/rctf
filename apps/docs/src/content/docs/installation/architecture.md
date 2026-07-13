@@ -87,7 +87,7 @@ CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 | Program | Command | Role |
 | --- | --- | --- |
 | `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -172,7 +172,7 @@ The directives:
 | `form-action` | `<green>'self'</green>` |
 | `object-src` | `<green>'none'</green>` |
 
-The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime, so captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts{:file}` and rebuilding.
+The bundled build always includes every origin listed above, even when the corresponding provider is disabled. It cannot add new origins from configuration at runtime. To use self-hosted analytics, a custom S3-compatible service, or another frontend origin, update `apps/web/svelte.config.ts{:file}` and rebuild rCTF.
 
 :::warning[frame-ancestors]
 The CSP omits `frame-ancestors` because it is ignored from `<meta>{:html}` tags. Click-jacking protection is enforced via the nginx `X-Frame-Options: DENY{:http}` header instead.

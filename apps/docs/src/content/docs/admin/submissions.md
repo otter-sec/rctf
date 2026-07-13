@@ -20,7 +20,7 @@ Deleting a solve triggers an automatic leaderboard recalculation, and the team's
 
 ## Submission tracking
 
-Each solve record includes the submitter's IP. The admin panel also has a submissions table that records IPs for flag attempts and admin bot submissions, sortable by time, challenge, team, IP, submission type, and result. It's the right place to look when investigating suspicious activity like flag sharing between teams.
+Each solve records the submitter's IP address. The submissions table also records flag attempts and admin bot submissions, with filters for time, challenge, team, IP, submission type, and result. Use it to investigate activity such as several teams submitting the same flag from the same address.
 
 ## First bloods
 

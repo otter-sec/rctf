@@ -4,9 +4,9 @@ description: Deploy the rCTF Docker instancer with the bundled Compose stack and
 order: 1
 ---
 
-The Docker instancer is a Python FastAPI service that manages Docker containers, networks, volumes, Redis instance locks, Redis expirations, and Traefik labels. It's the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
+The Docker instancer runs per-team challenge services on a standalone Docker host. It creates the containers, networks, volumes, expiration records, and Traefik routes needed for each instance. The bundled Compose deployment includes everything required to run it.
 
-For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/integrations/instancer).
+For the participant controls, common `<red>instancerConfig</red>` fields, and available endpoint types, see [Instancer](/integrations/instancer).
 
 ## Deployment
 
@@ -93,7 +93,7 @@ Traefik terminates TLS for every `<green>https</green>` and `<green>tcp-ssl</gre
       - privkey.pem Private key
 :::
 
-Instance hostnames are one label deep, so the single-level wildcard is enough; you don't need to enumerate `<hostPrefix>` values. Generate the cert with any ACME client that supports a DNS-01 challenge (wildcards can't use HTTP-01). With Certbot:
+Instance hostnames are one label deep, so a single-level wildcard covers every `<hostPrefix>`. Generate the certificate with an ACME client that supports DNS-01, since wildcard certificates cannot use HTTP-01. With Certbot:
 
 ```console
 $ <red>certbot</red> certonly <dim>--manual</dim> <dim>--preferred-challenges</dim> dns <dim>-d</dim> <green>'*.instancer.example.com'</green>

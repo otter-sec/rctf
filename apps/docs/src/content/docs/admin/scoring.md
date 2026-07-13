@@ -4,9 +4,9 @@ description: Challenge scoring kinds in rCTF (decay and dynamic), plus a guide f
 order: 2
 ---
 
-Every challenge in rCTF picks one of two scoring kinds. The kind controls how points are produced and how they reach the leaderboard. The default is `<green>decay</green>`, which is what most CTFs expect.
+Each challenge uses either decay or dynamic scoring. Decay is the default and gives every solver the same number of points. Dynamic scoring accepts a different score for each team from an external service.
 
-You set the scoring kind from the admin challenge editor (under `<route>/admin/challs</route>`) or directly via the [admin challenge update API](/api/admin/challenge-update). The platform refuses to switch a challenge's scoring kind while solves exist. Wipe the solves first, or pick the kind when you create the challenge.
+You set the scoring kind from the admin challenge editor under `/admin/challs` or directly through the [admin challenge update API](/api/admin/challenge-update). The platform refuses to switch a challenge's scoring kind while solves exist. Wipe the solves first, or pick the kind when you create the challenge.
 
 ## Challenge types
 
@@ -23,7 +23,7 @@ The default. Every solver receives the same point value, and that value decrease
 
 Editing `<red>points.min</red>` or `<red>points.max</red>` on a decay challenge immediately re-prices every existing solver. Switching the scoring algorithm globally also re-prices every decay challenge on the next worker tick.
 
-Scoring providers that read `<red>maxSolves</red>` (the largest non-banned solver count across the event) only see decay challenges. Dynamic-feed solver counts are excluded, so a high-volume dynamic challenge won't skew the decay normalization across unrelated decay challenges.
+Some scoring providers compare a challenge against `<red>maxSolves</red>`, the highest solve count among decay challenges. Dynamic challenges are excluded from that calculation, since their scores come from an external source.
 
 :::note[Default behavior]
 Existing challenges that don't set `<red>scoring</red>` at all are treated as decay. Upgrading from an earlier rCTF version doesn't require touching any data.
@@ -31,7 +31,7 @@ Existing challenges that don't set `<red>scoring</red>` at all are treated as de
 
 ### Dynamic
 
-The points for a dynamic challenge come from an external scoring source that publishes per-team values over time. Every team can have a different score on the same challenge, and the scores can move up or down as the source publishes updates. King-of-the-hill, attack-defense, and any scoring that runs outside rCTF fit this shape.
+The points for a dynamic challenge come from an external scoring source that publishes per-team values over time. Every team can have a different score on the same challenge, and the scores can move up or down as the source publishes updates. Dynamic scoring works well for king-of-the-hill, attack-defense, and other scoring systems that run outside rCTF.
 
 ```json title="Challenge data - dynamic"
 {
@@ -59,19 +59,19 @@ Dynamic challenges ignore flag submissions. The external source owns the scorebo
 Dynamic challenges talk to rCTF through a webhook. Your scoring backend POSTs the current per-team scores whenever they change.
 
 :::warning[Stop the feed when the event ends]
-Unlike flag submissions, the dynamic-scores endpoint has no built-in event-timing gate. The scoring backend can push both before start and after end. Cutting deliveries off cleanly at end is still the operator's responsibility. Every late delivery (post-end as well as post-freeze) lands in the tally, so a backend that keeps publishing will keep moving the scoreboard around after the CTF is supposed to be over.
+The dynamic-scores endpoint accepts updates before the CTF starts and after it ends. Stop the scoring backend at the end of the event, or later updates will continue to change the leaderboard.
 :::
 
 ### Team identifiers
 
-Every entry in the score list references an rCTF team ID, the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. A few patterns tend to work.
+Every entry in the score list references an rCTF team ID, the same UUID that appears on the `/users/:id` page. The dynamic backend needs to know each team's ID somehow. A few patterns tend to work.
 
 - Have admins paste each team's rCTF ID into the dynamic service's onboarding flow.
-- Wire a "Sign in with rCTF" button on the dynamic service through [External apps](/admin/external-auth) and read the team ID from `<route>/api/v1/users/me</route>` once the user lands back authorized. This is usually the lowest-friction option when teams self-onboard.
+- Wire a "Sign in with rCTF" button on the dynamic service through [External apps](/admin/external-auth) and read the team ID from `<route>GET /api/v1/users/me</route>` once the user lands back authorized. This is usually the lowest-friction option when teams self-onboard.
 
-Score entries for unknown team IDs are silently dropped. The challenge backend won't tell you which team IDs failed to land, so log on your side and reconcile if it matters.
+Scores for unknown team IDs are silently ignored. Keep a record of the IDs you send if you need to confirm that every team was updated.
 
-### Payload shape
+### Request body
 
 The webhook uses this JSON body:
 
@@ -90,11 +90,11 @@ The webhook uses this JSON body:
 | `<red>scores[].userId</red>` | `string{:ts}` | Yes | rCTF team UUID. |
 | `<red>scores[].points</red>` | `int{:ts}` | Yes | Signed integer. `<green>0</green>` clears that team's score for the challenge. Negative values are accepted. |
 
-Each entry is an absolute setter for that team and challenge. Teams omitted from the payload keep their existing rCTF-side score.
+Each entry replaces that team's current score for the challenge. Teams omitted from the payload keep their existing score.
 
 ### Webhook
 
-Your backend POSTs to `<route>/api/v2/challs/:id/scores</route>` whenever a team's score changes. rCTF persists the per-team values, emits the corresponding score-event rows so the historical graph stays correct, and wakes the leaderboard worker on the next pub/sub tick.
+Send a `<route>POST /api/v2/challs/:id/scores</route>` request whenever a team's score changes. rCTF saves the new values, records the change for the historical graph, and tells the leaderboard worker to recalculate the standings.
 
 #### Endpoint
 
@@ -113,7 +113,7 @@ X-RCTF-Signature: sha256=<hex>
 | `<red>X-RCTF-Timestamp</red>` | Unix milliseconds at signing time. Requests outside a five-minute skew window are rejected. |
 | `<red>X-RCTF-Signature</red>` | `<green>sha256=</green>` followed by the lowercase hex HMAC-SHA256 of `<green>${timestamp}.${challenge_id}.${raw_body}</green>` using the challenge's `<red>secret</red>`. The challenge ID is the `:id` path parameter, so a signature only works for the challenge it was signed for. |
 
-The route accepts any IP and doesn't require an authenticated rCTF user. Only the HMAC, the timestamp window, and the replay check stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
+The route is public and authenticates requests with the HMAC signature, timestamp, and replay check. The shared secret protects the scoreboard and should be handled like a password.
 
 #### Responses
 
@@ -122,7 +122,7 @@ The route accepts any IP and doesn't require an authenticated rCTF user. Only th
 | `200` | `<green>goodDynamicScores</green>` | Body has `<red>inserted</red>`, `<red>updated</red>`, `<red>deleted</red>` counts. |
 | `400` | `<green>badBody</green>` | Payload didn't validate against the schema. |
 | `401` | `<green>badSignature</green>` | HMAC mismatch, timestamp outside the skew window, unknown challenge ID, or the challenge isn't `<green>dynamic</green>`. The endpoint deliberately doesn't distinguish these so it can't be probed for which challenges accept the feed. |
-| `409` | `<green>badReplayedRequest</green>` | The same signed request was already accepted within the last ten minutes. On a retry that means the original delivery landed; treat it as success. |
+| `409` | `<green>badReplayedRequest</green>` | The same signed request was already accepted within the last ten minutes. When retrying, this confirms that the original delivery succeeded. |
 
 #### Reference publisher
 
@@ -166,16 +166,16 @@ rCTF reads the raw request bytes for HMAC verification and only parses JSON afte
 :::
 
 :::note[Retries are safe]
-If a push times out or fails, send the exact same signed request again. rCTF only remembers accepted deliveries (for about ten minutes, keyed on the signature, which is bound to the challenge), so a failed attempt never blocks the retry. A `409` `<green>badReplayedRequest</green>` on the retry means the first attempt landed after all; count it as a success. Run retries one at a time, and sign every new score update with a fresh timestamp instead of reusing an old signature.
+If a request times out, retry with the same body, timestamp, and signature. A `409` `<green>badReplayedRequest</green>` means the first request succeeded and the retry can be treated as successful. Send retries one at a time. For a new score update, create a new timestamp and signature.
 :::
 
 ## How scores reach the leaderboard
 
-For every challenge kind, the per-team points are stored in `solves.points{:sql}` and an immutable row goes into `score_events{:sql}` with the delta and a source tag (`<green>flag</green>`, `<green>decay-recompute</green>`, `<green>feed</green>`, `<green>ban</green>`, `<green>delete</green>`, or `<green>algo-change</green>`).
+rCTF stores each team's current points in `solves.points{:sql}`. It also appends every change to `score_events{:sql}` with the point difference and its source (`<green>flag</green>`, `<green>decay-recompute</green>`, `<green>feed</green>`, `<green>ban</green>`, `<green>delete</green>`, or `<green>algo-change</green>`).
 
 - The leaderboard worker sums each team's `solves.points{:sql}` to produce ranks. Decay recomputes are debounced through Redis pub/sub so a burst of solves only re-prices the challenge once.
 - The leaderboard graph replays `score_events{:sql}` chronologically so historical points reflect what the team had at that point in time, not what they have now.
 - Banning a team emits reversing events for every solve they had, and unbanning restores them. The leaderboard worker re-runs decay for every affected challenge.
 - Deleting a solve emits a single reversing event.
 
-You don't need to interact with `score_events{:sql}` directly. It's an internal audit log. The shape is documented above so the leaderboard's behavior is predictable when you're debugging discrepancies between the `<route>/scores</route>` page and the `<route>/scores/:id</route>` graph.
+You don't need to interact with `score_events{:sql}` directly. It's an internal audit log. Its fields are documented above to help explain discrepancies between the `/scores` page and the `/scores/:id` graph.

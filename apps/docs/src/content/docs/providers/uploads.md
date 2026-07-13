@@ -22,7 +22,7 @@ uploadProvider:
     awsRegion: us-east-1
 ```
 
-Uploads can also be configured entirely from the environment, which keeps credentials out of config files and suits containerized deployments. Set `RCTF_UPLOAD_PROVIDER{:sh}` to the provider name (for example `<green>uploads/s3</green>`), then supply its options through the per-provider variables listed below. Environment values take precedence over the config file.
+You can keep storage credentials out of config files by using environment variables. Set `RCTF_UPLOAD_PROVIDER{:sh}` to a provider such as `<green>uploads/s3</green>`, then provide the settings through the variables listed below. Environment values override the config file.
 
 ## File handling
 
@@ -50,7 +50,7 @@ uploadProvider:
 Files are served by the API server at `/uploads/*`. Path traversal protection is built in.
 
 :::tip
-The local provider is fine for development and small CTFs. For production deployments with many participants, S3 or GCS is the better choice since it takes load off the platform server.
+The local provider works well for development and small events. S3 or GCS is a better fit when many participants will download large challenge files, since those downloads no longer pass through the rCTF server.
 :::
 ::::
 ::::tab[uploads/s3]
@@ -104,7 +104,7 @@ Files are stored with public visibility. The bucket has to be configured to allo
 
 ## Terraform templates
 
-The repo ships Terraform modules under `deploy/terraform/storage/{:dir}` that provision an S3 or GCS bucket with the right CORS rules, an IAM user/service account, and a policy scoped to exactly what rCTF needs. Each module writes the generated credentials to a local file so you can paste them straight into your `rctf.d/{:dir}` config.
+Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module writes the generated credentials to a local file for use in `rctf.d/{:dir}`.
 
 ::::tabs
 :::tab[AWS S3]

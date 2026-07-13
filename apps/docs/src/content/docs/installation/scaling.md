@@ -4,11 +4,11 @@ description: Resource expectations, instance types, and horizontal scaling notes
 order: 4
 ---
 
-rCTF is intentionally lightweight. A single-node deployment of the bundled container is enough for almost any event, and horizontal scaling only kicks in at the upper end of CTF traffic.
+Most events can run rCTF on one server. Multiple application containers are only necessary for unusually large competitions or deployments that need redundancy.
 
 ## Resource expectations
 
-In practice the platform barely touches the box it runs on. [SekaiCTF 2026](https://ctf.sekai.team/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **2.6 cores**, as shown below.
+[SekaiCTF 2026](https://ctf.sekai.team/scores) ran rCTF as a single application container on a Hetzner `CPX62` instance with 16 vCPUs and 32 GiB of RAM. At peak, the entire server, including PostgreSQL and Redis, used about **2.6 CPU cores**.
 
 ![sekaictf-2026-cpu-usage](./sekaictf-2026-cpu-usage.png)
 
@@ -24,7 +24,7 @@ The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE
 | `<green>frontend</green>`      | Yes         | No                        |
 | `<green>leaderboard</green>`   | Health only | Yes                       |
 
-Every type binds an HTTP server on `PORT{:sh}` (default `3000{:ts}`) - including `<green>leaderboard</green>`, which serves only the `/api/healthz{:sh}` and `/api/readyz{:sh}` probes, not the API routes, so an orchestrator can still health-check it.
+Every instance type listens on `PORT{:sh}`, which defaults to `3000{:ts}`. A `<green>leaderboard</green>` instance only serves `/api/healthz` and `/api/readyz`, allowing a deployment system to check its health even though it does not serve normal API routes.
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard' or 'all'
@@ -32,28 +32,28 @@ instanceType: frontend # or 'leaderboard' or 'all'
 
 ## Horizontal scaling
 
-To scale beyond a single container, run any number of `<green>all</green>` containers behind a load balancer. They share PostgreSQL and Redis, and a Postgres advisory lock coordinates the one piece of work that has to be a singleton (the leaderboard worker), so you don't have to split roles by hand.
+To scale beyond one container, run several `<green>all</green>` instances behind a load balancer and connect them to the same PostgreSQL and Redis services. A PostgreSQL advisory lock ensures that only one instance runs the leaderboard worker at a time.
 
 :::note[Splitting roles is optional]
 Running several `all` replicas is the simplest setup. You can split into separate `frontend` and `leaderboard` replicas to keep the worker's CPU away from request serving, but you don't need to.
 :::
 
 :::warning[No transaction-pooling proxies]
-Point `<red>database.sql</red>` at Postgres directly or through a session-pooling proxy: leader election and the migration lock take **session-scoped** advisory locks. Transaction-pooling setups (PgBouncer in `transaction` mode, multiplexing proxies) route each statement to a different backend, which strands the lock on a pooled server connection and silently halts leaderboard updates.
+Connect `<red>database.sql</red>` directly to PostgreSQL or through a proxy that preserves database sessions. Leader election and migrations use **session-scoped advisory locks**, which must remain on the same PostgreSQL connection. Transaction-pooling modes, including PgBouncer in `transaction` mode, can leave the lock on a different connection and stop leaderboard updates.
 :::
 
 :::note[Forced leaderboard updates]
-API mutations and the dynamic-scoring webhook wake the active leaderboard worker through Redis pub/sub. Only the current leader acts on them immediately; a worker that takes over first recomputes every challenge, covering requests that landed while there was no leader. As long as every process shares the same Redis, forced updates land within the worker's next tick regardless of which replica received the request.
+Changes that affect scores notify the active leaderboard worker through Redis. If leadership changes, the new worker recalculates every challenge before continuing. All rCTF instances must use the same Redis service for these notifications to work.
 :::
 
 ## Health checks
 
-The API exposes two unauthenticated endpoints for load balancers and orchestrator probes. The bundled nginx proxies them under `/api{:sh}`.
+The API provides two public endpoints for load balancers and deployment health checks. The bundled nginx exposes them under `/api`.
 
 | Endpoint | Purpose | Behavior |
 | --- | --- | --- |
-| `/api/healthz{:sh}` | Liveness | Returns `<green>200</green>` while the process is up. |
-| `/api/readyz{:sh}` | Readiness | Returns `<green>200</green>` when PostgreSQL and Redis are both reachable, and `<red>503</red>` otherwise. Use it to gate load-balancer traffic. |
+| `/api/healthz` | Liveness | Returns `<green>200</green>` while the process is up. |
+| `/api/readyz` | Readiness | Returns `<green>200</green>` when PostgreSQL and Redis are both reachable, and `<red>503</red>` otherwise. Use it to gate load-balancer traffic. |
 
 ## Graceful shutdown
 

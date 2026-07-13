@@ -114,7 +114,7 @@ For production deployments, use our prebuilt Docker images rather than running a
 image: ghcr.io/otter-sec/rctf-new:latest
 ```
 
-See [Quick start with Docker](/installation/) for the full Compose setup. The manual-from-source path above is meant for development; running `bun` directly in production means owning the build, worker wiring, and reverse proxy yourself, which the image already handles.
+See [Quick start with Docker](/installation/) for the full Compose setup. The manual build above is intended for development. If you run `bun` directly in production, you also need to manage the build, leaderboard worker, and reverse proxy that the image normally handles.
 
 ## Scaling
 

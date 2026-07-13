@@ -16,7 +16,7 @@ The interface is split across these directories.
 
 Variants are represented with [data attributes](/theming/colors/), while layout components use custom tags such as `<ui-card>{:html}`.
 
-Components fall into three tiers by how much machinery they need.
+Components are grouped by how they handle behavior.
 
 :::table{cols="auto wrap"}
 

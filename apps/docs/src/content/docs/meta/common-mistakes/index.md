@@ -5,7 +5,7 @@ order: 2
 scroll: true
 ---
 
-These are issues that keep showing up in CTF retrospectives and event operations. The point isn't to make every organizer paranoid, but rather to surface the failure modes that matter early enough to handle them calmly.
+These problems appear repeatedly in CTF retrospectives. Finding them during planning or testing gives the team time to fix them before participants arrive.
 
 This page focuses on planning and onsite issues, while [Infrastructure](/meta/common-mistakes/infrastructure) and [Challenges](/meta/common-mistakes/challenges) cover the rest.
 

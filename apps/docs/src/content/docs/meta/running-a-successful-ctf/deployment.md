@@ -49,7 +49,7 @@ It is critical that competitors cannot access internal metadata services (e.g. `
 
 ### VM
 
-An alternative is to provision a separate VM (or VPS) for each challenge instance. It costs more than running everything on one host, but it reduces the blast radius. A single compromised challenge cannot take out others through disk exhaustion, container breakouts, or similar attacks. The right configuration depends on what each challenge needs.
+Another option is to give each challenge instance its own VM or VPS. This costs more, but a compromised challenge is less likely to affect the rest of the event through disk exhaustion, a container escape, or a host failure. Choose the level of isolation based on the risks and resource needs of each challenge.
 
 :::caution
 It is critical that competitors cannot access internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers, which hold access credentials to the cloud account).
@@ -62,9 +62,9 @@ In an instanced remote setup, each competitor gets a dedicated instance. This is
 rCTF v2 ships first-party support for instanced challenges, so you don't need a third-party integration here. Pick whichever backend matches your operational comfort level:
 
 - **[Docker instancer](/integrations/instancer/docker)** is a bundled Python FastAPI service that runs on a standalone Docker host alongside Traefik and Redis. It's lightweight and a good fit for small-to-medium events.
-- **[Kubernetes instancer](/integrations/instancer/kubernetes)** is a Go operator that reconciles `ChallengeInstance` custom resources into per-team namespaces with network policies, Traefik routes, and ACME wildcard TLS. It comes with a Terraform module for GKE, and is the scalable option.
+- **[Kubernetes instancer](/integrations/instancer/kubernetes)** runs each team instance in its own namespace with network policies and Traefik routing. It includes a Terraform deployment for GKE and is intended for events that need several challenge nodes.
 
-The shared `<red>instancerConfig</red>` schema, participant lifecycle, and admin UI are covered in the [instancer overview](/integrations/instancer).
+The [instancer overview](/integrations/instancer) explains the shared `<red>instancerConfig</red>` fields, participant controls, and admin UI.
 
 If you'd rather stick with an existing setup, third-party integrations like [Klodd](https://klodd.tjcsec.club/) still work against rCTF, but the first-party instancer is the recommended path now.
 

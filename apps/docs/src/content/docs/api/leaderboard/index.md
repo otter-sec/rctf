@@ -25,13 +25,13 @@ For new clients, prefer the V2 routes. V1 routes remain available for older clie
 
 ### Query behavior
 
-`<route>/now</route>`, `<route>/with-graph</route>`, and `<route>/graph</route>` use query string pagination. The API expects `limit` to be at least `1` and `offset` to be at least `0`. Deployment config sets the maximum allowed values.
+`/now`, `/with-graph`, and `/graph` use query string pagination. The API expects `limit` to be at least `1` and `offset` to be at least `0`. Deployment config sets the maximum allowed values.
 
-`division` filters standings to a configured division. `search` is available on V2 `<route>/now</route>` and V2 `<route>/with-graph</route>` for fuzzy team name search. Search values are expected to be 2 to 100 characters.
+`division` filters standings to a configured division. `search` is available on V2 `/now` and V2 `/with-graph` for fuzzy team name search. Search values are expected to be 2 to 100 characters.
 
 Search requests are rate limited per IP address with burst `3` and refill window `3000` ms. If the bucket is exhausted, the route returns `<response>429 badRateLimit</response>` with `data.timeLeft`.
 
-V1 `<route>/api/v1/leaderboard/graph</route>` supports `limit` and optional `division`. Offset based graph pagination is available through the V2 graph route.
+V1 `/api/v1/leaderboard/graph` supports `limit` and optional `division`. Offset based graph pagination is available through the V2 graph route.
 
 ### Ranking rules
 

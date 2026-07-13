@@ -121,7 +121,7 @@ maxRequestBodySize: 1073741824 # Maximum request body size in bytes
 | `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
 | `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling) before splitting roles. |
 | `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. `0{:ts}` disables the force-exit cap. See [Scaling](/installation/scaling#graceful-shutdown). |
-| `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Must be at most `255{:ts}` (Bun's limit) - larger values are rejected at startup; `0{:ts}` disables the timeout. |
+| `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Bun limits this value to `255{:ts}`, and rCTF rejects larger values at startup. Set it to `0{:ts}` to disable the timeout. |
 | `<red>maxRequestBodySize</red>` | `number{:ts}` | `1073741824{:ts}` (1 GiB) | Maximum request body size accepted by the Bun API server. This is the effective backend cap for upload routes when the bundled nginx config sets `<red>client_max_body_size</red>` to `<green>0</green>` for streaming uploads. |
 
 :::warning
@@ -214,10 +214,10 @@ ACLs control which divisions a user can register for based on their email. Each 
 | Field | Description |
 | --- | --- |
 | `<red>match</red>` | Match type: `<green>domain</green>`, `<green>email</green>`, `<green>regex</green>`, or `<green>any</green>` |
-| `<red>value</red>` | Value to match against (full email domain - the part after `@`, e.g. `example.edu` - exact email, regex pattern, or empty for `<green>any</green>`) |
+| `<red>value</red>` | Value to match. For a domain rule, use the full domain after `@`, such as `example.edu`. Email rules take the full address, regex rules take a pattern, and `<green>any</green>` uses an empty value. |
 | `<red>divisions</red>` | Array of division IDs this rule grants access to |
 
-A user is granted the union of the divisions from **every** matching rule; order does not matter. The `<green>domain</green>` match is an exact full-domain match (`<green>example.edu</green>` matches `alice@example.edu`, not `alice@sub.example.edu`).
+A user receives the divisions from **every** matching rule, regardless of order. A `<green>domain</green>` rule matches the full domain exactly. For example, `<green>example.edu</green>` matches `alice@example.edu` but not `alice@sub.example.edu`.
 
 :::warning[Email provider required, disable CTFtime auth]
 Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs, since CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
@@ -307,7 +307,7 @@ defaultInstancer: k8s
 | `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
 | `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
 | `<red>instancers</red>` | `object{:ts}` | - | Map of named challenge instancer providers (optional). Each key is an instancer name a challenge can target. |
-| `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined; auto-selected when only one is. |
+| `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined. When there is only one, rCTF selects it automatically. |
 
 See the [Providers](/providers) section for detailed configuration of each provider.
 

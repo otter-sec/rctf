@@ -4,7 +4,7 @@ description: Overview of rCTF integrations with CTFtime, instancers, blood bots,
 order: 4
 ---
 
-rCTF integrates with several external services to enhance your CTF platform.
+rCTF can connect to external services for authentication, challenge instances, browser automation, notifications, analytics, and challenge deployment.
 
 ## Available integrations
 

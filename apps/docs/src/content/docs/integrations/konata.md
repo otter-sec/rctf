@@ -126,7 +126,7 @@ rCTF API credentials. Konata calls into rCTF over the public admin API.
 | `<red>team_token</red>` | Admin team token. Accepts either `<red>secret: <name></red>` or `<red>value: <literal></red>`. |
 | `<red>extra_headers</red>` | Optional headers added to every request. Useful for a deploy-token gate at the reverse proxy. |
 
-A `<red>ctfd</red>` block with the same shape exists for CTFd deployments, and both can coexist if you mirror the same challenge repo to multiple platforms.
+A `<red>ctfd</red>` block with the same structure is available for CTFd deployments. Both blocks can be used together when the same challenge repository is deployed to multiple platforms.
 
 ### `clusters`
 
@@ -134,7 +134,7 @@ Named Kubernetes clusters that challenge `<red>kubernetesManifests</red>` / `<re
 
 | Backend | Use when |
 | --- | --- |
-| `<red>gcloud</red>` | Targeting GKE. Konata runs `$ <red>gcloud</red> container clusters get-credentials` under the hood, so the workflow needs a logged-in `$ <red>gcloud</red>` and the `gke-gcloud-auth-plugin`. |
+| `<red>gcloud</red>` | Required for GKE. Konata runs `$ <red>gcloud</red> container clusters get-credentials`, so the workflow needs an authenticated `$ <red>gcloud</red>` session and the `gke-gcloud-auth-plugin`. |
 | `<red>kind</red>` | Local Kind cluster. `<red>clusterName</red>` / `<red>cluster_name</red>` defaults to `<green>kind</green>`. |
 | `<red>kubeconfig</red>` | Inline kubeconfig pulled from a `<red>secret</red>` or `<red>value</red>`. |
 | `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config{:file}` from the host (the default). |
@@ -252,7 +252,7 @@ challenges:
       rctf: SEKAI{example}
 ```
 
-Konata accepts a datetime value and sends it to rCTF as `<red>releaseTime</red>` in Unix milliseconds. Prefer timezone-aware timestamps such as `<green>2026-02-07T18:00:00Z</green>`; naive datetimes are treated as UTC.
+Konata accepts a datetime value and sends it to rCTF as `<red>releaseTime</red>` in Unix milliseconds. Use a timestamp with a timezone, such as `<green>2026-02-07T18:00:00Z</green>`. Konata treats timestamps without a timezone as UTC.
 
 ### Scoring
 
@@ -266,7 +266,7 @@ scoring:
     eligibleForTiebreaks: true
 ```
 
-For rCTF [dynamic scoring](/admin/scoring), set `<red>scoring.rctf.kind</red>` to `<green>dynamic</green>` and provide a webhook secret. The secret accepts the same `<red>secret</red>` / `<red>value</red>` shape used elsewhere in Konata:
+For rCTF [dynamic scoring](/admin/scoring), set `<red>scoring.rctf.kind</red>` to `<green>dynamic</green>` and provide a webhook secret. As elsewhere in Konata, the secret can come from either `<red>secret</red>` or `<red>value</red>`.
 
 ```yaml title="kona.yaml"
 secrets:
@@ -288,7 +288,7 @@ challenges:
             secret: minions-rctf-secret
 ```
 
-`<red>transport</red>` currently defaults to `<green>webhook</green>`. The resolved secret becomes the rCTF dynamic-scoring webhook secret used to authenticate score submissions to `<route>POST /api/v2/challs/:id/scores</route>`; see [Submit dynamic scores](/api/challenges/submit-dynamic-scores) for the wire format.
+`<red>transport</red>` currently defaults to `<green>webhook</green>`. The resolved secret becomes the rCTF dynamic-scoring webhook secret used to authenticate score submissions to `<route>POST /api/v2/challs/:id/scores</route>`. See [Submit dynamic scores](/api/challenges/submit-dynamic-scores) for the request format.
 
 ### Attachments
 
@@ -334,7 +334,7 @@ A `<red>files</red>` glob that matches nothing, a named file that doesn't exist,
 
 ### Flags
 
-`<red>flags</red>` is a per-platform map. Each platform has its own shape, where rCTF accepts exactly one flag and CTFd accepts a list. Inside each platform, a flag value can be an inline literal string, `<red>{ str: ... }</red>` / `<red>{ strContent: ... }</red>`, or `<red>{ file: ... }</red>` (read at sync time, with the path resolved relative to the challenge directory).
+`<red>flags</red>` is configured separately for each platform. rCTF accepts exactly one flag, while CTFd accepts a list. A flag can be an inline string, `<red>{ str: ... }</red>` / `<red>{ strContent: ... }</red>`, or `<red>{ file: ... }</red>`. Konata reads file-backed flags during sync and resolves their paths relative to the challenge directory.
 
 ```yaml
 # rCTF flag, inline literal. This form is the most common.
@@ -473,7 +473,7 @@ deployment:
 
 ### Instanced challenges
 
-For challenges using the rCTF instancer, add `<red>instancerConfig</red>` / `<red>instancer_config</red>`. The schema mirrors the [rCTF instancer config](/integrations/instancer#challenge-configuration). The outer envelope is the same across providers, and only the inner `<red>config</red>` differs (Docker Compose-like for docker-instancer, `<red>pods[]</red>` for k8s-instancer). The whole Konata schema accepts both `snake_case` and `camelCase` keys.
+For challenges using the rCTF instancer, add `<red>instancerConfig</red>` / `<red>instancer_config</red>`. The shared fields match the [rCTF instancer config](/integrations/instancer#challenge-configuration), while `<red>config</red>` contains either Docker services or Kubernetes `<red>pods[]</red>`. Konata accepts both `snake_case` and `camelCase` keys throughout the schema.
 
 ```yaml title="misc/pwnable-document-fabricator/kona.yaml"
 challenges:
@@ -735,4 +735,4 @@ Notable bits:
 
 ## Real-world reference
 
-The [SekaiCTF 2026 challenges](https://github.com/project-sekai-ctf/sekaictf-2026) repository is the most complete current Konata + rCTF deployment reference. It covers static-hosted Kubernetes challenges, k8s-instancer challenges, custom instancer providers, dynamic scoring, file-backed flags, dummy-flag injection via `<red>additional</red>` attachments, multi-cluster registries, and the change-detected CI matrix.
+The [SekaiCTF 2026 challenges](https://github.com/project-sekai-ctf/sekaictf-2026) repository contains a working Konata and rCTF deployment. It includes static Kubernetes services, instanced challenges, dynamic scoring, file-backed flags, multiple registries, and CI that only deploys changed challenges.

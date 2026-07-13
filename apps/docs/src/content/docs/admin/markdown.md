@@ -103,6 +103,6 @@ After parsing, the HTML passes through DOMPurify before it is inserted into the 
 
 - `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
 - Most HTML tags from DOMPurify's default profile are allowed (e.g. `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
-- The alert and timer extensions hydrate through the data attributes `data-alert`, `data-type`, `data-content`, and `data-timer`. These are gated by a per-render nonce: the extensions stamp every element they emit with a secret `data-nonce`, and a DOMPurify hook strips the hydration attributes from any element whose nonce doesn't match (then removes the nonce itself). Writing `data-alert`, `data-timer`, or the other markers by hand has no effect — hand-written markup never carries the nonce, so the hook removes the attributes and the content renders as inert HTML.
+- The alert and timer extensions use `data-alert`, `data-type`, `data-content`, and `data-timer` to mark elements that need client-side behavior. Each element they create also receives a temporary, secret `data-nonce`. A DOMPurify hook keeps the hydration attributes only when that nonce matches, then removes the nonce before returning the HTML. Markers written by hand have no effect because they do not carry the nonce and are stripped during sanitization.
 
 If you need richer interactivity than these extensions cover, add it in the frontend code, not through embedded HTML in a description.

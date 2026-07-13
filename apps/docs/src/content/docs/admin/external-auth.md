@@ -6,46 +6,46 @@ order: 7
 
 Scoring backends, instancers, dashboards, and other external apps can let users sign in with their rCTF account. After the user approves the app on rCTF, they are sent back with an authorization code.
 
-:::warning[This is NOT OAuth2]
-The flow looks OAuth2-shaped, but it's not. The wire-level field names (`client_id`, `redirect_uri`, `code`, `state`) match what integrators expect. But there are no scopes, no refresh tokens, no PKCE, no `id_token`/OIDC discovery, no token introspection or revocation. The issued access token is a regular rCTF auth token - identical to one minted on login - and grants full account access to the signing-in user.
+:::warning[This is *NOT* OAuth2]
+This flow borrows familiar OAuth2 field names, including `client_id`, `redirect_uri`, `code`, and `state`, but it does not implement OAuth2 (it has no scopes, refresh tokens, PKCE, OIDC discovery, token introspection, revocation, etc). The returned access token is an ordinary rCTF login token with full access to the user's account.
 :::
 
 ## Registering an app (admin)
 
-Admin-only. Open `<route>/admin/settings</route>`, find the External apps section, click "Add", and provide:
+Admin-only. Open `/admin/settings`, find the External apps section, click "Add", and provide:
 
 | Field | Purpose |
 | --- | --- |
 | `<red>name</red>` | Display name shown on the consent page. |
-| `<red>redirect_uri</red>` | Exact URI the user will be redirected to with the authorization code. Bytes-exact match (no wildcards, no path normalization). |
+| `<red>redirect_uri</red>` | URI that receives the authorization code. It must match the registered value byte for byte. rCTF does not expand wildcards or normalize the URI. |
 
-rCTF generates a `<green>client_id</green>` (UUID) and a `<green>client_secret</green>` (32 random bytes, base64url-encoded). **The secret is shown exactly once.** Lose it and you have to delete the app and re-register.
+rCTF generates a UUID for `<green>client_id</green>` and 32 random bytes, encoded with base64url, for `<green>client_secret</green>`. **The secret is shown exactly once.** If it is lost, delete the app and register it again.
 
-Deleting an app makes future `<route>/api/v2/external-auth/token</route>` exchanges with that client fail. Existing access tokens (regular rCTF auth tokens) stay valid - rCTF has no per-app token registry.
+Deleting an app prevents it from exchanging any more authorization codes. Access tokens already issued to the app remain valid.
 
 ## Flow
 
-1. External app sends the user to `<rctf>/external-auth/authorize?client_id=...&redirect_uri=...&state=...`
+1. External app sends the user to `/external-auth/authorize?client_id=...&redirect_uri=...&state=...`
 2. rCTF asks the user to log in if they aren't already, then shows a consent screen
 3. User clicks authorize and rCTF mints a single-use code and redirects the browser to `<redirect_uri>?code=...&state=...`
-4. External app POSTs to `<route>/api/v2/external-auth/token</route>`
+4. External app sends a `<route>POST /api/v2/external-auth/token</route>` request
 5. External app uses the access token in `Authorization: Bearer <accessToken>` against any rCTF endpoint
 
-The `code` stays valid for 60 seconds and can only be used once, since the first `/token` call deletes it from Redis. Before issuing one, `/authorize` checks `redirect_uri` byte for byte against the URI registered for the client.
+The code is valid for 60 seconds and can only be used once. Before issuing it, `/authorize` checks that `redirect_uri` exactly matches the URI registered for the client.
 
 Exchanging the code only requires the client secret and the code itself. An invalid client ID, secret, or code returns the same `badExternalAuthRequest` response.
 
 ## Endpoints
 
-### GET `/api/v2/external-auth/clients/:id`
+### `<route>GET /api/v2/external-auth/clients/:id</route>`
 
 Public. Returns `<green>goodExternalAuthClient</green>` with `<red>{id, name, redirectUri}</red>`, used by the consent page to look up app metadata. Returns `<green>badExternalAuthRequest</green>` (HTTP 400) for unknown ids.
 
-### POST `/api/v2/external-auth/authorize`
+### `<route>POST /api/v2/external-auth/authorize</route>`
 
-Authenticated (requires the user's session token in `Authorization: Bearer`). Body: `<red>{clientId, redirectUri, state?}</red>`. The `redirectUri` must match what the client was registered with. Returns `<green>goodExternalAuthAuthorize</green>` with `<red>{redirectTo}</red>` - a fully-built URL containing `code` and (if provided) `state`.
+Requires the user's session token in `Authorization: Bearer`. Send `<red>{clientId, redirectUri, state?}</red>`. The response contains `<red>{redirectTo}</red>`, the complete callback URL with `code` and, when provided, `state`.
 
-### POST `/api/v2/external-auth/token`
+### `<route>POST /api/v2/external-auth/token</route>`
 
 Public. Body: `<red>{clientId, clientSecret, code}</red>`. Mismatch on any field returns `<green>badExternalAuthRequest</green>` (HTTP 400). On success, returns `<green>goodExternalAuthToken</green>` with `<red>{accessToken, tokenType: "bearer"}</red>`.
 

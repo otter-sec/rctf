@@ -28,9 +28,9 @@ order: 3
 
 Starts account recovery for a team that still has access to its email inbox. When the request is accepted, the server sends a recovery email containing a team token.
 
-The response does not reveal whether the email belongs to an account. Unknown emails still get the same `<response>200 goodVerifySent</response>` envelope, which keeps the recovery endpoint from becoming an account lookup tool.
+The response does not reveal whether the email belongs to an account. Known and unknown addresses both return `<response>200 goodVerifySent</response>`.
 
-Recovery is rate limited independently of captcha so the endpoint cannot be used to flood an inbox with recovery emails. Each client IP has a burst of `5` requests with a refill window of `1500000` ms, and each target email has a burst of `2` requests with a refill window of `3600000` ms. Requests over either budget return `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. Both buckets are consumed before the account lookup, so known and unknown emails are throttled identically.
+Recovery has separate rate limits for the client IP and destination email, even when captcha is enabled. An IP can make `5` requests per `1500000` ms refill window, while an email address can receive `2` per `3600000` ms window. Exceeding either limit returns `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. rCTF checks both limits before looking up the account.
 
 ::::tabs{sync="recover-version"}
 

@@ -8,7 +8,7 @@ This guide covers what changed between rCTF v1 and v2, and what you need to do t
 
 ## In short, swap the image and restart
 
-The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config gets converted to the new shape at startup. No manual SQL, no config rewrite needed to get back online.
+The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and rCTF converts the v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config to the v2 format at startup. You do not need to run SQL or rewrite the config first.
 
 ```yaml title="compose.yml"
 services:
@@ -59,7 +59,7 @@ $ <red>bun</red> run db:migrate
 
 ## API changes
 
-All v1 routes still work. V2 routes use the `<route>/api/v2/...</route>` prefix and include the following changes.
+All v1 routes still work. V2 routes use the `/api/v2/...` prefix and include the following changes.
 
 ### Captcha field rename
 

@@ -4,37 +4,37 @@ description: Configure browser-based admin bot jobs for web challenges.
 order: 3
 ---
 
-The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It's meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
+The admin bot lets a web challenge accept participant input and open it in a controlled Chrome or Firefox session. Each challenge supplies a trusted TypeScript handler that prepares the browser, visits the submitted URL, and records logs for the participant and organizers.
 
 :::warning[Trusted challenge code]
-Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is reachable through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
+Challenge handlers run as trusted code inside the admin bot service. Their source is available through the public challenge integration API, so do not put secrets in it. Store the flag in challenge data and read it from `ctx.job.flag{:ts}` while the job runs.
 :::
 
-## Request lifecycle
+## How a job runs
 
 An admin bot job moves through the platform in this order:
 
 :::steps
 1. **Configure the provider**
 
-   The rCTF API gets configured with an admin bot provider. The provider points at the browser worker and uses a shared bearer token for service authentication.
+   Configure rCTF with the browser worker's URL and a bearer token shared by both services.
 
 2. **Save challenge code**
 
-   The admin challenge editor sends the TypeScript source to the browser worker's `<route>/v1/test</route>` endpoint. The worker builds the source, validates the exported `Challenge{:ts}`, returns the public input schema, and lets the API store a config revision.
+   When an admin saves the handler, the worker builds it and validates the exported `Challenge{:ts}`. rCTF stores the validated version and uses its input definitions in the challenge form.
 
 3. **Submit a job**
 
-   A participant submits values for the configured inputs. The API checks required inputs, regex rules, captcha, rate limit state, active job state, and optional instancer state before queueing the job.
+   rCTF validates the submitted fields, captcha, rate limit, existing jobs, and any required challenge instance before adding the job to the queue.
 
 4. **Run the browser handler**
 
-   The worker polls rCTF for queued jobs, fetches the matching challenge source revision, launches Chrome or Firefox, creates a fresh browser context, runs the handler, stores logs, and reports success or failure.
+   The worker takes the next queued job, opens a fresh browser context, runs the saved handler, and reports its logs and result to rCTF.
 :::
 
 ## Backend configuration
 
-The backend config turns the provider on and tells rCTF where the admin bot worker is reachable from the API process:
+The backend config enables the provider and gives rCTF the worker's URL.
 
 ```yaml title="rctf.d/admin-bot.yaml"
 adminBot:
@@ -56,7 +56,7 @@ adminBot:
 | `RCTF_ADMIN_BOT_SECRET_KEY{:sh}` | Environment override for `secretKey{:yaml}`. |
 | `adminBot.maxLogsPerUserChallenge{:yaml}` | Number of completed or failed job logs retained per user and challenge. The default is `5{:ts}`. |
 
-The same shared secret has to go to the worker as `RCTF_SECRET_KEY{:sh}`. The API uses it when validating service routes, and the worker uses it when authenticating back to the API.
+Set the same secret on the worker through `RCTF_SECRET_KEY{:sh}`. Each service uses it to authenticate requests from the other.
 
 Protect participant submissions with captcha by adding the `adminBotSubmit{:yaml}` action:
 
@@ -68,7 +68,7 @@ captcha:
 
 ## Worker service
 
-The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It exposes a protected test endpoint for config validation, and polls rCTF for queued jobs.
+The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It validates challenge handlers and polls rCTF for queued jobs.
 
 The deployment files are in `deploy/admin-bot/{:dir}`.
 
@@ -109,7 +109,7 @@ $ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-
 The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network`.
 
 :::warning[Network exposure]
-Keep the worker reachable only from trusted infrastructure. The `<route>/v1/test</route>` endpoint is bearer-authenticated, but it still builds trusted challenge source. Don't expose the worker as a public internet service.
+Keep the worker on a private network. Although `/v1/test` requires the shared bearer token, it builds and evaluates trusted challenge code and should not be exposed to the internet.
 :::
 
 ## Challenge source
@@ -213,7 +213,7 @@ export const challenge = new Challenge({
 })
 ```
 
-The exported `Challenge{:ts}` is validated when the challenge is saved. Invalid regex patterns, missing exports, and unsupported imports come back to the admin challenge editor as config errors.
+The worker validates `Challenge{:ts}` when an admin saves the challenge. Invalid regular expressions, missing exports, and unsupported imports appear as errors in the editor.
 
 ## Challenge config fields
 
@@ -311,11 +311,11 @@ The participant-side API uses these endpoints:
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/config</route>` | Returns source code and file extension for the released challenge config. |
-| `<route>POST</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot</route>` | Validates inputs and queues a job. |
-| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/status</route>` | Returns the latest job, logs when present, and queue position while queued. |
-| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/history</route>` | Returns completed and failed jobs retained for the current user. |
-| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>` | Returns stored logs for one retained job. |
+| `<route>GET</route>` | `/api/v2/integrations/challs/:id/admin-bot/config` | Returns source code and file extension for the released challenge config. |
+| `<route>POST</route>` | `/api/v2/integrations/challs/:id/admin-bot` | Validates inputs and queues a job. |
+| `<route>GET</route>` | `/api/v2/integrations/challs/:id/admin-bot/status` | Returns the latest job, logs when present, and queue position while queued. |
+| `<route>GET</route>` | `/api/v2/integrations/challs/:id/admin-bot/history` | Returns completed and failed jobs retained for the current user. |
+| `<route>GET</route>` | `/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs` | Returns stored logs for one retained job. |
 
 Each user can have one queued or running admin bot job per challenge. Submissions are rate-limited to one request every ten seconds per user and challenge.
 
@@ -325,11 +325,11 @@ The worker uses the service-authenticated admin API:
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/pull</route>` | Claims the oldest queued job. |
-| `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/challenges/:id/source</route>` | Fetches challenge source for the claimed revision. |
-| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/:id/complete</route>` | Marks a running job as completed and stores logs. |
-| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/:id/fail</route>` | Marks a running job as failed and stores logs. |
-| `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/queue-depth</route>` | Returns the number of queued jobs. |
+| `<route>POST</route>` | `/api/v2/admin/admin-bot/jobs/pull` | Claims the oldest queued job. |
+| `<route>GET</route>` | `/api/v2/admin/admin-bot/challenges/:id/source` | Fetches challenge source for the claimed revision. |
+| `<route>POST</route>` | `/api/v2/admin/admin-bot/jobs/:id/complete` | Marks a running job as completed and stores logs. |
+| `<route>POST</route>` | `/api/v2/admin/admin-bot/jobs/:id/fail` | Marks a running job as failed and stores logs. |
+| `<route>GET</route>` | `/api/v2/admin/admin-bot/queue-depth` | Returns the number of queued jobs. |
 
 Each worker process runs one job at a time. Multiple worker processes can poll the same API when more browser throughput is needed.
 
@@ -337,11 +337,11 @@ Each worker process runs one job at a time. Multiple worker processes can poll t
 
 Admin bot jobs are bound by browser session throughput, not CPU. A worker spends most of its wall time waiting on Puppeteer (page loads, redirects, the configured timeout), so steady-state CPU stays low even when the queue is backing up. Autoscaling on CPU will react late and under-provision, so scale on **queue depth** instead.
 
-The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is built for exactly this. The response is the normal rCTF envelope, so your tooling should read `data.depth{:yaml}`. A good first target is `2{:yaml}` to `5{:yaml}` queued jobs per replica, then tune it around your average job duration and browser resource usage.
+`<route>GET /api/v2/admin/admin-bot/queue-depth</route>` returns the current queue length in `data.depth{:yaml}`. Start by targeting `2{:yaml}` to `5{:yaml}` waiting jobs per replica, then adjust the threshold based on job duration and browser resource use.
 
 We are usually using [KEDA](https://keda.sh) for this. It can read this endpoint directly with its `metrics-api{:yaml}` scaler, so you do not need anything else.
 
-The scalable Kubernetes shape with it is:
+A Kubernetes deployment can scale the worker with the following KEDA configuration.
 
 1. Run the admin bot image as a normal `Deployment{:yaml}`.
 2. Expose the worker with a `Service{:yaml}` and point `adminBot.provider.options.endpoint{:yaml}` at it, for example `http://adminbot.adminbot.svc.cluster.local:21337{:yaml}`.

@@ -4,7 +4,7 @@ description: Configure avatar content moderation with OpenAI's moderation API.
 order: 5
 ---
 
-Moderation providers check uploaded avatar images for inappropriate content. It's optional, and without a moderation provider, every avatar gets accepted.
+Moderation providers can reject inappropriate team avatars. Without one, rCTF accepts any image that passes the normal file and image checks.
 
 ## Configuration
 
@@ -23,7 +23,7 @@ avatarsModeration:
 | `<red>avatarsModeration.allowOnInternalError</red>` | `boolean{:ts}` | `true{:ts}` | Whether to allow avatar uploads when the moderation API fails |
 
 :::tip
-Setting `<red>allowOnInternalError</red>` to `true{:ts}` (the default) means a temporary OpenAI API outage doesn't block avatar uploads. Set it to `false{:ts}` if you need strict moderation.
+With the default `<red>allowOnInternalError: true{:ts}</red>`, avatar uploads continue when the moderation service is unavailable. Set it to `false{:ts}` to reject uploads whenever moderation cannot complete.
 :::
 
 ## Providers
@@ -46,7 +46,7 @@ avatarsModeration:
 | `<red>apiKey</red>` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | - | OpenAI API key |
 | `<red>model</red>` | `RCTF_MODERATION_OPENAI_MODEL{:sh}` | `omni-moderation-latest` | OpenAI moderation model |
 
-The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image gets flagged as inappropriate, the upload is rejected with an error.
+The provider sends a 256-by-256 WebP copy of the avatar to OpenAI. rCTF rejects the upload when the moderation response flags the image.
 
 ## Moderation pipeline
 

@@ -22,16 +22,15 @@ order: 3
 
 ::route-meta{def="ExternalAuthTokenRouteV2"}
 
-Server-to-server exchange. The external service's backend trades the single-use code from the browser redirect for a regular rCTF auth token. Call this from a trusted environment - the client secret must not be exposed to the browser.
+The external service's backend exchanges the single-use code for an rCTF auth token. Make this request from a trusted server and never expose the client secret to the browser.
 
-The first call deletes the code from Redis atomically, which prevents both replays and concurrent exchanges.
+The code can only be exchanged once. Repeated or concurrent requests fail.
 
 :::note[Failures all look identical]
 
 Unknown client, wrong secret, wrong code, expired code, reused code, and code/client mismatch all
-  return the same `<response>400 badExternalAuthRequest</response>` body. Don't rely on the failure
-  reason to debug an integration - check timestamps, secret rotation, and the exact bytes you sent
-  instead.
+  return the same `<response>400 badExternalAuthRequest</response>` body. To debug a failure,
+  check the timestamp, current secret, client ID, and exact code sent by the service.
 
 :::
 
@@ -39,4 +38,4 @@ Unknown client, wrong secret, wrong code, expired code, reused code, and code/cl
 
 ::response-body{def="ExternalAuthTokenRouteV2" response="goodExternalAuthToken" title="Response fields"}
 
-The returned `<red>accessToken</red>` is a regular rCTF auth token with no expiry - the same kind of token issued at login. Use it in `Authorization: Bearer <accessToken>` against any rCTF endpoint. There is no per-app token registry: deleting the client through the admin routes prevents future code exchanges but does not revoke tokens that were already minted.
+The returned `<red>accessToken</red>` is the same non-expiring token issued at login. Use it in `Authorization: Bearer <accessToken>` against any rCTF endpoint. Deleting the client prevents future code exchanges but does not revoke tokens already issued through that client.

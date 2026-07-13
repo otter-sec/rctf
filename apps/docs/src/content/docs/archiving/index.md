@@ -33,14 +33,14 @@ The output directory is deleted before each run. Point `<dim>--output</dim>` som
 
 The discovery phase fetches:
 
-- `<route>/api/v2/integrations/client/config</route>` with `<red>isArchived</red>` patched to `true{:ts}`.
-- `<route>/api/v2/challs</route>` and `<route>/api/v2/leaderboard/challs</route>`.
+- `/api/v2/integrations/client/config` with `<red>isArchived</red>` patched to `true{:ts}`.
+- `/api/v2/challs` and `/api/v2/leaderboard/challs`.
 - The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json{:file}`.
-- One `<route>/api/v2/users/:id</route>` response per unique user seen on the leaderboard.
+- One `/api/v2/users/:id` response per unique user seen on the leaderboard.
 - Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json{:file}` per challenge.
-- A static `<response>401 badToken</response>` stub for `<route>/api/v2/users/me</route>` so the frontend stays in a logged-out state.
+- A static `<response>401 badToken</response>` stub for `/api/v2/users/me` so the frontend stays in a logged-out state.
 
-Unless `<dim>--skip-uploads</dim>` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/{:dir}` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/<hash>/<filename>{:file}`, and the JSON files in `api-data/{:dir}` are rewritten to point at the local copies so the archive is self-contained.
+Unless `<dim>--skip-uploads</dim>` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/<hash>/<filename>{:file}`, and the JSON files in `api-data/{:dir}` are rewritten to point at the local copies so the archive is self-contained.
 
 ## Output layout
 
@@ -105,13 +105,13 @@ Pages served from a project subpath (`username.github.io/repo`) need a custom do
 
 ## Runtime behavior
 
-The injected script wraps `window.fetch{:ts}` and routes `<route>/api/*</route>` calls through static files:
+The injected script wraps `window.fetch{:ts}` and routes `/api/*` calls through static files:
 
 - Any non-`<route>GET</route>` request returns `<response>405 Method Not Allowed</response>` with `"kind": "badEndpoint"{:json}` and the message `"This is a read-only archive."{:json}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
-- `<route>/api/v2/leaderboard/with-graph</route>`, `<route>/api/v2/leaderboard/now</route>`, and `<route>/api/v2/leaderboard/graph</route>` are answered from `dump.json{:file}` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
-- `<route>/api/v2/challs/:id/solves</route>` is sliced from each challenge's `solves.json{:file}`.
-- `<route>/api/v2/integrations/analytics/script</route>` returns an empty `<response>404</response>` so the archived bundle does not ping a third-party analytics provider.
-- Every other `<route>/api/*</route>` `<route>GET</route>` is rewritten to `/api-data/<path>.json{:file}` and served from the static bundle. Missing files return a `<response>404 badEndpoint</response>`.
+- `/api/v2/leaderboard/with-graph`, `/api/v2/leaderboard/now`, and `/api/v2/leaderboard/graph` are answered from `dump.json{:file}` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
+- `/api/v2/challs/:id/solves` is sliced from each challenge's `solves.json{:file}`.
+- `/api/v2/integrations/analytics/script` returns an empty `<response>404</response>` so the archived bundle does not ping a third-party analytics provider.
+- Every other `/api/*` `<route>GET</route>` is rewritten to `/api-data/<path>.json{:file}` and served from the static bundle. Missing files return a `<response>404 badEndpoint</response>`.
 
 The frontend reads `<red>isArchived</red>` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
 
@@ -121,7 +121,7 @@ The frontend reads `<red>isArchived</red>` from the client config and hides inte
 The archive contains every JSON response the exporter saw at crawl time. Anything that requires authentication, server state, or live computation is absent.
 :::
 
-- No login, registration, password recovery, or token issuance. `<route>/api/v2/users/me</route>` always returns `<response>401 badToken</response>`.
+- No login, registration, password recovery, or token issuance. `/api/v2/users/me` always returns `<response>401 badToken</response>`.
 - No admin pages. Admin endpoints require an authenticated session that the archive cannot produce.
 - No live updates. The leaderboard reflects the moment the exporter ran. Re-run the export to refresh.
 - No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.

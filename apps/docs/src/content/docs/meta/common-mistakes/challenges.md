@@ -4,7 +4,7 @@ description: Recurring challenge-authoring and deployment mistakes. General guid
 order: 2
 ---
 
-These are the failure modes that come up when authoring and shipping challenges. The first section applies to every category. The later sections cover what tends to go wrong in pwn, crypto, and rev specifically.
+These mistakes can make an otherwise sound challenge confusing, unreliable, or easier than intended. The first section applies to every category, followed by notes for pwn, crypto, and rev.
 
 ## All categories
 
@@ -88,7 +88,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ...
 
 ### Brute-forceable shared remote
 
-If the intended solve can be cheesed with a 24-bit (or smaller) brute force, the first team with a connection-spam script wins, not the first team that understood the bug. Add a per-IP rate limit, gate connections behind a proof-of-work (kCTF or pwn.red/jail), or just raise the entropy until brute force stops being viable.
+If a 24-bit or smaller brute force can bypass the intended solution, the challenge rewards connection volume rather than understanding. Add a per-IP rate limit, require proof of work through kCTF or pwn.red/jail, or increase the entropy until brute force is impractical.
 
 ### Reading huge inputs with raw `read(2)`
 
