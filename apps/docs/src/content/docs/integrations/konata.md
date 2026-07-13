@@ -619,8 +619,8 @@ $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 | Flag | Behavior |
 | --- | --- |
 | `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Defaults to the current directory (`.`). |
-| `<dim>--only</dim> <name>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
-| `<dim>--challenge-path</dim> <path>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
+| `<dim>--only</dim> <cyan><name></cyan>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
+| `<dim>--challenge-path</dim> <cyan><path></cyan>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
 
 ### `<red>kona</red> compress`
 
@@ -633,16 +633,16 @@ $ <red>kona</red> compress ./challenge/dist <dim>--password</dim> <green>"<yello
 
 | Flag | Behavior |
 | --- | --- |
-| `path` (positional) | Source file or directory. |
+| `<cyan><path></cyan>` (positional) | Source file or directory. |
 | `<dim>-f</dim>`, `<dim>--format</dim>` | `<green>tar_gz</green>` (default), `<green>zip</green>`, or `<green>7z</green>`. |
-| `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<src>.{tar.gz,zip,7z}` in the current directory, based on the selected or forced archive format. |
+| `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<cyan><src></cyan>.{tar.gz,zip,7z}` in the current directory, based on the selected or forced archive format. |
 | `<dim>-p</dim>`, `<dim>--password</dim>` | Encrypts the archive. Passing a password forces `<green>7z</green>` output, even when `<dim>--format</dim>` is `<green>tar_gz</green>` or `<green>zip</green>`. |
 
 Generated archives are deterministic. Konata normalizes file metadata and entry order, so the same inputs produce the same archive bytes across machines and runs. It applies the same rules to attachments built during `sync`.
 
 ## CI integration
 
-The [`project-sekai-ctf/konata-deploy-action`](https://github.com/project-sekai-ctf/konata-deploy-action) has two parts. `detect` builds a matrix of changed challenges, then `sync` deploys one challenge from each matrix job with `$ <red>kona</red> sync <dim>--challenge-path</dim> <one>`. Unchanged challenges are not redeployed.
+The [`project-sekai-ctf/konata-deploy-action`](https://github.com/project-sekai-ctf/konata-deploy-action) has two parts. `detect` builds a matrix of changed challenges, then `sync` deploys one challenge from each matrix job with `$ <red>kona</red> sync <dim>--challenge-path</dim> <cyan><one></cyan>`. Unchanged challenges are not redeployed.
 
 The SekaiCTF 2026 workflow is a good reference:
 
@@ -690,18 +690,18 @@ jobs:
 
       - name: Activate Google Cloud SDK credentials
         run: |
-          gcloud auth login --brief --cred-file="${GOOGLE_GHA_CREDS_PATH}"
-          gcloud config set project sekaictf-500215
+          <red>gcloud</red> auth login <dim>--brief</dim> <dim>--cred-file=</dim><green>"<yellow>${GOOGLE_GHA_CREDS_PATH}</yellow>"</green>
+          <red>gcloud</red> config set project sekaictf-500215
 
       - name: Install gke-gcloud-auth-plugin
         run: |
-          curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --batch --dearmor -o /usr/share/keyrings/cloud.google.gpg
-          echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list > /dev/null
-          sudo apt-get update -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/google-cloud-sdk.list -o Dir::Etc::sourceparts="-"
-          sudo apt-get install -yq --no-install-recommends google-cloud-cli-gke-gcloud-auth-plugin
+          <red>curl</red> <dim>-fsSL</dim> https://packages.cloud.google.com/apt/doc/apt-key.gpg <dim>|</dim> <red>sudo</red> <red>gpg</red> <dim>--batch</dim> <dim>--dearmor</dim> <dim>-o</dim> /usr/share/keyrings/cloud.google.gpg
+          <red>echo</red> <green>"deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main"</green> <dim>|</dim> <red>sudo</red> <red>tee</red> /etc/apt/sources.list.d/google-cloud-sdk.list <dim>></dim> /dev/null
+          <red>sudo</red> <red>apt-get</red> update <dim>-o</dim> <dim>Dir::Etc::sourcelist=</dim>/etc/apt/sources.list.d/google-cloud-sdk.list <dim>-o</dim> <dim>Dir::Etc::sourceparts=</dim><green>"-"</green>
+          <red>sudo</red> <red>apt-get</red> install <dim>-yq</dim> <dim>--no-install-recommends</dim> google-cloud-cli-gke-gcloud-auth-plugin
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker europe-west1-docker.pkg.dev,us-central1-docker.pkg.dev --quiet
+        run: <red>gcloud</red> auth configure-docker europe-west1-docker.pkg.dev,us-central1-docker.pkg.dev <dim>--quiet</dim>
 
       - uses: docker/setup-qemu-action@v3
         with:

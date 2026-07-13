@@ -31,11 +31,11 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 
 3. **Export the scoreboard**
 
-   Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
+   Use the following command to retrieve the scoreboard export, replacing `<cyan>TOKEN</cyan>` with the authentication token from the previous step:
 
    ```ansi
-   $ <red>curl</red> https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
-     <dim>-H</dim> <green>"Authorization: Bearer TOKEN"</green>
+   $ <red>curl</red> https://ctf.example.com/api/v1/integrations/ctftime/leaderboard <dim>\</dim>
+     <dim>-H</dim> <green>"Authorization: Bearer <cyan>TOKEN</cyan>"</green>
    ```
 
 4. **Submit to CTFtime**

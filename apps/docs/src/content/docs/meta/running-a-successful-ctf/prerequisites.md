@@ -10,7 +10,7 @@ Before building challenges or deploying infrastructure, decide who is responsibl
 
 A small team can run a strong event, but every important job needs a clear owner.
 
-- **Organizers** create the schedule, final decisions, sponsor relationships, merchandise, and prizes.
+- **Organizers** own the schedule, final decisions, sponsor relationships, merchandise, and prizes.
 - **Challenge authors** build challenges and playtest one another's work.
 - **Infrastructure leads** deploy the platform and challenges, monitor them during the event, and respond to security or capacity problems. For a long event, rotate this responsibility so someone with access is always available.
 - **Support team members** answer participant tickets and bring challenge or infrastructure problems to the right person.

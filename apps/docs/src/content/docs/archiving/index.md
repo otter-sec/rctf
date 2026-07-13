@@ -12,9 +12,9 @@ The exporter reads from a live rCTF API and copies a built SvelteKit frontend. B
 
 ```ansi
 $ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build
-$ <red><dim>bun</dim> rctf</red> export \
-  <dim>--api-url</dim> https://ctf.example.com \
-  <dim>--backend</dim> cloudflare-pages \
+$ <red><dim>bun</dim> rctf</red> export <dim>\</dim>
+  <dim>--api-url</dim> https://ctf.example.com <dim>\</dim>
+  <dim>--backend</dim> cloudflare-pages <dim>\</dim>
   <dim>--output</dim> ./export-output
 ```
 
@@ -87,7 +87,7 @@ The `cloudflare-pages` backend writes:
 Deploy from the output directory:
 
 ```ansi
-$ <red>npx</red> wrangler pages deploy ./export-output
+$ <red>npx</red> <red>wrangler</red> pages deploy ./export-output
 ```
 :::
 :::tab[GitHub Pages]
@@ -96,7 +96,7 @@ The `github-pages` backend writes an empty `.nojekyll{:file}` so files under `_a
 Publish with `$ <red>gh-pages</red>` from the repository root. The `<dim>--dotfiles</dim>` flag is required so `.nojekyll{:file}` is uploaded:
 
 ```ansi
-$ <red>npx</red> gh-pages <dim>-d</dim> ./export-output <dim>--dotfiles</dim>
+$ <red>npx</red> <red>gh-pages</red> <dim>-d</dim> ./export-output <dim>--dotfiles</dim>
 ```
 
 Pages served from a project subpath (`username.github.io/repo`) need a custom domain or root deployment, since the injected interceptor and SvelteKit build both assume the site is served from `/`.

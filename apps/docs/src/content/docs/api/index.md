@@ -22,7 +22,7 @@ Use V2 when it provides the operation you need. Some operations still exist only
 The `@rctf/types` package exports the public route definitions, responses, enums, and helper types:
 
 ```ts showLineNumbers=false
-
+import {
   GetChallengesRouteV2,
   type RouteBodyInput,
   type RouteQueryInput,

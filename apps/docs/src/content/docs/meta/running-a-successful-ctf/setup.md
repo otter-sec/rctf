@@ -37,7 +37,7 @@ Replace `example.com` and `123.123.123.123` throughout the guide with your domai
    Run the installer:
 
    ```ansi
-   $ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io | <red>sh</red>
+   $ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io <dim>|</dim> <red>sh</red>
    ```
 
    Answer `y` when asked whether to start rCTF. The installer puts the deployment and configuration under `/opt/rctf/{:dir}`.
@@ -56,7 +56,7 @@ Replace `example.com` and `123.123.123.123` throughout the guide with your domai
    Recreate the service after changing configuration:
 
    ```ansi
-   $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
+   $ <red>cd</red> /opt/rctf <dim>&&</dim> <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
    ```
 :::
 
@@ -81,13 +81,13 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    ```ansi
    $ <red>ufw</red> allow 22
-   $ for cfip in `<red>curl</red> <dim>-sw</dim> <green>'\n'</green> https://www.cloudflare.com/ips-v{4,6}`; do <red>ufw</red> allow proto tcp from <yellow>$cfip</yellow> comment <green>'Cloudflare IP'</green>; done
+   $ for cfip in <dim>`</dim><red>curl</red> <dim>-sw</dim> <green>'\n'</green> https://www.cloudflare.com/ips-v{4,6}<dim>`;</dim> do <red>ufw</red> allow proto tcp from <yellow>$cfip</yellow> comment <green>'Cloudflare IP'</green><dim>;</dim> done
    $ <red>ufw</red> enable   <dim># answer `y` when prompted regarding enabling firewall</dim>
    ```
 
 4. **Install and configure Nginx**
 
-   Install Nginx with `$ <red>apt</red> update && <red>apt</red> install <dim>-y</dim> nginx`, then create `/etc/nginx/sites-available/rctf.conf{:file}`. Update the marked hostname.
+   Install Nginx with `$ <red>apt</red> update <dim>&&</dim> <red>apt</red> install <dim>-y</dim> nginx`, then create `/etc/nginx/sites-available/rctf.conf{:file}`. Update the marked hostname.
 
    ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
    # Redirect HTTP -> HTTPS
@@ -137,7 +137,7 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    ```ansi
    $ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-   $ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
+   $ <red>nginx</red> <dim>-t</dim> <dim>&&</dim> <red>nginx</red> <dim>-s</dim> reload
    ```
 
    Use the same command after later Nginx changes. rCTF should now be available at `https://ctf.example.com`.
@@ -151,7 +151,7 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
 2. **Install and configure Nginx**
 
-   Install Nginx with `$ <red>apt</red> update && <red>apt</red> install <dim>-y</dim> nginx`, then create `/etc/nginx/sites-available/rctf.conf{:file}`. Update the marked hostname and certificate paths.
+   Install Nginx with `$ <red>apt</red> update <dim>&&</dim> <red>apt</red> install <dim>-y</dim> nginx`, then create `/etc/nginx/sites-available/rctf.conf{:file}`. Update the marked hostname and certificate paths.
 
    ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
    # Redirect HTTP -> HTTPS
@@ -196,7 +196,7 @@ rCTF listens only on the VPS loopback address. Nginx terminates TLS and forwards
 
    ```ansi
    $ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-   $ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
+   $ <red>nginx</red> <dim>-t</dim> <dim>&&</dim> <red>nginx</red> <dim>-s</dim> reload
    ```
 
    Use the same command after later Nginx changes. rCTF should now be available at `https://ctf.example.com`.

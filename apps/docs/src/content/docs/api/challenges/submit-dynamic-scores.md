@@ -4,13 +4,6 @@ description: "`<route>POST /api/v2/challs/:id/scores</route>`"
 order: 4
 ---
 
-BadBody,
-  BadJson,
-  BadReplayedRequest,
-  BadSignature,
-  SubmitDynamicScoresRouteV2,
-} from '@rctf/types'
-
 :::aside
 
 ::::route-example{def="SubmitDynamicScoresRouteV2" extra="BadJson"}

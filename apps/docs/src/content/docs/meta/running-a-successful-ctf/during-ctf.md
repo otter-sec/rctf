@@ -36,7 +36,7 @@ Decide who can change infrastructure, challenges, and the event schedule before 
 
 If a challenge becomes unavailable, the response depends on the deployment method:
 
-- For **Docker containers**, check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <container>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <service>` if needed.
+- For **Docker containers**, check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <cyan><container></cyan>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <cyan><service></cyan>` if needed.
 - For **instancer-managed challenges**, verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
 - For **static challenges** (no remote), verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
 
@@ -49,7 +49,7 @@ If the rCTF platform itself becomes unresponsive, work through the following ste
 1. **Check API server logs** for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker, run `$ <red>docker</red> logs rctf-rctf-1`.
 2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 <red>psql</red> <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
 3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 <red>redis-cli</red> <dim>--pass</dim> <green>"<yellow>$RCTF_REDIS_PASSWORD</yellow>"</green> ping`.
-4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
+4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf <dim>&&</dim> <red>docker</red> compose restart rctf`.
 5. **Check resource usage** to verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 
 If an outage materially reduces playing time, extend the event and announce the new end time clearly.

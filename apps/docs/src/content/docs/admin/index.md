@@ -40,7 +40,7 @@ If using Docker:
 $ <red>docker</red> exec rctf-rctf-1 <red>rctf</red> user promote admin@example.com
 ```
 
-Use `$ <red>rctf</red> user demote <dim><email></dim>` to revoke all permissions and `$ <red>rctf</red> user list-admins` to see who currently has any.
+Use `$ <red>rctf</red> user demote <cyan><email></cyan>` to revoke all permissions and `$ <red>rctf</red> user list-admins` to see who currently has any.
 
 ### Permission bypass
 

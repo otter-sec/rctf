@@ -73,7 +73,7 @@ The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field is a real Pod
 Every pod in a namespace can receive the `default` service-account token at `/var/run/secrets/kubernetes.io/serviceaccount/{:dir}`. If that service account has broad permissions, or if the cluster over-grants `system:authenticated`, a compromised challenge turns straight into Kubernetes API access.
 
 :::important[Disable tokens unless needed]
-Set `<red>automountServiceAccountToken</red>` to `false{:yml}` unless the challenge genuinely needs the in-cluster API. Audit `system:authenticated` cluster-role bindings with `$ <red>kubectl</red> get clusterrolebindings <dim>-o</dim> yaml | <red>grep</red> <dim>-A4</dim> system:authenticated`, and remove bindings with meaningful verbs. Also check that temporary controller RBAC changes from debugging were reverted before the event.
+Set `<red>automountServiceAccountToken</red>` to `false{:yml}` unless the challenge genuinely needs the in-cluster API. Audit `system:authenticated` cluster-role bindings with `$ <red>kubectl</red> get clusterrolebindings <dim>-o</dim> yaml <dim>|</dim> <red>grep</red> <dim>-A4</dim> system:authenticated`, and remove bindings with meaningful verbs. Also check that temporary controller RBAC changes from debugging were reverted before the event.
 :::
 
 The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field accepts the standard PodSpec, including `<red>automountServiceAccountToken</red>`.
@@ -82,7 +82,7 @@ The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field accepts the s
 
 ### Missing runtime abuse limits
 
-CPU and memory limits aren't enough on their own. A participant can run a fork bomb like `$ :(){ :|:& };:`, fill `/tmp/{:dir}` with `$ <red>dd</red> if=/dev/zero of=/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits, not assumptions about participant behavior.
+CPU and memory limits aren't enough on their own. A participant can run a fork bomb like `$ <red>:</red><dim>(){</dim> <red>:</red><dim>|</dim><red>:</red><dim>& };</dim><red>:</red>`, fill `/tmp/{:dir}` with `$ <red>dd</red> <dim>if=</dim>/dev/zero <dim>of=</dim>/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits, not assumptions about participant behavior.
 
 ::::tabs
 :::tab[Docker]
@@ -96,7 +96,7 @@ For nsjail services, use `<dim>--rlimit_nproc</dim>`, `<dim>--rlimit_nofile</dim
 :::
 ::::
 
-Before release, test challenge services with intentionally abusive clients. Include `$ :(){ :|:& };:`, `$ <red>dd</red> if=/dev/zero of=/tmp/x`, `$ for i in $(<red>seq</red> 100000); do exec {fd}<>/dev/null; done`, and slow TCP connections where the challenge uses a shared remote.
+Before release, test challenge services with intentionally abusive clients. Include `$ <red>:</red><dim>(){</dim> <red>:</red><dim>|</dim><red>:</red><dim>& };</dim><red>:</red>`, `$ <red>dd</red> <dim>if=</dim>/dev/zero <dim>of=</dim>/tmp/x`, `$ for i in <dim>$(</dim><red>seq</red> 100000<dim>);</dim> do <red>exec</red> {fd}<dim><></dim>/dev/null<dim>;</dim> done`, and slow TCP connections where the challenge uses a shared remote.
 
 The [Docker instancer](/integrations/instancer/docker#docker-challenge-config) defaults to `6m` memory, `1.0` CPU, `1024` PIDs, and `1024` nofile per service when not overridden. It also exposes `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>` for tuning. The GKE Terraform module sets kubelet `<red>podPidsLimit</red>` to `1024{:ts}` cluster-wide through `<red>gcp_instancer_pod_pids_limit</red>`, so a fork bomb inside a challenge pod hits that cap before the node `kernel.pid_max`.
 

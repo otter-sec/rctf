@@ -294,8 +294,8 @@ If your challenge is sensitive to FD exhaustion, the practical workaround is to 
 
 ```sh title="Dockerfile entrypoint"
 #!/bin/sh
-ulimit -n 1024
-exec /your/challenge "$@"
+<red>ulimit</red> <dim>-n</dim> 1024
+<red>exec</red> /your/challenge <green>"<yellow>$@</yellow>"</green>
 ```
 
 This is per-image, not platform-enforced, so it's only as strong as the image. Don't rely on it for hostile-input boundaries that absolutely must not break. Reach for a per-connection sandbox (nsjail) instead.
@@ -420,4 +420,4 @@ For the rest of the Konata schema, see [Konata](/integrations/konata).
 | rCTF returns `<response>400 badInstancerConfig</response>` | The challenge `<red>config</red>` failed the provider's Zod schema. Fetch it with `<route>GET /api/v2/admin/instancer/schema</route>` and validate the challenge manifest against it. |
 | Namespace stuck `Terminating` | A child resource still holds a finalizer. The controller waits one second per reconcile while the namespace drains. Check Traefik CRDs in the namespace if the wait doesn't resolve. |
 
-Kubernetes events appear in `$ <red>kubectl</red> describe challengeinstance <name>`. Compare them with the controller logs from `$ <red>kubectl</red> logs <dim>-n</dim> rctf-operator-system <dim>-l</dim> control-plane=controller-manager` when the resources for an instance are not being created or removed correctly.
+Kubernetes events appear in `$ <red>kubectl</red> describe challengeinstance <cyan><name></cyan>`. Compare them with the controller logs from `$ <red>kubectl</red> logs <dim>-n</dim> rctf-operator-system <dim>-l</dim> control-plane=controller-manager` when the resources for an instance are not being created or removed correctly.
