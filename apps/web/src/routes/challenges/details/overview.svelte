@@ -103,11 +103,11 @@
 
   overview-grid {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 
     @container (min-inline-size: 36rem) {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     > :global(:last-child:nth-child(odd)) {

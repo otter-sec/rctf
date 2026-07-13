@@ -58,10 +58,10 @@ A copy button sits next to the value so players can paste it straight into a ter
 
 ## Timer
 
-The `<timer />{:html}` element renders a live countdown for the competition. It works both inline inside a paragraph and as a standalone block on its own line.
+The `<timer />{:html}` element renders a live countdown for the competition. It must stand alone on its own line.
 
 ```md title="Home content"
-The CTF begins in <timer />. Good luck!
+The CTF is live. Good luck!
 
 <timer />
 ```

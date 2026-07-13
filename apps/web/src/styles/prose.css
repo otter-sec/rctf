@@ -10,6 +10,10 @@ prose-content {
     margin-block: 0 1em;
   }
 
+  :where(div[data-timer]) {
+    margin-block: 2em;
+  }
+
   > :first-child {
     margin-block-start: 0;
   }

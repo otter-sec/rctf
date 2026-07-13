@@ -69,7 +69,6 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2xs);
-    margin-block: var(--space-s);
     color: var(--foreground-l3);
     font-size: var(--step--1);
   }

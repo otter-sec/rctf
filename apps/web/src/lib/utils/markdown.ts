@@ -67,30 +67,18 @@ const alert: TokenizerAndRendererExtension = {
 }
 
 const TIMER_TAG = String.raw`<timer\s*/?>(?:</timer>)?`
-const TIMER_INLINE = new RegExp(`^${TIMER_TAG}`, 'i')
 const TIMER_BLOCK = new RegExp(String.raw`^${TIMER_TAG}[ \t]*(?:\n+|$)`, 'i')
-const timerPlaceholder = `<span data-timer data-nonce="${nonce}"></span>`
+const timerPlaceholder = `<div data-timer data-nonce="${nonce}"></div>`
 
-const timerInline: TokenizerAndRendererExtension = {
+const timer: TokenizerAndRendererExtension = {
   name: 'timer',
-  level: 'inline',
-  start: src => src.match(/<timer/i)?.index,
-  tokenizer(src) {
-    const match = TIMER_INLINE.exec(src)
-    return match ? { type: 'timer', raw: match[0] } : undefined
-  },
-  renderer: () => timerPlaceholder,
-}
-
-const timerBlock: TokenizerAndRendererExtension = {
-  name: 'timerBlock',
   level: 'block',
   start: src => src.match(/^<timer/im)?.index,
   tokenizer(src) {
     const match = TIMER_BLOCK.exec(src)
-    return match ? { type: 'timerBlock', raw: match[0] } : undefined
+    return match ? { type: 'timer', raw: match[0] } : undefined
   },
-  renderer: () => `<p>${timerPlaceholder}</p>`,
+  renderer: () => timerPlaceholder,
 }
 
 const FENCED_CODE =
@@ -127,7 +115,7 @@ const getPurify = () => {
 }
 
 const marked = new Marked({
-  extensions: [alert, timerInline, timerBlock],
+  extensions: [alert, timer],
   hooks: {
     preprocess: separateHtmlBlocks,
     postprocess: html => getPurify().sanitize(html),
