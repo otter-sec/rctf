@@ -284,7 +284,7 @@ Kubernetes does not expose every resource limit directly in a PodSpec, and the c
 | `<red>securityContext.readOnlyRootFilesystem</red>` set to `true{:yml}` | Pairs with the ephemeral-storage limit. If the challenge needs to write somewhere, mount a sized `<red>emptyDir</red>` with `<red>sizeLimit</red>`. |
 | `<red>securityContext.allowPrivilegeEscalation</red>` set to `false{:yml}` and dropped `<red>capabilities</red>` | Defaults are unsafe. Drop `ALL` and only add what the challenge actually needs. |
 | `<red>automountServiceAccountToken</red>` set to `false{:yml}` on the pod | Otherwise the default service-account token gets mounted into the container. |
-| `<red>terminationGracePeriodSeconds</red>` | Cap it (e.g. `10{:ts}`) so held TCP connections don't delay pod cleanup for minutes when an instance expires. |
+| `<red>terminationGracePeriodSeconds</red>` | Cap it (e.g., `10{:ts}`) so held TCP connections don't delay pod cleanup for minutes when an instance expires. |
 | `<red>volumes[].emptyDir.sizeLimit</red>` | Any `<red>emptyDir</red>` mount needs a size cap or the same disk-fill issue applies. |
 
 :::warning[File descriptor / nofile limits]

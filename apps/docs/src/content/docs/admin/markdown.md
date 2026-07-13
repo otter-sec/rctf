@@ -20,21 +20,21 @@ rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote c
 > Brute-forcing the endpoint will result in a rate limit.
 ```
 
-Six alert types are recognized. Anything else (e.g. `> [!INFO]{:md}`) falls back to a plain blockquote.
+Six alert types are recognized. Anything else (e.g., `> [!INFO]{:md}`) falls back to a plain blockquote.
 
 | Type | Trigger | Use for |
 | --- | --- | --- |
 | `note` | `> [!NOTE]{:md}` | General information. |
 | `tip` | `> [!TIP]{:md}` | Optional advice or shortcuts. |
 | `important` | `> [!IMPORTANT]{:md}` | Information players must read. |
-| `warning` | `> [!WARNING]{:md}` | Behaviour that can cause problems if ignored. |
+| `warning` | `> [!WARNING]{:md}` | Behavior that can cause problems if ignored. |
 | `caution` | `> [!CAUTION]{:md}` | Actions with potentially destructive consequences. |
 | `connection` | `> [!CONNECTION]{:md}` | Remote connection info for hosted challenges (see below). |
 
 The trigger keyword is case-insensitive. Indentation and additional blockquote lines follow standard Markdown blockquote rules.
 
 :::warning[Visual reference only]
-The docs site renders alerts with its own component, which looks different from rCTF's runtime alert styling. The behaviour described here is what challenge authors actually see in the rCTF frontend.
+The docs site renders alerts with its own component, which looks different from rCTF's runtime alert styling. The behavior described here is what challenge authors actually see in the rCTF frontend.
 :::
 
 ### Connection callout
@@ -66,10 +66,10 @@ The CTF begins in <timer />. Good luck!
 <timer />
 ```
 
-The element takes **no attributes**. It always targets the global CTF schedule (`startTime` / `endTime` from the runtime client config). Behaviour:
+The element takes **no attributes**. It always targets the global CTF schedule (`startTime` / `endTime` from the runtime client config). Behavior:
 
-- Before the CTF starts, counts down to the start time and is labelled "CTF starts in".
-- After the start time, counts down to the end time and is labelled "CTF ends in".
+- Before the CTF starts, counts down to the start time with the label **CTF starts in**.
+- After the start time, counts down to the end time with the label **CTF ends in**.
 - After the end time, shows "The CTF is over."
 - If the event is archived, shows "The CTF is archived."
 
@@ -102,7 +102,7 @@ For the full list of what CommonMark supports, see the [CommonMark spec](https:/
 DOMPurify sanitizes the parsed HTML before it reaches the page. This has the following effects.
 
 - `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
-- Most HTML tags from DOMPurify's default profile are allowed (e.g. `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
+- Most HTML tags from DOMPurify's default profile are allowed (e.g., `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
 - The alert and timer extensions use `data-alert`, `data-type`, `data-content`, and `data-timer` to mark elements that need client-side behavior. Each element they create also receives a temporary, secret `data-nonce`. A DOMPurify hook keeps the hydration attributes only when that nonce matches, then removes the nonce before returning the HTML. Markers written by hand have no effect because they do not carry the nonce and are stripped during sanitization.
 
 If you need richer interactivity than these extensions cover, add it in the frontend code, not through embedded HTML in a description.

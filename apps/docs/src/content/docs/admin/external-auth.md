@@ -12,7 +12,7 @@ This flow borrows OAuth2 field names such as `client_id`, `redirect_uri`, `code`
 
 ## Registering an app (admin)
 
-Admin-only. Open `/admin/settings`, find the External apps section, click "Add", and provide:
+Admin-only. Open `/admin/settings`, find the External apps section, click **Add**, and provide:
 
 | Field | Purpose |
 | --- | --- |
