@@ -21,9 +21,7 @@ article[data-reference] {
       }
 
       > [data-aside] {
-        --aside-block-size: calc(
-          100svh - var(--page-offset-top) - var(--page-offset-bottom)
-        );
+        --aside-block-size: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
         --aside-section: calc((var(--aside-block-size) - var(--aside-gap)) / 2);
         --aside-code-min: 9rem;
 
@@ -48,12 +46,7 @@ article[data-reference] {
           margin-block: 0;
         }
 
-        :where(
-          tab-group,
-          [role='tabpanel']:not([hidden]),
-          .expressive-code,
-          figure
-        ) {
+        :where(tab-group, [role='tabpanel']:not([hidden]), .expressive-code, figure) {
           display: flex;
           flex-direction: column;
           flex: 0 0 auto;

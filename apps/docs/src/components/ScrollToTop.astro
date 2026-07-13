@@ -38,11 +38,7 @@ const { floating } = Astro.props
     z-index: 10;
     width: 2.5rem;
     height: 2.5rem;
-    background-color: color-mix(
-      in oklab,
-      var(--background-l2) 90%,
-      transparent
-    );
+    background-color: color-mix(in oklab, var(--background-l2) 90%, transparent);
     backdrop-filter: blur(var(--blur-sm));
     border-radius: var(--radius-md);
 
@@ -53,9 +49,7 @@ const { floating } = Astro.props
 </style>
 
 <script>
-  const buttons = [
-    ...document.querySelectorAll<HTMLElement>('[data-scroll-top]'),
-  ]
+  const buttons = [...document.querySelectorAll<HTMLElement>('[data-scroll-top]')]
 
   const update = () => {
     const past = scrollY > innerHeight * 0.5
@@ -66,7 +60,6 @@ const { floating } = Astro.props
   update()
 
   document.addEventListener('click', event => {
-    if ((event.target as Element).closest('[data-scroll-top]'))
-      window.scrollTo({ top: 0 })
+    if ((event.target as Element).closest('[data-scroll-top]')) window.scrollTo({ top: 0 })
   })
 </script>

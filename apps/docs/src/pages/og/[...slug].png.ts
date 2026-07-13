@@ -1,9 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import {
-  parseCodeAnnotations,
-  stripCodeAnnotationTags,
-} from '@/lib/code-annotations'
+import { parseCodeAnnotations, stripCodeAnnotationTags } from '@/lib/code-annotations'
 import { getDocs, type DocsEntry } from '@/lib/docs'
 import { plainInline } from '@/lib/inline-markdown'
 import type { ElementContent } from 'hast'
@@ -24,9 +21,7 @@ function h(
   props: (Record<string, unknown> & { style?: CSSProperties }) | null,
   ...children: VNode[]
 ): VElement {
-  const kids = children.filter(
-    (child): child is VElement | string => child != null
-  )
+  const kids = children.filter((child): child is VElement | string => child != null)
   return {
     type,
     props: { ...props, children: kids.length === 1 ? kids[0] : kids },
@@ -219,9 +214,7 @@ function richNodes(value: string, keyPrefix: string): VNode[] {
   for (const match of value.matchAll(INLINE_CODE_RE)) {
     const index = match.index ?? 0
     if (index > last) {
-      out.push(
-        ...annotatedNodes(value.slice(last, index), `${keyPrefix}-x${i}`)
-      )
+      out.push(...annotatedNodes(value.slice(last, index), `${keyPrefix}-x${i}`))
     }
     out.push(codeChip(match[1] ?? '', `${keyPrefix}-c${i}`))
     last = index + match[0].length
@@ -259,8 +252,7 @@ function hastToNodes(nodes: ElementContent[], keyPrefix: string): VNode[] {
     if (classes.includes('is-dim') || classes.includes('is-dimmed')) {
       style.opacity = 0.5
     }
-    const isChip =
-      classes.includes('code-route') || classes.includes('code-response')
+    const isChip = classes.includes('code-route') || classes.includes('code-response')
     if (isChip) Object.assign(style, CHIP_SURFACE)
     if (isChip || children.length > 1) {
       style.display = 'flex'
@@ -284,8 +276,7 @@ function toneColor(classes: string[]): string | undefined {
 function codeChip(value: string, key: string): VNode {
   const code = value.replace(/^\$ /, '')
   const children = parseCodeAnnotations(code)
-  if (children)
-    return h('span', { key, style: CODE_CHIP }, ...hastToNodes(children, key))
+  if (children) return h('span', { key, style: CODE_CHIP }, ...hastToNodes(children, key))
   return h('span', { key, style: CODE_CHIP }, stripCodeAnnotationTags(code))
 }
 
@@ -306,9 +297,7 @@ function breadcrumb(id: string, docs: DocsEntry[]): string[] {
   const segments = id.split('/')
   const ancestors = segments.slice(0, -1)
   if (ancestors.length === 0) return ['Docs']
-  const titleById = new Map(
-    docs.map(entry => [entry.id, plainInline(entry.data.title)])
-  )
+  const titleById = new Map(docs.map(entry => [entry.id, plainInline(entry.data.title)]))
   const labels = ancestors.map((segment, i) => {
     const prefix = segments.slice(0, i + 1).join('/')
     return titleById.get(prefix) ?? humanize(segment)

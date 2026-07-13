@@ -4,19 +4,13 @@ import { defineConfig } from 'astro/config'
 import { apiReferenceDirectives } from './src/lib/api/directives'
 import { calloutDirective } from './src/lib/callout'
 import { contentDirectives } from './src/lib/directives'
-import {
-  blockExpressiveCode,
-  inlineExpressiveCode,
-} from './src/lib/expressive-code'
+import { blockExpressiveCode, inlineExpressiveCode } from './src/lib/expressive-code'
 import { externalLinks } from './src/lib/external-links'
 import { frontmatterInline } from './src/lib/frontmatter-inline'
 import { headingAnchors } from './src/lib/heading-anchors'
 import { headingNamespace } from './src/lib/heading-namespace'
 import { temmlMath } from './src/lib/math'
-import {
-  loosenRichListItems,
-  normalizeListItemFlow,
-} from './src/lib/normalize-list-items'
+import { loosenRichListItems, normalizeListItemFlow } from './src/lib/normalize-list-items'
 import { normalizeTabPanels } from './src/lib/normalize-tab-panels'
 import { tableDirective, tableScroll } from './src/lib/tables'
 import { captureTocHeadings } from './src/lib/toc-headings'

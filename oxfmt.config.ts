@@ -11,8 +11,6 @@ export default defineConfig({
   bracketSpacing: true,
   arrowParens: 'avoid',
   svelte: {},
-  // Bound imports can cross side-effect imports when enabled; route
-  // registration and CSS loading rely on source order.
   sortImports: false,
   sortPackageJson: false,
   sortTailwindcss: false,
@@ -25,6 +23,7 @@ export default defineConfig({
     {
       files: ['apps/docs/**/*'],
       options: {
+        printWidth: 100,
         proseWrap: 'never',
       },
     },

@@ -15,9 +15,7 @@ const title = asInline(titleLabel)
 ---
 
 <nav aria-label="Table of contents">
-  <toc-title aria-hidden="true"
-    ><span><Fragment set:html={title.html} /></span></toc-title
-  >
+  <toc-title aria-hidden="true"><span><Fragment set:html={title.html} /></span></toc-title>
   <label data-bar>
     <input type="checkbox" aria-label="Toggle table of contents" />
     <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -43,9 +41,7 @@ const title = asInline(titleLabel)
                 <ul>
                   {headings.map(({ depth, slug, text, html }) => (
                     <li data-depth={depth}>
-                      <a href={`#${slug}`}>
-                        {html ? <Fragment set:html={html} /> : text}
-                      </a>
+                      <a href={`#${slug}`}>{html ? <Fragment set:html={html} /> : text}</a>
                     </li>
                   ))}
                 </ul>
@@ -59,9 +55,7 @@ const title = asInline(titleLabel)
         ) : (
           headings.map(({ depth, slug, text, html }) => (
             <li data-depth={depth}>
-              <a href={`#${slug}`}>
-                {html ? <Fragment set:html={html} /> : text}
-              </a>
+              <a href={`#${slug}`}>{html ? <Fragment set:html={html} /> : text}</a>
             </li>
           ))
         )
@@ -76,9 +70,7 @@ const title = asInline(titleLabel)
     top: var(--page-offset-top);
     display: flex;
     flex-direction: column;
-    max-height: calc(
-      100svh - var(--page-offset-top) - var(--page-offset-bottom)
-    );
+    max-height: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
     font-size: var(--step--1);
 
     @media (width < 64rem) {
@@ -139,9 +131,7 @@ const title = asInline(titleLabel)
 
             stroke: var(--muted-foreground);
             stroke-dasharray: var(--circumference);
-            stroke-dashoffset: calc(
-              var(--circumference) * (1 - var(--progress, 0))
-            );
+            stroke-dashoffset: calc(var(--circumference) * (1 - var(--progress, 0)));
           }
         }
       }
@@ -271,9 +261,7 @@ const title = asInline(titleLabel)
     }
 
     li[data-depth] {
-      padding-inline-start: calc(
-        (var(--shift, 0) + var(--indent, 0)) * var(--space-xs)
-      );
+      padding-inline-start: calc((var(--shift, 0) + var(--indent, 0)) * var(--space-xs));
     }
 
     li[data-depth='3'] {
@@ -297,10 +285,7 @@ const title = asInline(titleLabel)
     const progress = () => {
       if (!ring || !mobile.matches) return
       const max = document.documentElement.scrollHeight - innerHeight
-      ring.style.setProperty(
-        '--progress',
-        String(max > 0 ? Math.min(scrollY / max, 1) : 0)
-      )
+      ring.style.setProperty('--progress', String(max > 0 ? Math.min(scrollY / max, 1) : 0))
     }
     addEventListener('scroll', progress, { passive: true })
     mobile.addEventListener('change', progress)
@@ -325,13 +310,13 @@ const title = asInline(titleLabel)
 
     const fallback = currentLabel?.innerHTML ?? ''
 
-    const groups = [
-      ...nav.querySelectorAll<HTMLDetailsElement>('li[data-group] details'),
-    ].map(details => ({
-      details,
-      active: details.open,
-      anchors: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")],
-    }))
+    const groups = [...nav.querySelectorAll<HTMLDetailsElement>('li[data-group] details')].map(
+      details => ({
+        details,
+        active: details.open,
+        anchors: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")],
+      })
+    )
 
     const blockOf = new Map<Element, Element>()
     for (const target of links.keys()) {
@@ -356,17 +341,13 @@ const title = asInline(titleLabel)
     let prevActive = new Set<Element>()
 
     const center = () => {
-      const run = [
-        ...list.querySelectorAll<HTMLAnchorElement>('a[data-active]'),
-      ]
+      const run = [...list.querySelectorAll<HTMLAnchorElement>('a[data-active]')]
       const first = run[0]
       const last = run[run.length - 1]
       if (!first || !run.every(a => a.checkVisibility())) return
       const area = list.getBoundingClientRect()
       const runCenter =
-        (first.getBoundingClientRect().top +
-          last.getBoundingClientRect().bottom) /
-        2
+        (first.getBoundingClientRect().top + last.getBoundingClientRect().bottom) / 2
       list.scrollTo({
         top: list.scrollTop + runCenter - (area.top + area.height / 2),
       })

@@ -1,8 +1,4 @@
-import {
-  defineMdastPlugin,
-  type MdastNode,
-  type MdastVisitorContext,
-} from 'satteri'
+import { defineMdastPlugin, type MdastNode, type MdastVisitorContext } from 'satteri'
 import { plainInline, renderInline } from './inline-markdown'
 
 const FIELDS = ['title', 'description'] as const
@@ -33,8 +29,7 @@ async function renderFrontmatterFields(ctx: MdastVisitorContext) {
   frontmatter.inline = inline
 }
 
-const visit = (_node: Readonly<MdastNode>, ctx: MdastVisitorContext) =>
-  renderFrontmatterFields(ctx)
+const visit = (_node: Readonly<MdastNode>, ctx: MdastVisitorContext) => renderFrontmatterFields(ctx)
 
 export const frontmatterInline = defineMdastPlugin({
   name: 'frontmatter-inline',

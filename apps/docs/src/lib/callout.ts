@@ -65,12 +65,9 @@ export const calloutDirective = defineMdastPlugin({
         value: `)</span></span>${chevron}`,
       })
     } else {
-      const summary = toHtml(
-        h('summary', [raw(icon), h('span', title), raw(chevron)]),
-        {
-          allowDangerousHtml: true,
-        }
-      )
+      const summary = toHtml(h('summary', [raw(icon), h('span', title), raw(chevron)]), {
+        allowDangerousHtml: true,
+      })
       ctx.prependChild(node, { type: 'html', value: summary })
     }
 

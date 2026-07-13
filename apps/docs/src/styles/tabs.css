@@ -20,11 +20,7 @@ prose-content tab-group {
 
       &:hover {
         color: var(--foreground);
-        background-color: color-mix(
-          in oklab,
-          var(--background-l3) 60%,
-          transparent
-        );
+        background-color: color-mix(in oklab, var(--background-l3) 60%, transparent);
       }
 
       &[aria-selected='true'] {
@@ -63,11 +59,7 @@ prose-content tab-group {
 
         &:hover {
           color: var(--foreground);
-          background: color-mix(
-            in oklab,
-            var(--background-l3) 60%,
-            transparent
-          );
+          background: color-mix(in oklab, var(--background-l3) 60%, transparent);
         }
 
         &[aria-selected='true'] {

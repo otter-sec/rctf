@@ -1,17 +1,13 @@
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
-import {
-  createRenderer,
-  type SatteriExpressiveCodeOptions,
-} from 'satteri-expressive-code'
+import { createRenderer, type SatteriExpressiveCodeOptions } from 'satteri-expressive-code'
 import { pluginOutputSeparators, pluginShellPrompts } from './terminal'
 import { pluginCodeTones } from './tones'
 
 export const ecOptions: SatteriExpressiveCodeOptions = {
   themes: ['github-light', 'github-dark'],
   useDarkModeMediaQuery: true,
-  themeCssSelector: theme =>
-    `[data-theme="${theme.name === 'github-dark' ? 'dark' : 'light'}"]`,
+  themeCssSelector: theme => `[data-theme="${theme.name === 'github-dark' ? 'dark' : 'light'}"]`,
   plugins: [
     pluginCollapsibleSections(),
     pluginLineNumbers(),

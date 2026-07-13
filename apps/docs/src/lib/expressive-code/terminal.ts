@@ -25,8 +25,7 @@ const TERMINAL_LANGUAGES = new Set([
   'console',
 ])
 
-const isTerminalLanguage = (language: string) =>
-  TERMINAL_LANGUAGES.has(language)
+const isTerminalLanguage = (language: string) => TERMINAL_LANGUAGES.has(language)
 
 interface ShellPromptData {
   promptLines: Set<number>
@@ -53,11 +52,7 @@ export function pluginShellPrompts(): ExpressiveCodePlugin {
     `,
     hooks: {
       preprocessCode: ({ codeBlock }) => {
-        if (
-          codeBlock.props.frame !== 'terminal' &&
-          !isTerminalLanguage(codeBlock.language)
-        )
-          return
+        if (codeBlock.props.frame !== 'terminal' && !isTerminalLanguage(codeBlock.language)) return
 
         const data = shellPromptData.getOrCreateFor(codeBlock)
         codeBlock.getLines().forEach((line, idx) => {
@@ -73,9 +68,7 @@ export function pluginShellPrompts(): ExpressiveCodePlugin {
 
         const codeNode = select('div.code', renderData.lineAst)
         if (!codeNode) return
-        codeNode.children.unshift(
-          h('span', { class: 'shell-prompt', 'aria-hidden': 'true' })
-        )
+        codeNode.children.unshift(h('span', { class: 'shell-prompt', 'aria-hidden': 'true' }))
       },
     },
   })

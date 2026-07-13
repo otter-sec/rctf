@@ -20,10 +20,7 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
     nodes.map(node =>
       node.type === 'page' ? (
         <li>
-          <a
-            href={node.href}
-            aria-current={isCurrent(node.href) ? 'page' : undefined}
-          >
+          <a href={node.href} aria-current={isCurrent(node.href) ? 'page' : undefined}>
             <Fragment set:html={node.label.html} />
           </a>
         </li>
@@ -32,10 +29,7 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
           <details open={containsCurrent(node) || undefined}>
             <summary>
               {node.href ? (
-                <a
-                  href={node.href}
-                  aria-current={isCurrent(node.href) ? 'page' : undefined}
-                >
+                <a href={node.href} aria-current={isCurrent(node.href) ? 'page' : undefined}>
                   <Fragment set:html={node.label.html} />
                 </a>
               ) : (

@@ -1,12 +1,6 @@
 import { SITE } from '@/consts'
 import { entryInline } from '@/lib/content'
-import {
-  buildDocsTree,
-  docsHref,
-  docsMdHref,
-  flattenDocsTree,
-  getDocs,
-} from '@/lib/docs'
+import { buildDocsTree, docsHref, docsMdHref, flattenDocsTree, getDocs } from '@/lib/docs'
 import type { APIRoute } from 'astro'
 
 export const GET: APIRoute = async ({ site }) => {
@@ -19,9 +13,7 @@ export const GET: APIRoute = async ({ site }) => {
     const entry = byHref.get(doc.href)
     if (!entry) return `- [${doc.title}](${new URL(doc.href, base)})`
     const url = new URL(docsMdHref(entry.id), base)
-    const description = entry.data.description
-      ? entryInline(entry, 'description').text
-      : null
+    const description = entry.data.description ? entryInline(entry, 'description').text : null
     return `- [${doc.title}](${url})${description ? `: ${description}` : ''}`
   })
 

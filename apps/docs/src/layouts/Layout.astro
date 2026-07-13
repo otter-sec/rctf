@@ -46,9 +46,7 @@ const { crumbs, tree, wide } = Astro.props
     <page-grid>
       <page-header>
         <page-nav>
-          <Sidebar crumbs={crumbs} tree={tree}
-            ><slot name="actions" slot="actions" /></Sidebar
-          >
+          <Sidebar crumbs={crumbs} tree={tree}><slot name="actions" slot="actions" /></Sidebar>
         </page-nav>
         {
           Astro.slots.has('toc') && !wide && (

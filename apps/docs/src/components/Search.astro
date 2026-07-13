@@ -6,12 +6,7 @@ import SearchIcon from '@/assets/icons/search.svg'
   <search>
     <form role="search">
       <SearchIcon aria-hidden="true" />
-      <input
-        type="search"
-        placeholder="Search…"
-        aria-label="Search query"
-        autocomplete="off"
-      />
+      <input type="search" placeholder="Search…" aria-label="Search query" autocomplete="off" />
     </form>
     <search-results>
       <p data-hint>Type to search.</p>
@@ -113,11 +108,7 @@ import SearchIcon from '@/assets/icons/search.svg'
           color: var(--muted-foreground);
 
           :global(mark) {
-            background-color: color-mix(
-              in oklab,
-              var(--foreground) 15%,
-              transparent
-            );
+            background-color: color-mix(in oklab, var(--foreground) 15%, transparent);
             color: var(--foreground);
           }
         }
@@ -136,9 +127,7 @@ import SearchIcon from '@/assets/icons/search.svg'
   }
   type Pagefind = {
     init?: () => void
-    debouncedSearch: (
-      query: string
-    ) => Promise<{ results: PagefindResult[] } | null>
+    debouncedSearch: (query: string) => Promise<{ results: PagefindResult[] } | null>
   }
 
   const dialog = document.querySelector<HTMLDialogElement>('#search-dialog')
@@ -166,8 +155,7 @@ import SearchIcon from '@/assets/icons/search.svg'
     }
   }
 
-  const escapeHtml = (value: string) =>
-    value.replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+  const escapeHtml = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;')
 
   const search = async (query: string) => {
     if (!query.trim()) return setHint('Type to search.')
@@ -177,9 +165,7 @@ import SearchIcon from '@/assets/icons/search.svg'
     }
     const response = await pagefind.debouncedSearch(query)
     if (!response || !list || !hint) return
-    const pages = await Promise.all(
-      response.results.slice(0, 8).map(result => result.data())
-    )
+    const pages = await Promise.all(response.results.slice(0, 8).map(result => result.data()))
     if (pages.length === 0) return setHint(`No results for “${query}”.`)
     hint.hidden = true
     list.innerHTML = pages
@@ -215,10 +201,9 @@ import SearchIcon from '@/assets/icons/search.svg'
     }
     if (!dialog?.open) return
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
-    const focusable = [
-      input,
-      ...(list?.querySelectorAll<HTMLAnchorElement>('a') ?? []),
-    ].filter((el): el is HTMLInputElement | HTMLAnchorElement => !!el)
+    const focusable = [input, ...(list?.querySelectorAll<HTMLAnchorElement>('a') ?? [])].filter(
+      (el): el is HTMLInputElement | HTMLAnchorElement => !!el
+    )
     const current = focusable.indexOf(
       document.activeElement as HTMLInputElement | HTMLAnchorElement
     )

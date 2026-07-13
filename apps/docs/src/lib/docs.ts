@@ -47,17 +47,14 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
       children: [],
     }
     groups.set(path, group)
-    const parent =
-      segments.length > 1 ? ensureGroup(segments.slice(0, -1).join('/')) : null
+    const parent = segments.length > 1 ? ensureGroup(segments.slice(0, -1).join('/')) : null
     ;(parent ? parent.children : root).push(group)
     return group
   }
 
   for (const entry of entries) {
     if (entry.id === 'index') continue
-    const isGroupIndex = entries.some(other =>
-      other.id.startsWith(`${entry.id}/`)
-    )
+    const isGroupIndex = entries.some(other => other.id.startsWith(`${entry.id}/`))
     if (isGroupIndex) {
       const group = ensureGroup(entry.id)
       group.label = entryInline(entry, 'title')
@@ -65,10 +62,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
       group.order = entry.data.order ?? Infinity
     } else {
       const segments = entry.id.split('/')
-      const parent =
-        segments.length > 1
-          ? ensureGroup(segments.slice(0, -1).join('/'))
-          : null
+      const parent = segments.length > 1 ? ensureGroup(segments.slice(0, -1).join('/')) : null
       ;(parent ? parent.children : root).push({
         type: 'page',
         href: docsHref(entry.id),
@@ -92,10 +86,7 @@ const byEntryOrder = (a: DocsEntry, b: DocsEntry) =>
   (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
   entryInline(a, 'title').text.localeCompare(entryInline(b, 'title').text)
 
-export function getScrollChain(
-  entries: DocsEntry[],
-  entry: DocsEntry
-): DocsEntry[] | null {
+export function getScrollChain(entries: DocsEntry[], entry: DocsEntry): DocsEntry[] | null {
   let index: DocsEntry | undefined
   if (entry.data.scroll) {
     index = entry
@@ -110,21 +101,14 @@ export function getScrollChain(
 
   const prefix = `${index.id}/`
   const children = entries
-    .filter(
-      other =>
-        other.id.startsWith(prefix) &&
-        !other.id.slice(prefix.length).includes('/')
-    )
+    .filter(other => other.id.startsWith(prefix) && !other.id.slice(prefix.length).includes('/'))
     .sort(byEntryOrder)
   return children.length > 0 ? [index, ...children] : null
 }
 
 export type FlatDoc = { href: string; title: string }
 
-export function flattenDocsTree(
-  entries: DocsEntry[],
-  tree: DocsTreeNode[]
-): FlatDoc[] {
+export function flattenDocsTree(entries: DocsEntry[], tree: DocsTreeNode[]): FlatDoc[] {
   const flat: FlatDoc[] = []
   const index = entries.find(entry => entry.id === 'index')
   if (index) flat.push({ href: '/', title: entryInline(index, 'title').text })

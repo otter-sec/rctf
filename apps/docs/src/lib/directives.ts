@@ -14,8 +14,7 @@ const icons: Record<string, string> = {
 
 const raw = (value: string): ElementContent => ({ type: 'raw', value })
 
-const escapeAttr = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+const escapeAttr = (value: string): string => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 
 type DirectiveNode = {
   name: string
@@ -27,8 +26,7 @@ const directiveLabel = (node: DirectiveNode): Paragraph | null => {
   const first = node.children?.[0]
   const isLabel =
     first?.type === 'paragraph' &&
-    (first.data as { directiveLabel?: boolean } | undefined)?.directiveLabel ===
-      true
+    (first.data as { directiveLabel?: boolean } | undefined)?.directiveLabel === true
   return isLabel ? (first as unknown as Paragraph) : null
 }
 
@@ -55,9 +53,7 @@ function inlineToHast(nodes: PhrasingContent[]): ElementContent[] {
   })
 }
 
-async function richInlineToHast(
-  nodes: PhrasingContent[]
-): Promise<ElementContent[]> {
+async function richInlineToHast(nodes: PhrasingContent[]): Promise<ElementContent[]> {
   const out: ElementContent[] = []
   for (const node of nodes) {
     switch (node.type) {
@@ -101,9 +97,7 @@ type TreeEntry = {
 
 function parseTreeItem(item: ListItem): TreeEntry | null {
   const blocks = item.children ?? []
-  const paragraph = blocks.find(child => child.type === 'paragraph') as
-    | Paragraph
-    | undefined
+  const paragraph = blocks.find(child => child.type === 'paragraph') as Paragraph | undefined
   const nested = (blocks.find(child => child.type === 'list') as List) ?? null
   const inline = paragraph?.children ?? []
   const first = inline[0]
@@ -132,9 +126,7 @@ function parseTreeItem(item: ListItem): TreeEntry | null {
     highlighted,
     placeholder: name === '...' || name === '…',
     directory: name.endsWith('/') || nested !== null,
-    comment: inlineToHast(rest).filter(
-      node => !(node.type === 'text' && !node.value.trim())
-    ),
+    comment: inlineToHast(rest).filter(node => !(node.type === 'text' && !node.value.trim())),
     children: nested,
   }
 }
@@ -153,9 +145,7 @@ function treeList(list: List): ElementContent {
       h(
         'span',
         {
-          className: entry.highlighted
-            ? ['tree-name', 'is-highlighted']
-            : ['tree-name'],
+          className: entry.highlighted ? ['tree-name', 'is-highlighted'] : ['tree-name'],
         },
         entry.name
       ),
@@ -166,12 +156,7 @@ function treeList(list: List): ElementContent {
 
     if (entry.directory && entry.children) {
       return [
-        h('li', [
-          h('details', { open: true }, [
-            h('summary', row),
-            treeList(entry.children),
-          ]),
-        ]),
+        h('li', [h('details', { open: true }, [h('summary', row), treeList(entry.children)])]),
       ]
     }
     return [h('li', [h('span', { className: ['tree-entry'] }, row)])]
@@ -245,9 +230,7 @@ export function contentDirectives() {
         }
 
         case 'file-tree': {
-          const list = node.children?.find(child => child.type === 'list') as
-            | List
-            | undefined
+          const list = node.children?.find(child => child.type === 'list') as List | undefined
           if (!list) return
           return {
             type: 'html',
@@ -274,8 +257,7 @@ export function contentDirectives() {
           )
           const buttons = labels
             .map((label, i) => {
-              const syncId = (tabs[i] as unknown as DirectiveNode).attributes
-                ?.syncId
+              const syncId = (tabs[i] as unknown as DirectiveNode).attributes?.syncId
               return [
                 `<button role="tab" id="${prefix}-tab-${i}"`,
                 ` aria-controls="${prefix}-panel-${i}"`,

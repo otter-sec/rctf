@@ -59,9 +59,7 @@ function unwrap(schema: ZodSchema): ZodSchema {
   }
 }
 
-export function describe(
-  schema: ZodSchema | undefined | null
-): string | undefined {
+export function describe(schema: ZodSchema | undefined | null): string | undefined {
   if (!schema) return undefined
   const direct = globalRegistry.get(schema)?.description
   if (direct) return direct
@@ -154,9 +152,7 @@ function isRequired(field: ZodSchema): boolean {
   return !safeParse(field, undefined).success
 }
 
-export function walkObjectShape(
-  schema: ZodSchema | undefined | null
-): FieldInfo[] {
+export function walkObjectShape(schema: ZodSchema | undefined | null): FieldInfo[] {
   const def = defOf(schema ? unwrap(schema) : null)
   if (!def || def.type !== 'object') return []
   return Object.entries(def.shape).map(([name, field]) => ({
@@ -168,10 +164,7 @@ export function walkObjectShape(
   }))
 }
 
-export function walkObjectSchema(
-  schema: ZodSchema | undefined | null,
-  prefix = ''
-): FieldInfo[] {
+export function walkObjectSchema(schema: ZodSchema | undefined | null, prefix = ''): FieldInfo[] {
   const base = schema ? unwrap(schema) : null
   const def = defOf(base)
   if (!def) return []
@@ -192,10 +185,8 @@ export function walkObjectSchema(
     const description = describe(field)
     const fieldBase = unwrap(field)
     const fieldDef = defOf(fieldBase)
-    const arrayElement =
-      fieldDef && fieldDef.type === 'array' ? fieldDef.element : null
-    const elementIsObject =
-      arrayElement !== null && defOf(unwrap(arrayElement))?.type === 'object'
+    const arrayElement = fieldDef && fieldDef.type === 'array' ? fieldDef.element : null
+    const elementIsObject = arrayElement !== null && defOf(unwrap(arrayElement))?.type === 'object'
 
     if (fieldDef?.type === 'object' || elementIsObject) {
       const children = walkObjectSchema(field, path)
@@ -233,8 +224,7 @@ export function walkResponseSchema(
   const inner = innerOf(def)
   if (inner) {
     const innerDef = defOf(inner)
-    const innerElement =
-      innerDef && innerDef.type === 'array' ? innerDef.element : null
+    const innerElement = innerDef && innerDef.type === 'array' ? innerDef.element : null
     if (
       innerDef?.type === 'object' ||
       (innerElement !== null && defOf(unwrap(innerElement))?.type === 'object')
@@ -283,11 +273,7 @@ function kebab(name: string): string {
 
 export function toExampleValue(value: unknown): ExampleValue {
   if (value === null || value === undefined) return null
-  if (
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  ) {
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     return value
   }
   if (typeof value === 'bigint') return Number(value)
