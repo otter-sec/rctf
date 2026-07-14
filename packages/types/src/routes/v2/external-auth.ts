@@ -4,6 +4,7 @@ import {
   BadBody,
   BadExternalAuthRequest,
   BadPerms,
+  BadRateLimit,
   BadToken,
   GoodExternalAuthAuthorize,
   GoodExternalAuthClient,
@@ -28,7 +29,13 @@ export const AuthorizeExternalAuthRouteV2 = defineRoute({
   path: '/v2/external-auth/authorize',
   method: 'POST',
   goodResponses: [GoodExternalAuthAuthorize],
-  badResponses: [BadBody, BadExternalAuthRequest, BadPerms, BadToken],
+  badResponses: [
+    BadBody,
+    BadExternalAuthRequest,
+    BadPerms,
+    BadRateLimit,
+    BadToken,
+  ],
   authRequired: true,
   rejectBanned: true,
   body: z.object({

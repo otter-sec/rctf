@@ -3,6 +3,7 @@ import { createDatabase, externalAuthClients, users } from '@rctf/db'
 import {
   BadExternalAuthRequest,
   BadPerms,
+  BadRateLimit,
   BadToken,
   GoodAdminExternalAuthClientCreate,
   GoodAdminExternalAuthClientDelete,
@@ -421,6 +422,37 @@ describe('external-auth rejection paths', () => {
       GoodUserSelfDataV2
     )) as { data: { banned: boolean } }
     expect(afterBody.data.banned).toBe(true)
+  })
+
+  test('authorize is rate limited per user -> badRateLimit', async () => {
+    const { client } = await createClient()
+    const { user } = await generateRealTestUser()
+    const sessionToken = await generateAuthToken(user.id)
+
+    for (let i = 0; i < 5; i++) {
+      const res = await authorize(sessionToken, {
+        clientId: client.id,
+        redirectUri: client.redirectUri,
+      })
+      await expectResponse(res, GoodExternalAuthAuthorize)
+    }
+
+    const limited = await authorize(sessionToken, {
+      clientId: client.id,
+      redirectUri: client.redirectUri,
+    })
+    const body = (await expectResponse(limited, BadRateLimit)) as {
+      data: { timeLeft: number }
+    }
+    expect(body.data.timeLeft).toBeGreaterThan(0)
+
+    const otherUser = await generateRealTestUser()
+    const otherToken = await generateAuthToken(otherUser.user.id)
+    const otherRes = await authorize(otherToken, {
+      clientId: client.id,
+      redirectUri: client.redirectUri,
+    })
+    await expectResponse(otherRes, GoodExternalAuthAuthorize)
   })
 
   test('authorize requires an authenticated user', async () => {

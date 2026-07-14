@@ -57,6 +57,12 @@ export const rateLimitInstancerAction = (
     ttlMilliseconds
   )
 
+// burst 5, 1 per 10s per user
+export const rateLimitExternalAuthAuthorize = (
+  redis: TypedRedis,
+  userId: string
+) => rateLimit(redis, `rl:EXTERNAL_AUTH_AUTHORIZE:${userId}`, 5, 50_000)
+
 // burst 3, 1 per 1s per IP
 export const rateLimitSearch = (redis: TypedRedis, ip: string) =>
   rateLimit(redis, `rl:SEARCH:${ip}`, 3, 3000)

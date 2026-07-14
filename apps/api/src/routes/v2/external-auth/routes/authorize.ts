@@ -3,6 +3,7 @@ import {
   getExternalAuthClientPublic,
   issueExternalAuthCode,
 } from '../../../../services/external-auth'
+import { rateLimitExternalAuthAuthorize } from '../../../../services/rate-limit'
 import externalAuthGroup from '../group'
 
 externalAuthGroup.route(
@@ -11,6 +12,14 @@ externalAuthGroup.route(
     const client = await getExternalAuthClientPublic(ctx.var.db, body.clientId)
     if (!client || client.redirectUri !== body.redirectUri) {
       return res.badExternalAuthRequest()
+    }
+
+    const timeLeft = await rateLimitExternalAuthAuthorize(
+      ctx.var.redis,
+      user.id
+    )
+    if (timeLeft !== undefined) {
+      return res.badRateLimit({ timeLeft })
     }
 
     const code = await issueExternalAuthCode(ctx.var.redis, {
