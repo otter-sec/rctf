@@ -104,7 +104,7 @@ Files are stored with public visibility. The bucket has to be configured to allo
 
 ## Terraform templates
 
-Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module writes the generated credentials to a local file for use in `rctf.d/{:dir}`.
+Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module exposes the generated credentials as sensitive Terraform outputs for use in `rctf.d/{:dir}`.
 
 ::::tabs
 :::tab[AWS S3]
@@ -114,10 +114,12 @@ $ <red>terraform</red> init
 $ <red>terraform</red> apply <dim>-var=</dim><green>"region=eu-west-3"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>
 ```
 
-Outputs are written next to the module:
+Read the credentials for the dedicated `rctf-bucket` IAM user from the sensitive outputs (`rctf_iam_user_arn` and `bucket` are printed to stdout on apply):
 
-- `aws-rctf-access-key.json{:file}` holds `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user.
-- `rctf_iam_user_arn` and `bucket` are Terraform outputs printed to stdout.
+```ansi
+$ <red>terraform</red> output -raw access_key_id
+$ <red>terraform</red> output -raw secret_access_key
+```
 
 Drop the credentials into your config:
 
@@ -126,8 +128,8 @@ uploadProvider:
   name: uploads/s3
   options:
     bucketName: my-ctf-uploads
-    awsKeyId: <access_key_id from aws-rctf-access-key.json>
-    awsKeySecret: <secret_access_key from aws-rctf-access-key.json>
+    awsKeyId: <access_key_id output>
+    awsKeySecret: <secret_access_key output>
     awsRegion: eu-west-3
 ```
 
@@ -140,12 +142,13 @@ $ <red>terraform</red> init
 $ <red>terraform</red> apply <dim>-var=</dim><green>"project_id=my-gcp-project"</green> <dim>-var=</dim><green>"region=europe-west1"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>
 ```
 
-Outputs are written next to the module:
+Read the key for the dedicated `rctf-bucket` service account from the sensitive output (`rctf_sa_email` and `bucket` are printed to stdout on apply):
 
-- `gcs-sa-key.json{:file}` holds the service-account key for the dedicated `rctf-bucket` service account.
-- `rctf_sa_email` and `bucket` are Terraform outputs printed to stdout.
+```ansi
+$ <red>terraform</red> output -raw service_account_key
+```
 
-Drop the credentials into your config (paste the contents of `gcs-sa-key.json{:file}` under `<red>credentials</red>`):
+Drop the credentials into your config (paste the key JSON under `<red>credentials</red>`):
 
 ```yaml title="rctf.d/03-uploads.yaml"
 uploadProvider:
@@ -156,7 +159,7 @@ uploadProvider:
     credentials:
       type: service_account
       project_id: my-gcp-project
-      # ...rest of gcs-sa-key.json
+      # ...rest of the service_account_key output
 ```
 
 The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default, which you can override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.

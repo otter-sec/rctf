@@ -1,5 +1,5 @@
 # terraform init && terraform apply -var="project_id=[...]" -var="region=europe-west1" -var="bucket_name=[...]"
-# cat gcs-sa-key.json | jq '.private_key' | xargs printf
+# terraform output -raw service_account_key
 
 terraform {
     required_providers {
@@ -75,9 +75,9 @@ resource "google_service_account_key" "rctf_key" {
     service_account_id = google_service_account.rctf.name
 }
 
-resource "local_sensitive_file" "service_account_key_file" {
-    content  = base64decode(google_service_account_key.rctf_key.private_key)
-    filename = "${path.module}/gcs-sa-key.json"
+output "service_account_key" {
+    value = base64decode(google_service_account_key.rctf_key.private_key)
+    sensitive = true
 }
 
 output "rctf_sa_email" {

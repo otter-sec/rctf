@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.5"
-    }
   }
 }
 
@@ -107,12 +103,14 @@ resource "aws_iam_user_policy" "rctf_bucket_access" {
   policy = data.aws_iam_policy_document.rctf_bucket_access.json
 }
 
-resource "local_sensitive_file" "access_key" {
-  content = jsonencode({
-    access_key_id     = aws_iam_access_key.rctf.id
-    secret_access_key = aws_iam_access_key.rctf.secret
-  })
-  filename = "${path.module}/aws-rctf-access-key.json"
+output "access_key_id" {
+  value     = aws_iam_access_key.rctf.id
+  sensitive = true
+}
+
+output "secret_access_key" {
+  value     = aws_iam_access_key.rctf.secret
+  sensitive = true
 }
 
 output "rctf_iam_user_arn" {
