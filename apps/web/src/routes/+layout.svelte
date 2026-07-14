@@ -8,6 +8,7 @@
   import '../styles/layers.css'
   import '../styles/prose.css'
   import '../styles/reveal.css'
+  import '../styles/theme-visibility.css'
   import { QueryClientProvider } from '@tanstack/svelte-query'
   import favicon from '$lib/assets/favicon.svg'
   import Brainrot from '$lib/components/brainrot.svelte'

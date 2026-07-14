@@ -15,14 +15,35 @@
     <Card title="Sponsors">
       <sponsor-grid>
         {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
+          {@const lightIcon = sponsor.iconLight || sponsor.icon}
+          {@const darkIcon = sponsor.iconDark}
           <svelte:element
             this={sponsor.url ? 'a' : 'article'}
             href={sponsor.url}
             target={sponsor.url ? '_blank' : undefined}
             rel={sponsor.url ? 'noopener noreferrer' : undefined}
           >
-            {#if sponsor.icon}
-              <img src={sponsor.icon} alt={sponsor.name} />
+            {#if lightIcon || darkIcon}
+              <sponsor-icon
+                data-theme-visible="light"
+                data-invert={lightIcon ? undefined : ''}
+              >
+                <img
+                  src={lightIcon || darkIcon}
+                  alt={sponsor.name}
+                  loading="lazy"
+                />
+              </sponsor-icon>
+              <sponsor-icon
+                data-theme-visible="dark"
+                data-invert={darkIcon ? undefined : ''}
+              >
+                <img
+                  src={darkIcon || lightIcon}
+                  alt={sponsor.name}
+                  loading="lazy"
+                />
+              </sponsor-icon>
             {/if}
             <h3>{sponsor.name}</h3>
             <Markdown content={sponsor.description} />
@@ -79,22 +100,16 @@
       background: var(--background-l3);
     }
 
+    sponsor-icon[data-invert] img {
+      filter: invert(1);
+    }
+
     img {
       inline-size: 100%;
       block-size: auto;
       max-block-size: 8rem;
       object-fit: contain;
       padding: var(--space-2xs);
-
-      :global(:root[data-theme='dark']) & {
-        filter: invert(1);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :global(:root:not([data-theme])) & {
-          filter: invert(1);
-        }
-      }
     }
 
     h3 {

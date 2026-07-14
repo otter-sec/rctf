@@ -133,10 +133,10 @@
     {#snippet children({ closeProps })}
       <sheet-header>
         <a href="/" aria-label="Home">
-          <logo-light
+          <logo-light data-theme-visible="light"
             ><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light
           >
-          <logo-dark
+          <logo-dark data-theme-visible="dark"
             ><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark
           >
         </a>
@@ -236,35 +236,6 @@
     > a img {
       display: block;
       block-size: 2rem;
-    }
-  }
-
-  logo-light,
-  logo-dark {
-    display: contents;
-  }
-
-  logo-light {
-    :global(:root[data-theme='dark']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
-    }
-  }
-
-  logo-dark {
-    :global(:root[data-theme='light']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: light) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
     }
   }
 

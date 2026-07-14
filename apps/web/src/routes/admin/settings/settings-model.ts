@@ -1,13 +1,15 @@
 export interface Sponsor {
   name: string
-  icon: string
+  iconLight: string
+  iconDark: string
   description: string
   url: string
 }
 
 export interface SponsorPayload {
   name: string
-  icon: string
+  iconLight?: string
+  iconDark?: string
   description: string
   url?: string
 }
@@ -141,13 +143,14 @@ export function validateTiming(
 }
 
 export function emptySponsor(): Sponsor {
-  return { name: '', icon: '', description: '', url: '' }
+  return { name: '', iconLight: '', iconDark: '', description: '', url: '' }
 }
 
 export function toSponsor(sponsor: SponsorPayload): Sponsor {
   return {
     name: sponsor.name,
-    icon: sponsor.icon,
+    iconLight: sponsor.iconLight ?? '',
+    iconDark: sponsor.iconDark ?? '',
     description: sponsor.description,
     url: sponsor.url ?? '',
   }
@@ -156,7 +159,8 @@ export function toSponsor(sponsor: SponsorPayload): Sponsor {
 export function sponsorPayload(sponsor: Sponsor): SponsorPayload {
   const base = {
     name: sponsor.name,
-    icon: sponsor.icon,
+    iconLight: sponsor.iconLight,
+    iconDark: sponsor.iconDark,
     description: sponsor.description,
   }
   return sponsor.url ? { ...base, url: sponsor.url } : base

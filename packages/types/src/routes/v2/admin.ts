@@ -61,6 +61,7 @@ import {
   PartialInstancerConfigSchema,
   searchFilter,
   SortOrder,
+  SponsorUpdateSchemaV2,
   SubmissionKind,
   SubmissionResult,
   SubmissionSortBy,
@@ -609,25 +610,7 @@ const AdminSettingsUpdateBody = z.object({
       endTime: example(z.nullish(z.int()), 1710864000000).check(
         z.describe('CTF end time as a Unix ms timestamp.')
       ),
-      sponsors: z.nullish(
-        z.array(
-          z.object({
-            name: example(z.string(), 'osec').check(
-              z.describe('Sponsor name.')
-            ),
-            icon: example(
-              z.string(),
-              'https://rctf.osec.io/sponsors/osec.png'
-            ).check(z.describe('Sponsor icon URL.')),
-            description: example(z.string(), 'Security research.').check(
-              z.describe('Sponsor description.')
-            ),
-            url: example(z.optional(z.string()), 'https://osec.io').check(
-              z.describe('Sponsor link URL.')
-            ),
-          })
-        )
-      ),
+      sponsors: z.nullish(z.array(SponsorUpdateSchemaV2)),
       meta: z.nullish(
         z.object({
           description: example(

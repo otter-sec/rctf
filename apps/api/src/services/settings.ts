@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { settings, type DatabaseClient, type EditableSettings } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
+import { normalizeSponsorIcons } from '@rctf/types'
 import { eq } from 'drizzle-orm'
 import type { TypedRedis } from '../cache/scripts'
 
@@ -29,7 +30,10 @@ export async function getSettings(
     .from(settings)
     .where(eq(settings.id, VALUE_ID))
     .then(takeUnique)
-  return row?.data ?? {}
+  const data = row?.data ?? {}
+  return data.sponsors
+    ? { ...data, sponsors: data.sponsors.map(normalizeSponsorIcons) }
+    : data
 }
 
 export function patchSettings(

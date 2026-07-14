@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import { createDatabase, settings } from '@rctf/db'
+import { createDatabase, settings, type EditableSponsor } from '@rctf/db'
 import {
   BadEnded,
   BadNotStarted,
@@ -20,7 +20,11 @@ import {
 } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
-import { invalidateResolvedSettingsCache } from '../../../../apps/api/src/services/settings'
+import {
+  getConfigDefaults,
+  invalidateResolvedSettingsCache,
+  resolveSettings,
+} from '../../../../apps/api/src/services/settings'
 import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
@@ -275,12 +279,14 @@ describe('admin settings', () => {
       const sponsors = [
         {
           name: 'Acme',
-          icon: 'https://acme.com/logo.png',
+          iconLight: 'https://acme.com/logo.png',
+          iconDark: '',
           description: 'A sponsor',
         },
         {
           name: 'Beta',
-          icon: 'https://beta.com/logo.png',
+          iconLight: 'https://beta.com/logo.png',
+          iconDark: '',
           description: 'B',
           url: 'https://beta.com',
         },
@@ -291,7 +297,9 @@ describe('admin settings', () => {
         body: JSON.stringify({ data: { sponsors } }),
       })
       const body = await expectResponse(res, GoodAdminSettingsUpdate)
-      expect(body.data.overrides.sponsors).toEqual(sponsors)
+      expect(body.data.overrides.sponsors).toEqual(
+        sponsors.map(sponsor => ({ ...sponsor, icon: sponsor.iconLight }))
+      )
     })
 
     test('sets empty sponsors array', async () => {
@@ -304,6 +312,72 @@ describe('admin settings', () => {
       expect(body.data.overrides.sponsors).toEqual([])
     })
 
+    test('normalizes stored legacy sponsor icon into the light mode slot', async () => {
+      const db = getDb()
+      await db.insert(settings).values({
+        id: 'value-0',
+        data: {
+          sponsors: [
+            {
+              name: 'Legacy',
+              icon: 'https://legacy.com/logo.png',
+              description: 'Stored before per-theme icons',
+            } as unknown as EditableSponsor,
+          ],
+        },
+      })
+      const redis = await createRedis()
+      await invalidateResolvedSettingsCache(redis)
+
+      const expected = [
+        {
+          name: 'Legacy',
+          icon: 'https://legacy.com/logo.png',
+          iconLight: 'https://legacy.com/logo.png',
+          iconDark: '',
+          description: 'Stored before per-theme icons',
+        },
+      ]
+
+      const adminRes = await request(app, '/api/v2/admin/settings', {
+        headers: await authHeaders(settingsAdmin.user.id),
+      })
+      const adminBody = await expectResponse(adminRes, GoodAdminSettings)
+      expect(adminBody.data.overrides.sponsors).toEqual(expected)
+
+      const configRes = await request(app, '/api/v2/integrations/client/config')
+      const configBody = await expectResponse(configRes, GoodClientConfigV2)
+      expect(configBody.data.sponsors).toEqual(expected)
+    })
+
+    test('applies a legacy sponsor icon in updates to the light mode slot', async () => {
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({
+          data: {
+            sponsors: [
+              {
+                name: 'Legacy',
+                icon: 'https://legacy.com/logo.png',
+                description: 'Sent by an old client',
+              },
+            ],
+          },
+        }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          icon: 'https://legacy.com/logo.png',
+          iconLight: 'https://legacy.com/logo.png',
+          iconDark: '',
+          description: 'Sent by an old client',
+        },
+      ])
+    })
+
     test('sets all fields at once', async () => {
       const allFields = {
         ctfName: 'All',
@@ -313,7 +387,12 @@ describe('admin settings', () => {
         faviconUrl: 'all.ico',
         meta: { description: 'All desc', imageUrl: 'all.png' },
         sponsors: [
-          { name: 'All Sponsor', icon: 'all.png', description: 'All' },
+          {
+            name: 'All Sponsor',
+            iconLight: 'all.png',
+            iconDark: '',
+            description: 'All',
+          },
         ],
       }
       const res = await request(app, '/api/v2/admin/settings', {
@@ -322,7 +401,13 @@ describe('admin settings', () => {
         body: JSON.stringify({ data: allFields }),
       })
       const body = await expectResponse(res, GoodAdminSettingsUpdate)
-      expect(body.data.overrides).toEqual(allFields)
+      expect(body.data.overrides).toEqual({
+        ...allFields,
+        sponsors: allFields.sponsors.map(sponsor => ({
+          ...sponsor,
+          icon: sponsor.iconLight,
+        })),
+      })
     })
 
     test('resets a field to default when set to null', async () => {
@@ -409,7 +494,11 @@ describe('admin settings', () => {
         method: 'PUT',
         headers: await jsonHeaders(settingsAdmin.user.id),
         body: JSON.stringify({
-          data: { sponsors: [{ name: 'X', icon: 'x', description: 'x' }] },
+          data: {
+            sponsors: [
+              { name: 'X', iconLight: 'x', iconDark: '', description: 'x' },
+            ],
+          },
         }),
       })
 
@@ -475,7 +564,8 @@ describe('admin settings', () => {
     test('handles many sponsors', async () => {
       const sponsors = Array.from({ length: 20 }, (_, i) => ({
         name: `Sponsor ${i}`,
-        icon: `https://example.com/${i}.png`,
+        iconLight: `https://example.com/${i}.png`,
+        iconDark: '',
         description: `Description ${i}`,
       }))
       const res = await request(app, '/api/v2/admin/settings', {
@@ -618,7 +708,12 @@ describe('admin settings', () => {
 
     test('v2 client config uses DB overrides for sponsors', async () => {
       const sponsors = [
-        { name: 'TestSponsor', icon: 'test.png', description: 'Test' },
+        {
+          name: 'TestSponsor',
+          iconLight: 'test.png',
+          iconDark: '',
+          description: 'Test',
+        },
       ]
       await request(app, '/api/v2/admin/settings', {
         method: 'PUT',
@@ -630,7 +725,52 @@ describe('admin settings', () => {
         method: 'GET',
       })
       const body = await expectResponse(res, GoodClientConfigV2)
-      expect(body.data.sponsors).toEqual(sponsors)
+      expect(body.data.sponsors).toEqual(
+        sponsors.map(sponsor => ({ ...sponsor, icon: sponsor.iconLight }))
+      )
+    })
+
+    test('serves legacy sponsors from cached resolved settings', async () => {
+      const redis = await createRedis()
+      const entry = {
+        version: 1,
+        defaultsSignature: JSON.stringify(getConfigDefaults()),
+        resolved: {
+          ...resolveSettings({}),
+          sponsors: [
+            {
+              name: 'Legacy',
+              icon: 'https://legacy.com/logo.png',
+              description: 'Cached before per-theme icons',
+            },
+          ],
+        },
+      }
+      await redis.set('settings:resolved', JSON.stringify(entry))
+
+      const res = await request(app, '/api/v2/integrations/client/config', {
+        method: 'GET',
+      })
+      const body = await expectResponse(res, GoodClientConfigV2)
+      expect(body.data.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          icon: 'https://legacy.com/logo.png',
+          description: 'Cached before per-theme icons',
+        },
+      ])
+
+      const v1Res = await request(app, '/api/v1/integrations/client/config', {
+        method: 'GET',
+      })
+      const v1Body = await v1Res.json()
+      expect(v1Body.data.sponsors).toEqual([
+        {
+          name: 'Legacy',
+          icon: 'https://legacy.com/logo.png',
+          description: 'Cached before per-theme icons',
+        },
+      ])
     })
 
     test('v2 client config uses DB overrides for meta', async () => {

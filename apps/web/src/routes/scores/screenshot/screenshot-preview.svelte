@@ -106,10 +106,12 @@
 <screenshot-preview data-shadow={shadow || undefined} data-screenshot-container>
   {#if options.showHeader}
     <preview-header>
-      <logo-light
+      <logo-light data-theme-visible="light"
         ><img src={lightWordmark} alt="Logo" data-wordmark /></logo-light
       >
-      <logo-dark><img src={darkWordmark} alt="Logo" data-wordmark /></logo-dark>
+      <logo-dark data-theme-visible="dark"
+        ><img src={darkWordmark} alt="Logo" data-wordmark /></logo-dark
+      >
       <title-block>
         <ctf-name>{ctfName}</ctf-name>
         {#if options.subtitle}
@@ -329,35 +331,6 @@
 
     img[data-wordmark] {
       block-size: 2.5rem;
-    }
-  }
-
-  logo-light,
-  logo-dark {
-    display: contents;
-  }
-
-  logo-light {
-    :global(:root[data-theme='dark']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
-    }
-  }
-
-  logo-dark {
-    :global(:root[data-theme='light']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: light) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
     }
   }
 

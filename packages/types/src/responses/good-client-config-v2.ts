@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { ProtectedAction } from '../enums'
 import { response } from '../internal'
-import { NumericString } from '../util'
+import { NumericString, SponsorSchemaV2 } from '../util'
 import { example } from '../util/example'
 
 export const GoodClientConfigV2 = response('goodClientConfigV2', {
@@ -19,21 +19,7 @@ export const GoodClientConfigV2 = response('goodClientConfigV2', {
     homeContent: example(z.string(), '# Welcome').check(
       z.describe('Markdown content shown on the home page.')
     ),
-    sponsors: z.array(
-      z.object({
-        name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
-        icon: example(
-          z.string(),
-          'https://rctf.osec.io/sponsors/osec.png'
-        ).check(z.describe('Sponsor icon URL.')),
-        description: example(z.string(), 'Security research.').check(
-          z.describe('Sponsor description.')
-        ),
-        url: example(z.optional(z.string()), 'https://osec.io').check(
-          z.describe('Sponsor link, when present.')
-        ),
-      })
-    ),
+    sponsors: z.array(SponsorSchemaV2),
     flagFormatPlaceholder: example(z.string(), 'rctf{...}').check(
       z.describe('Placeholder shown in the flag submission box.')
     ),

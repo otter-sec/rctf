@@ -50,7 +50,8 @@ export async function discoverAndFetch(options: {
   )
 
   for (const sponsor of configData.sponsors) {
-    collectUrl(sponsor.icon, uploadUrls)
+    collectUrl(sponsor.iconLight, uploadUrls)
+    collectUrl(sponsor.iconDark, uploadUrls)
   }
   collectUrl(configData.faviconUrl, uploadUrls)
   collectUrl(configData.logoLightUrl, uploadUrls)

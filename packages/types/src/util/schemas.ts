@@ -48,6 +48,76 @@ export const ChallengeFileSchemaV2 = z.object({
   ),
 })
 
+type SponsorIcons = {
+  icon?: string
+  iconLight?: string
+  iconDark?: string
+}
+
+export function normalizeSponsorIcons<T extends SponsorIcons>(sponsor: T) {
+  const { icon, iconLight, iconDark, ...rest } = sponsor
+  const light = iconLight || icon || ''
+  // no || icon because we'll invert the light one in this case
+  const dark = iconDark || ''
+  return { ...rest, icon: light || dark, iconLight: light, iconDark: dark }
+}
+
+export const SponsorSchemaV2 = z.object({
+  name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
+  icon: example(
+    z.optional(z.string()),
+    'https://rctf.osec.io/sponsors/osec-light.png'
+  ).check(
+    z.describe(
+      'Deprecated. Mirrors `iconLight` (or `iconDark` when only it is set) for old clients.'
+    )
+  ),
+  iconLight: example(
+    z.optional(z.string()),
+    'https://rctf.osec.io/sponsors/osec-light.png'
+  ).check(
+    z.describe(
+      'Sponsor icon URL for light mode; may be absent on data from older versions.'
+    )
+  ),
+  iconDark: example(
+    z.optional(z.string()),
+    'https://rctf.osec.io/sponsors/osec-dark.png'
+  ).check(
+    z.describe(
+      'Sponsor icon URL for dark mode; may be absent on data from older versions.'
+    )
+  ),
+  description: example(z.string(), 'Security research.').check(
+    z.describe('Sponsor description.')
+  ),
+  url: example(z.optional(z.string()), 'https://osec.io').check(
+    z.describe('Sponsor link, when present.')
+  ),
+})
+
+export const SponsorUpdateSchemaV2 = z.pipe(
+  z.extend(SponsorSchemaV2, {
+    icon: example(
+      z.optional(z.string()),
+      'https://rctf.osec.io/sponsors/osec.png'
+    ).check(
+      z.describe(
+        'Legacy icon URL used as the light-mode icon when the per-mode fields are unset.'
+      )
+    ),
+    iconLight: example(
+      z._default(z.string(), ''),
+      'https://rctf.osec.io/sponsors/osec-light.png'
+    ).check(z.describe('Sponsor icon URL for light mode, or empty string.')),
+    iconDark: example(
+      z._default(z.string(), ''),
+      'https://rctf.osec.io/sponsors/osec-dark.png'
+    ).check(z.describe('Sponsor icon URL for dark mode, or empty string.')),
+  }),
+  z.transform(normalizeSponsorIcons)
+)
+
 export const ChallengePointsSchema = z.object({
   min: example(z.int(), 100).check(z.describe('Minimum (floor) point value.')),
   max: example(z.int(), 500).check(
