@@ -192,7 +192,7 @@ export const ServerConfigSchema = z.object({
       cloudflare: z._default(z.boolean(), false),
       trust: z._default(
         z.union([z.boolean(), z.string(), z.array(z.string()), z.number()]),
-        'loopback'
+        2
       ),
     }),
     {}
