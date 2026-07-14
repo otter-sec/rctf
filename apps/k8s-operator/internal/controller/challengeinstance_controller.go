@@ -58,6 +58,7 @@ const (
 	labelChallengeId            = "rctf.osec.io/challenge-id"
 	labelPod                    = "rctf.osec.io/pod"
 	labelEgress                 = "rctf.osec.io/egress"
+	labelDns                    = "rctf.osec.io/dns"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
 	managedBy                   = "rctf-operator"
@@ -381,7 +382,7 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 	tcp := corev1.ProtocolTCP
 	dnsPort := intstr.FromInt32(int32(53))
 	for _, networkPolicy := range []networkingv1.NetworkPolicy{
-		// Restrict network traffic only to inside the instance's namespace (except for kube-dns)
+		// Restrict network traffic only to inside the instance's namespace
 		{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespaceName,
@@ -424,6 +425,23 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 							},
 						},
 					},
+				},
+			},
+		},
+		// optionally enabled DNS for individual pods
+		{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespaceName,
+				Name:      "dns",
+			},
+			Spec: networkingv1.NetworkPolicySpec{
+				PodSelector: metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						labelDns: "true",
+					},
+				},
+				PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress},
+				Egress: []networkingv1.NetworkPolicyEgressRule{
 					{
 						To: []networkingv1.NetworkPolicyPeer{
 							{
@@ -586,6 +604,16 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 			egress = "true"
 		}
 
+		// enable dns if egress is enabled and dns is unset
+		dnsEnabled := pod.Egress
+		if pod.Dns != nil {
+			dnsEnabled = *pod.Dns
+		}
+		dns := "false"
+		if dnsEnabled {
+			dns = "true"
+		}
+
 		exposed := "false"
 		for _, expose := range instance.Spec.Expose {
 			if expose.ContainerName != pod.Name {
@@ -602,6 +630,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 		podLabels[labelChallengeId] = instance.Spec.ChallengeId
 		podLabels[labelPod] = pod.Name
 		podLabels[labelEgress] = egress
+		podLabels[labelDns] = dns
 		podLabels[labelExposed] = exposed
 
 		// having secure defaults is nice
