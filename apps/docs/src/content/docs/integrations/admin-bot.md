@@ -75,7 +75,7 @@ The deployment files are in `deploy/admin-bot/{:dir}`.
 :::file-tree
 - deploy/
   - admin-bot/
-    - compose.yml Service, volume, tmpfs, and network settings
+    - compose.yml Service, volume, tmpfs, resource limit, and network settings
     - .env.example Required worker environment variables
     - Dockerfile Bun runtime and browser dependencies
 :::
@@ -106,11 +106,27 @@ Run the bundled Compose service from the repository root:
 $ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-d</dim>
 ```
 
-The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network`.
+The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, caps container resources, and joins the external `rctf_network`.
 
 :::warning[Network exposure]
 Keep the worker on a private network. Although `/v1/test` requires the shared bearer token, it builds and evaluates trusted challenge code and should not be exposed to the internet.
 :::
+
+## Resource limits
+
+Each worker process handles one job at a time, so without container limits a single submitted page that allocates memory, spins the CPU, or spawns processes can crash the worker or starve the host, and deny admin bot service for every challenge using that worker.
+
+The bundled Compose file caps the container and reads overrides from `deploy/admin-bot/.env{:file}`:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `<yellow>ADMIN_BOT_CPU_LIMIT</yellow>` | `2{:ts}` | CPU cores available to the worker and its browser. |
+| `<yellow>ADMIN_BOT_MEMORY_LIMIT</yellow>` | `3G{:ts}` | Memory limit for the container. |
+| `<yellow>ADMIN_BOT_PIDS_LIMIT</yellow>` | `1024{:ts}` | Maximum processes and threads in the container. |
+
+The tmpfs mounts and `/dev/shm` count against the memory limit. Their sizes add up to about `1.1G{:ts}` in the bundled file, so keep the memory limit well above that plus browser headroom.
+
+Deployments that bypass the bundled Compose file should apply equivalent limits: browser resource use is controlled by participant-influenced pages, not by the worker.
 
 ## Challenge source
 
