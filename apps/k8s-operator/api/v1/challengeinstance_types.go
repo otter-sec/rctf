@@ -74,6 +74,9 @@ type ChallengeInstancePod struct {
 	Egress bool `json:"egress"`
 
 	// +optional
+	Dns *bool `json:"dns"`
+
+	// +optional
 	Labels map[string]string `json:"labels"`
 }
 
