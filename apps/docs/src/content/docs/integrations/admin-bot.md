@@ -121,7 +121,7 @@ The bundled Compose file caps the container and reads overrides from `deploy/adm
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `<yellow>ADMIN_BOT_CPU_LIMIT</yellow>` | `2{:ts}` | CPU cores available to the worker and its browser. |
-| `<yellow>ADMIN_BOT_MEMORY_LIMIT</yellow>` | `4G{:ts}` | Memory limit for the container. |
+| `<yellow>ADMIN_BOT_MEMORY_LIMIT</yellow>` | `3G{:ts}` | Memory limit for the container. |
 | `<yellow>ADMIN_BOT_PIDS_LIMIT</yellow>` | `1024{:ts}` | Maximum processes and threads in the container. |
 
 The tmpfs mounts and `/dev/shm` count against the memory limit. Their sizes add up to about `1.1G{:ts}` in the bundled file, so keep the memory limit well above that plus browser headroom.
