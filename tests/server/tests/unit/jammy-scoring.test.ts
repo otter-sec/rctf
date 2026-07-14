@@ -232,6 +232,33 @@ describe('jammy-scoring', () => {
     }
   })
 
+  describe('minPoints above 1 ramps until maximumScoreTime', () => {
+    const eventLength = eventEndTime - eventStartTime
+    const createRangedContext = (fraction: number): ScoreContext => ({
+      minPoints: 100,
+      maxPoints: 500,
+      solves: 0,
+      maxSolves: 0,
+      eventStartTime,
+      eventEndTime,
+      firstSolveTime: eventStartTime + fraction * eventLength,
+    })
+
+    const rangedCases = [
+      { fraction: 0, expectedScore: 100 },
+      { fraction: 0.4, expectedScore: 300 },
+      { fraction: 0.64, expectedScore: 420 },
+      { fraction: 0.8, expectedScore: 500 },
+    ]
+
+    for (const tc of rangedCases) {
+      test(`100-500 challenge at ${tc.fraction * 100}% scores ${tc.expectedScore}`, () => {
+        const score = provider.calculate(createRangedContext(tc.fraction))
+        expect(score).toBe(tc.expectedScore)
+      })
+    }
+  })
+
   describe('edge cases', () => {
     test('unsolved challenge returns maxPoints', () => {
       const ctx = createContext(null)
