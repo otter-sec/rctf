@@ -148,6 +148,13 @@
   let scrollRoot = $state<HTMLElement | null>(null)
   const geometry = createScrollGeometry(() => scrollRoot)
 
+  $effect(() => {
+    void urlState.search
+    if (scrollRoot) {
+      scrollRoot.scrollTop = 0
+    }
+  })
+
   const hover = createHoverController({
     scrollRoot: () => scrollRoot,
     entries: () => data.entries,

@@ -1,4 +1,4 @@
-import { BadNotStarted } from '@rctf/types'
+import { BadNotStarted, BadRateLimit } from '@rctf/types'
 import { QueryClient, type Query } from '@tanstack/svelte-query'
 import { queryKeys } from '$lib/query/keys'
 
@@ -13,6 +13,10 @@ export class ApiError extends Error {
 
   static isNotStarted(error: Error | null): boolean {
     return error instanceof ApiError && error.kind === BadNotStarted.kind
+  }
+
+  static isRateLimit(error: Error | null): boolean {
+    return error instanceof ApiError && error.kind === BadRateLimit.kind
   }
 }
 
