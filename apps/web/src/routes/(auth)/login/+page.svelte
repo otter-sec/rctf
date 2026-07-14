@@ -153,10 +153,12 @@
           disabled={isPending}
         />
       {/if}
-      <footer-note
-        >Don't have an account? <a href="/register">Register here</a
-        >.</footer-note
-      >
+      {#if clientConfig.registrationsEnabled !== false}
+        <footer-note
+          >Don't have an account? <a href="/register">Register here</a
+          >.</footer-note
+        >
+      {/if}
     </auth-page>
   </Card>
 {/if}

@@ -118,6 +118,21 @@
 
 {#if clientConfig?.isArchived}
   <ArchivedNotice message="Registration is not available." />
+{:else if clientConfig?.registrationsEnabled === false}
+  <Card
+    title="Registrations closed"
+    description="New registrations are currently disabled"
+  >
+    <auth-page>
+      <p>
+        Registrations for {clientConfig.ctfName} are closed. If you believe this is
+        a mistake, please contact the organizers.
+      </p>
+      <footer-note
+        >Already have an account? <a href="/login">Login here</a>.</footer-note
+      >
+    </auth-page>
+  </Card>
 {:else if clientConfig}
   {#if registeredTeamToken && registeredLoginUrl}
     <TeamTokenCard
