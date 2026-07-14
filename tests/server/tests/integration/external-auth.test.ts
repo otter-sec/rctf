@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import { createDatabase, externalAuthClients } from '@rctf/db'
+import { createDatabase, externalAuthClients, users } from '@rctf/db'
 import {
   BadExternalAuthRequest,
   BadPerms,
@@ -10,11 +10,13 @@ import {
   GoodExternalAuthAuthorize,
   GoodExternalAuthClient,
   GoodExternalAuthToken,
+  GoodUserSelfDataV2,
   Permissions,
 } from '@rctf/types'
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { invalidateUserCache } from '../../../../apps/api/src/cache/auth-cache'
 import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
@@ -365,6 +367,60 @@ describe('external-auth rejection paths', () => {
       await exchange({ clientId: client.id, clientSecret: secret, code }),
       BadExternalAuthRequest
     )
+  })
+
+  test('banned team cannot authorize -> badPerms', async () => {
+    const { client } = await createClient()
+    const { user } = await generateRealTestUser()
+    await getDb()
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, user.id))
+    const sessionToken = await generateAuthToken(user.id)
+
+    const res = await authorize(sessionToken, {
+      clientId: client.id,
+      redirectUri: client.redirectUri,
+    })
+    await expectResponse(res, BadPerms)
+  })
+
+  test('team banned after exchange is flagged on /v2/users/me', async () => {
+    const { client, secret } = await createClient()
+    const { user } = await generateRealTestUser()
+    const sessionToken = await generateAuthToken(user.id)
+
+    const authRes = await authorize(sessionToken, {
+      clientId: client.id,
+      redirectUri: client.redirectUri,
+    })
+    const code = codeFromRedirectTo(
+      ((await authRes.json()) as { data: { redirectTo: string } }).data
+        .redirectTo
+    )
+    const tokenBody = (await expectResponse(
+      await exchange({ clientId: client.id, clientSecret: secret, code }),
+      GoodExternalAuthToken
+    )) as { data: { accessToken: string } }
+    const headers = { Authorization: `Bearer ${tokenBody.data.accessToken}` }
+
+    const beforeBody = (await expectResponse(
+      await request(app, '/api/v2/users/me', { headers }),
+      GoodUserSelfDataV2
+    )) as { data: { banned: boolean } }
+    expect(beforeBody.data.banned).toBe(false)
+
+    await getDb()
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, user.id))
+    await invalidateUserCache(await createRedis(), user.id)
+
+    const afterBody = (await expectResponse(
+      await request(app, '/api/v2/users/me', { headers }),
+      GoodUserSelfDataV2
+    )) as { data: { banned: boolean } }
+    expect(afterBody.data.banned).toBe(true)
   })
 
   test('authorize requires an authenticated user', async () => {

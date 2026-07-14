@@ -26,6 +26,8 @@ Mints a single-use authorization code for the signed-in user and returns the URL
 
 The `<red>redirectUri</red>` must exactly match the URI registered for the client. Wildcards and path normalization are not supported. A mismatch returns `<response>400 badExternalAuthRequest</response>` without revealing whether the client or URI was wrong.
 
+Banned teams cannot mint codes. When the session token belongs to a banned team, the route returns `<response>403 badPerms</response>`.
+
 ::request-body{def="AuthorizeExternalAuthRouteV2" title="Request body"}
 
 ::response-body{def="AuthorizeExternalAuthRouteV2" response="goodExternalAuthAuthorize" title="Response fields"}

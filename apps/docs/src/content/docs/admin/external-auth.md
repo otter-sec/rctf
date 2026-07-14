@@ -43,7 +43,7 @@ This public endpoint returns `<green>goodExternalAuthClient</green>` with the ap
 
 ### `<route>POST /api/v2/external-auth/authorize</route>`
 
-Send `<red>{clientId, redirectUri, state?}</red>` with the user's session token in `Authorization: Bearer`. The response contains `<red>{redirectTo}</red>`, the complete callback URL with `code` and the optional `state`.
+Send `<red>{clientId, redirectUri, state?}</red>` with the user's session token in `Authorization: Bearer`. The response contains `<red>{redirectTo}</red>`, the complete callback URL with `code` and the optional `state`. Banned teams receive `<green>badPerms</green>` with HTTP 403 and cannot complete the flow.
 
 ### `<route>POST /api/v2/external-auth/token</route>`
 
@@ -92,13 +92,16 @@ export async function exchangeCode(code: string): Promise<{ accessToken: string 
   return { accessToken: body.data.accessToken }
 }
 
-// 3. Identify the team
+// 3. Identify the team and reject banned teams
 export async function fetchTeam(accessToken: string): Promise<{ id: string; name: string }> {
-  const res = await fetch(`${RCTF_BASE_URL}/api/v1/users/me`, {
+  const res = await fetch(`${RCTF_BASE_URL}/api/v2/users/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   const body = (await res.json()) as {
-    data: { id: string; name: string }
+    data: { id: string; name: string; banned: boolean }
+  }
+  if (body.data.banned) {
+    throw new Error('team is banned')
   }
   return body.data
 }

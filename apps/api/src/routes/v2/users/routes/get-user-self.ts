@@ -19,6 +19,7 @@ usersGroup.route(GetUserSelfRouteV2, async ({ ctx, user, res }) => {
     teamToken: teamToken,
     allowedDivisions: allowedDivs,
     perms: user.perms,
+    banned: fullUser.banned ?? false,
     avatarUrl: fullUser.avatarUrl ?? null,
     countryCode: fullUser.countryCode ?? null,
     statusText: fullUser.statusText ?? null,

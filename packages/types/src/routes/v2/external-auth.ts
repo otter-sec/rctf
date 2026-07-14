@@ -3,6 +3,7 @@ import { defineRoute } from '../../internal'
 import {
   BadBody,
   BadExternalAuthRequest,
+  BadPerms,
   BadToken,
   GoodExternalAuthAuthorize,
   GoodExternalAuthClient,
@@ -27,8 +28,9 @@ export const AuthorizeExternalAuthRouteV2 = defineRoute({
   path: '/v2/external-auth/authorize',
   method: 'POST',
   goodResponses: [GoodExternalAuthAuthorize],
-  badResponses: [BadBody, BadExternalAuthRequest, BadToken],
+  badResponses: [BadBody, BadExternalAuthRequest, BadPerms, BadToken],
   authRequired: true,
+  rejectBanned: true,
   body: z.object({
     clientId: z.string().check(z.describe('Public client ID.')),
     redirectUri: HttpUrl.check(
