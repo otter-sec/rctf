@@ -19,6 +19,7 @@ import { unhandledDirectives } from './src/lib/unhandled-directives'
 export default defineConfig({
   site: 'https://rctf.osec.io',
   compressHTML: true,
+  vite: { build: { assetsInlineLimit: 0 } },
   prefetch: { prefetchAll: true },
   integrations: [
     sitemap({
