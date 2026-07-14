@@ -61,4 +61,24 @@ describe('blood number generation', () => {
 
     expect(bloodNumber).toBe(1)
   })
+
+  test('returns null and inserts nothing when the challenge no longer exists', async () => {
+    const db = createDatabase(config.database.sql).db
+
+    const { user, cleanup } = await generateRealTestUser()
+    cleanups.push(cleanup)
+    const deletedChallengeId = crypto.randomUUID()
+
+    const bloodNumber = await createSolveAndGetBloodNumber(db, {
+      challengeId: deletedChallengeId,
+      userId: user.id,
+    })
+
+    expect(bloodNumber).toBeNull()
+    const orphans = await db
+      .select({ id: solves.id })
+      .from(solves)
+      .where(eq(solves.challengeid, deletedChallengeId))
+    expect(orphans).toHaveLength(0)
+  })
 })

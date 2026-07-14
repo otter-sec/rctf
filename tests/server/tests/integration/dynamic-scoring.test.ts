@@ -232,6 +232,20 @@ describe('upsertDynamicSolves: banned-user filtering', () => {
     expect(await countScoreEvents(alice.id, challengeId)).toBe(1)
     expect(await countScoreEvents(bannedBob.id, challengeId)).toBe(0)
   })
+
+  test('no-ops when the challenge no longer exists', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const deletedChallengeId = crypto.randomUUID()
+
+    const result = await upsertDynamicSolves(db, deletedChallengeId, [
+      { userId: user.id, points: 500 },
+    ])
+
+    expect(result).toEqual({ inserted: 0, updated: 0, deleted: 0 })
+    expect(await getSolvePoints(user.id, deletedChallengeId)).toBeNull()
+    expect(await countScoreEvents(user.id, deletedChallengeId)).toBe(0)
+  })
 })
 
 describe('getChallenges dynamic participant display', () => {
