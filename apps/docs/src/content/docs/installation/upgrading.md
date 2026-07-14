@@ -13,7 +13,7 @@ The upgrade is automated. Point your existing deployment at the v2 image and sta
 ```yaml title="compose.yml"
 services:
   rctf:
-    image: ghcr.io/otter-sec/rctf-new:latest
+    image: ghcr.io/otter-sec/rctf:latest
 ```
 
 :::warning[Back up the database first]

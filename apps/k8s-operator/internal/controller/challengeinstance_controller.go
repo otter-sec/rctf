@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	rctfv1 "github.com/otter-sec/rctf-new/api/v1"
+	rctfv1 "github.com/otter-sec/rctf/api/v1"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
 	"github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	v1 "k8s.io/api/apps/v1"

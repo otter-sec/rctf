@@ -111,7 +111,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 For production deployments, use our prebuilt Docker images rather than running a source build by hand. The image bundles the API, the compiled leaderboard worker, and the static frontend, and it runs Drizzle migrations on boot:
 
 ```yaml
-image: ghcr.io/otter-sec/rctf-new:latest
+image: ghcr.io/otter-sec/rctf:latest
 ```
 
 See [Quick start with Docker](/installation/) for the full Compose setup. The manual build above is intended for development. If you run `bun` directly in production, you also need to manage the build, leaderboard worker, and reverse proxy that the image normally handles.

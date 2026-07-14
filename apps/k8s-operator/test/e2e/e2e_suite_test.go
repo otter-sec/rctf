@@ -28,7 +28,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/otter-sec/rctf-new/test/utils"
+	"github.com/otter-sec/rctf/test/utils"
 )
 
 var (

@@ -15,7 +15,7 @@ export const SITE = {
 export const NAVIGATION = [{ href: '/', label: 'Docs' }]
 
 export const DOCS = {
-  editUrlBase: 'https://github.com/otter-sec/rctf-new/edit/main/apps/docs/',
+  editUrlBase: 'https://github.com/otter-sec/rctf/edit/main/apps/docs/',
   lastUpdated: true,
 } as const
 

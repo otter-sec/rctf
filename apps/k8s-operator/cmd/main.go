@@ -37,8 +37,8 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	rctfv1 "github.com/otter-sec/rctf-new/api/v1"
-	"github.com/otter-sec/rctf-new/internal/controller"
+	rctfv1 "github.com/otter-sec/rctf/api/v1"
+	"github.com/otter-sec/rctf/internal/controller"
 	// +kubebuilder:scaffold:imports
 )
 

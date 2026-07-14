@@ -60,7 +60,7 @@ The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone><
 
 ## Controller image
 
-The operator image is published at `ghcr.io/otter-sec/rctf-new/k8s-operator`. The Terraform module installs it from `apps/k8s-operator/dist/install.yaml{:file}` and fills in the configured `<yellow>INSTANCER_HOST</yellow>`, so you do not need to build or publish an image before running `$ <red>terraform</red> apply`.
+The operator image is published at `ghcr.io/otter-sec/rctf/k8s-operator`. The Terraform module installs it from `apps/k8s-operator/dist/install.yaml{:file}` and fills in the configured `<yellow>INSTANCER_HOST</yellow>`, so you do not need to build or publish an image before running `$ <red>terraform</red> apply`.
 
 ## Terraform variables
 
@@ -139,7 +139,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
    $ <red>terraform</red> apply
    ```
 
-   Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and applies the bundled `apps/k8s-operator/dist/install.yaml{:file}` (pointing at the prebuilt `ghcr.io/otter-sec/rctf-new/k8s-operator` image). The first apply typically takes 10 to 15 minutes. ACME validation alone can add a few minutes if DNS propagation is slow.
+   Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and applies the bundled `apps/k8s-operator/dist/install.yaml{:file}` (pointing at the prebuilt `ghcr.io/otter-sec/rctf/k8s-operator` image). The first apply typically takes 10 to 15 minutes. ACME validation alone can add a few minutes if DNS propagation is slow.
 
 3. **Fetch kubectl credentials**
 

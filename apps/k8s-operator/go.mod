@@ -1,4 +1,4 @@
-module github.com/otter-sec/rctf-new
+module github.com/otter-sec/rctf
 
 go 1.26.0
 

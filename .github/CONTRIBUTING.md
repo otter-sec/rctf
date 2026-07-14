@@ -5,7 +5,7 @@ Thanks for helping out. This page covers the practical bits: where to ask things
 ## Where to go
 
 - Questions and support: [GitHub Discussions](https://github.com/otter-sec/rctf/discussions)
-- Bugs and feature requests: [issues](https://github.com/otter-sec/rctf-new/issues)
+- Bugs and feature requests: [issues](https://github.com/otter-sec/rctf/issues)
 - Security vulnerabilities: email [rctf@osec.io](mailto:rctf@osec.io). See the [security policy](SECURITY.md).
 
 ## Development setup

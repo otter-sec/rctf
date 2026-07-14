@@ -6,7 +6,7 @@ order: 13
 
 :::aside
 
-::curl-example{def="GetCtftimeLeaderboardRoute" baseUrl="https://rctf-new-dev.es3n1n.io"}
+::curl-example{def="GetCtftimeLeaderboardRoute" baseUrl="https://demo.rctf.osec.io"}
 
 :::
 

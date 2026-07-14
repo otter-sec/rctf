@@ -6,7 +6,7 @@ order: 2
 
 :::aside
 
-::curl-example{def="AnalyticsScriptRoute" baseUrl="https://rctf-new-dev.es3n1n.io"}
+::curl-example{def="AnalyticsScriptRoute" baseUrl="https://demo.rctf.osec.io"}
 
 :::
 

@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before suggesting, check [things we will not implement](https://github.com/otter-sec/rctf-new/blob/main/apps/docs/src/content/docs/meta/things-we-will-not-implement.mdx) and search existing issues.
+        Before suggesting, check [things we will not implement](https://github.com/otter-sec/rctf/blob/main/apps/docs/src/content/docs/meta/things-we-will-not-implement.mdx) and search existing issues.
   - type: textarea
     id: problem
     attributes:

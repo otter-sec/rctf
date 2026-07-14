@@ -1,6 +1,6 @@
 services:
   rctf:
-    image: ghcr.io/otter-sec/rctf-new:${RCTF_GIT_REF}
+    image: ghcr.io/otter-sec/rctf:${RCTF_GIT_REF}
     build:
       context: .
       dockerfile: deploy/rctf/Dockerfile

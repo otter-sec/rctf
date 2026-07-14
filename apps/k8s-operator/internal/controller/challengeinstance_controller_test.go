@@ -27,7 +27,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	rctfv1 "github.com/otter-sec/rctf-new/api/v1"
+	rctfv1 "github.com/otter-sec/rctf/api/v1"
 )
 
 var _ = Describe("ChallengeInstance Controller", func() {

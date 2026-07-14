@@ -32,7 +32,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	rctfv1 "github.com/otter-sec/rctf-new/api/v1"
+	rctfv1 "github.com/otter-sec/rctf/api/v1"
 	// +kubebuilder:scaffold:imports
 )
 

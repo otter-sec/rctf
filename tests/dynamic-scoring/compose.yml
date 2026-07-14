@@ -1,6 +1,6 @@
 services:
   rctf:
-    image: ghcr.io/otter-sec/rctf-new:dynamic-scoring-tests
+    image: ghcr.io/otter-sec/rctf:dynamic-scoring-tests
     build:
       context: ../../
       dockerfile: deploy/rctf/Dockerfile

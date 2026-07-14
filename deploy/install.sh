@@ -100,7 +100,7 @@ do_install() {
 
   info "Downloading rCTF..."
 
-  curl -fsSO "https://raw.githubusercontent.com/otter-sec/rctf-new/$RCTF_GIT_REF/compose.yml"
+  curl -fsSO "https://raw.githubusercontent.com/otter-sec/rctf/$RCTF_GIT_REF/compose.yml"
   docker compose pull
 
   info "Finished installation to ${RCTF_INSTALL_PATH}."
