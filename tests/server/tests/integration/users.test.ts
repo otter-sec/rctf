@@ -513,6 +513,32 @@ describe('users service', () => {
       const body = await expectResponse(res, GoodAvatarUpdated)
       expect(typeof body.data.url).toBe('string')
     })
+
+    test('fails with badRateLimit after too many avatar-clearing requests', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+
+      const clearAvatar = () =>
+        request(app, '/api/v2/users/me/avatar', {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: new FormData(),
+        })
+
+      for (let i = 0; i < 2; i++) {
+        const res = await clearAvatar()
+        await expectResponse(res, GoodAvatarUpdated)
+      }
+
+      const res = await clearAvatar()
+      const body = await expectResponse(res, BadRateLimit)
+      expect(typeof body.data.timeLeft).toBe('number')
+      expect(body.data.timeLeft).toBeGreaterThan(0)
+    })
   })
 
   describe('getUserByCtftimeId via login', () => {

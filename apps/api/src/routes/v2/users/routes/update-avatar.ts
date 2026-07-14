@@ -8,15 +8,13 @@ import { rateLimitUpdateAvatar } from '../../../../services/rate-limit'
 import usersGroup from '../group'
 
 usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
-  if (body.avatar) {
-    if (body.avatar.size > config.maxAvatarSize) {
-      return res.badAvatarFileSize({ maxSize: config.maxAvatarSize })
-    }
+  if (body.avatar && body.avatar.size > config.maxAvatarSize) {
+    return res.badAvatarFileSize({ maxSize: config.maxAvatarSize })
+  }
 
-    const timeLeft = await rateLimitUpdateAvatar(ctx.var.redis, user.id)
-    if (timeLeft) {
-      return res.badRateLimit({ timeLeft })
-    }
+  const timeLeft = await rateLimitUpdateAvatar(ctx.var.redis, user.id)
+  if (timeLeft) {
+    return res.badRateLimit({ timeLeft })
   }
 
   const result = await setUserAvatar(
