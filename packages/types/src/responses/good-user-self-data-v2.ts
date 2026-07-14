@@ -70,6 +70,9 @@ export const GoodUserSelfDataV2 = response('goodUserSelfDataV2', {
     perms: example(z.nullable(z.int()), null).check(
       z.describe('Permission bitmask, or `null` for a standard user.')
     ),
+    banned: example(z.boolean(), false).check(
+      z.describe('Whether the team is banned from the competition.')
+    ),
     avatarUrl: example(
       z.nullable(z.string()),
       'https://rctf.osec.io/uploads/avatar.png'
