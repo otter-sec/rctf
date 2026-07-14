@@ -122,6 +122,7 @@ export const SetEmailRouteV2 = defineRoute({
     BadEmailChangeDivision,
     BadUnknownUser,
     BadCaptcha,
+    BadRateLimit,
     BadToken,
   ],
   authRequired: true,

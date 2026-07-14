@@ -30,6 +30,10 @@ export const rateLimitUpdateProfile = (redis: TypedRedis, userId: string) =>
 export const rateLimitUpdateAvatar = (redis: TypedRedis, userId: string) =>
   rateLimit(redis, `rl:UPDATE_AVATAR:${userId}`, 2, 120_000)
 
+// burst 3, 1 per 5min per user
+export const rateLimitSetEmail = (redis: TypedRedis, userId: string) =>
+  rateLimit(redis, `rl:SET_EMAIL:${userId}`, 3, 900_000)
+
 // burst 1, 1 per 10s per user per challenge
 export const rateLimitAdminBot = (
   redis: TypedRedis,

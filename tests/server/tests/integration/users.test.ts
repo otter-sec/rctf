@@ -6,6 +6,7 @@ import {
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
+  BadRateLimit,
   BadUnknownUser,
   BadZeroAuth,
   GoodAvatarUpdated,
@@ -147,6 +148,38 @@ describe('users service', () => {
       })
 
       await expectResponse(res, BadKnownEmail)
+    })
+
+    test('fails with badRateLimit after too many requests', async () => {
+      config.email = undefined
+
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+
+      const setEmail = (path: string) =>
+        request(app, path, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            email: `new-${crypto.randomUUID()}@test.com`,
+          }),
+        })
+
+      for (let i = 0; i < 3; i++) {
+        const res = await setEmail('/api/v1/users/me/auth/email')
+        await expectResponse(res, GoodEmailSet)
+      }
+
+      // v1 and v2 share the same rate limit bucket
+      const res = await setEmail('/api/v2/users/me/auth/email')
+      const body = await expectResponse(res, BadRateLimit)
+      expect(typeof body.data.timeLeft).toBe('number')
+      expect(body.data.timeLeft).toBeGreaterThan(0)
     })
   })
 
