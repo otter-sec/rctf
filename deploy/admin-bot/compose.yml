@@ -14,6 +14,12 @@ services:
       - /tmp:size=512M,mode=1777
       - /var/cache/fontconfig:size=64M,mode=1777
     shm_size: "512m"
+    deploy:
+      resources:
+        limits:
+          cpus: "${ADMIN_BOT_CPU_LIMIT:-2}"
+          memory: ${ADMIN_BOT_MEMORY_LIMIT:-3G}
+          pids: ${ADMIN_BOT_PIDS_LIMIT:-1024}
     read_only: true
     security_opt:
       - no-new-privileges:true
