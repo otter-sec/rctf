@@ -17,8 +17,6 @@ import {
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
-import { ALL_REGIONS } from '@rctf/util'
-
 export type SeedData = {
   admin: User
   teams: User[]
@@ -57,6 +55,17 @@ const SOLVE_COUNT_EXPONENT = 2.2
 const TOP_SOLVE_RATIO = 0.85
 const CHALLENGE_PICK_DECAY = 0.65
 const CHALLENGE_POPULARITY_JITTER = 4
+
+const COUNTRY_CODES = [
+  'CA', // Canada
+  'FR', // France
+  'DE', // Germany
+  'IT', // Italy
+  'JP', // Japan
+  'GB', // United Kingdom
+  'US', // United States
+  'EU', // European Union
+] as const
 
 const CATEGORIES = [
   'sanity',
@@ -195,7 +204,7 @@ function buildTeams(config: ServerConfig): User[] {
       ctftimeId: null,
       createdAt: new Date(Date.now() - DAY + index * 60_000).toISOString(),
       avatarUrl: null,
-      countryCode: randomItem(ALL_REGIONS).code,
+      countryCode: randomItem(COUNTRY_CODES),
       statusText: randomItem(STATUSES),
       banned: (index + 1) % 20 === 0,
     }
