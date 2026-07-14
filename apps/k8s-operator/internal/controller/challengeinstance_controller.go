@@ -62,7 +62,6 @@ const (
 	labelChallengeId            = "rctf.osec.io/challenge-id"
 	labelPod                    = "rctf.osec.io/pod"
 	labelEgress                 = "rctf.osec.io/egress"
-	labelDns                    = "rctf.osec.io/dns"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
 	managedBy                   = "rctf-operator"
@@ -275,8 +274,8 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 	// - ingress objects for each exposed pod
 
 	r.setComponentStatus(instance, typeNamespaceDeployed, metav1.ConditionFalse, reasonInProgress)
-	namespace := corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
-	_, err := ctrl.CreateOrUpdate(ctx, r.Client, &namespace, func() error {
+	namespace := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
+	_, err := ctrl.CreateOrUpdate(ctx, r.Client, namespace, func() error {
 		namespace.Labels = map[string]string{
 			labelManagedBy:   managedBy,
 			labelTeamId:      instance.Spec.TeamId,
@@ -291,8 +290,8 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 	r.setComponentStatus(instance, typeNamespaceDeployed, metav1.ConditionTrue, reasonSucceeded)
 
 	r.setComponentStatus(instance, typeNetworkPoliciesDeployed, metav1.ConditionFalse, reasonInProgress)
-	isolateNetworkPolicy := networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "isolate-namespace", Namespace: namespaceName}}
-	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &isolateNetworkPolicy, func() error {
+	isolateNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "isolate-namespace", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, isolateNetworkPolicy, func() error {
 		isolateNetworkPolicy.Labels = map[string]string{
 			labelManagedBy:   managedBy,
 			labelTeamId:      instance.Spec.TeamId,
@@ -332,14 +331,14 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			},
 		}
 
-		return ctrl.SetControllerReference(instance, &isolateNetworkPolicy, r.Scheme)
+		return ctrl.SetControllerReference(instance, isolateNetworkPolicy, r.Scheme)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create isolate network policy: %w", err)
 	}
 
-	traefikNetworkPolicy := networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-traefik", Namespace: namespaceName}}
-	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &traefikNetworkPolicy, func() error {
+	traefikNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-ingress-traefik", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, traefikNetworkPolicy, func() error {
 		traefikNetworkPolicy.Labels = map[string]string{
 			labelManagedBy:   managedBy,
 			labelTeamId:      instance.Spec.TeamId,
@@ -349,8 +348,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 		traefikNetworkPolicy.Spec = networkingv1.NetworkPolicySpec{
 			PodSelector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					labelManagedBy: managedBy,
-					labelExposed:   "true",
+					labelExposed: "true",
 				},
 			},
 			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
@@ -376,14 +374,14 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			},
 		}
 
-		return ctrl.SetControllerReference(instance, &traefikNetworkPolicy, r.Scheme)
+		return ctrl.SetControllerReference(instance, traefikNetworkPolicy, r.Scheme)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create traefik network policy: %w", err)
 	}
 
-	egressNetworkPolicy := networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-egress-label", Namespace: namespaceName}}
-	_, err = ctrl.CreateOrUpdate(ctx, r.Client, &egressNetworkPolicy, func() error {
+	egressNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-egress-label", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, egressNetworkPolicy, func() error {
 		egressNetworkPolicy.Labels = map[string]string{
 			labelManagedBy:   managedBy,
 			labelTeamId:      instance.Spec.TeamId,
@@ -417,7 +415,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			},
 		}
 
-		return ctrl.SetControllerReference(instance, &egressNetworkPolicy, r.Scheme)
+		return ctrl.SetControllerReference(instance, egressNetworkPolicy, r.Scheme)
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create egress network policy: %w", err)
@@ -432,9 +430,10 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 		labelTeamId:      instance.Spec.TeamId,
 		labelChallengeId: instance.Spec.ChallengeId,
 	}, objectManagerInNamespaces(namespace.Name))
+	var serviceHostAliases []corev1.HostAlias
 	for _, pod := range instance.Spec.Pods {
-		service := corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: namespace.Name}}
-		_, err := ctrl.CreateOrUpdate(ctx, r.Client, &service, func() error {
+		service := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: namespace.Name}}
+		_, err := ctrl.CreateOrUpdate(ctx, r.Client, service, func() error {
 			service.Labels = map[string]string{
 				labelManagedBy:   managedBy,
 				labelTeamId:      instance.Spec.TeamId,
@@ -448,11 +447,17 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				Ports: pod.Ports,
 			}
 
-			return ctrl.SetControllerReference(instance, &service, r.Scheme)
+			return ctrl.SetControllerReference(instance, service, r.Scheme)
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create service for pod %s: %w", pod.Name, err)
 		}
+		serviceObjectManager.Track(service)
+
+		serviceHostAliases = append(serviceHostAliases, corev1.HostAlias{
+			IP:        service.Spec.ClusterIP,
+			Hostnames: []string{pod.Name},
+		})
 	}
 	if err := serviceObjectManager.Cleanup(ctx, r.Client); err != nil {
 		log.Error(err, "Failed to clean up service objects")
@@ -483,6 +488,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 
 			podLabels := map[string]string{}
 			maps.Copy(podLabels, pod.Labels)
+			podLabels[labelManagedBy] = managedBy
 			podLabels[labelTeamId] = instance.Spec.TeamId
 			podLabels[labelChallengeId] = instance.Spec.ChallengeId
 			podLabels[labelPod] = pod.Name
@@ -499,6 +505,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			if podSpec.EnableServiceLinks == nil {
 				podSpec.EnableServiceLinks = ptr.To(false)
 			}
+			podSpec.HostAliases = serviceHostAliases
 
 			deployment.Spec = appsv1.DeploymentSpec{
 				Replicas: ptr.To[int32](1),
@@ -513,7 +520,8 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 							// Allow the cluster autoscaler to evict these pods during scale-down,
 							// otherwise it blocks on orphaned pods mid-namespace-deletion.
 							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
-							annotationExposedHostnames:                       exposedHostnames,
+
+							annotationExposedHostnames: exposedHostnames,
 						},
 						Labels: podLabels,
 					},
@@ -526,6 +534,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 		if err != nil {
 			return fmt.Errorf("failed to create deployment %s: %w", pod.Name, err)
 		}
+		deploymentObjectManager.Track(deployment)
 	}
 	if err := deploymentObjectManager.Cleanup(ctx, r.Client); err != nil {
 		log.Error(err, "Failed to clean up deployment objects")
@@ -561,6 +570,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			if err != nil {
 				return fmt.Errorf("creating ingress object %s for endpoint %s failed: %w", object.GetName(), endpoint.Host, err)
 			}
+			ingressObjectManager.Track(object)
 		}
 
 		instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
