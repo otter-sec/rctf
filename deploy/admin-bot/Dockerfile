@@ -78,7 +78,7 @@ RUN bun install \
 
 FROM runtime-base AS production
 
-RUN groupadd -r -g 10001 adminbot && useradd -r -u 10001 -g adminbot -m -s /usr/sbin/nologin adminbot
+RUN groupadd -r adminbot && useradd -r -g adminbot -m -s /usr/sbin/nologin adminbot
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -140,6 +140,6 @@ COPY --from=build /app/packages/util/src ./packages/util/src
 COPY --from=build /app/package.json ./
 COPY --from=build /app/apps/admin-bot/dist ./dist/
 
-USER 10001:10001
+USER adminbot
 EXPOSE 21337
 CMD ["bun", "run", "dist/index.js"]
