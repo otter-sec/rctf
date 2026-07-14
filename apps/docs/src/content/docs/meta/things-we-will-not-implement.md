@@ -4,7 +4,7 @@ description: Requests rCTF avoids because they tend to reduce fairness, transpar
 order: 3
 ---
 
-Some platform requests appear often enough that it is useful to document the project position. rCTF does not plan to support the following features because they tend to work against fair scoring, transparent events, or the educational value of a CTF.
+rCTF intentionally leaves out a few commonly requested features because, in practice, they can make an event less fair or harder to follow.
 
 :::steps
 1. **First blood bonus points**

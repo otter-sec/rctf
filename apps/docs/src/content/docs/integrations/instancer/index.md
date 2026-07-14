@@ -4,7 +4,7 @@ description: Configure per-team challenge instances with Docker or Kubernetes.
 order: 2
 ---
 
-The instancer gives each team its own isolated copy of a challenge service. Participants start, extend, inspect, and stop their instance through rCTF, while Docker or Kubernetes runs it behind the scenes.
+The instancer gives each team an isolated copy of a challenge service running on Docker or Kubernetes. Participants can start, inspect, extend, and stop their instance through rCTF.
 
 Instanced challenges work well when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
 
@@ -19,23 +19,11 @@ Both providers give participants the same controls and use the same shared chall
 - [Docker instancer](/integrations/instancer/docker) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
 - [Kubernetes instancer](/integrations/instancer/kubernetes) is a Go operator driving GKE, Traefik, and Terraform.
 
-## How it fits together
+## How it works
 
-The instancer path has three layers:
+Each challenge uses `<red>instancerConfig</red>` to select a named instancer and set its ID, timeout, public endpoints, and provider-specific settings. If the challenge does not select one, rCTF uses `<red>defaultInstancer</red>` or the only configured instancer.
 
-:::steps
-1. **Select a provider**
-
-   Define one or more named instancers in the `<red>instancers</red>` map. Each challenge can choose one by name, or use `<red>defaultInstancer</red>`. The selected provider validates the challenge config and sends the corresponding operations to Docker or Kubernetes.
-
-2. **Configure a challenge**
-
-   Add `<red>instancerConfig</red>` to the challenge with its ID, timeout, public endpoints, and Docker or Kubernetes settings.
-
-3. **Run participant instances**
-
-   Participants manage their instance from the challenge page. rCTF reports its status and shows the configured endpoints in the order listed under `<red>expose</red>`.
-:::
+When a participant starts an instance, rCTF validates the challenge configuration and sends the request to Docker or Kubernetes. The challenge page shows the instance status and the endpoints in the order listed under `<red>expose</red>`, along with controls to extend or stop it.
 
 ## Provider configuration
 

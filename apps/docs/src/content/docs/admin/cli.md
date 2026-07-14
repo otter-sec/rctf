@@ -26,7 +26,7 @@ The CLI reads the same `rctf.d/{:dir}` configuration as the API, or the director
 
 ### `<red>rctf</red> user promote`
 
-Grants permissions to the user with the given email. Defaults to full admin; pass `<dim>--perms</dim>` for a narrower role.
+Grants permissions to the user with the given email. Without `<dim>--perms</dim>`, the command grants full admin access.
 
 ```ansi
 $ <red><dim>bun</dim> rctf</red> user promote admin@example.com

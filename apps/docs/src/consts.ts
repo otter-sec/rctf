@@ -20,6 +20,6 @@ export const DOCS = {
 } as const
 
 export const SOCIALS: { href: string; label: string; icon: SvgComponent }[] = [
-  { href: 'https://github.com/otter-sec', label: 'GitHub', icon: GitHub },
+  { href: 'https://github.com/otter-sec/rctf', label: 'GitHub', icon: GitHub },
   { href: 'https://twitter.com/osec_io', label: 'Twitter', icon: Twitter },
 ]

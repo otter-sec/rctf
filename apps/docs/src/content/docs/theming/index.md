@@ -5,18 +5,18 @@ order: 7
 scroll: true
 ---
 
-rCTF uses Radix Colors for its light and dark palettes, with a separate icon and hue assigned to each challenge category. The interface itself is built from Svelte components and scoped CSS, with Zag.js state machines handling the more interactive controls.
+rCTF builds its light and dark themes from Radix Colors. Each challenge category has its own icon and hue. The interface uses Svelte components with scoped CSS, while Zag.js handles state for interactive controls such as dialogs and menus.
 
 ::::card-grid
 :::card[Color system]{href=/theming/colors}
-Radix-based color tokens, layered grays, and light and dark themes out of the box.
+See how rCTF builds its light and dark themes from Radix Colors and assigns tokens to common interface roles.
 :::
 
 :::card[Categories]{href=/theming/categories}
-Category colors, icons, and display names, plus how to add your own.
+See how category names, icons, colors, aliases, and ordering are defined, then add a category of your own.
 :::
 
 :::card[Components]{href=/theming/components}
-The Zag.js and scoped-CSS component library, and how to add to it.
+Learn how the reusable Svelte components handle styling, variants, and interactive state.
 :::
 ::::

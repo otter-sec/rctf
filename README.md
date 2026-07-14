@@ -13,7 +13,7 @@ rCTF is a platform for hosting cybersecurity [capture-the-flag](<https://en.wiki
 
 rCTF keeps deployment simple without locking organizers into one set of services. The platform runs as a single bundle, and its major integrations use replaceable providers with a common configuration format. An event can use only what it needs and change providers later without rewriting the platform.
 
-To get started with rCTF, visit the [documentation](https://rctf.osec.io). If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
+To get started with rCTF, visit the [documentation](https://rctf.osec.io). A [live demo](https://demo.rctf.osec.io) is also available for viewing. If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
 
 ---
 

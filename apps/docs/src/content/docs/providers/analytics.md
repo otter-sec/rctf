@@ -1,6 +1,6 @@
 ---
 title: Analytics providers
-description: Track visitor metrics with Google Analytics, Cloudflare Web Analytics.
+description: Track visitor metrics with Google Analytics or Cloudflare Web Analytics.
 order: 6
 ---
 

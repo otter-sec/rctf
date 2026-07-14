@@ -106,5 +106,5 @@ Before the event, verify the following for each challenge:
 - The solution or writeup is documented internally and accessible to the support team.
 
 :::tip[Recommended reading]
-For additional guidance on challenge design, refer to the [CTF Design Guideline](https://bit.ly/ctf-design).
+The [CTF Design Guideline](https://bit.ly/ctf-design) has more advice on writing and reviewing challenges.
 :::

@@ -127,4 +127,3 @@ When adding a component, choose the simplest tier that fits its behavior and kee
 ```
 
 For a native component with variants, see `button.svelte{:file}`. Depending on whether `href` is set, it renders either a `<button>{:html}` or an `<a>{:html}` and styles it through the `data-variant` and `data-size` attributes. The default variant uses `var(--background-accent){:css}`, for example, while the small size reduces the component's height.
-</content>

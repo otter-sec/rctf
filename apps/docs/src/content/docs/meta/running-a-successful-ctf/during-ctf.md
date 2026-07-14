@@ -8,11 +8,7 @@ During the event, the team needs to watch the platform, respond to failures, and
 
 ## Monitoring
 
-Monitor the services participants depend on and alert someone who can act when they fail.
-
-### Infrastructure monitoring
-
-Monitor the following components throughout the competition:
+Watch the services participants depend on, and make sure alerts reach someone who can act:
 
 - For the **rCTF API**, watch error rates, latency, CPU, and memory.
 - For **PostgreSQL**, watch connection usage, slow queries, and disk space. A steadily rising connection count can point to a leak.

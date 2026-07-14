@@ -20,8 +20,6 @@ services:
 Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump, for example with `$ <red>pg_dump</red>`, before swapping the image so you have a way back if something goes wrong.
 :::
 
-The rest of this page describes what the migration changes and which old configuration fields you may want to replace.
-
 ## Database migration
 
 Set `<red>database.migrate</red>` to `<green>before</green>` to run Drizzle migrations during startup. The bundled deployment already does this. The schema default is `<green>never</green>`, so custom deployments must enable migrations or run them manually:

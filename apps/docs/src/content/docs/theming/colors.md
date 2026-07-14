@@ -156,5 +156,3 @@ Challenge categories pick from ten hues. Each hue has two background tints plus 
 :::
 
 A `[data-category-color='<hue>']{:css}` block in `color.css{:file}` points the generic `--category-*{:css}` tokens at one of these ramps. See [Categories](/theming/categories/) for how a component picks its hue.
-</content>
-</invoke>

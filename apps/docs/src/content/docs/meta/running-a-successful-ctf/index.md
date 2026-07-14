@@ -5,28 +5,28 @@ order: 1
 scroll: true
 ---
 
-Running a CTF takes coordination across organization, challenge development, infrastructure, and communication. These pages cover the work from early planning through teardown, along with mistakes that tend to recur along the way.
+Running a CTF means coordinating organizers and challenge authors while keeping the infrastructure stable and players informed. These guides cover the work from early planning through teardown, including mistakes that tend to repeat.
 
 ::::card-grid
 :::card[Prerequisites]{href=/meta/running-a-successful-ctf/prerequisites}
-Organizational structure, timeline, CTFtime registration, sponsorships, rules, and communication setup.
+Set the event's structure early, including organizer roles, deadlines, CTFtime, rules, sponsors, and player communication.
 :::
 :::card[Challenge design]{href=/meta/running-a-successful-ctf/challenge-design}
-Guidelines for planning, authoring, and testing challenges, including difficulty distribution and flag formats.
+Plan a balanced challenge set, package services safely, and test everything before the event begins.
 :::
-:::card[Setting up a CTF platform]{href=/meta/running-a-successful-ctf/setup}
-Deploying rCTF, configuring Nginx with TLS, and creating admin accounts.
+:::card[Setting up rCTF]{href=/meta/running-a-successful-ctf/setup}
+Take a fresh server through rCTF installation, TLS and firewall setup, and the first admin account.
 :::
 :::card[Deploying challenges]{href=/meta/running-a-successful-ctf/deployment}
-Shared remotes, instanced remotes, kCTF, Docker, and admin bots.
+Deploy shared or per-team services safely, connect admin bots, and keep challenge metadata in sync.
 :::
 :::card[During the CTF]{href=/meta/running-a-successful-ctf/during-ctf}
-Monitoring, incident response, and issue resolution during an active competition.
+Monitor the event, cover organizer shifts, and respond when challenges or infrastructure break.
 :::
 :::card[After the CTF]{href=/meta/running-a-successful-ctf/after-ctf}
-Uploading scoreboards to CTFtime, distributing prizes, collecting feedback, and tearing down infrastructure.
+Publish the final results, distribute prizes, collect writeups and feedback, archive the event, and dismantle its infrastructure.
 :::
 :::card[Common mistakes]{href=/meta/common-mistakes}
-Recurring operational, infrastructure, and challenge-authoring mistakes, with rCTF-specific notes.
+Learn from recurring mistakes in event planning, challenge design, infrastructure, and on-site operations.
 :::
 ::::

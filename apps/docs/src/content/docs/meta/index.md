@@ -4,13 +4,13 @@ description: Notes on running events with rCTF and on the project's scope.
 order: 9
 ---
 
-Background on running a CTF well with rCTF, and a candid list of features the project has decided not to build.
+These pages share what we have learned from running community CTFs and explain the features rCTF intentionally leaves out.
 
 ::::card-grid
 :::card[Running a successful CTF]{href=/meta/running-a-successful-ctf}
-A practical playbook: prerequisites, challenge design, setup, deployment, the event itself, and the aftermath.
+Work through an event from early planning to infrastructure teardown, using lessons from CTFs we have run ourselves.
 :::
 :::card[Things we will not implement]{href=/meta/things-we-will-not-implement}
-Features and requests that are out of scope, and why.
+Read why some common feature requests are deliberately out of scope.
 :::
 ::::

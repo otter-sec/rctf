@@ -7,21 +7,21 @@ rCTF is an open-source platform for hosting capture-the-flag competitions. It is
 
 ::::card-grid
 :::card[Installation]{href=/installation}
-Spin up a Docker stack in a few minutes, or step through a manual VPS install.
+Install rCTF with the Docker setup script, or follow the manual setup when you need more control.
 :::
 :::card[Configuration]{href=/configuration}
-Every option in your config files and env vars, plus what each one actually does.
+Find the available config options and environment overrides, with defaults and working examples.
 :::
 :::card[Providers]{href=/providers}
-Configure captcha, emails, uploads, scoring, moderation, and analytics.
+Use providers to choose how rCTF sends email, stores uploads, scores challenges, and connects to event services.
 :::
 :::card[Administration]{href=/admin}
-Run the event from the web. Add challenges, manage users, edit settings.
+Set admin permissions, manage challenges and teams, review submissions, and change event settings.
 :::
 :::card[API reference]{href=/api}
-Typed JSON routes for auth, challenges, teams, leaderboard, and admin actions.
+Build against the v1 and v2 APIs with typed routes, authentication rules, response formats, and rate limits.
 :::
-:::card[Theming]{href=/theming/colors}
-OKLCH color tokens with semantic naming, plus dark mode out of the box.
+:::card[Theming]{href=/theming}
+Customize the web app through its Radix colors, category styles, and reusable Svelte components.
 :::
 ::::

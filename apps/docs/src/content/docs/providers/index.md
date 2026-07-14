@@ -17,7 +17,7 @@ providerField:
     key: value
 ```
 
-The `<red>name</red>` selects the provider, while `<red>options</red>` contains its settings. Most of those settings can also be supplied through environment variables. Name categories are plural or mass nouns.
+The `<red>name</red>` selects the provider, while `<red>options</red>` contains its settings. Most of those settings can also be supplied through environment variables.
 
 ## Available providers
 

@@ -45,7 +45,7 @@ Listing a CTF takes three steps:
 After the event, upload the final scoreboard so teams receive CTFtime ranking points. Competitors also vote on the event's [weight](https://ctftime.org/faq/#weight-vote), which can increase as the event establishes a history.
 
 :::note
-Additional information regarding CTF organization is available on CTFtime's [organizer resources page](https://ctftime.org/for-organizers/).
+CTFtime also publishes [resources for event organizers](https://ctftime.org/for-organizers/).
 :::
 
 ## Homepage
@@ -121,4 +121,4 @@ Do not give private hints to individual teams. Even a well-intended nudge can lo
 
 When a participant reports a challenge problem, confirm that the live service and reference solution still work. Do not reveal anything about the intended solution.
 
-If hints or clarifications become necessary, see the [hint policy section](/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information.
+If you need to publish a hint or clarification, follow the [hint policy](/meta/running-a-successful-ctf/during-ctf#hint-policy).

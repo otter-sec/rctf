@@ -1,9 +1,9 @@
 ---
 title: "Scoring providers"
-description: "Choose and configure a dynamic scoring algorithm for your CTF."
+description: "Choose how rCTF calculates point values for decay challenges."
 order: 4
 ---
-Scoring providers control how challenge point values change as teams solve them. rCTF ships six scoring algorithms.
+Scoring providers calculate point values for decay challenges. rCTF includes six algorithms that use solve counts, event timing, or both.
 
 ## Configuration
 
