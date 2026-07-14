@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as avatar from '@zag-js/avatar'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
+  import { untrack } from 'svelte'
   import { getInitials } from '$lib/utils/initials'
 
   type Props = {
@@ -13,6 +14,11 @@
   const id = $props.id()
   const service = useMachine(avatar.machine, { id })
   const api = $derived(avatar.connect(service, normalizeProps))
+
+  $effect(() => {
+    void src
+    untrack(() => service.send({ type: 'src.change' }))
+  })
 </script>
 
 <span {...api.getRootProps()}>
