@@ -104,7 +104,7 @@ Files are stored with public visibility. The bucket has to be configured to allo
 
 ## Terraform templates
 
-Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module writes the generated credentials to a local file for use in `rctf.d/{:dir}`.
+Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module exposes the generated credentials as sensitive Terraform outputs for use in `rctf.d/{:dir}`.
 
 ::::tabs
 :::tab[AWS S3]
