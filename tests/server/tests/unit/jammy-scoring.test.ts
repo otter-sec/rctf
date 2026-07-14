@@ -216,6 +216,22 @@ describe('jammy-scoring', () => {
     }
   })
 
+  describe('matches reference float rounding at exact tick boundaries', () => {
+    const boundaryCases = [
+      { timeSinceStart: 17280, expectedScore: 125 },
+      { timeSinceStart: 69120, expectedScore: 500 },
+      { timeSinceStart: 134784, expectedScore: 975 },
+    ]
+
+    for (const tc of boundaryCases) {
+      test(`t=${tc.timeSinceStart}s should score ${tc.expectedScore}`, () => {
+        const ctx = createContext(eventStartTime + tc.timeSinceStart * 1000)
+        const score = provider.calculate(ctx)
+        expect(score).toBe(tc.expectedScore)
+      })
+    }
+  })
+
   describe('edge cases', () => {
     test('unsolved challenge returns maxPoints', () => {
       const ctx = createContext(null)

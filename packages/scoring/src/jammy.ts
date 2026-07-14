@@ -7,7 +7,7 @@ interface JammyOptions {
 // Reference Python implementation:
 // https://github.com/RealJammy/Jammy-Scoring
 export default class JammyProvider implements ScoreProvider {
-  readonly revision = '1'
+  readonly revision = '2'
   readonly requiredFields: readonly ScoreContextField[] = [
     'minPoints',
     'maxPoints',
@@ -34,14 +34,14 @@ export default class JammyProvider implements ScoreProvider {
       return maxPoints
     }
 
-    const eventLength = eventEndTime - eventStartTime
+    const eventLength = (eventEndTime - eventStartTime) / 1000
     if (maxPoints === 0 || eventLength === 0) {
       return maxPoints
     }
 
     const tickrate = (this.maximumScoreTime * eventLength) / maxPoints
-    const timeSinceStart = firstSolveTime - eventStartTime
-    const score = minPoints + Math.floor(timeSinceStart / tickrate)
+    const timeSinceStart = (firstSolveTime - eventStartTime) / 1000
+    const score = minPoints + Math.trunc(timeSinceStart / tickrate)
     return Math.min(score, maxPoints)
   }
 }
