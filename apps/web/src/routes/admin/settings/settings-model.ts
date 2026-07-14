@@ -8,8 +8,8 @@ export interface Sponsor {
 
 export interface SponsorPayload {
   name: string
-  iconLight: string
-  iconDark: string
+  iconLight?: string
+  iconDark?: string
   description: string
   url?: string
 }
@@ -149,8 +149,8 @@ export function emptySponsor(): Sponsor {
 export function toSponsor(sponsor: SponsorPayload): Sponsor {
   return {
     name: sponsor.name,
-    iconLight: sponsor.iconLight,
-    iconDark: sponsor.iconDark,
+    iconLight: sponsor.iconLight ?? '',
+    iconDark: sponsor.iconDark ?? '',
     description: sponsor.description,
     url: sponsor.url ?? '',
   }

@@ -14,8 +14,8 @@
 </script>
 
 <button type="button" onclick={toggle} aria-label="Toggle theme">
-  <sun-icon><IconSun /></sun-icon>
-  <moon-icon><IconMoonStars /></moon-icon>
+  <sun-icon data-theme-visible="dark"><IconSun /></sun-icon>
+  <moon-icon data-theme-visible="light"><IconMoonStars /></moon-icon>
 </button>
 
 <style>
@@ -32,35 +32,6 @@
 
     &:hover {
       background: var(--background-l3);
-    }
-  }
-
-  sun-icon,
-  moon-icon {
-    display: contents;
-  }
-
-  moon-icon {
-    :global(:root[data-theme='dark']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
-    }
-  }
-
-  sun-icon {
-    :global(:root[data-theme='light']) & {
-      display: none;
-    }
-
-    @media (prefers-color-scheme: light) {
-      :global(:root:not([data-theme])) & {
-        display: none;
-      }
     }
   }
 </style>

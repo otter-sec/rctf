@@ -11,7 +11,7 @@
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import MarkdownEditor from '$lib/components/markdown-editor.svelte'
-  import { IconCloud, IconTrash, IconWarningCircle, IconX } from '$lib/icons'
+  import { IconWarningCircle, IconX } from '$lib/icons'
   import { useAdminSettings } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
@@ -25,6 +25,7 @@
   import StatusCard from '$lib/ui/status-card.svelte'
   import { hasPermissions } from '$lib/utils/permissions'
   import ExternalAuthClients from './external-auth-clients.svelte'
+  import UploadRow from './upload-row.svelte'
   import {
     buildPatch,
     clearDirty,
@@ -59,17 +60,6 @@
   let sponsorSelected = $state(0)
   let initialized = $state(false)
   let saving = $state(false)
-  let uploading = $state(false)
-  let logoInputs = $state<Record<'light' | 'dark', HTMLInputElement | null>>({
-    light: null,
-    dark: null,
-  })
-  let sponsorIconInputs = $state<
-    Record<'light' | 'dark', HTMLInputElement | null>
-  >({
-    light: null,
-    dark: null,
-  })
 
   const logoTargets = [
     { key: 'light' as const, label: 'Light mode', fallback: wordmarkLight },
@@ -77,8 +67,18 @@
   ]
 
   const sponsorIconTargets = [
-    { key: 'light' as const, label: 'Light mode icon', field: 'iconLight' },
-    { key: 'dark' as const, label: 'Dark mode icon', field: 'iconDark' },
+    {
+      key: 'light' as const,
+      label: 'Light mode icon',
+      field: 'iconLight',
+      fallbackField: 'iconDark',
+    },
+    {
+      key: 'dark' as const,
+      label: 'Dark mode icon',
+      field: 'iconDark',
+      fallbackField: 'iconLight',
+    },
   ] as const
 
   $effect(() => {
@@ -153,7 +153,6 @@
       toast.error('Please select an image file.')
       return null
     }
-    uploading = true
     try {
       const response = await apiRequest(UploadFilesRouteV2, { files: [file] })
       if (response.kind === GoodFilesUploadV2.kind) {
@@ -169,8 +168,6 @@
     } catch {
       toast.error('Failed to upload image.')
       return null
-    } finally {
-      uploading = false
     }
   }
 
@@ -184,13 +181,31 @@
     dispatchSponsors({ type: 'update', index: sponsorSelected, field, value })
   }
 
-  async function onImageFile(event: Event, apply: (url: string) => void) {
-    const input = event.currentTarget as HTMLInputElement
-    const file = input.files?.[0]
-    input.value = ''
-    if (!file) return
+  async function uploadLogo(target: 'light' | 'dark', file: File) {
     const url = await uploadImage(file)
-    if (url !== null) apply(url)
+    if (url !== null) {
+      setLogo(target, url)
+    }
+  }
+
+  async function uploadSponsorIcon(
+    field: 'iconLight' | 'iconDark',
+    file: File
+  ) {
+    const target = selectedSponsor
+    if (!target) {
+      return
+    }
+    const url = await uploadImage(file)
+    if (url === null || !form) {
+      return
+    }
+    const index = form.sponsors.list.indexOf(target)
+    if (index === -1) {
+      toast.error('Sponsor changed during upload; the icon was not applied.')
+      return
+    }
+    dispatchSponsors({ type: 'update', index, field, value: url })
   }
 
   async function save() {
@@ -241,59 +256,6 @@
     <group-title>{title}</group-title>
     <button type="button" data-reset onclick={onReset}>Reset to default</button>
   </group-header>
-{/snippet}
-
-{#snippet uploadRow(row: {
-  key: 'light' | 'dark'
-  label: string
-  url: string
-  alt: string
-  removeLabel: string
-  fallback?: string
-  inputs: Record<'light' | 'dark', HTMLInputElement | null>
-  onFile: (event: Event) => void
-  onRemove: () => void
-})}
-  <logo-row>
-    <group-title>{row.label}</group-title>
-    <logo-controls>
-      <logo-preview data-mode={row.key}>
-        {#if row.url || row.fallback}
-          <img src={row.url || row.fallback} alt={row.alt} />
-        {:else}
-          <preview-empty>No icon</preview-empty>
-        {/if}
-      </logo-preview>
-      <logo-actions>
-        <input
-          bind:this={row.inputs[row.key]}
-          type="file"
-          accept="image/*"
-          hidden
-          onchange={row.onFile}
-        />
-        <Button
-          size="sm"
-          onclick={() => row.inputs[row.key]?.click()}
-          disabled={uploading}
-        >
-          <IconCloud />
-          {row.url ? 'Change' : 'Upload'}
-        </Button>
-        {#if row.url}
-          <Button
-            size="sm"
-            variant="destructive"
-            aria-label={row.removeLabel}
-            onclick={row.onRemove}
-            disabled={uploading}
-          >
-            <IconTrash />
-          </Button>
-        {/if}
-      </logo-actions>
-    </logo-controls>
-  </logo-row>
 {/snippet}
 
 {#if canManageApps && !canManageSettings}
@@ -398,17 +360,16 @@
         {@render groupHeader('Logo', resetLogo)}
         <group-body>
           {#each logoTargets as target (target.key)}
-            {@render uploadRow({
-              key: target.key,
-              label: target.label,
-              url: settingsForm.logo[target.key],
-              alt: `${target.label} logo`,
-              removeLabel: `Remove ${target.label} logo`,
-              fallback: target.fallback,
-              inputs: logoInputs,
-              onFile: e => onImageFile(e, url => setLogo(target.key, url)),
-              onRemove: () => setLogo(target.key, ''),
-            })}
+            <UploadRow
+              label={target.label}
+              mode={target.key}
+              url={settingsForm.logo[target.key]}
+              alt={`${target.label} logo`}
+              removeLabel={`Remove ${target.label} logo`}
+              fallback={target.fallback}
+              onUpload={file => uploadLogo(target.key, file)}
+              onChange={url => setLogo(target.key, url)}
+            />
           {/each}
         </group-body>
       </settings-group>
@@ -521,17 +482,18 @@
                   {/snippet}
                 </Field>
                 {#each sponsorIconTargets as target (target.key)}
-                  {@render uploadRow({
-                    key: target.key,
-                    label: target.label,
-                    url: sponsor[target.field],
-                    alt: `${sponsor.name || 'Sponsor'} ${target.label}`,
-                    removeLabel: `Remove ${target.label}`,
-                    inputs: sponsorIconInputs,
-                    onFile: e =>
-                      onImageFile(e, url => setSponsorIcon(target.field, url)),
-                    onRemove: () => setSponsorIcon(target.field, ''),
-                  })}
+                  <UploadRow
+                    label={target.label}
+                    mode={target.key}
+                    url={sponsor[target.field]}
+                    alt={`${sponsor.name || 'Sponsor'} ${target.label}`}
+                    removeLabel={`Remove ${target.label}`}
+                    fallback={sponsor[target.fallbackField] || undefined}
+                    invertFallback
+                    urlEditable
+                    onUpload={file => uploadSponsorIcon(target.field, file)}
+                    onChange={value => setSponsorIcon(target.field, value)}
+                  />
                 {/each}
                 <Field label="Description" description="Markdown supported.">
                   <MarkdownEditor
@@ -694,53 +656,6 @@
     @media (min-width: 32rem) {
       grid-template-columns: 1fr 1fr;
     }
-  }
-
-  logo-row {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2xs);
-  }
-
-  logo-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-s);
-  }
-
-  logo-preview {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-    block-size: 4.5rem;
-    padding-inline: var(--space-m);
-    border: 2px solid var(--border);
-    border-radius: var(--radius-md);
-
-    &[data-mode='light'] {
-      background: oklch(98% 0 0);
-    }
-
-    &[data-mode='dark'] {
-      background: oklch(15% 0 0);
-    }
-
-    img {
-      max-block-size: 2.5rem;
-      max-inline-size: 14rem;
-    }
-  }
-
-  preview-empty {
-    font-size: var(--step--1);
-    color: oklch(60% 0 0);
-  }
-
-  logo-actions {
-    display: flex;
-    flex-shrink: 0;
-    gap: var(--space-2xs);
   }
 
   sponsors-editor {

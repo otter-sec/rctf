@@ -9,7 +9,7 @@ integrationsGroup.route(GetClientConfigRoute, async ({ res, ctx }) => {
     ...resolved,
     sponsors: resolved.sponsors.map(sponsor => ({
       name: sponsor.name,
-      icon: sponsor.iconLight || sponsor.iconDark,
+      icon: sponsor.icon || sponsor.iconLight || sponsor.iconDark || '',
       description: sponsor.description,
       url: sponsor.url,
     })),

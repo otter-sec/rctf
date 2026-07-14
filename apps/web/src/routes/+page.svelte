@@ -15,21 +15,35 @@
     <Card title="Sponsors">
       <sponsor-grid>
         {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
-          {@const iconLight = sponsor.iconLight || sponsor.iconDark}
-          {@const iconDark = sponsor.iconDark || sponsor.iconLight}
+          {@const lightIcon = sponsor.iconLight || sponsor.icon}
+          {@const darkIcon = sponsor.iconDark}
           <svelte:element
             this={sponsor.url ? 'a' : 'article'}
             href={sponsor.url}
             target={sponsor.url ? '_blank' : undefined}
             rel={sponsor.url ? 'noopener noreferrer' : undefined}
           >
-            {#if iconLight}
-              <sponsor-icon-light>
-                <img src={iconLight} alt={sponsor.name} />
-              </sponsor-icon-light>
-              <sponsor-icon-dark>
-                <img src={iconDark} alt={sponsor.name} />
-              </sponsor-icon-dark>
+            {#if lightIcon || darkIcon}
+              <sponsor-icon
+                data-theme-visible="light"
+                data-invert={lightIcon ? undefined : ''}
+              >
+                <img
+                  src={lightIcon || darkIcon}
+                  alt={sponsor.name}
+                  loading="lazy"
+                />
+              </sponsor-icon>
+              <sponsor-icon
+                data-theme-visible="dark"
+                data-invert={darkIcon ? undefined : ''}
+              >
+                <img
+                  src={darkIcon || lightIcon}
+                  alt={sponsor.name}
+                  loading="lazy"
+                />
+              </sponsor-icon>
             {/if}
             <h3>{sponsor.name}</h3>
             <Markdown content={sponsor.description} />
@@ -86,33 +100,8 @@
       background: var(--background-l3);
     }
 
-    sponsor-icon-light,
-    sponsor-icon-dark {
-      display: contents;
-    }
-
-    sponsor-icon-light {
-      :global(:root[data-theme='dark']) & {
-        display: none;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :global(:root:not([data-theme])) & {
-          display: none;
-        }
-      }
-    }
-
-    sponsor-icon-dark {
-      :global(:root[data-theme='light']) & {
-        display: none;
-      }
-
-      @media (prefers-color-scheme: light) {
-        :global(:root:not([data-theme])) & {
-          display: none;
-        }
-      }
+    sponsor-icon[data-invert] img {
+      filter: invert(1);
     }
 
     img {

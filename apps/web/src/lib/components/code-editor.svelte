@@ -53,7 +53,10 @@
   }
 </script>
 
-<code-editor-shell data-invalid={invalid || undefined} data-wrap={wrap || undefined}>
+<code-editor-shell
+  data-invalid={invalid || undefined}
+  data-wrap={wrap || undefined}
+>
   {#if html !== null}
     <code-editor-overlay {@attach captureOverlay} aria-hidden="true">
       {@html html}
