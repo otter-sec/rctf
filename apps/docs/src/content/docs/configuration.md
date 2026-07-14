@@ -430,7 +430,7 @@ leaderboard:
   maxOffset: 4294967296
   updateInterval: 30000
   graphMaxTeams: 10
-  graphSampleTime: 1800000
+  graphSampleTime: 300000
   graphWithListLimit: 100
 ```
 
@@ -441,7 +441,7 @@ leaderboard:
 | `<red>leaderboard.maxOffset</red>` | `number{:ts}` | `4294967296{:ts}` | Max pagination offset |
 | `<red>leaderboard.updateInterval</red>` | `number{:ts}` | `30000{:ts}` (30s) | Leaderboard recalculation interval in ms |
 | `<red>leaderboard.graphMaxTeams</red>` | `number{:ts}` | `10{:ts}` | Max teams displayed on score graph |
-| `<red>leaderboard.graphSampleTime</red>` | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms |
+| `<red>leaderboard.graphSampleTime</red>` | `number{:ts}` | `300000{:ts}` (5min) | Time between graph data points in ms |
 | `<red>leaderboard.graphWithListLimit</red>` | `number{:ts}` | `100{:ts}` | Max teams for combined leaderboard + graph endpoint |
 
 ### Moderation

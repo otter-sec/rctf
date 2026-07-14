@@ -301,8 +301,8 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        // both events land in the same 30min sample bucket
-        ['user1', '1701000000,100']
+        // both events land in the same 5min sample bucket
+        ['user1', '1700100000,100']
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -460,7 +460,7 @@ describe('leaderboard cache', () => {
           ids: ['evt1'],
         }),
         'events',
-        ['user1', '1701000000,75']
+        ['user1', '1700100000,75']
       )
     })
 
@@ -552,7 +552,7 @@ describe('leaderboard cache', () => {
           ids: ['evt3', 'evt4'],
         }),
         'events',
-        ['user1', '1701000000,70', 'user2', '1701000000,50']
+        ['user1', '1700100000,70', 'user2', '1700100000,50']
       )
     })
 
@@ -560,13 +560,14 @@ describe('leaderboard cache', () => {
       const redis = createMockRedis()
       const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
       const base = 900 * sampleTime
-      // 40 events one minute apart: far denser than the sample grid
+      const eventGap = sampleTime / 20
+      // 40 events packed 20 per sample interval: far denser than the sample grid
       const db = createMockDb(
         Array.from({ length: 40 }, (_, i) => ({
           id: `evt${i}`,
           userid: 'user1',
           pointsDelta: 5,
-          eventAt: new Date(base + 1 + i * 60_000).toISOString(),
+          eventAt: new Date(base + 1 + i * eventGap).toISOString(),
         }))
       )
       const data: CalculatedLeaderboard = {
@@ -577,7 +578,7 @@ describe('leaderboard cache', () => {
             division: 'open',
             score: 200,
             hadAnySolve: true,
-            lastSolve: base + 1 + 39 * 60_000,
+            lastSolve: base + 1 + 39 * eventGap,
             lastTiebreakEligibleSolve: undefined,
           },
         ],
@@ -589,7 +590,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        `${base + sampleTime},150,${base + 2 * sampleTime},200`
+        `${base + sampleTime},100,${base + 2 * sampleTime},200`
       )
     })
 
@@ -633,7 +634,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
       expect(redis.rctfReplaceGraph).toHaveBeenCalledTimes(1)
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1701000000,50'
+        '1700100000,50'
       )
 
       await cacheLeaderboardAndGraph(db, redis, data)
@@ -657,10 +658,10 @@ describe('leaderboard cache', () => {
         }),
         'events',
         // the incremental event replaces the seed point in the same bucket
-        ['user1', '1701000000,75']
+        ['user1', '1700100000,75']
       )
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1701000000,75'
+        '1700100000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: new Date(1699995000).toISOString(),
@@ -716,7 +717,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1701000000,75'
+        '1700100000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: eventTime,
@@ -808,7 +809,8 @@ describe('leaderboard cache', () => {
 
         // in-time bucket clamps to endTime; the late event stays a distinct
         // point on the next grid line
-        const lateBucket = Math.ceil((endTime + 5000) / 1_800_000) * 1_800_000
+        const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
+        const lateBucket = Math.ceil((endTime + 5000) / sampleTime) * sampleTime
         await cacheLeaderboardAndGraph(db, redis, data)
         expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
           `${endTime},50,${lateBucket},75`

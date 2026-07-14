@@ -172,7 +172,7 @@ export const ServerConfigSchema = z.object({
       maxOffset: z._default(z.number(), 4294967296),
       updateInterval: z._default(z.number(), 30_000), // 30s, but we force recalc when needed
       graphMaxTeams: z._default(z.number(), 10),
-      graphSampleTime: z._default(z.number(), 1_800_000), // 30min
+      graphSampleTime: z._default(z.number(), 300_000), // 5min
       graphWithListLimit: z._default(z.number(), 100),
     }),
     {}
