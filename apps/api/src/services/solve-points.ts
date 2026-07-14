@@ -17,6 +17,7 @@ import {
   getDecayChallenge,
   getDecayChallenges,
   getMaxSolveCount,
+  getPrivateChallenge,
   lockChallenge,
   userIsNotBanned,
   type DecayChallenge,
@@ -220,6 +221,11 @@ export const upsertDynamicSolves = async (
 ): Promise<{ inserted: number; updated: number; deleted: number }> => {
   return await db.transaction(async tx => {
     await lockChallenge(tx, challengeId)
+
+    // re-check under the lock so a concurrent delete can't orphan feed solves
+    if (!(await getPrivateChallenge(tx, challengeId))) {
+      return { inserted: 0, updated: 0, deleted: 0 }
+    }
 
     // last write wins
     const dedupedEntries = Array.from(

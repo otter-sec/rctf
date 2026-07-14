@@ -339,7 +339,7 @@ export const createSolveAndGetBloodNumber = async (
     submissionIp?: string | null
     submittedFlag?: string
   }
-): Promise<number> => {
+): Promise<number | null> => {
   const solveId = crypto.randomUUID()
   const submissionId = crypto.randomUUID()
 
@@ -347,6 +347,11 @@ export const createSolveAndGetBloodNumber = async (
   // every solver of this challenge on its next tick
   return await db.transaction(async tx => {
     await lockChallenge(tx, params.challengeId)
+
+    // re-check under the lock so a concurrent delete can't orphan this solve
+    if (!(await getPrivateChallenge(tx, params.challengeId))) {
+      return null
+    }
 
     const priorSolveCount = await countNonBannedSolvesForChallenge(
       tx,
@@ -506,6 +511,7 @@ export const deleteChallenge = async (
   id: string
 ): Promise<void> => {
   await db.transaction(async tx => {
+    await lockChallenge(tx, id)
     await tx.delete(solves).where(eq(solves.challengeid, id))
     await tx.delete(challenges).where(eq(challenges.id, id))
   })
@@ -1170,7 +1176,7 @@ export const submitFlag = async (
     'successfull flag submission'
   )
 
-  let bloodNumber: number
+  let bloodNumber: number | null
   try {
     bloodNumber = await createSolveAndGetBloodNumber(db, {
       challengeId: params.challengeId,
@@ -1200,6 +1206,10 @@ export const submitFlag = async (
       return res.badUnknownUser()
     }
     throw error
+  }
+
+  if (bloodNumber === null) {
+    return res.badChallenge()
   }
 
   if (shouldNotifyBloodbot(bloodNumber)) {
