@@ -28,6 +28,8 @@ The `<red>redirectUri</red>` must exactly match the URI registered for the clien
 
 Banned teams cannot mint codes. When the session token belongs to a banned team, the route returns `<response>403 badPerms</response>`.
 
+Code issuance is rate limited per user with burst `5` and refill window `50000` ms. Exceeding the limit returns `<response>429 badRateLimit</response>` with the wait in `data.timeLeft`.
+
 ::request-body{def="AuthorizeExternalAuthRouteV2" title="Request body"}
 
 ::response-body{def="AuthorizeExternalAuthRouteV2" response="goodExternalAuthAuthorize" title="Response fields"}
