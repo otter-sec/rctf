@@ -17,11 +17,23 @@ import {
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
 import { getNextOffset } from '$lib/query/challenges'
-import { unwrapData } from '$lib/query/core'
+import { ApiError, unwrapData } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 import { getCategoryKeyOrAlias } from '$lib/utils/categories'
 
 const INFINITE_PAGE_SIZE = 100
+const RATE_LIMIT_RETRY_DELAY_MS = 3000
+const RATE_LIMIT_RETRY_COUNT = 3
+
+export function shouldRetryLeaderboard(
+  failureCount: number,
+  error: Error
+): boolean {
+  if (ApiError.isRateLimit(error)) {
+    return failureCount < RATE_LIMIT_RETRY_COUNT
+  }
+  return !(error instanceof ApiError) && failureCount < 3
+}
 
 type LeaderboardWithGraphData = RouteResponseData<
   typeof GetLeaderboardWithGraphRoute
@@ -93,6 +105,8 @@ export function useLeaderboardWithGraph(filters: () => LeaderboardFilters) {
         ),
       placeholderData: keepPreviousData,
       refetchInterval: 30 * 1000,
+      retry: shouldRetryLeaderboard,
+      retryDelay: RATE_LIMIT_RETRY_DELAY_MS,
     }
   })
 }

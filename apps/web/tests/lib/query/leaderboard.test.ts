@@ -1,5 +1,6 @@
-import { GoodLeaderboardGraph } from '@rctf/types'
+import { BadBody, BadRateLimit, GoodLeaderboardGraph } from '@rctf/types'
 import { hashKey } from '@tanstack/svelte-query'
+import { ApiError } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 
@@ -92,6 +93,26 @@ describe('mergeLeaderboardPages', () => {
     ])
     expect(merged.leaderboard.map(entry => entry.id)).toEqual(['a', 'b', 'c'])
     expect(merged.total).toBe(3)
+  })
+})
+
+describe('shouldRetryLeaderboard', () => {
+  test('retries rate-limited fetches until the token bucket refills', () => {
+    const error = new ApiError(BadRateLimit.kind, 'too fast')
+    expect(leaderboard.shouldRetryLeaderboard(0, error)).toBe(true)
+    expect(leaderboard.shouldRetryLeaderboard(2, error)).toBe(true)
+    expect(leaderboard.shouldRetryLeaderboard(3, error)).toBe(false)
+  })
+
+  test('does not retry other api errors', () => {
+    const error = new ApiError(BadBody.kind, 'bad body')
+    expect(leaderboard.shouldRetryLeaderboard(0, error)).toBe(false)
+  })
+
+  test('retries network errors up to the default budget', () => {
+    const error = new Error('fetch failed')
+    expect(leaderboard.shouldRetryLeaderboard(0, error)).toBe(true)
+    expect(leaderboard.shouldRetryLeaderboard(3, error)).toBe(false)
   })
 })
 

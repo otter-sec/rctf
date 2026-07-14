@@ -70,7 +70,7 @@ const CATEGORIES = [
   'ppc',
   'osint',
 ] as const
-const STATUSES = ['hi', 'hello', 'ottew sec'] as const
+const STATUSES = ['hi', 'hello', 'rctf v2 yay', 'yippee'] as const
 
 const KOTH_CHALLENGES = [
   { id: 'seed-koth-1', penalties: false },
