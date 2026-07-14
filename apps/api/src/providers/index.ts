@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
 import { scoreProviders } from '@rctf/scoring'
+import type { ScoreProvider } from '@rctf/scoring'
 import { adminBotProviders } from './admin-bot'
 import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
@@ -42,7 +43,10 @@ export const uploadProvider = loadProvider(
   config.uploadProvider
 )!
 
-export const scoreProvider = loadProvider(scoreProviders, config.scoreProvider)!
+export const scoreProvider = loadProvider<ScoreProvider>(
+  scoreProviders,
+  config.scoreProvider
+)!
 
 const resolvedInstancers = resolveInstancerConfigs(config)
 export const instancers: Record<string, InstancerProvider> = Object.fromEntries(
