@@ -134,6 +134,7 @@ export const SetEmailRoute = defineRoute({
     BadEmailChangeDivision,
     BadUnknownUser,
     BadRecaptchaCode,
+    BadRateLimit,
     BadToken,
   ],
   authRequired: true,

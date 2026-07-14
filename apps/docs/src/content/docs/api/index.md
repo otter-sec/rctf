@@ -150,6 +150,7 @@ Rate-limited routes return `<response>429 badRateLimit</response>` with `data.ti
 | Account recovery     | Email address      | Burst `2`, refill window `3600000` ms. |
 | Flag submission      | User and challenge | Burst `5`, refill window `25000` ms.   |
 | Profile name update  | User               | Burst `3`, refill window `180000` ms.  |
+| Email change         | User               | Burst `3`, refill window `900000` ms.  |
 | Avatar upload        | User               | Burst `2`, refill window `120000` ms.  |
 | Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.   |
 | Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.    |

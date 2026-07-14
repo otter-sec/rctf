@@ -42,11 +42,11 @@ order: 5
 
 :::
 
-::route-meta{def="SetEmailRouteV2"}
+::route-meta{def="SetEmailRouteV2" rateLimit="Email change bucket. Burst `3` and refill window `900000` ms per user."}
 
 This route sets or changes the authenticated team's email. With an email provider configured, rCTF sends a verification message and returns `<response>200 goodVerifySent</response>`. Otherwise, it applies the change immediately and returns `<response>200 goodEmailSet</response>`.
 
-The address must be unused and must still allow the team's current division under the division ACLs.
+The address must be unused and must still allow the team's current division under the division ACLs. V1 and V2 share the same rate-limit bucket, and requests count against it before any verification email is sent.
 
 ::::tabs{sync="users-email-version"}
 
