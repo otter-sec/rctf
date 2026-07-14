@@ -3,6 +3,39 @@ title: rCTF
 description: An open-source platform for hosting capture-the-flag competitions.
 ---
 
+<link rel="preload" as="image" href="/static/banner-light.svg" media="(prefers-color-scheme: light)" />
+<link rel="preload" as="image" href="/static/banner-dark.svg" media="(prefers-color-scheme: dark)" />
+<img class="banner-light" src="/static/banner-light.svg" alt="rCTF" width="2200" height="560" />
+<img class="banner-dark" src="/static/banner-dark.svg" alt="rCTF" width="2200" height="560" />
+
+<style>
+  .banner-light,
+  .banner-dark {
+    inline-size: 100%;
+    block-size: auto;
+    margin-block-end: 1em;
+    color: transparent;
+    border-radius: var(--radius-lg);
+  }
+  .banner-dark {
+    display: none;
+  }
+  :root[data-theme='dark'] .banner-light {
+    display: none;
+  }
+  :root[data-theme='dark'] .banner-dark {
+    display: block;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .banner-light {
+      display: none;
+    }
+    :root:not([data-theme]) .banner-dark {
+      display: block;
+    }
+  }
+</style>
+
 rCTF is an open-source platform for hosting capture-the-flag competitions. It is developed and maintained by the [OtterSec](https://osec.io) team and has supported public events with thousands of teams.
 
 ::::card-grid
