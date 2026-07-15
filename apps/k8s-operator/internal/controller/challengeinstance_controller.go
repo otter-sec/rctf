@@ -440,12 +440,11 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				labelChallengeId: instance.Spec.ChallengeId,
 			}
 
-			service.Spec = corev1.ServiceSpec{
-				Selector: map[string]string{
-					labelPod: pod.Name,
-				},
-				Ports: pod.Ports,
+			// replacing the complete spec would clear immutable values
+			service.Spec.Selector = map[string]string{
+				labelPod: pod.Name,
 			}
+			service.Spec.Ports = pod.Ports
 
 			return ctrl.SetControllerReference(instance, service, r.Scheme)
 		})
