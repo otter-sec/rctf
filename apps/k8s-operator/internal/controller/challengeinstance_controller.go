@@ -19,15 +19,18 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
 	rctfv1 "github.com/otter-sec/rctf/api/v1"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
 	"github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -36,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,19 +50,18 @@ import (
 // ChallengeInstanceReconciler reconciles a ChallengeInstance object
 type ChallengeInstanceReconciler struct {
 	client.Client
-	Scheme    *runtime.Scheme
-	APIReader client.Reader
+	Scheme *runtime.Scheme
 
 	InstancerHost string
 }
 
 const (
 	finalizer                   = "rctf.osec.io/finalizer"
+	labelManagedBy              = "app.kubernetes.io/managed-by"
 	labelTeamId                 = "rctf.osec.io/team-id"
 	labelChallengeId            = "rctf.osec.io/challenge-id"
 	labelPod                    = "rctf.osec.io/pod"
 	labelEgress                 = "rctf.osec.io/egress"
-	labelDns                    = "rctf.osec.io/dns"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
 	managedBy                   = "rctf-operator"
@@ -68,6 +71,9 @@ const (
 	typeDeploymentsDeployed     = "DeploymentsDeployed"
 	typeServicesDeployed        = "ServicesDeployed"
 	typeIngressesDeployed       = "IngressesDeployed"
+	reasonInProgress            = "InProgress"
+	reasonSucceeded             = "Succeeded"
+	reasonDeployFailed          = "DeployFailed"
 )
 
 // +kubebuilder:rbac:groups=rctf.osec.io,resources=challengeinstances,verbs=get;list;watch;create;update;patch;delete
@@ -91,7 +97,7 @@ type exposedHostname struct {
 	Title         *string           `json:"title,omitempty"`
 }
 
-func getNamespaceForInstance(instance rctfv1.ChallengeInstance) string {
+func getNamespaceForInstance(instance *rctfv1.ChallengeInstance) string {
 	return fmt.Sprintf(
 		"inst-%s-%s",
 		strings.ToLower(instance.Spec.ChallengeId),
@@ -148,50 +154,59 @@ func getExposedHostnamesAnnotationValue(instance *rctfv1.ChallengeInstance, inst
 	return string(value), nil
 }
 
+func (r *ChallengeInstanceReconciler) setComponentStatus(instance *rctfv1.ChallengeInstance, statusType string, status metav1.ConditionStatus, reason string) {
+	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+		Type:   statusType,
+		Status: status,
+		Reason: reason,
+	})
+}
+
+func (r *ChallengeInstanceReconciler) updateStatus(ctx context.Context, key client.ObjectKey, status rctfv1.ChallengeInstanceStatus) error {
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		var latest rctfv1.ChallengeInstance
+		if err := r.Get(ctx, key, &latest); err != nil {
+			return err
+		}
+
+		latest.Status = status
+		return r.Status().Update(ctx, &latest)
+	})
+}
+
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
 	log := logf.FromContext(ctx)
 
-	// Bypass the manager cache for fetching instance - repeated reconciliations will cause it to be outdated as cache hasn't been updated with the status changes
-	// TODO: surely there's a better way that this should be handled...?
 	var instance rctfv1.ChallengeInstance
-	if err := r.APIReader.Get(ctx, req.NamespacedName, &instance); err != nil {
-		if apierrors.IsNotFound(err) {
+	if err := r.Get(ctx, req.NamespacedName, &instance); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if !instance.DeletionTimestamp.IsZero() {
+		// To finish deletion of a ChallengeInstance, we must get rid of the namespace. This means that
+		// either it doesn't exist (and therefore we're good), or it does exist and may be in a state
+		// of not being deleted yet, or already being deleted, and we just need to wait.
+		var namespace corev1.Namespace
+		if err := r.Get(ctx, types.NamespacedName{Name: getNamespaceForInstance(&instance)}, &namespace); apierrors.IsNotFound(err) {
+			controllerutil.RemoveFinalizer(&instance, finalizer)
+			if err := r.Update(ctx, &instance); err != nil {
+				log.Error(err, "Unable to remove finalizer")
+				return ctrl.Result{}, fmt.Errorf("failed to remove finalizer: %w", err)
+			}
+
 			return ctrl.Result{}, nil
 		}
 
-		log.Error(err, "Unable to fetch ChallengeInstance")
-		return ctrl.Result{}, err
-	}
-
-	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
-		namespaceName := getNamespaceForInstance(instance)
-
-		if err := r.Delete(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}); err != nil {
-			if !apierrors.IsNotFound(err) {
+		if namespace.DeletionTimestamp.IsZero() {
+			if err := r.Delete(ctx, &namespace); err != nil {
 				log.Error(err, "Unable to delete namespace")
-				return ctrl.Result{}, err
+				return ctrl.Result{}, fmt.Errorf("failed to delete namespace %s: %w", namespace.Name, err)
 			}
 		}
 
-		err := r.Get(ctx, types.NamespacedName{Name: namespaceName}, &corev1.Namespace{})
-		if err == nil {
-			return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
-		}
-
-		if !apierrors.IsNotFound(err) {
-			log.Error(err, "Unable to fetch Namespace")
-			return ctrl.Result{}, err
-		}
-
-		controllerutil.RemoveFinalizer(&instance, finalizer)
-		if err := r.Update(ctx, &instance); err != nil {
-			log.Error(err, "Unable to remove finalizer")
-			return ctrl.Result{}, err
-		}
-
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
 	}
 
 	if !controllerutil.ContainsFinalizer(&instance, finalizer) {
@@ -202,76 +217,41 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			// owner reference) can leak if the CR is deleted before a later
 			// reconcile re-adds it
 			log.Error(err, "Unable to add finalizer to ChallengeInstance")
-			return ctrl.Result{}, err
+			return ctrl.Result{}, fmt.Errorf("failed to add finalizer to ChallengeInstance: %w", err)
 		}
 	}
 
+	// After a successful reconciliation, we instruct the reconciliation to run after the expiration time. This way,
+	// we can very easily guarantee automatic clean up of the ChallengeInstance resource.
 	if time.Now().After(instance.Spec.ExpiresAt.Time) {
 		if err := r.Delete(ctx, &instance); err != nil {
-			log.Error(err, "Unable to delete Challenge Instance")
-			return ctrl.Result{}, err
+			log.Error(err, "Unable to delete ChallengeInstance")
+			return ctrl.Result{}, fmt.Errorf("failed to delete ChallengeInstance: %w", err)
 		}
 
 		return ctrl.Result{}, nil
 	}
 
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeReady); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeReady,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, &instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return ctrl.Result{}, err
-		}
-	}
-
-	// If the deployment fails at any point, we want the status to reflect that so the user knows not to wait for the deployment. Though
-	// the status should only update if it failed on the initial deployment. If we deploy it successfully and something breaks afterward,
-	// that's mostly ok as things _should_ be still in a working state (and it just indicates an intermittent API issue?)
 	defer func() {
-		if err != nil {
-			if condition := meta.FindStatusCondition(instance.Status.Conditions, typeReady); condition != nil && condition.Status == metav1.ConditionFalse {
-				meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-					Type:   typeReady,
-					Status: metav1.ConditionUnknown,
-					Reason: "DeployFailed",
-				})
-				if err := r.Status().Update(ctx, &instance); err != nil {
-					log.Error(err, "Unable to update ChallengeInstance")
-				}
-			}
+		if err := r.updateStatus(ctx, req.NamespacedName, instance.Status); err != nil {
+			log.Error(err, "Unable to update ChallengeInstance status")
 		}
 	}()
 
-	if err := r.EnsureNamespace(ctx, &instance); err != nil {
-		log.Error(err, "Unable to ensure namespace state")
-		return ctrl.Result{}, err
-	}
+	wasReady := meta.IsStatusConditionTrue(instance.Status.Conditions, typeReady)
+	r.setComponentStatus(&instance, typeReady, metav1.ConditionFalse, reasonInProgress)
 
-	if err := r.EnsureNetworkPolicies(ctx, &instance); err != nil {
-		log.Error(err, "Unable to ensure network policies state")
-		return ctrl.Result{}, err
-	}
-
-	if err := r.EnsureDeployments(ctx, &instance); err != nil {
-		log.Error(err, "Unable to ensure deployment state")
-		return ctrl.Result{}, err
-	}
-
-	if err := r.EnsureServices(ctx, &instance); err != nil {
-		log.Error(err, "Unable to ensure service state")
-		return ctrl.Result{}, err
-	}
-
-	if err := r.EnsureIngresses(ctx, &instance); err != nil {
-		log.Error(err, "Unable to ensure ingress state")
-		return ctrl.Result{}, err
+	if err := r.deployResources(ctx, &instance); err != nil {
+		log.Error(err, "Unable to deploy resources")
+		// failed during the first deploy, set deploy failed so that the platform can display the "ERRORED" status
+		if !wasReady {
+			r.setComponentStatus(&instance, typeReady, metav1.ConditionUnknown, reasonDeployFailed)
+		}
+		return ctrl.Result{}, fmt.Errorf("unable to deploy resources: %w", err)
 	}
 
 	// At this point all resources are deployed, so we no longer treat errors as deploy failures.
-	ready, err := r.AreDeploymentsReady(ctx, &instance)
+	ready, err := r.areDeploymentsReady(ctx, &instance)
 	if err != nil {
 		log.Error(err, "Unable to check deployment readiness")
 		return ctrl.Result{RequeueAfter: 3 * time.Second}, nil
@@ -279,382 +259,261 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if !ready {
 		return ctrl.Result{RequeueAfter: 3 * time.Second}, nil
 	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:   typeReady,
-		Status: metav1.ConditionTrue,
-		Reason: "DeploySucceeded",
-	})
-	if err := r.Status().Update(ctx, &instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-		return ctrl.Result{}, err
-	}
+	r.setComponentStatus(&instance, typeReady, metav1.ConditionTrue, reasonSucceeded)
 
 	return ctrl.Result{
 		RequeueAfter: time.Until(instance.Spec.ExpiresAt.Time),
 	}, nil
 }
 
-func (r *ChallengeInstanceReconciler) EnsureNamespace(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
+func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
 	log := logf.FromContext(ctx)
+	namespaceName := getNamespaceForInstance(instance)
 
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeNamespaceDeployed); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeNamespaceDeployed,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
+	// Deploying a ChallengeInstance consists from the following components:
+	// - the namespace holding all the instance's resources
+	// - network policy blocking all ingress/egress, except intra-namespace
+	// - network policy allowing ingress from Traefik
+	// - network policy allowing egress for opted-in pods
+	// - services for each pod
+	// - deployment for each pod
+	// - ingress objects for each exposed pod
+
+	r.setComponentStatus(instance, typeNamespaceDeployed, metav1.ConditionFalse, reasonInProgress)
+	namespace := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}
+	_, err := ctrl.CreateOrUpdate(ctx, r.Client, namespace, func() error {
+		namespace.Labels = map[string]string{
+			labelManagedBy:   managedBy,
+			labelTeamId:      instance.Spec.TeamId,
+			labelChallengeId: instance.Spec.ChallengeId,
 		}
-	}
 
-	namespaceName := getNamespaceForInstance(*instance)
-
-	err := r.Get(ctx, types.NamespacedName{Name: namespaceName}, &corev1.Namespace{})
-	if err == nil {
 		return nil
-	}
-
-	if !apierrors.IsNotFound(err) {
-		return fmt.Errorf("getting namespace failed: %w", err)
-	}
-
-	namespace := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: namespaceName,
-			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": managedBy,
-				labelTeamId:                    instance.Spec.TeamId,
-				labelChallengeId:               instance.Spec.ChallengeId,
-			},
-		},
-	}
-	// AlreadyExists is expected: the existence check above reads the (lagging)
-	// informer cache while Create hits the live API, so a freshly-created
-	// namespace looks absent on the next fast reconcile
-	if err := r.Create(ctx, &namespace); err != nil && !apierrors.IsAlreadyExists(err) {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:    typeNamespaceDeployed,
-			Status:  metav1.ConditionFalse,
-			Reason:  "DeployFailed",
-			Message: err.Error(),
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
-		}
-
-		return fmt.Errorf("creating namespace failed: %w", err)
-	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:    typeNamespaceDeployed,
-		Status:  metav1.ConditionTrue,
-		Reason:  "DeploySucceeded",
-		Message: fmt.Sprintf("The namespace %s was created successfully", namespaceName),
 	})
-	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-	}
-
-	return nil
-}
-
-func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
-	log := logf.FromContext(ctx)
-	namespaceName := getNamespaceForInstance(*instance)
-
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeNetworkPoliciesDeployed); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeNetworkPoliciesDeployed,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
-		}
-	}
-
-	udp := corev1.ProtocolUDP
-	tcp := corev1.ProtocolTCP
-	dnsPort := intstr.FromInt32(int32(53))
-	for _, networkPolicy := range []networkingv1.NetworkPolicy{
-		// Restrict network traffic only to inside the instance's namespace
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      "isolate-namespace",
-				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": managedBy,
-					labelTeamId:                    instance.Spec.TeamId,
-					labelChallengeId:               instance.Spec.ChallengeId,
-				},
-			},
-			Spec: networkingv1.NetworkPolicySpec{
-				PodSelector: metav1.LabelSelector{},
-				PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress, networkingv1.PolicyTypeEgress},
-				Ingress: []networkingv1.NetworkPolicyIngressRule{
-					{
-						From: []networkingv1.NetworkPolicyPeer{
-							{
-								NamespaceSelector: &metav1.LabelSelector{
-									MatchLabels: map[string]string{
-										"app.kubernetes.io/managed-by": managedBy,
-										labelTeamId:                    instance.Spec.TeamId,
-										labelChallengeId:               instance.Spec.ChallengeId,
-									},
-								},
-							},
-						},
-					},
-				},
-				Egress: []networkingv1.NetworkPolicyEgressRule{
-					{
-						To: []networkingv1.NetworkPolicyPeer{
-							{
-								NamespaceSelector: &metav1.LabelSelector{
-									MatchLabels: map[string]string{
-										"app.kubernetes.io/managed-by": managedBy,
-										labelTeamId:                    instance.Spec.TeamId,
-										labelChallengeId:               instance.Spec.ChallengeId,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		// optionally enabled DNS for individual pods
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      "dns",
-			},
-			Spec: networkingv1.NetworkPolicySpec{
-				PodSelector: metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						labelDns: "true",
-					},
-				},
-				PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress},
-				Egress: []networkingv1.NetworkPolicyEgressRule{
-					{
-						To: []networkingv1.NetworkPolicyPeer{
-							{
-								NamespaceSelector: &metav1.LabelSelector{
-									MatchLabels: map[string]string{
-										"kubernetes.io/metadata.name": "kube-system",
-									},
-								},
-							},
-						},
-						Ports: []networkingv1.NetworkPolicyPort{
-							{
-								Protocol: &udp,
-								Port:     &dnsPort,
-							},
-							{
-								Protocol: &tcp,
-								Port:     &dnsPort,
-							},
-						},
-					},
-				},
-			},
-		},
-		// traefik -> instance namespace
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      "ingress-traefik",
-			},
-			Spec: networkingv1.NetworkPolicySpec{
-				PodSelector: metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						labelExposed: "true",
-					},
-				},
-				PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
-				Ingress: []networkingv1.NetworkPolicyIngressRule{
-					{
-						From: []networkingv1.NetworkPolicyPeer{
-							// TODO: should we let the end-user configure this (or at least the namespace and app name)?
-							{
-								NamespaceSelector: &metav1.LabelSelector{
-									MatchLabels: map[string]string{
-										"kubernetes.io/metadata.name": "traefik",
-									},
-								},
-								PodSelector: &metav1.LabelSelector{
-									MatchLabels: map[string]string{
-										"app.kubernetes.io/name": "traefik",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		// optionally enabled egress for individual pods
-		{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      "egress",
-			},
-			Spec: networkingv1.NetworkPolicySpec{
-				PodSelector: metav1.LabelSelector{
-					MatchLabels: map[string]string{
-						labelEgress: "true",
-					},
-				},
-				PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress},
-				Egress: []networkingv1.NetworkPolicyEgressRule{
-					{
-						To: []networkingv1.NetworkPolicyPeer{
-							{
-								IPBlock: &networkingv1.IPBlock{
-									CIDR: "0.0.0.0/0",
-									Except: []string{
-										"10.0.0.0/8",
-										"172.16.0.0/12",
-										"192.168.0.0/16",
-										"100.64.0.0/10",
-										"169.254.0.0/16",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	} {
-		var networkPolicyTmp networkingv1.NetworkPolicy
-		err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: networkPolicy.Name}, &networkPolicyTmp)
-		if err == nil {
-			// TODO: consider supporting patching the service - though this is very unlikely use-case
-			continue
-		}
-
-		if !apierrors.IsNotFound(err) {
-			return fmt.Errorf("getting network policy %s failed: %w", networkPolicy.Name, err)
-		}
-
-		if err := ctrl.SetControllerReference(instance, &networkPolicy, r.Scheme); err != nil {
-			return fmt.Errorf("setting controller reference for network policy %s failed: %w", networkPolicy.Name, err)
-		}
-
-		if err := r.Create(ctx, &networkPolicy); err != nil && !apierrors.IsAlreadyExists(err) {
-			return fmt.Errorf("creating network policy %s failed: %w", networkPolicy.Name, err)
-		}
-	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:   typeNetworkPoliciesDeployed,
-		Status: metav1.ConditionTrue,
-		Reason: "DeploySucceeded",
-	})
-	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-		return err
-	}
-
-	return nil
-}
-
-func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
-	log := logf.FromContext(ctx)
-	namespaceName := getNamespaceForInstance(*instance)
-	exposedHostnames, err := getExposedHostnamesAnnotationValue(instance, r.InstancerHost)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create namespace: %w", err)
 	}
+	r.setComponentStatus(instance, typeNamespaceDeployed, metav1.ConditionTrue, reasonSucceeded)
 
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeDeploymentsDeployed); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeDeploymentsDeployed,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
+	r.setComponentStatus(instance, typeNetworkPoliciesDeployed, metav1.ConditionFalse, reasonInProgress)
+	isolateNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "isolate-namespace", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, isolateNetworkPolicy, func() error {
+		isolateNetworkPolicy.Labels = map[string]string{
+			labelManagedBy:   managedBy,
+			labelTeamId:      instance.Spec.TeamId,
+			labelChallengeId: instance.Spec.ChallengeId,
 		}
+
+		isolateNetworkPolicy.Spec = networkingv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{},
+			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress, networkingv1.PolicyTypeEgress},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				// allow ingress from current namespace to current namespace
+				{
+					From: []networkingv1.NetworkPolicyPeer{
+						{
+							NamespaceSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"kubernetes.io/metadata.name": namespace.Name,
+								},
+							},
+						},
+					},
+				},
+			},
+			Egress: []networkingv1.NetworkPolicyEgressRule{
+				// allow egress from current namespace to current namespace
+				{
+					To: []networkingv1.NetworkPolicyPeer{
+						{
+							NamespaceSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"kubernetes.io/metadata.name": namespace.Name,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		return ctrl.SetControllerReference(instance, isolateNetworkPolicy, r.Scheme)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create isolate network policy: %w", err)
 	}
 
+	traefikNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-ingress-traefik", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, traefikNetworkPolicy, func() error {
+		traefikNetworkPolicy.Labels = map[string]string{
+			labelManagedBy:   managedBy,
+			labelTeamId:      instance.Spec.TeamId,
+			labelChallengeId: instance.Spec.ChallengeId,
+		}
+
+		traefikNetworkPolicy.Spec = networkingv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					labelExposed: "true",
+				},
+			},
+			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeIngress},
+			Ingress: []networkingv1.NetworkPolicyIngressRule{
+				// allow ingress from Traefik to exposed pods
+				{
+					From: []networkingv1.NetworkPolicyPeer{
+						// TODO: should we let the end-user configure this (or at least the namespace and app name)?
+						{
+							NamespaceSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"kubernetes.io/metadata.name": "traefik",
+								},
+							},
+							PodSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app.kubernetes.io/name": "traefik",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		return ctrl.SetControllerReference(instance, traefikNetworkPolicy, r.Scheme)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create traefik network policy: %w", err)
+	}
+
+	egressNetworkPolicy := &networkingv1.NetworkPolicy{ObjectMeta: metav1.ObjectMeta{Name: "allow-egress-label", Namespace: namespaceName}}
+	_, err = ctrl.CreateOrUpdate(ctx, r.Client, egressNetworkPolicy, func() error {
+		egressNetworkPolicy.Labels = map[string]string{
+			labelManagedBy:   managedBy,
+			labelTeamId:      instance.Spec.TeamId,
+			labelChallengeId: instance.Spec.ChallengeId,
+		}
+
+		egressNetworkPolicy.Spec = networkingv1.NetworkPolicySpec{
+			PodSelector: metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					labelEgress: "true",
+				},
+			},
+			PolicyTypes: []networkingv1.PolicyType{networkingv1.PolicyTypeEgress},
+			Egress: []networkingv1.NetworkPolicyEgressRule{
+				{
+					To: []networkingv1.NetworkPolicyPeer{
+						{
+							IPBlock: &networkingv1.IPBlock{
+								CIDR: "0.0.0.0/0",
+								Except: []string{
+									"10.0.0.0/8",
+									"172.16.0.0/12",
+									"192.168.0.0/16",
+									"100.64.0.0/10",
+									"169.254.0.0/16",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		return ctrl.SetControllerReference(instance, egressNetworkPolicy, r.Scheme)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create egress network policy: %w", err)
+	}
+	r.setComponentStatus(instance, typeNetworkPoliciesDeployed, metav1.ConditionTrue, reasonSucceeded)
+
+	r.setComponentStatus(instance, typeServicesDeployed, metav1.ConditionFalse, reasonInProgress)
+	serviceObjectManager := newObjectManager([]client.ObjectList{
+		&corev1.ServiceList{},
+	}, map[string]string{
+		labelManagedBy:   managedBy,
+		labelTeamId:      instance.Spec.TeamId,
+		labelChallengeId: instance.Spec.ChallengeId,
+	}, objectManagerInNamespaces(namespace.Name))
+	var serviceHostAliases []corev1.HostAlias
 	for _, pod := range instance.Spec.Pods {
-		var deployment v1.Deployment
-		err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: pod.Name}, &deployment)
-		if err == nil {
-			// TODO: consider supporting patching the deployment - though this is very unlikely use-case
-			continue
-		}
-
-		if !apierrors.IsNotFound(err) {
-			return fmt.Errorf("getting deployment %s failed: %w", pod.Name, err)
-		}
-
-		egress := "false"
-		if pod.Egress {
-			egress = "true"
-		}
-
-		// enable dns if egress is enabled and dns is unset
-		dnsEnabled := pod.Egress
-		if pod.Dns != nil {
-			dnsEnabled = *pod.Dns
-		}
-		dns := "false"
-		if dnsEnabled {
-			dns = "true"
-		}
-
-		exposed := "false"
-		for _, expose := range instance.Spec.Expose {
-			if expose.ContainerName != pod.Name {
-				continue
+		service := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: namespace.Name}}
+		_, err := ctrl.CreateOrUpdate(ctx, r.Client, service, func() error {
+			service.Labels = map[string]string{
+				labelManagedBy:   managedBy,
+				labelTeamId:      instance.Spec.TeamId,
+				labelChallengeId: instance.Spec.ChallengeId,
 			}
 
-			exposed = "true"
-			break
-		}
+			// replacing the complete spec would clear immutable values
+			service.Spec.Selector = map[string]string{
+				labelPod: pod.Name,
+			}
+			service.Spec.Ports = pod.Ports
 
-		podLabels := map[string]string{}
-		maps.Copy(podLabels, pod.Labels)
-		podLabels[labelTeamId] = instance.Spec.TeamId
-		podLabels[labelChallengeId] = instance.Spec.ChallengeId
-		podLabels[labelPod] = pod.Name
-		podLabels[labelEgress] = egress
-		podLabels[labelDns] = dns
-		podLabels[labelExposed] = exposed
-
-		// having secure defaults is nice
-		podSpec := pod.Spec
-		if podSpec.AutomountServiceAccountToken == nil {
-			podSpec.AutomountServiceAccountToken = ptr.To(false)
+			return ctrl.SetControllerReference(instance, service, r.Scheme)
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create service for pod %s: %w", pod.Name, err)
 		}
-		if podSpec.EnableServiceLinks == nil {
-			podSpec.EnableServiceLinks = ptr.To(false)
-		}
+		serviceObjectManager.Track(service)
 
-		var replicas int32 = 1
-		deployment = v1.Deployment{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      pod.Name,
-				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": managedBy,
-					labelTeamId:                    instance.Spec.TeamId,
-					labelChallengeId:               instance.Spec.ChallengeId,
-				},
-			},
-			Spec: v1.DeploymentSpec{
-				Replicas: &replicas,
+		serviceHostAliases = append(serviceHostAliases, corev1.HostAlias{
+			IP:        service.Spec.ClusterIP,
+			Hostnames: []string{pod.Name},
+		})
+	}
+	if err := serviceObjectManager.Cleanup(ctx, r.Client); err != nil {
+		log.Error(err, "Failed to clean up service objects")
+	}
+	r.setComponentStatus(instance, typeServicesDeployed, metav1.ConditionTrue, reasonSucceeded)
+
+	r.setComponentStatus(instance, typeDeploymentsDeployed, metav1.ConditionFalse, reasonInProgress)
+	exposedHostnames, err := getExposedHostnamesAnnotationValue(instance, r.InstancerHost)
+	if err != nil {
+		return fmt.Errorf("failed to get exposed hostnames annotation value: %w", err)
+	}
+
+	deploymentObjectManager := newObjectManager([]client.ObjectList{
+		&appsv1.DeploymentList{},
+	}, map[string]string{
+		labelManagedBy:   managedBy,
+		labelTeamId:      instance.Spec.TeamId,
+		labelChallengeId: instance.Spec.ChallengeId,
+	}, objectManagerInNamespaces(namespace.Name))
+	for _, pod := range instance.Spec.Pods {
+		deployment := &appsv1.Deployment{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: namespace.Name}}
+		_, err := ctrl.CreateOrUpdate(ctx, r.Client, deployment, func() error {
+			deployment.Labels = map[string]string{
+				labelManagedBy:   managedBy,
+				labelTeamId:      instance.Spec.TeamId,
+				labelChallengeId: instance.Spec.ChallengeId,
+			}
+
+			podLabels := map[string]string{}
+			maps.Copy(podLabels, pod.Labels)
+			podLabels[labelManagedBy] = managedBy
+			podLabels[labelTeamId] = instance.Spec.TeamId
+			podLabels[labelChallengeId] = instance.Spec.ChallengeId
+			podLabels[labelPod] = pod.Name
+			podLabels[labelEgress] = strconv.FormatBool(pod.Egress)
+			podLabels[labelExposed] = strconv.FormatBool(slices.ContainsFunc(instance.Spec.Expose, func(expose rctfv1.ChallengeInstanceExpose) bool {
+				return expose.ContainerName == pod.Name
+			}))
+
+			// having secure defaults is nice
+			podSpec := *pod.Spec.DeepCopy()
+			if podSpec.AutomountServiceAccountToken == nil {
+				podSpec.AutomountServiceAccountToken = ptr.To(false)
+			}
+			if podSpec.EnableServiceLinks == nil {
+				podSpec.EnableServiceLinks = ptr.To(false)
+			}
+			podSpec.HostAliases = serviceHostAliases
+
+			deployment.Spec = appsv1.DeploymentSpec{
+				Replicas: ptr.To[int32](1),
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						labelPod: pod.Name,
@@ -666,42 +525,74 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 							// Allow the cluster autoscaler to evict these pods during scale-down,
 							// otherwise it blocks on orphaned pods mid-namespace-deletion.
 							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
-							annotationExposedHostnames:                       exposedHostnames,
+
+							annotationExposedHostnames: exposedHostnames,
 						},
 						Labels: podLabels,
 					},
 					Spec: podSpec,
 				},
-			},
-		}
+			}
 
-		if err := ctrl.SetControllerReference(instance, &deployment, r.Scheme); err != nil {
-			return fmt.Errorf("setting controller reference for deployment %s failed: %w", pod.Name, err)
+			return ctrl.SetControllerReference(instance, deployment, r.Scheme)
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create deployment %s: %w", pod.Name, err)
 		}
-
-		if err := r.Create(ctx, &deployment); err != nil && !apierrors.IsAlreadyExists(err) {
-			return fmt.Errorf("creating deployment %s failed: %w", pod.Name, err)
-		}
+		deploymentObjectManager.Track(deployment)
 	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:   typeDeploymentsDeployed,
-		Status: metav1.ConditionTrue,
-		Reason: "DeploySucceeded",
-	})
-	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-		return err
+	if err := deploymentObjectManager.Cleanup(ctx, r.Client); err != nil {
+		log.Error(err, "Failed to clean up deployment objects")
 	}
+	r.setComponentStatus(instance, typeDeploymentsDeployed, metav1.ConditionTrue, reasonSucceeded)
+
+	r.setComponentStatus(instance, typeIngressesDeployed, metav1.ConditionFalse, reasonInProgress)
+	ingressObjectManager := newObjectManager([]client.ObjectList{
+		&v1alpha1.IngressRouteList{},
+		&v1alpha1.MiddlewareList{},
+		&v1alpha1.IngressRouteTCPList{},
+	}, map[string]string{
+		labelManagedBy:   managedBy,
+		labelTeamId:      instance.Spec.TeamId,
+		labelChallengeId: instance.Spec.ChallengeId,
+	}, objectManagerInNamespaces(namespace.Name))
+	instance.Status.Endpoints = nil // in case an operation fails, we don't want n duplicates
+	for _, expose := range instance.Spec.Expose {
+		endpoint := getEndpointForExpose(instance, expose, r.InstancerHost)
+		if expose.Kind == rctfv1.TCP {
+			log.Error(errors.New("unsupported expose kind TCP used"), "creating ingress failed")
+
+			// Right now, rCTF assumes we return expose -> endpoints mapped in the exact same order
+			instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
+			continue
+		}
+
+		objects := exposeToObjects(instance, expose, endpoint.Host)
+		for _, object := range objects {
+			_, err := ctrl.CreateOrUpdate(ctx, r.Client, object, func() error {
+				return ctrl.SetControllerReference(instance, object, r.Scheme)
+			})
+			if err != nil {
+				return fmt.Errorf("creating ingress object %s for endpoint %s failed: %w", object.GetName(), endpoint.Host, err)
+			}
+			ingressObjectManager.Track(object)
+		}
+
+		instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
+	}
+	if err := ingressObjectManager.Cleanup(ctx, r.Client); err != nil {
+		log.Error(err, "Failed to clean up ingress objects")
+	}
+	r.setComponentStatus(instance, typeIngressesDeployed, metav1.ConditionTrue, reasonSucceeded)
 
 	return nil
 }
 
-func (r *ChallengeInstanceReconciler) AreDeploymentsReady(ctx context.Context, instance *rctfv1.ChallengeInstance) (bool, error) {
-	namespaceName := getNamespaceForInstance(*instance)
+func (r *ChallengeInstanceReconciler) areDeploymentsReady(ctx context.Context, instance *rctfv1.ChallengeInstance) (bool, error) {
+	namespaceName := getNamespaceForInstance(instance)
 
 	for _, pod := range instance.Spec.Pods {
-		var deployment v1.Deployment
+		var deployment appsv1.Deployment
 		if err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: pod.Name}, &deployment); err != nil {
 			return false, fmt.Errorf("getting deployment %s failed: %w", pod.Name, err)
 		}
@@ -719,74 +610,6 @@ func (r *ChallengeInstanceReconciler) AreDeploymentsReady(ctx context.Context, i
 	return true, nil
 }
 
-func (r *ChallengeInstanceReconciler) EnsureServices(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
-	log := logf.FromContext(ctx)
-	namespaceName := getNamespaceForInstance(*instance)
-
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeServicesDeployed); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeServicesDeployed,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
-		}
-	}
-
-	for _, pod := range instance.Spec.Pods {
-		var service corev1.Service
-		err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: pod.Name}, &service)
-		if err == nil {
-			// TODO: consider supporting patching the service - though this is very unlikely use-case
-			continue
-		}
-
-		if !apierrors.IsNotFound(err) {
-			return fmt.Errorf("getting service %s failed: %w", pod.Name, err)
-		}
-
-		service = corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: namespaceName,
-				Name:      pod.Name,
-				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": managedBy,
-					labelTeamId:                    instance.Spec.TeamId,
-					labelChallengeId:               instance.Spec.ChallengeId,
-				},
-			},
-			Spec: corev1.ServiceSpec{
-				Selector: map[string]string{
-					labelPod: pod.Name,
-				},
-				Ports: pod.Ports,
-			},
-		}
-
-		if err := ctrl.SetControllerReference(instance, &service, r.Scheme); err != nil {
-			return fmt.Errorf("setting controller reference for service %s failed: %w", pod.Name, err)
-		}
-
-		if err := r.Create(ctx, &service); err != nil && !apierrors.IsAlreadyExists(err) {
-			return fmt.Errorf("creating service %s failed: %w", pod.Name, err)
-		}
-	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:   typeServicesDeployed,
-		Status: metav1.ConditionTrue,
-		Reason: "DeploySucceeded",
-	})
-	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-		return err
-	}
-
-	return nil
-}
-
 func exposeTypeToPort(exposeType rctfv1.ExposeType) uint16 {
 	switch exposeType {
 	// TCP is not supported (for now)
@@ -802,7 +625,7 @@ func exposeTypeToPort(exposeType rctfv1.ExposeType) uint16 {
 }
 
 func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.ChallengeInstanceExpose, hostname string) []client.Object {
-	namespaceName := getNamespaceForInstance(*instance)
+	namespaceName := getNamespaceForInstance(instance)
 	baseName := fmt.Sprintf("%s-%d", expose.ContainerName, expose.ContainerPort)
 
 	switch expose.Kind {
@@ -814,9 +637,9 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-http", baseName),
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": managedBy,
-						labelTeamId:                    instance.Spec.TeamId,
-						labelChallengeId:               instance.Spec.ChallengeId,
+						labelManagedBy:   managedBy,
+						labelTeamId:      instance.Spec.TeamId,
+						labelChallengeId: instance.Spec.ChallengeId,
 					},
 				},
 				Spec: v1alpha1.IngressRouteSpec{
@@ -847,6 +670,11 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-redirect", baseName),
+					Labels: map[string]string{
+						labelManagedBy:   managedBy,
+						labelTeamId:      instance.Spec.TeamId,
+						labelChallengeId: instance.Spec.ChallengeId,
+					},
 				},
 				Spec: v1alpha1.MiddlewareSpec{
 					RedirectScheme: &dynamic.RedirectScheme{
@@ -860,9 +688,9 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-http-redirect", baseName),
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": managedBy,
-						labelTeamId:                    instance.Spec.TeamId,
-						labelChallengeId:               instance.Spec.ChallengeId,
+						labelManagedBy:   managedBy,
+						labelTeamId:      instance.Spec.TeamId,
+						labelChallengeId: instance.Spec.ChallengeId,
 					},
 				},
 				Spec: v1alpha1.IngressRouteSpec{
@@ -895,9 +723,9 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-https", baseName),
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": managedBy,
-						labelTeamId:                    instance.Spec.TeamId,
-						labelChallengeId:               instance.Spec.ChallengeId,
+						labelManagedBy:   managedBy,
+						labelTeamId:      instance.Spec.TeamId,
+						labelChallengeId: instance.Spec.ChallengeId,
 					},
 				},
 				Spec: v1alpha1.IngressRouteSpec{
@@ -929,9 +757,9 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-tcp-ssl", baseName),
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": managedBy,
-						labelTeamId:                    instance.Spec.TeamId,
-						labelChallengeId:               instance.Spec.ChallengeId,
+						labelManagedBy:   managedBy,
+						labelTeamId:      instance.Spec.TeamId,
+						labelChallengeId: instance.Spec.ChallengeId,
 					},
 				},
 				Spec: v1alpha1.IngressRouteTCPSpec{
@@ -959,77 +787,11 @@ func exposeToObjects(instance *rctfv1.ChallengeInstance, expose rctfv1.Challenge
 	}
 }
 
-func (r *ChallengeInstanceReconciler) EnsureIngresses(ctx context.Context, instance *rctfv1.ChallengeInstance) error {
-	log := logf.FromContext(ctx)
-	namespaceName := getNamespaceForInstance(*instance)
-
-	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeIngressesDeployed); condition == nil {
-		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-			Type:   typeIngressesDeployed,
-			Status: metav1.ConditionFalse,
-			Reason: "DeployInProgress",
-		})
-		if err := r.Status().Update(ctx, instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
-			return err
-		}
-	}
-
-	instance.Status.Endpoints = nil // in case an operation fails, we don't want n duplicates
-	for _, expose := range instance.Spec.Expose {
-		endpoint := getEndpointForExpose(instance, expose, r.InstancerHost)
-		if expose.Kind == rctfv1.TCP {
-			// TODO: Log this? though we want to disallow this on the backend
-
-			// Right now, rCTF assumes we return expose -> endpoints mapped in the exact same order
-			instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
-			continue
-		}
-
-		objects := exposeToObjects(instance, expose, endpoint.Host)
-		for _, object := range objects {
-			err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: object.GetName()}, object)
-			if err == nil {
-				// TODO: consider supporting patching the objects - though this is very unlikely use-case
-				continue
-			}
-
-			if !apierrors.IsNotFound(err) {
-				return fmt.Errorf("getting object %s failed: %w", object.GetName(), err)
-			}
-
-			if err := ctrl.SetControllerReference(instance, object, r.Scheme); err != nil {
-				return fmt.Errorf("setting controller reference for object %s failed: %w", object.GetName(), err)
-			}
-
-			if err := r.Create(ctx, object); err != nil && !apierrors.IsAlreadyExists(err) {
-				return fmt.Errorf("creating object %s failed: %w", object.GetName(), err)
-			}
-		}
-
-		instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
-	}
-
-	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
-		Type:   typeIngressesDeployed,
-		Status: metav1.ConditionTrue,
-		Reason: "DeploySucceeded",
-	})
-	if err := r.Status().Update(ctx, instance); err != nil {
-		log.Error(err, "Unable to update ChallengeInstance")
-		return err
-	}
-
-	return nil
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *ChallengeInstanceReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	r.APIReader = mgr.GetAPIReader()
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&rctfv1.ChallengeInstance{}).
-		Owns(&v1.Deployment{}).
+		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Owns(&networkingv1.NetworkPolicy{}).
 		Owns(&v1alpha1.IngressRoute{}).

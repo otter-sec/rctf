@@ -219,18 +219,17 @@ Terraform requests the wildcard certificate outside the cluster, so DNS provider
 
 ## Network policies
 
-The controller creates four `NetworkPolicy` resources in every instance namespace:
+The controller creates three `NetworkPolicy` resources in every instance namespace:
 
-| Policy | Pod selector | Behavior |
-| --- | --- | --- |
-| `isolate-namespace` | All pods | Ingress is restricted to other pods in the same managed namespace. Egress is restricted to pods in the same namespace. |
-| `dns` | `rctf.osec.io/dns=true` | Allows egress on UDP and TCP `53` to the `kube-system` namespace for DNS resolution. |
-| `ingress-traefik` | `rctf.osec.io/exposed=true` | Allows ingress from Traefik pods in the `traefik` namespace. Applied only to pods that match an `<red>expose[].containerName</red>` entry. |
-| `egress` | `rctf.osec.io/egress=true` | Allows egress to `0.0.0.0/0` except RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`). |
+| Policy                  | Pod selector | Behavior |
+|-------------------------| --- | --- |
+| `isolate-namespace`     | All pods | Ingress is restricted to other pods in the same managed namespace. Egress is restricted to pods in the same namespace. |
+| `allow-ingress-traefik` | `rctf.osec.io/exposed=true` | Allows ingress from Traefik pods in the `traefik` namespace. Applied only to pods that match an `<red>expose[].containerName</red>` entry. |
+| `allow-egress-label`    | `rctf.osec.io/egress=true` | Allows egress to `0.0.0.0/0` except RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`). |
 
 The controller labels a pod as exposed when it appears in an `<red>expose[]</red>` entry. It adds the egress label only when that pod sets `egress: true{:yml}` in `<red>instancerConfig</red>`. Leave it `false{:yml}` when the challenge does not need internet access.
 
-The dns label follows the pod's `dns{:yml}` field. When `dns{:yml}` is unset, it defaults to the `egress{:yml}` value, so pods with internet access resolve names without extra configuration. An isolated pod gets no DNS unless it opts in with `dns: true{:yml}`.
+Any pod with defined `ports{:yml}` will be accessible across all pods part of the challenge instance by using the pod name directly as the DNS name, e.g. pod `postgres` can be connected to by using `postgres:5432`.
 
 :::note[Cluster network plugin]
 Network policies only enforce isolation when the cluster's CNI supports them. The bundled GKE Terraform module enables GKE Dataplane V2, which enforces them. On a bare-metal cluster, make sure the chosen CNI honors `NetworkPolicy`.
@@ -402,7 +401,7 @@ deployment:
 
 Things worth pointing at in this example:
 
-- **`egress: false{:yml}`** keeps the pod sealed off from public internet egress and, since `dns{:yml}` is unset, from DNS as well. Set it to `true{:yml}` only for challenges that need outbound access, or set `dns: true{:yml}` alone when a pod only needs name resolution.
+- **`egress: false{:yml}`** keeps the pod sealed off from public internet egress, though it can still connect to any `ports{:yml}` part of the same challenge instance. Set it to `true{:yml}` only for challenges that need outbound access.
 - **Resource `<red>requests</red>` and `<red>limits</red>`** keep one instance from starving the node. Set both from the expected peak load for one team.
 - **`<red>readinessProbe</red>`** keeps Traefik from routing to the pod before the app is up. Without it, the first request after creation often 502s while the container is still booting.
 - **`<red>readOnlyRootFilesystem</red>` plus the sized `<red>emptyDir</red>`** gives the app a bounded writable `/tmp/{:dir}` without letting it write into the image layer.

@@ -76,8 +76,6 @@ spec:
               pods:
                 items:
                   properties:
-                    dns:
-                      type: boolean
                     egress:
                       type: boolean
                     labels:

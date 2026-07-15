@@ -420,9 +420,6 @@ const podSchema = z.object({
   ports: z.array(servicePortSchema).check(z.describe('Ports')),
   spec: podSpecSchema.check(z.describe('Pod spec')),
   egress: z.optional(z.boolean()).check(z.describe('Egress')),
-  dns: z
-    .optional(z.boolean())
-    .check(z.describe('DNS (defaults to the egress value)')),
   labels: z
     .optional(z.record(z.string(), z.string()))
     .check(z.describe('Labels')),

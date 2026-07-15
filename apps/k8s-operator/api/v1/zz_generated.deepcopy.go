@@ -121,11 +121,6 @@ func (in *ChallengeInstancePod) DeepCopyInto(out *ChallengeInstancePod) {
 		}
 	}
 	in.Spec.DeepCopyInto(&out.Spec)
-	if in.Dns != nil {
-		in, out := &in.Dns, &out.Dns
-		*out = new(bool)
-		**out = **in
-	}
 	if in.Labels != nil {
 		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
