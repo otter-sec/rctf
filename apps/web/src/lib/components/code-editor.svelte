@@ -1,6 +1,27 @@
 <script lang="ts">
-  import { captureElement } from '$lib/attachments/capture-element'
-  import { loadHighlighter, type HighlightFn } from './code-highlight'
+  import {
+    defaultKeymap,
+    history,
+    historyKeymap,
+    indentWithTab,
+  } from '@codemirror/commands'
+  import { javascript } from '@codemirror/lang-javascript'
+  import { markdown } from '@codemirror/lang-markdown'
+  import { yaml } from '@codemirror/lang-yaml'
+  import {
+    indentOnInput,
+    indentUnit,
+    syntaxHighlighting,
+  } from '@codemirror/language'
+  import { Compartment, EditorState, type Extension } from '@codemirror/state'
+  import {
+    EditorView,
+    keymap,
+    placeholder as placeholderExt,
+  } from '@codemirror/view'
+  import { classHighlighter } from '@lezer/highlight'
+  import { indentationMarkers } from '@replit/codemirror-indentation-markers'
+  import { untrack } from 'svelte'
 
   interface Props {
     value: string
@@ -11,6 +32,7 @@
     label?: string
     invalid?: boolean
     wrap?: boolean
+    indent?: boolean
     oninput: (value: string) => void
     onblur?: () => void
   }
@@ -24,190 +46,179 @@
     label,
     invalid = false,
     wrap = false,
+    indent = false,
     oninput,
     onblur,
   }: Props = $props()
 
-  let highlight = $state<HighlightFn | null>(null)
+  let container = $state<HTMLElement | null>(null)
+  let view = $state<EditorView | null>(null)
+  const readOnly = new Compartment()
+  const contentAttrs = new Compartment()
+
+  function languageExtensions(): Extension[] {
+    switch (language) {
+      case 'yaml':
+        return [yaml()]
+      case 'javascript':
+        return [javascript()]
+      case 'typescript':
+        return [javascript({ typescript: true })]
+      case 'markdown':
+        return [markdown()]
+      default:
+        return []
+    }
+  }
+
+  function attributes(): Record<string, string> {
+    return {
+      spellcheck: 'false',
+      autocapitalize: 'off',
+      ...(label ? { 'aria-label': label } : {}),
+      ...(invalid ? { 'aria-invalid': 'true' } : {}),
+    }
+  }
 
   $effect(() => {
-    let cancelled = false
-    loadHighlighter(language).then(fn => {
-      if (!cancelled) highlight = fn
-    })
-    return () => {
-      cancelled = true
+    const parent = container
+    if (!parent) {
+      return
     }
-  })
-
-  const html = $derived(highlight?.(`${value}\n`) ?? null)
-
-  let overlay = $state<HTMLElement | null>(null)
-  const captureOverlay = captureElement<HTMLElement>(node => (overlay = node))
-
-  let textarea = $state<HTMLTextAreaElement | null>(null)
-  const captureTextarea = captureElement<HTMLTextAreaElement>(
-    node => (textarea = node)
-  )
-
-  function syncScroll(event: Event) {
-    if (!overlay) return
-    const target = event.currentTarget as HTMLTextAreaElement
-    overlay.scrollTop = target.scrollTop
-    overlay.scrollLeft = target.scrollLeft
-  }
-
-  interface SelectionRect {
-    top: number
-    left: number
-    width: number
-    height: number
-  }
-
-  let selectionRects = $state<SelectionRect[]>([])
-  function computeSelectionRects(): SelectionRect[] {
-    if (!textarea || !overlay || document.activeElement !== textarea) {
-      return []
-    }
-    const { selectionStart, selectionEnd } = textarea
-    if (selectionStart === selectionEnd) {
-      return []
-    }
-    const pre = overlay.querySelector('pre')
-    if (!pre) {
-      return []
-    }
-
-    const range = document.createRange()
-    const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT)
-    let offset = 0
-    let startSet = false
-    let endSet = false
-    while (walker.nextNode()) {
-      const node = walker.currentNode as Text
-      const next = offset + node.data.length
-      if (!startSet && selectionStart <= next) {
-        range.setStart(node, selectionStart - offset)
-        startSet = true
-      }
-      if (startSet && selectionEnd <= next) {
-        range.setEnd(node, selectionEnd - offset)
-        endSet = true
-        break
-      }
-      offset = next
-    }
-    if (!endSet) {
-      return []
-    }
-
-    const preStyle = getComputedStyle(pre)
-    const pitch = parseFloat(preStyle.lineHeight)
-    const stub = parseFloat(preStyle.fontSize) / 2
-    const preRect = pre.getBoundingClientRect()
-    const rects = Array.from(range.getClientRects()).sort(
-      (a, b) => a.top - b.top
-    )
-
-    const rows: SelectionRect[] = []
-    for (const rect of rects) {
-      const top = rect.top - preRect.top - (pitch - rect.height) / 2
-      const row = rows.at(-1)
-      if (row && Math.abs(top - row.top) < 2) {
-        const right = Math.max(row.left + row.width, rect.right - preRect.left)
-        row.left = Math.min(row.left, rect.left - preRect.left)
-        row.width = right - row.left
-      } else {
-        rows.push({
-          top,
-          left: rect.left - preRect.left,
-          width: rect.width,
-          height: pitch,
+    const instance = untrack(
+      () =>
+        new EditorView({
+          parent,
+          state: EditorState.create({
+            doc: value,
+            extensions: [
+              history(),
+              indentOnInput(),
+              indentUnit.of('  '),
+              EditorState.tabSize.of(2),
+              keymap.of([
+                ...(indent ? [indentWithTab] : []),
+                ...defaultKeymap,
+                ...historyKeymap,
+              ]),
+              ...languageExtensions(),
+              syntaxHighlighting(classHighlighter),
+              ...(wrap ? [EditorView.lineWrapping] : []),
+              ...(indent
+                ? [
+                    indentationMarkers({
+                      thickness: 1,
+                      colors: {
+                        light: 'var(--code-guide)',
+                        dark: 'var(--code-guide)',
+                        activeLight: 'var(--code-guide-active)',
+                        activeDark: 'var(--code-guide-active)',
+                      },
+                    }),
+                  ]
+                : []),
+              ...(placeholder ? [placeholderExt(placeholder)] : []),
+              readOnly.of(EditorState.readOnly.of(disabled)),
+              contentAttrs.of(EditorView.contentAttributes.of(attributes())),
+              EditorView.updateListener.of(update => {
+                if (update.docChanged) {
+                  oninput(update.state.doc.toString())
+                }
+              }),
+              EditorView.domEventHandlers({
+                blur: () => onblur?.(),
+              }),
+            ],
+          }),
         })
-      }
+    )
+    view = instance
+    return () => {
+      instance.destroy()
+      view = null
     }
-    for (const row of rows) {
-      if (row.width < stub) {
-        row.width = stub
-      }
-    }
-    return rows
-  }
-
-  function updateSelectionRects() {
-    selectionRects = computeSelectionRects()
-  }
-
-  $effect(() => {
-    document.addEventListener('selectionchange', updateSelectionRects)
-    return () =>
-      document.removeEventListener('selectionchange', updateSelectionRects)
   })
 
   $effect(() => {
-    void html
-    updateSelectionRects()
+    if (view && value !== view.state.doc.toString()) {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: value },
+      })
+    }
   })
 
   $effect(() => {
-    if (!overlay) return
-    const observer = new ResizeObserver(updateSelectionRects)
-    observer.observe(overlay)
-    return () => observer.disconnect()
+    if (view && view.state.readOnly !== disabled) {
+      view.dispatch({
+        effects: readOnly.reconfigure(EditorState.readOnly.of(disabled)),
+      })
+    }
+  })
+
+  $effect(() => {
+    const attrs = attributes()
+    if (view) {
+      view.dispatch({
+        effects: contentAttrs.reconfigure(
+          EditorView.contentAttributes.of(attrs)
+        ),
+      })
+    }
   })
 </script>
 
 <code-editor-shell
+  bind:this={container}
   data-invalid={invalid || undefined}
-  data-wrap={wrap || undefined}
->
-  {#if html !== null}
-    <code-editor-overlay {@attach captureOverlay} aria-hidden="true">
-      {#if selectionRects.length > 0}
-        <code-editor-selection>
-          {#each selectionRects as rect, i (i)}
-            <div
-              style:top="{rect.top}px"
-              style:left="{rect.left}px"
-              style:width="{rect.width}px"
-              style:height="{rect.height}px"
-            ></div>
-          {/each}
-        </code-editor-selection>
-      {/if}
-      {@html html}
-    </code-editor-overlay>
-  {/if}
-  <textarea
-    {@attach captureTextarea}
-    data-highlighted={html !== null || undefined}
-    {rows}
-    {value}
-    readonly={disabled || undefined}
-    {placeholder}
-    aria-label={label}
-    aria-invalid={invalid || undefined}
-    spellcheck="false"
-    autocomplete="off"
-    autocapitalize="off"
-    wrap={wrap ? 'soft' : 'off'}
-    oninput={e => oninput(e.currentTarget.value)}
-    onfocus={updateSelectionRects}
-    onblur={() => {
-      updateSelectionRects()
-      onblur?.()
-    }}
-    onscroll={syncScroll}></textarea>
-</code-editor-shell>
+  style:--code-editor-block-size="calc({rows * 1.5}em + 2 * var(--space-3xs))"
+></code-editor-shell>
 
 <style>
   code-editor-shell {
+    --code-guide: color-mix(in srgb, var(--foreground-l4) 40%, transparent);
+    --code-guide-active: color-mix(
+      in srgb,
+      var(--foreground-l4) 70%,
+      transparent
+    );
+    --code-key: #116329;
+    --code-string: #0a3069;
+    --code-literal: #0550ae;
+    --code-keyword: #cf222e;
+    --code-type: #953800;
+    --code-comment: #6e7781;
+    --code-link: #0969da;
+
     position: relative;
-    display: block;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    font-size: var(--step--1);
     background: var(--background-l4);
     border: 2px solid transparent;
     border-radius: var(--radius-md);
+
+    :root[data-theme='dark'] & {
+      --code-key: #7ee787;
+      --code-string: #a5d6ff;
+      --code-literal: #79c0ff;
+      --code-keyword: #ff7b72;
+      --code-type: #ffa657;
+      --code-comment: #8b949e;
+      --code-link: #58a6ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) & {
+        --code-key: #7ee787;
+        --code-string: #a5d6ff;
+        --code-literal: #79c0ff;
+        --code-keyword: #ff7b72;
+        --code-type: #ffa657;
+        --code-comment: #8b949e;
+        --code-link: #58a6ff;
+      }
+    }
 
     &:focus-within {
       outline: 2px solid var(--ring);
@@ -218,99 +229,89 @@
       border-color: var(--foreground-destructive);
     }
 
-    &[data-wrap] {
-      textarea,
-      code-editor-overlay {
-        scrollbar-gutter: stable;
-      }
-
-      textarea,
-      code-editor-overlay :global(pre) {
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-      }
+    :global(.cm-editor) {
+      block-size: var(--code-editor-block-size);
+      min-block-size: 4.5rem;
     }
-  }
 
-  textarea,
-  code-editor-overlay :global(pre) {
-    margin: 0;
-    padding: var(--space-3xs) var(--space-2xs);
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    line-height: 1.5;
-    tab-size: 2;
-    white-space: pre;
-  }
+    :global(.cm-editor.cm-focused) {
+      outline: none;
+    }
 
-  textarea {
-    position: relative;
-    display: block;
-    inline-size: 100%;
-    min-block-size: 4.5rem;
-    overflow: auto;
-    color: var(--foreground-l0);
-    background: transparent;
-    border: none;
-    outline: none;
+    :global(.cm-scroller) {
+      font-family: var(--font-mono);
+      line-height: 1.5;
+    }
 
-    &[data-highlighted] {
-      color: transparent;
+    :global(.cm-content) {
+      padding: var(--space-3xs) 0;
       caret-color: var(--foreground-l0);
-
-      /* the overlay draws the selection instead */
-      &::selection {
-        background: transparent;
-      }
     }
 
-    &::selection {
+    :global(.cm-line) {
+      padding-inline: var(--space-2xs);
+    }
+
+    :global(.cm-content ::selection),
+    :global(.cm-line::selection) {
       background: color-mix(in srgb, var(--foreground-accent) 35%, transparent);
     }
 
-    &::placeholder {
+    :global(.cm-placeholder) {
       color: var(--foreground-l4);
     }
-  }
 
-  code-editor-overlay {
-    position: absolute;
-    inset: 0;
-    display: block;
-    overflow: hidden;
-    pointer-events: none;
-
-    code-editor-selection {
-      position: absolute;
-      inset-block-start: 0;
-      inset-inline-start: 0;
-      display: block;
-
-      div {
-        position: absolute;
-        background: color-mix(
-          in srgb,
-          var(--foreground-accent) 35%,
-          transparent
-        );
-      }
+    :global(.tok-propertyName) {
+      color: var(--code-key);
     }
 
-    :global(pre) {
-      background: transparent !important;
+    :global(.tok-string),
+    :global(.tok-string2),
+    :global(.tok-url) {
+      color: var(--code-string);
     }
 
-    :global(.shiki),
-    :global(.shiki span) {
-      :global(:root[data-theme='dark']) & {
-        color: var(--shiki-dark) !important;
-      }
+    :global(.tok-number),
+    :global(.tok-bool),
+    :global(.tok-atom),
+    :global(.tok-literal) {
+      color: var(--code-literal);
+    }
 
-      @media (prefers-color-scheme: dark) {
-        :global(:root:not([data-theme])) & {
-          color: var(--shiki-dark) !important;
-        }
-      }
+    :global(.tok-keyword),
+    :global(.tok-operatorKeyword) {
+      color: var(--code-keyword);
+    }
+
+    :global(.tok-typeName),
+    :global(.tok-className) {
+      color: var(--code-type);
+    }
+
+    :global(.tok-comment),
+    :global(.tok-meta) {
+      color: var(--code-comment);
+    }
+
+    :global(.tok-link) {
+      color: var(--code-link);
+      text-decoration: underline;
+    }
+
+    :global(.tok-heading) {
+      font-weight: 700;
+    }
+
+    :global(.tok-emphasis) {
+      font-style: italic;
+    }
+
+    :global(.tok-strong) {
+      font-weight: 700;
+    }
+
+    :global(.tok-invalid) {
+      color: var(--foreground-destructive);
     }
   }
 </style>
