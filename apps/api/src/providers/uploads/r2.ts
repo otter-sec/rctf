@@ -16,7 +16,8 @@ export default class R2Provider extends S3CompatibleProvider {
       cfAccountId: process.env.RCTF_R2_ACCOUNT_ID ?? _options.cfAccountId,
       cfKeyId: process.env.RCTF_R2_KEY_ID ?? _options.cfKeyId,
       cfKeySecret: process.env.RCTF_R2_KEY_SECRET ?? _options.cfKeySecret,
-      publicBaseUrl: process.env.RCTF_R2_PUBLIC_BASE_URL ?? _options.publicBaseUrl,
+      publicBaseUrl:
+        process.env.RCTF_R2_PUBLIC_BASE_URL ?? _options.publicBaseUrl,
     } as R2ProviderOptions
 
     if (

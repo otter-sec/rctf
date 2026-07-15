@@ -2,7 +2,7 @@ import type { UploadProvider } from './base'
 import GCSProvider from './gcs'
 import LocalProvider from './local'
 import S3Provider from './s3'
-import R2Provider from "./r2.ts";
+import R2Provider from './r2.ts'
 
 type UploadProviderConstructor = (options: any) => UploadProvider
 export const uploadProviders: Record<string, UploadProviderConstructor> = {
