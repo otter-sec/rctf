@@ -25,6 +25,10 @@
   }: Props = $props()
 
   let invalid = $state(false)
+  let pending = $state('')
+  let focused = $state(false)
+
+  const hasPending = $derived(!!pending.trim() && !disabled)
 
   function commit(next: string[]) {
     value = next
@@ -38,18 +42,17 @@
 
   function handleKeydown(event: KeyboardEvent) {
     if (disabled) return
-    const input = event.currentTarget as HTMLInputElement
-    if (event.key === 'Enter' && input.value.trim()) {
+    if (event.key === 'Enter' && pending.trim()) {
       event.preventDefault()
-      const result = addTag(value, input.value, validate)
+      const result = addTag(value, pending, validate)
       if (result.kind === 'added') {
         commit(result.value)
-        input.value = ''
+        pending = ''
       } else if (result.kind === 'rejected') {
         invalid = true
         setTimeout(() => (invalid = false), 500)
       }
-    } else if (event.key === 'Backspace' && !input.value && value.length > 0) {
+    } else if (event.key === 'Backspace' && !pending && value.length > 0) {
       commit(removeLastTag(value))
     }
   }
@@ -57,6 +60,7 @@
 
 <tag-input
   data-invalid={invalid || undefined}
+  data-pending={hasPending ? '' : undefined}
   data-disabled={disabled || undefined}
 >
   {#each value as item, index (index)}
@@ -79,13 +83,21 @@
   {/each}
   <input
     type="text"
+    bind:value={pending}
     placeholder={value.length === 0 ? emptyPlaceholder : placeholder}
     onkeydown={handleKeydown}
+    onfocus={() => (focused = true)}
+    onblur={() => (focused = false)}
     readonly={disabled || undefined}
     aria-disabled={disabled || undefined}
     {...restProps}
   />
 </tag-input>
+{#if hasPending}
+  <tag-input-hint role="status" data-unsaved={!focused || undefined}>
+    {focused ? 'Press Enter to add' : 'Unsaved text - press Enter to add it'}
+  </tag-input-hint>
+{/if}
 
 <style>
   tag-input {
@@ -105,13 +117,24 @@
       outline-offset: -1px;
     }
 
-    &[data-invalid] {
+    &[data-invalid],
+    &[data-pending]:not(:focus-within) {
       border-color: var(--foreground-destructive);
     }
 
     &[data-disabled] {
       cursor: not-allowed;
       opacity: 0.5;
+    }
+  }
+
+  tag-input-hint {
+    display: block;
+    font-size: var(--step--1);
+    color: var(--foreground-l4);
+
+    &[data-unsaved] {
+      color: var(--foreground-destructive);
     }
   }
 
