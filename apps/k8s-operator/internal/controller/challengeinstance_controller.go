@@ -73,6 +73,7 @@ const (
 	typeIngressesDeployed       = "IngressesDeployed"
 	reasonInProgress            = "InProgress"
 	reasonSucceeded             = "Succeeded"
+	reasonDeployFailed          = "DeployFailed"
 )
 
 // +kubebuilder:rbac:groups=rctf.osec.io,resources=challengeinstances,verbs=get;list;watch;create;update;patch;delete
@@ -237,10 +238,15 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}()
 
+	wasReady := meta.IsStatusConditionTrue(instance.Status.Conditions, typeReady)
 	r.setComponentStatus(&instance, typeReady, metav1.ConditionFalse, reasonInProgress)
 
 	if err := r.deployResources(ctx, &instance); err != nil {
 		log.Error(err, "Unable to deploy resources")
+		// failed during the first deploy, set deploy failed so that the platform can display the "ERRORED" status
+		if !wasReady {
+			r.setComponentStatus(&instance, typeReady, metav1.ConditionUnknown, reasonDeployFailed)
+		}
 		return ctrl.Result{}, fmt.Errorf("unable to deploy resources: %w", err)
 	}
 
