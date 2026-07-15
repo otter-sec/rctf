@@ -1,13 +1,13 @@
 ---
 title: Upload providers
-description: Configure file storage with local filesystem, Amazon S3, or Google Cloud Storage.
+description: Configure file storage with local filesystem, Amazon S3, Cloudflare R2, or Google Cloud Storage.
 order: 3
 ---
 
 Upload providers handle storage for both challenge file attachments **and team avatars**. Both share the same provider, so anything you configure here applies to both.
 
 :::warning[v2 needs delete permissions]
-Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and the admin-side file deletion flows both depend on it. If you reuse a v1 IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, add `<green>s3:DeleteObject</green>` to it (or the GCS equivalent `<green>storage.objects.delete</green>`).
+Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and the admin-side file deletion flows both depend on it. If you reuse a v1 IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, add `<green>s3:DeleteObject</green>` to it (or the equivalent permission for R2 or GCS).
 :::
 
 ## Configuration
@@ -50,7 +50,7 @@ uploadProvider:
 Files are served by the API server at `/uploads/*`. Path traversal protection is built in.
 
 :::tip
-The local provider works well for development and small events. S3 or GCS is a better fit when many participants will download large challenge files, since those downloads no longer pass through the rCTF server.
+The local provider works well for development and small events. S3, R2, or GCS is a better fit when many participants will download large challenge files, since those downloads no longer pass through the rCTF server.
 :::
 ::::
 ::::tab[uploads/s3]
@@ -74,6 +74,30 @@ uploadProvider:
 | `<red>awsRegion</red>`    | `<yellow>RCTF_S3_REGION</yellow>`     | AWS region            |
 
 Files are stored with `public-read` ACL and `attachment` content disposition. The bucket has to allow public reads.
+::::
+::::tab[uploads/r2]
+Stores files in a Cloudflare R2 bucket.
+
+```yaml
+uploadProvider:
+  name: uploads/r2
+  options:
+    bucketName: my-ctf-uploads
+    cfAccountId: 023e105f4ecef8ad9ca31a8372d0c353
+    cfKeyId: 0123456789abcdef0123456789abcdef
+    cfKeySecret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    publicBaseUrl: https://files.example.com
+```
+
+| Option                       | Environment Variable                         | Description           |
+| ---------------------------- | -------------------------------------------- |-----------------------|
+| `<red>bucketName</red>`      | `<yellow>RCTF_R2_BUCKET</yellow>`            | R2 bucket name        |
+| `<red>cfAccountId</red>`     | `<yellow>RCTF_R2_ACCOUNT_ID</yellow>`        | Cloudflare account ID |
+| `<red>cfKeyId</red>`         | `<yellow>RCTF_R2_KEY_ID</yellow>`            | R2 access key ID      |
+| `<red>cfKeySecret</red>`     | `<yellow>RCTF_R2_KEY_SECRET</yellow>`        | R2 secret access key  |
+| `<red>publicBaseUrl</red>`   | `<yellow>RCTF_R2_PUBLIC_BASE_URL</yellow>`   | Public bucket URL     |
+
+The R2 API token needs permission to read, write, and delete objects. Configure the bucket for public access and set `<red>publicBaseUrl</red>` to its custom domain. Files are stored with `attachment` content disposition.
 ::::
 ::::tab[uploads/gcs]
 Stores files in a Google Cloud Storage bucket.
@@ -104,7 +128,7 @@ Files are stored with public visibility. The bucket has to be configured to allo
 
 ## Terraform templates
 
-Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3 or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module exposes the generated credentials as sensitive Terraform outputs for use in `rctf.d/{:dir}`.
+Terraform modules under `deploy/terraform/storage/{:dir}` can create an S3, R2, or GCS bucket, its CORS rules, and credentials limited to the permissions rCTF needs. Each module exposes the generated credentials as sensitive Terraform outputs for use in `rctf.d/{:dir}`.
 
 ::::tabs
 :::tab[AWS S3]
@@ -134,6 +158,42 @@ uploadProvider:
 ```
 
 The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default, which you can override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
+:::
+:::tab[Cloudflare R2]
+
+```ansi
+$ <red>cd</red> deploy/terraform/storage/r2
+$ <red>terraform</red> init
+$ <red>terraform</red> apply <dim>-var=</dim><green>"location=weur"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green> <dim>-var=</dim><green>"zone_id=your-domain-zone-id"</green>
+```
+
+The public R2 hostname defaults to `cdn.<your-zone-domain>`. Override the optional `subdomain` variable if you want a different hostname, for example with `<dim>-var=</dim><green>"subdomain=files"</green>`.
+
+Terraform requires a Cloudflare account API token with `<route>Workers R2 Storage: Edit</route>`, `<route>Account API Tokens: Edit</route>`, and `<route>Zone: Read</route>`. Create one with the [preconfigured token template](https://dash.cloudflare.com/?to=/:account/api-tokens&permissionGroupKeys=%5B%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_api_tokens%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%5D&name=rCTF%20Terraform%20Bootstrap). The module derives the account ID and base domain from the supplied zone ID, then creates a separate account API token with object access scoped to the new bucket. Only use the bootstrap token for Terraform; use the generated bucket-scoped credentials in rCTF.
+
+Read the generated bucket-scoped credentials from the sensitive outputs (`account_id`, `bucket`, and `public_base_url` are printed to stdout on apply):
+
+```ansi
+$ <red>terraform</red> output -raw access_key_id
+$ <red>terraform</red> output -raw secret_access_key
+```
+
+Drop the outputs into your config:
+
+```yaml title="rctf.d/03-uploads.yaml"
+uploadProvider:
+  name: uploads/r2
+  options:
+    bucketName: my-ctf-uploads
+    cfAccountId: <account_id output>
+    cfKeyId: <access_key_id output>
+    cfKeySecret: <secret_access_key output>
+    publicBaseUrl: <public_base_url output>
+```
+
+The module creates the R2 bucket, configures CORS, connects the derived hostname as its public custom domain, and creates an account API token with object read/write access scoped to that bucket. Cloudflare creates the custom domain's DNS record when it connects the bucket. The hostname must not already have a conflicting DNS record.
+
+:::
 :::
 :::tab[GCS]
 ```ansi
