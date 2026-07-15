@@ -219,7 +219,7 @@ Terraform requests the wildcard certificate outside the cluster, so DNS provider
 
 ## Network policies
 
-The controller creates four `NetworkPolicy` resources in every instance namespace:
+The controller creates three `NetworkPolicy` resources in every instance namespace:
 
 | Policy                  | Pod selector | Behavior |
 |-------------------------| --- | --- |
