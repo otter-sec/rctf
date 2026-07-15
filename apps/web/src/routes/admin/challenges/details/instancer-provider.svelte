@@ -28,6 +28,17 @@
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
   let schemaFormValid = $state(true)
+  let yamlSource: string | null = null
+
+  $effect(() => {
+    const snapshot = config ? JSON.stringify(config.config) : null
+    if (snapshot === yamlSource) {
+      return
+    }
+    yamlSource = snapshot
+    yamlText = stringifyConfig(config)
+    yamlError = null
+  })
 
   $effect(() => {
     valid = resolveInstancerValidity({
@@ -38,45 +49,40 @@
     })
   })
 
+  function stringifyConfig(target: InstancerConfig | null): string {
+    const record = target?.config
+    if (!record || Object.keys(record).length === 0) {
+      return ''
+    }
+    return yaml.stringify(record, { lineWidth: 0 })
+  }
+
   function patch(fields: Partial<InstancerConfig>) {
     if (config) onChange({ ...config, ...fields })
   }
 
-  function enterAdvanced() {
-    if (config) {
-      yamlText = yaml.stringify(config.config)
-      yamlError = null
-    }
-    advanced = true
-  }
-
-  function exitAdvanced() {
-    applyYaml(yamlText)
-    advanced = false
-  }
-
   function applyYaml(text: string) {
     yamlText = text
+    let parsed: unknown
     try {
-      const parsed = yaml.parse(text)
-      if (typeof parsed === 'object' && parsed !== null) {
-        yamlError = null
-        patch({ config: parsed as Record<string, unknown> })
-      } else {
-        yamlError = 'YAML must be an object'
-      }
+      parsed = yaml.parse(text) ?? {}
     } catch (error) {
       yamlError = error instanceof Error ? error.message : 'Invalid YAML'
+      return
     }
+    if (typeof parsed !== 'object' || Array.isArray(parsed)) {
+      yamlError = 'YAML must be an object'
+      return
+    }
+    yamlError = null
+    const next = parsed as Record<string, unknown>
+    yamlSource = JSON.stringify(next)
+    patch({ config: next })
   }
 </script>
 
 {#snippet modeToggle()}
-  <button
-    type="button"
-    data-mode-toggle
-    onclick={() => (advanced ? exitAdvanced() : enterAdvanced())}
-  >
+  <button type="button" data-mode-toggle onclick={() => (advanced = !advanced)}>
     {advanced ? 'Form editor' : 'Advanced (YAML)'}
   </button>
 {/snippet}
@@ -103,6 +109,7 @@
             label="Provider YAML configuration"
             invalid={Boolean(yamlError)}
             {disabled}
+            indent
             placeholder="# YAML configuration…"
             oninput={applyYaml}
           />
@@ -183,10 +190,10 @@
       min-block-size: 0;
     }
 
-    :global(textarea) {
+    :global(.cm-editor) {
       flex: 1;
+      block-size: auto;
       min-block-size: 0;
-      resize: none;
     }
   }
 
