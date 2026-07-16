@@ -1,4 +1,5 @@
-import type { Challenge, DatabaseClient } from '@rctf/db'
+import { config } from '@rctf/config'
+import type { Challenge, DatabaseClient, User } from '@rctf/db'
 import type {
   BadChallenge,
   BadEndpoint,
@@ -13,13 +14,16 @@ import {
   instancerEnabled,
   instancers,
 } from '../providers'
+import { generateDynamicFlag } from '../providers/flags'
 import {
+  type CreateInstanceOptions,
   type instanceDetailsOrError,
   type InstancerActionDefinition,
   type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
 import { getChallenge } from './challenges'
+import { inferChallengeIntegrationId } from '../util/instancer'
 
 export const resolveInstancerName = (
   instancerConfig?: { instancer?: string } | null,
@@ -109,6 +113,32 @@ export const getInstancerChallenge = async (
   }
 
   return { challenge, provider }
+}
+
+// Builds the options handed to a provider's createInstance. For dynamic-flag
+// challenges, mints the per-team signed flag here (generically, for every
+// provider) so the instance can deliver it to the team.
+export const buildCreateInstanceOptions = (
+  challenge: Challenge,
+  user: User
+): CreateInstanceOptions => {
+  const dynamic = challenge.data.flags?.dynamic
+  return {
+    user,
+    ...challenge.data.instancerConfig!,
+    challengeIntegrationId: inferChallengeIntegrationId(challenge),
+    // Deliver the per-team signed flag for dynamic challenges, otherwise the
+    // static flag; undefined when the challenge has no flag at all.
+    flag: dynamic
+      ? generateDynamicFlag(
+          dynamic.base,
+          user.id,
+          challenge.id,
+          dynamic.mode,
+          config.dynamicFlagSigningKey ?? ''
+        )
+      : challenge.data.flag || undefined,
+  }
 }
 
 export const returnInstanceStatusOrError = async (

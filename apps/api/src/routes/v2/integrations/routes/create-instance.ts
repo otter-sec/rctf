@@ -1,10 +1,10 @@
 import { CreateInstanceRouteV2 } from '@rctf/types'
 import {
+  buildCreateInstanceOptions,
   filterInstanceEndpoints,
   getInstancerChallenge,
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
-import { inferChallengeIntegrationId } from '../../../../util/instancer'
 import integrationsGroup from '../group'
 
 integrationsGroup.route(
@@ -19,11 +19,9 @@ integrationsGroup.route(
       return error
     }
 
-    const instanceStatus = await provider.createInstance({
-      user,
-      ...challenge.data.instancerConfig!,
-      challengeIntegrationId: inferChallengeIntegrationId(challenge),
-    })
+    const instanceStatus = await provider.createInstance(
+      buildCreateInstanceOptions(challenge, user)
+    )
 
     return await returnInstanceStatusOrError(
       res,

@@ -23,6 +23,9 @@ export interface EditorForm {
   author: string
   description: string
   flag: string
+  dynamicFlagEnabled: boolean
+  dynamicFlagBase: string
+  dynamicFlagMode: string
   pointsMin: number
   pointsMax: number
   tiebreakEligible: boolean
@@ -68,6 +71,9 @@ export function defaultForm(): EditorForm {
     author: '',
     description: '',
     flag: '',
+    dynamicFlagEnabled: false,
+    dynamicFlagBase: '',
+    dynamicFlagMode: '',
     pointsMin: 50,
     pointsMax: 500,
     tiebreakEligible: true,
@@ -124,6 +130,9 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
     author: source.author,
     description: source.description,
     flag: source.flag,
+    dynamicFlagEnabled: Boolean(source.flags?.dynamic),
+    dynamicFlagBase: source.flags?.dynamic?.base ?? '',
+    dynamicFlagMode: source.flags?.dynamic?.mode ?? '',
     pointsMin: source.points.min,
     pointsMax: source.points.max,
     tiebreakEligible: source.tiebreakEligible,

@@ -88,6 +88,23 @@
   )
   const kindLocked = $derived(scoringKindLocked(totalSolves))
 
+  // Dynamic (per-team signed) flags only apply to normally-scored challenges.
+  const dynamicFlagEnabled = $derived(!isDynamic && form.dynamicFlagEnabled)
+  const dynamicFlagItems = $derived<MenuItem[]>([
+    {
+      value: 'static',
+      label: 'Static flag',
+      checked: !form.dynamicFlagEnabled,
+      onSelect: () => onFieldChange('dynamicFlagEnabled', false),
+    },
+    {
+      value: 'dynamic',
+      label: 'Dynamic (per-team signed)',
+      checked: form.dynamicFlagEnabled,
+      onSelect: () => onFieldChange('dynamicFlagEnabled', true),
+    },
+  ])
+
   let tab = $state('details')
   let nameFieldEl = $state<HTMLElement | null>(null)
 
@@ -103,6 +120,8 @@
     author: false,
     description: false,
     flag: false,
+    dynamicFlagBase: false,
+    dynamicFlagMode: false,
   })
 
   type TouchedField = keyof typeof touched
@@ -313,24 +332,106 @@
                   {@render fieldError('description')}
                 </form-field>
 
-                <form-field data-invalid={showError('flag') ? '' : undefined}>
-                  <field-label>
-                    Flag{#if !isDynamic}<req>*</req>{/if}
-                    {#if isDynamic}<field-hint>(unused for dynamic)</field-hint
-                      >{/if}
-                  </field-label>
-                  <Input
-                    type="text"
-                    data-mono
-                    placeholder={flagPlaceholder}
-                    value={isDynamic ? '' : form.flag}
-                    disabled={disabled || isDynamic}
-                    aria-invalid={showError('flag')}
-                    oninput={e => onFieldChange('flag', e.currentTarget.value)}
-                    onblur={() => (touched.flag = true)}
-                  />
-                  {@render fieldError('flag')}
-                </form-field>
+                {#if isDynamic}
+                  <form-field>
+                    <field-label>
+                      Flag
+                      <field-hint>(unused for dynamic scoring)</field-hint>
+                    </field-label>
+                    <Input
+                      type="text"
+                      data-mono
+                      placeholder={flagPlaceholder}
+                      value=""
+                      disabled
+                    />
+                  </form-field>
+                {:else}
+                  <form-field>
+                    <field-label>Flag type</field-label>
+                    <FieldSelect
+                      label={form.dynamicFlagEnabled
+                        ? 'Dynamic (per-team signed)'
+                        : 'Static flag'}
+                      items={dynamicFlagItems}
+                      {disabled}
+                    />
+                  </form-field>
+
+                  {#if dynamicFlagEnabled}
+                    <form-field
+                      data-invalid={showError('dynamicFlagBase')
+                        ? ''
+                        : undefined}
+                    >
+                      <field-label>
+                        Base flag<req>*</req>
+                        <field-hint
+                          >(signed per team before delivery)</field-hint
+                        >
+                      </field-label>
+                      <Input
+                        type="text"
+                        data-mono
+                        placeholder={flagPlaceholder}
+                        value={form.dynamicFlagBase}
+                        {disabled}
+                        aria-invalid={showError('dynamicFlagBase')}
+                        oninput={e =>
+                          onFieldChange(
+                            'dynamicFlagBase',
+                            e.currentTarget.value
+                          )}
+                        onblur={() => (touched.dynamicFlagBase = true)}
+                      />
+                      {@render fieldError('dynamicFlagBase')}
+                    </form-field>
+                    <form-field
+                      data-invalid={showError('dynamicFlagMode')
+                        ? ''
+                        : undefined}
+                    >
+                      <field-label>
+                        Signing mode<req>*</req>
+                        <field-hint>(passed to the signing function)</field-hint
+                        >
+                      </field-label>
+                      <Input
+                        type="text"
+                        data-mono
+                        placeholder="default"
+                        value={form.dynamicFlagMode}
+                        {disabled}
+                        aria-invalid={showError('dynamicFlagMode')}
+                        oninput={e =>
+                          onFieldChange(
+                            'dynamicFlagMode',
+                            e.currentTarget.value
+                          )}
+                        onblur={() => (touched.dynamicFlagMode = true)}
+                      />
+                      {@render fieldError('dynamicFlagMode')}
+                    </form-field>
+                  {:else}
+                    <form-field
+                      data-invalid={showError('flag') ? '' : undefined}
+                    >
+                      <field-label>Flag<req>*</req></field-label>
+                      <Input
+                        type="text"
+                        data-mono
+                        placeholder={flagPlaceholder}
+                        value={form.flag}
+                        {disabled}
+                        aria-invalid={showError('flag')}
+                        oninput={e =>
+                          onFieldChange('flag', e.currentTarget.value)}
+                        onblur={() => (touched.flag = true)}
+                      />
+                      {@render fieldError('flag')}
+                    </form-field>
+                  {/if}
+                {/if}
               </section-fields>
             </Section>
 

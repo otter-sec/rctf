@@ -64,6 +64,7 @@ const (
 	labelEgress                 = "rctf.osec.io/egress"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
+	annotationFlag              = "rctf.osec.io/flag"
 	managedBy                   = "rctf-operator"
 	typeReady                   = "Ready"
 	typeNamespaceDeployed       = "NamespaceDeployed"
@@ -512,6 +513,19 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			}
 			podSpec.HostAliases = serviceHostAliases
 
+			podAnnotations := map[string]string{
+				// Allow the cluster autoscaler to evict these pods during scale-down,
+				// otherwise it blocks on orphaned pods mid-namespace-deletion.
+				"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
+
+				annotationExposedHostnames: exposedHostnames,
+			}
+			// Per-team signed flag for dynamic-flag challenges. Surfaced to the
+			// pod via the downward API; the challenge decides how to use it.
+			if instance.Spec.Flag != "" {
+				podAnnotations[annotationFlag] = instance.Spec.Flag
+			}
+
 			deployment.Spec = appsv1.DeploymentSpec{
 				Replicas: ptr.To[int32](1),
 				Selector: &metav1.LabelSelector{
@@ -521,14 +535,8 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Annotations: map[string]string{
-							// Allow the cluster autoscaler to evict these pods during scale-down,
-							// otherwise it blocks on orphaned pods mid-namespace-deletion.
-							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
-
-							annotationExposedHostnames: exposedHostnames,
-						},
-						Labels: podLabels,
+						Annotations: podAnnotations,
+						Labels:      podLabels,
 					},
 					Spec: podSpec,
 				},

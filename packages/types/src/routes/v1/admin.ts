@@ -14,7 +14,7 @@ import {
   GoodFilesUpload,
   GoodUploadsQuery,
 } from '../../responses'
-import { UploadFileName, UploadSha256 } from '../../util'
+import { ChallengeFlagsSchema, UploadFileName, UploadSha256 } from '../../util'
 import { example } from '../../util/example'
 
 const AdminChallengeParams = z.object({
@@ -59,6 +59,13 @@ export const UpdateChallengeRoute = defineRoute({
         flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
           z.describe('The challenge flag.')
         ),
+        flags: z
+          .optional(ChallengeFlagsSchema)
+          .check(
+            z.describe(
+              'Structured flag configuration. Set `dynamic` (with `base` and `mode`) to enable per-team signed flags.'
+            )
+          ),
         name: example(z.optional(z.string()), 'baby-rev').check(
           z.describe('Challenge name.')
         ),

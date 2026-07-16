@@ -17,4 +17,4 @@ services:
       - POSTGRES_USER=rctf
       - POSTGRES_DB=rctf
     volumes:
-      - ./.data/postgres:/var/lib/postgresql/
+      - /tmp/.data/postgres:/var/lib/postgresql/

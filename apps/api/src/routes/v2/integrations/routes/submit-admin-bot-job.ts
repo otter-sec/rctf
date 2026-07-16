@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import type { InstancerInstance } from '@rctf/db'
 import {
   InstanceStatus,
@@ -6,6 +7,7 @@ import {
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
 import { adminBotProvider } from '../../../../providers'
+import { generateDynamicFlag } from '../../../../providers/flags'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
 import {
@@ -187,11 +189,24 @@ integrationsGroup.route(
       }))
     }
 
+    // For dynamic-flag challenges the bot acts as this team, so it must receive
+    // the flag minted for that team rather than the (empty) flat base flag.
+    const dynamicFlag = challenge.data.flags?.dynamic
+    const botFlag = dynamicFlag
+      ? generateDynamicFlag(
+          dynamicFlag.base,
+          user.id,
+          params.id,
+          dynamicFlag.mode,
+          config.dynamicFlagSigningKey ?? ''
+        )
+      : challenge.data.flag
+
     const job = await createJob(ctx.var.db, {
       challengeId: params.id,
       userId: user.id,
       configRevision: adminBotConfig.revision,
-      flag: challenge.data.flag,
+      flag: botFlag,
       inputs: Object.fromEntries(
         Object.keys(adminBotConfig.inputs).map(name => [
           name,

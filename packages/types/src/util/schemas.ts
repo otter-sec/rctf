@@ -151,6 +151,27 @@ export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
+export const DynamicFlagSchema = z.object({
+  base: example(z.string(), 'rctf{baby_rev}').check(
+    z.describe('Base flag passed to the dynamic flag signing function.')
+  ),
+  mode: example(z.string(), 'default').check(
+    z.describe(
+      'Signing mode string passed to the dynamic flag generation and verification functions.'
+    )
+  ),
+})
+
+export const ChallengeFlagsSchema = z.object({
+  dynamic: z
+    .optional(DynamicFlagSchema)
+    .check(
+      z.describe(
+        'Dynamic (per-team signed) flag configuration. When present, the challenge issues per-team signed flags and validates submissions against the submitting team.'
+      )
+    ),
+})
+
 // solves.points is a PG `integer` (32-bit signed)
 const INT32_MIN = -2_147_483_648
 const INT32_MAX = 2_147_483_647

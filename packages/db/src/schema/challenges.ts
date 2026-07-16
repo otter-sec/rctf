@@ -62,6 +62,18 @@ export type ChallengeScoring =
   | { kind: ChallengeScoringKind.DECAY }
   | { kind: ChallengeScoringKind.DYNAMIC; source: DynamicScoringSource }
 
+// NOTE(sy1vi3): dynamic flags are per-team signed flags. The `base` flag and
+//  `mode` are passed to the signing/verification functions; nothing per-team is
+//  persisted, validity is recomputed from the submitting team on each attempt.
+export interface DynamicFlagConfig {
+  base: string
+  mode: string
+}
+
+export interface ChallengeFlags {
+  dynamic?: DynamicFlagConfig
+}
+
 export interface ChallengeData {
   name: string
   description: string
@@ -70,6 +82,9 @@ export interface ChallengeData {
   files: ChallengeFile[]
   points: ChallengePoints
   flag: string
+  // NOTE(sy1vi3): when `flags.dynamic` is set, the challenge uses per-team signed
+  //  flags and the flat `flag` above is unused (base flag lives in `flags.dynamic.base`)
+  flags?: ChallengeFlags
   tiebreakEligible: boolean
   sortWeight?: number
   tags?: string[]

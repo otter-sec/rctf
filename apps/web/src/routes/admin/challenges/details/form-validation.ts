@@ -8,6 +8,8 @@ export interface FormErrors {
   author?: string
   description?: string
   flag?: string
+  dynamicFlagBase?: string
+  dynamicFlagMode?: string
   secret?: string
 }
 
@@ -22,6 +24,13 @@ export function formErrors(form: EditorForm): FormErrors {
   if (form.scoring.kind === ChallengeScoringKind.DYNAMIC) {
     if (form.scoring.source.secret.trim() === '') {
       errors.secret = 'Webhook secret is required'
+    }
+  } else if (form.dynamicFlagEnabled) {
+    if (form.dynamicFlagBase.trim() === '') {
+      errors.dynamicFlagBase = 'Base flag is required'
+    }
+    if (form.dynamicFlagMode.trim() === '') {
+      errors.dynamicFlagMode = 'Signing mode is required'
     }
   } else if (form.flag.trim() === '') {
     errors.flag = 'Flag is required'
@@ -39,7 +48,9 @@ export function detailsTabInvalid(errors: FormErrors): boolean {
     errors.category ||
     errors.author ||
     errors.description ||
-    errors.flag
+    errors.flag ||
+    errors.dynamicFlagBase ||
+    errors.dynamicFlagMode
   )
 }
 
@@ -68,7 +79,10 @@ export function buildSavePayload(
   form: EditorForm,
   id: string
 ): InlineArgs<typeof UpdateChallengeRouteV2> {
-  const isDynamic = form.scoring.kind === ChallengeScoringKind.DYNAMIC
+  const isDynamicScoring = form.scoring.kind === ChallengeScoringKind.DYNAMIC
+  // Dynamic flags only apply to normally-scored challenges; the base flag lives
+  // under `flags.dynamic`, so the flat `flag` is cleared when either is in play.
+  const useDynamicFlag = !isDynamicScoring && form.dynamicFlagEnabled
   return {
     id,
     data: {
@@ -76,7 +90,15 @@ export function buildSavePayload(
       category: form.category,
       author: form.author,
       description: form.description,
-      flag: isDynamic ? '' : form.flag,
+      flag: isDynamicScoring || useDynamicFlag ? '' : form.flag,
+      flags: useDynamicFlag
+        ? {
+            dynamic: {
+              base: form.dynamicFlagBase,
+              mode: form.dynamicFlagMode,
+            },
+          }
+        : {},
       points: { min: form.pointsMin, max: form.pointsMax },
       tiebreakEligible: form.tiebreakEligible,
       sortWeight: form.sortWeight || undefined,

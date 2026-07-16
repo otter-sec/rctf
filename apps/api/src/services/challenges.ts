@@ -30,7 +30,9 @@ import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { inJsonbArrayPlaceholder } from '../lib/db-bulk'
 import { preparedPerDb } from '../lib/prepared'
-import { verifyDefaultFlag } from '../providers/flags'
+import { config } from '@rctf/config'
+import { verifyDefaultFlag, verifyDynamicFlag } from '../providers/flags'
+import { DynamicFlagResult } from '../providers/flags/result'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
@@ -1128,7 +1130,10 @@ export const submitFlag = async (
   }
 
   const challenge = await getChallenge(db, params.challengeId)
-  if (!challenge || !challenge.data.flag) {
+  // Dynamic-flag challenges keep their base flag under `flags.dynamic`, not the
+  // flat `flag` field, so accept either as evidence a flag is configured.
+  const dynamicFlag = challenge?.data.flags?.dynamic
+  if (!challenge || (!challenge.data.flag && !dynamicFlag)) {
     return res.badChallenge()
   }
 
@@ -1150,14 +1155,48 @@ export const submitFlag = async (
     return res.badRateLimit({ timeLeft })
   }
 
-  if (!verifyDefaultFlag(params.flag, challenge.data.flag)) {
+  // For dynamic flags, verify returns a result code (see DynamicFlagResult):
+  // 0 = valid, 1 = valid base but wrong team id/signature, 2 = invalid.
+  const dynamicResult = dynamicFlag
+    ? verifyDynamicFlag(
+        dynamicFlag.base,
+        params.userId,
+        params.challengeId,
+        params.flag,
+        dynamicFlag.mode,
+        config.dynamicFlagSigningKey ?? ''
+      )
+    : undefined
+  const flagIsCorrect =
+    dynamicResult !== undefined
+      ? dynamicResult === DynamicFlagResult.Valid
+      : verifyDefaultFlag(params.flag, challenge.data.flag)
+  if (!flagIsCorrect) {
+    // A well-formed dynamic flag whose base is correct but whose embedded team
+    // id/signature does not match the submitter is the signature of flag
+    // sharing, not an ordinary wrong guess — alert on it distinctly.
+    const isSharedDynamicFlag =
+      dynamicResult === DynamicFlagResult.ValidBaseWrongTeamOrSig
+    if (isSharedDynamicFlag) {
+      log.warn(
+        {
+          user: params.userId,
+          chall: challenge.id,
+          flag: params.flag,
+        },
+        'dynamic flag with valid base but wrong team/signature; possible flag sharing'
+      )
+    }
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp,
       result: SubmissionResult.INCORRECT,
-      details: { submittedFlag: params.flag },
+      details: {
+        submittedFlag: params.flag,
+        ...(isSharedDynamicFlag ? { dynamicFlagSharing: true } : {}),
+      },
     }).catch(err =>
       log.error(
         { err, challengeId: params.challengeId, userId: params.userId },

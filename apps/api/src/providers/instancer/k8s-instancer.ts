@@ -549,6 +549,7 @@ export default class K8sInstancerProvider implements InstancerProvider {
             expose: options.expose,
             teamId: options.user.id,
             challengeId: options.challengeIntegrationId,
+            ...(options.flag !== undefined ? { flag: options.flag } : {}),
             expiresAt: new Date(
               Date.now() + options.timeoutMilliseconds
             ).toISOString(),

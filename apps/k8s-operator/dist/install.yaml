@@ -73,6 +73,12 @@ spec:
                   type: object
                 type: array
                 x-kubernetes-list-type: atomic
+              flag:
+                description: |-
+                  Flag is the per-team signed flag for dynamic-flag challenges. It is
+                  surfaced to the challenge pod via the downward API (the
+                  rctf.osec.io/flag annotation). Empty for non-dynamic challenges.
+                type: string
               pods:
                 items:
                   properties:
