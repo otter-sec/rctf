@@ -38,6 +38,8 @@ description: An open-source platform for hosting capture-the-flag competitions.
 
 rCTF is an open-source platform for hosting capture-the-flag competitions. It is developed and maintained by the [OtterSec](https://osec.io) team and has supported public events with thousands of teams.
 
+To view a live demo, visit [demo.rctf.osec.io](https://demo.rctf.osec.io/).
+
 ::::card-grid
 :::card[Installation]{href=/installation}
 Install rCTF with the Docker setup script, or follow the manual setup when you need more control.
