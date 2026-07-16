@@ -442,9 +442,10 @@
 
   edge-fade {
     position: absolute;
-    /* below the pinned self row: its opacity tracks scroll on the compositor
-       while its inset updates from JS a frame later, so it must never be able
-       to paint over the row occupying the edge in the meantime */
+    /* top/bottom sit below the pinned self row (z 15). their opacity tracks
+       scroll on the compositor while their inset updates from JS a frame
+       later, so they must never be able to paint over the row occupying the
+       edge in the meantime */
     z-index: 14;
     display: block;
     pointer-events: none;
@@ -708,6 +709,10 @@
       inset-block-start: 0;
       inset-block-end: var(--score-fade-rail);
       inline-size: var(--score-fade-size);
+      /* unlike top/bottom these don't move with the pinned self row, so they
+         sit above the sticky header (z 20) and self row (z 15) to fade their
+         horizontally scrolling cells at the column boundary */
+      z-index: 21;
     }
 
     edge-fade[data-edge='left'] {
