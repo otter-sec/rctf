@@ -1,15 +1,23 @@
+import { config } from '@rctf/config'
 import type { FlagEntry } from '@rctf/db'
 import { afterAll, describe, expect, test } from 'bun:test'
-import { FlagProvider } from '../../../../apps/api/src/providers/flags/base'
+import {
+  FlagProvider,
+  FlagVerifyStatus,
+  type FlagVerifyResult,
+} from '../../../../apps/api/src/providers/flags/base'
 import {
   getFirstDefaultFlag,
   flagProviders,
   verifyFlagEntries,
 } from '../../../../apps/api/src/providers/flags'
+import { generateDynamicFlag } from '../../../../apps/api/src/providers/flags/dynamic'
 import {
   staticFlagConfigSchema,
   type StaticFlagConfig,
 } from '../../../../apps/api/src/providers/flags/static'
+
+const ctx = { teamId: 'team-a', challengeId: 'chall-x' }
 
 const staticEntry = (flag: string): FlagEntry => ({
   provider: 'flags/static',
@@ -23,9 +31,18 @@ class CountingFlagProvider extends FlagProvider {
   protected async verifyParsed(
     config: StaticFlagConfig,
     submitted: string
-  ): Promise<boolean> {
+  ): Promise<FlagVerifyResult> {
     this.calls += 1
-    return config.flag === submitted
+    return {
+      status:
+        config.flag === submitted
+          ? FlagVerifyStatus.ACCEPTED
+          : FlagVerifyStatus.REJECTED,
+    }
+  }
+
+  protected async getForTeamParsed(): Promise<string | null> {
+    return null
   }
 }
 
@@ -36,22 +53,41 @@ afterAll(() => {
   delete flagProviders['test-counting']
 })
 
+const verifyStatus = async (
+  provider: FlagProvider,
+  config: Record<string, unknown>,
+  submitted: string
+): Promise<FlagVerifyStatus> =>
+  (await provider.verify(config, submitted, ctx)).status
+
 describe('static flag provider', () => {
   test('accepts only an exact match', async () => {
     const provider = flagProviders['flags/static']!
-    expect(await provider.verify({ flag: 'flag{a}' }, 'flag{a}')).toBe(true)
-    expect(await provider.verify({ flag: 'flag{a}' }, 'flag{b}')).toBe(false)
-    expect(await provider.verify({ flag: 'flag{a}' }, 'flag{a} ')).toBe(false)
-    expect(await provider.verify({ flag: 'flag{a}' }, 'FLAG{A}')).toBe(false)
+    expect(await verifyStatus(provider, { flag: 'flag{a}' }, 'flag{a}')).toBe(
+      FlagVerifyStatus.ACCEPTED
+    )
+    expect(await verifyStatus(provider, { flag: 'flag{a}' }, 'flag{b}')).toBe(
+      FlagVerifyStatus.REJECTED
+    )
+    expect(await verifyStatus(provider, { flag: 'flag{a}' }, 'flag{a} ')).toBe(
+      FlagVerifyStatus.REJECTED
+    )
+    expect(await verifyStatus(provider, { flag: 'flag{a}' }, 'FLAG{A}')).toBe(
+      FlagVerifyStatus.REJECTED
+    )
   })
 
   test('rejects invalid configs', async () => {
     const provider = flagProviders['flags/static']!
-    expect(await provider.verify({}, 'flag{a}')).toBe(false)
-    expect(await provider.verify({ flag: '' }, '')).toBe(false)
+    expect(await verifyStatus(provider, {}, 'flag{a}')).toBe(
+      FlagVerifyStatus.REJECTED
+    )
+    expect(await verifyStatus(provider, { flag: '' }, '')).toBe(
+      FlagVerifyStatus.REJECTED
+    )
     expect(
-      await provider.verify({ flag: 'flag{a}', typo: true }, 'flag{a}')
-    ).toBe(false)
+      await verifyStatus(provider, { flag: 'flag{a}', typo: true }, 'flag{a}')
+    ).toBe(FlagVerifyStatus.REJECTED)
   })
 })
 
@@ -62,18 +98,26 @@ describe('verifyFlagEntries', () => {
       staticEntry('flag{b}'),
       staticEntry('flag{b}'),
     ]
-    expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
-      index: 0,
-      provider: 'flags/static',
-      config: { flag: 'flag{a}' },
+    expect(await verifyFlagEntries(entries, 'flag{a}', ctx)).toEqual({
+      matched: {
+        index: 0,
+        provider: 'flags/static',
+        config: { flag: 'flag{a}' },
+      },
+      cheated: false,
     })
-    expect(await verifyFlagEntries(entries, 'flag{b}')).toEqual({
-      index: 1,
-      provider: 'flags/static',
-      config: { flag: 'flag{b}' },
+    expect(await verifyFlagEntries(entries, 'flag{b}', ctx)).toEqual({
+      matched: {
+        index: 1,
+        provider: 'flags/static',
+        config: { flag: 'flag{b}' },
+      },
+      cheated: false,
     })
-    expect(await verifyFlagEntries(entries, 'flag{c}')).toBeNull()
-    expect(await verifyFlagEntries([], 'flag{a}')).toBeNull()
+    expect(
+      (await verifyFlagEntries(entries, 'flag{c}', ctx)).matched
+    ).toBeNull()
+    expect((await verifyFlagEntries([], 'flag{a}', ctx)).matched).toBeNull()
   })
 
   test('skips unknown providers and inherited object properties', async () => {
@@ -81,15 +125,20 @@ describe('verifyFlagEntries', () => {
       { provider: 'does-not-exist', config: { flag: 'flag{a}' } },
       staticEntry('flag{a}'),
     ]
-    expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
-      index: 1,
-      provider: 'flags/static',
-      config: { flag: 'flag{a}' },
+    expect(await verifyFlagEntries(entries, 'flag{a}', ctx)).toEqual({
+      matched: {
+        index: 1,
+        provider: 'flags/static',
+        config: { flag: 'flag{a}' },
+      },
+      cheated: false,
     })
 
     for (const provider of ['constructor', 'toString', '__proto__']) {
       const polluted: FlagEntry[] = [{ provider, config: { flag: 'flag{a}' } }]
-      expect(await verifyFlagEntries(polluted, 'flag{a}')).toBeNull()
+      expect(
+        (await verifyFlagEntries(polluted, 'flag{a}', ctx)).matched
+      ).toBeNull()
     }
   })
 
@@ -100,12 +149,33 @@ describe('verifyFlagEntries', () => {
       { provider: 'test-counting', config: { flag: 'flag{c}' } },
     ]
     countingProvider.calls = 0
-    expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
-      index: 0,
-      provider: 'test-counting',
-      config: { flag: 'flag{a}' },
+    expect(await verifyFlagEntries(entries, 'flag{a}', ctx)).toEqual({
+      matched: {
+        index: 0,
+        provider: 'test-counting',
+        config: { flag: 'flag{a}' },
+      },
+      cheated: false,
     })
     expect(countingProvider.calls).toBe(3)
+  })
+
+  test("reports another team's dynamic flag as cheated", async () => {
+    const base = 'flag{abcdefghijklmnopqrstuvwxyz}'
+    const entries: FlagEntry[] = [
+      { provider: 'flags/dynamic', config: { base, mode: 'basic' } },
+    ]
+    const otherTeamFlag = generateDynamicFlag(
+      base,
+      'team-b',
+      ctx.challengeId,
+      'basic',
+      config.dynamicFlagSigningKey ?? ''
+    )
+    expect(await verifyFlagEntries(entries, otherTeamFlag, ctx)).toEqual({
+      matched: null,
+      cheated: true,
+    })
   })
 })
 

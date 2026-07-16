@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
 import { timingSafeEqual } from '../../util/timing-safe-equal'
-import { FlagProvider } from './base'
+import { FlagProvider, FlagVerifyStatus, type FlagVerifyResult } from './base'
 
 export const staticFlagConfigSchema = z.strictObject({
   flag: z.string().check(z.minLength(1)),
@@ -12,8 +12,12 @@ export default class StaticFlagProvider extends FlagProvider {
   protected async verifyParsed(
     config: StaticFlagConfig,
     submitted: string
-  ): Promise<boolean> {
-    return timingSafeEqual(config.flag, submitted)
+  ): Promise<FlagVerifyResult> {
+    return {
+      status: timingSafeEqual(config.flag, submitted)
+        ? FlagVerifyStatus.ACCEPTED
+        : FlagVerifyStatus.REJECTED,
+    }
   }
 
   protected async getForTeamParsed(

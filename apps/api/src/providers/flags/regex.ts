@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { FlagProvider } from './base'
+import { FlagProvider, FlagVerifyStatus, type FlagVerifyResult } from './base'
 
 const compiles = (pattern: string, flags?: string): boolean => {
   try {
@@ -66,11 +66,15 @@ export default class RegexFlagProvider extends FlagProvider {
   protected async verifyParsed(
     config: RegexFlagConfig,
     submitted: string
-  ): Promise<boolean> {
+  ): Promise<FlagVerifyResult> {
+    let matches = false
     try {
-      return new RegExp(config.pattern, config.flags).test(submitted)
+      matches = new RegExp(config.pattern, config.flags).test(submitted)
     } catch {
-      return false
+      matches = false
+    }
+    return {
+      status: matches ? FlagVerifyStatus.ACCEPTED : FlagVerifyStatus.REJECTED,
     }
   }
 

@@ -192,7 +192,12 @@ integrationsGroup.route(
       challengeId: params.id,
       userId: user.id,
       configRevision: adminBotConfig.revision,
-      flag: await getFlagForTeam(challenge.data.flags, user.id),
+      // The bot acts as this team, so it receives the flag minted for it —
+      // for per-team (dynamic) flags this differs from the stored config.
+      flag: await getFlagForTeam(challenge.data.flags, {
+        teamId: user.id,
+        challengeId: params.id,
+      }),
       inputs: Object.fromEntries(
         Object.keys(adminBotConfig.inputs).map(name => [
           name,

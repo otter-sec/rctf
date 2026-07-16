@@ -8,6 +8,7 @@ email:
 ctfName: rCTF
 origin: http://127.0.0.1:8080
 tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+dynamicFlagSigningKey: test-dynamic-flag-signing-key
 
 database:
   sql: postgres://test:test@localhost:5432/test

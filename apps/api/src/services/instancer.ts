@@ -1,4 +1,4 @@
-import type { Challenge, DatabaseClient } from '@rctf/db'
+import type { Challenge, DatabaseClient, User } from '@rctf/db'
 import type {
   BadChallenge,
   BadEndpoint,
@@ -13,13 +13,16 @@ import {
   instancerEnabled,
   instancers,
 } from '../providers'
+import { getFlagForTeam } from '../providers/flags'
 import {
+  type CreateInstanceOptions,
   type instanceDetailsOrError,
   type InstancerActionDefinition,
   type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
 import { getChallenge } from './challenges'
+import { inferChallengeIntegrationId } from '../util/instancer'
 
 export const resolveInstancerName = (
   instancerConfig?: { instancer?: string } | null,
@@ -109,6 +112,26 @@ export const getInstancerChallenge = async (
   }
 
   return { challenge, provider }
+}
+
+// Builds the options handed to a provider's createInstance, minting the
+// per-team flag here (generically, for every provider) so the instance can
+// deliver it to the team.
+export const buildCreateInstanceOptions = async (
+  challenge: Challenge,
+  user: User
+): Promise<CreateInstanceOptions> => {
+  return {
+    user,
+    ...challenge.data.instancerConfig!,
+    challengeIntegrationId: inferChallengeIntegrationId(challenge),
+    // undefined when the challenge has no flag at all
+    flag:
+      (await getFlagForTeam(challenge.data.flags, {
+        teamId: user.id,
+        challengeId: challenge.id,
+      })) || undefined,
+  }
 }
 
 export const returnInstanceStatusOrError = async (

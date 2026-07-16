@@ -1161,15 +1161,34 @@ export const submitFlag = async (
     return res.badRateLimit({ timeLeft })
   }
 
-  const matched = await verifyFlagEntries(flagEntries, params.flag)
+  const { matched, cheated } = await verifyFlagEntries(
+    flagEntries,
+    params.flag,
+    { teamId: params.userId, challengeId: params.challengeId }
+  )
   if (matched === null) {
+    // A valid flag that was minted for another team is the signature of flag
+    // sharing, not an ordinary wrong guess — alert on it distinctly.
+    if (cheated) {
+      log.warn(
+        {
+          user: params.userId,
+          chall: challenge.id,
+          flag: params.flag,
+        },
+        'valid flag for another team; possible flag sharing'
+      )
+    }
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp,
       result: SubmissionResult.INCORRECT,
-      details: { submittedFlag: params.flag },
+      details: {
+        submittedFlag: params.flag,
+        ...(cheated ? { flagSharing: true } : {}),
+      },
     }).catch(err =>
       log.error(
         { err, challengeId: params.challengeId, userId: params.userId },

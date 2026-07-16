@@ -1,5 +1,7 @@
 import type { FlagEntry } from '@rctf/db'
-import type { FlagProvider } from './base'
+import type { FlagProvider, FlagTeamContext } from './base'
+import { FlagVerifyStatus } from './base'
+import DynamicFlagProvider from './dynamic'
 import RegexFlagProvider from './regex'
 import StaticFlagProvider, { staticFlagConfigSchema } from './static'
 
@@ -7,6 +9,7 @@ export const DEFAULT_FLAG_PROVIDER = 'flags/static'
 export const flagProviders: Record<string, FlagProvider> = {
   'flags/static': new StaticFlagProvider(),
   'flags/regex': new RegexFlagProvider(),
+  'flags/dynamic': new DynamicFlagProvider(),
 }
 
 export const resolveFlagProviderName = (entry: FlagEntry): string =>
@@ -21,11 +24,20 @@ export interface MatchedFlagEntry {
   config: FlagEntry['config']
 }
 
+export interface FlagEntriesVerification {
+  matched: MatchedFlagEntry | null
+  // A provider reported the submission as a valid flag minted for another
+  // team (see FlagVerifyStatus.CHEATED) — likely flag sharing.
+  cheated: boolean
+}
+
 export const verifyFlagEntries = async (
   entries: FlagEntry[],
-  submitted: string
-): Promise<MatchedFlagEntry | null> => {
+  submitted: string,
+  context: FlagTeamContext
+): Promise<FlagEntriesVerification> => {
   let matched: MatchedFlagEntry | null = null
+  let cheated = false
 
   // NOTE(es3n1n): Intentionally no short-circuit on the first match so that
   //  the response timing doesn't leak which entry matched
@@ -36,25 +48,28 @@ export const verifyFlagEntries = async (
       continue
     }
 
-    const ok = await provider.verify(entry.config, submitted)
-    if (ok && matched === null) {
+    const result = await provider.verify(entry.config, submitted, context)
+    if (result.status === FlagVerifyStatus.ACCEPTED && matched === null) {
       matched = { index, provider: name, config: entry.config }
+    }
+    if (result.status === FlagVerifyStatus.CHEATED) {
+      cheated = true
     }
   }
 
-  return matched
+  return { matched, cheated }
 }
 
 export const getFlagForTeam = async (
   entries: FlagEntry[] | undefined,
-  team: string
+  context: FlagTeamContext
 ): Promise<string> => {
   for (const entry of entries ?? []) {
     const provider = getFlagProvider(resolveFlagProviderName(entry))
     if (!provider) {
       continue
     }
-    const flag = await provider.getForTeam(entry.config, team)
+    const flag = await provider.getForTeam(entry.config, context)
     if (flag !== null) {
       return flag
     }

@@ -87,6 +87,12 @@ type ChallengeInstanceSpec struct {
 	// +kubebuilder:validation:MinLength=1
 	ChallengeId string `json:"challengeId"`
 
+	// Flag is the per-team signed flag for dynamic-flag challenges. It is
+	// surfaced to the challenge pod via the downward API (the
+	// rctf.osec.io/flag annotation). Empty for non-dynamic challenges.
+	// +optional
+	Flag string `json:"flag,omitempty"`
+
 	// +required
 	ExpiresAt metav1.Time `json:"expiresAt"`
 

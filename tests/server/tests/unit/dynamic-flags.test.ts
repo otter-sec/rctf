@@ -1,0 +1,157 @@
+import { describe, expect, test } from 'bun:test'
+import { FlagVerifyStatus } from '../../../../apps/api/src/providers/flags/base'
+import {
+  generateDynamicFlag,
+  verifyDynamicFlag,
+} from '../../../../apps/api/src/providers/flags/dynamic'
+
+// A base flag with plenty of leet-encodable ([a-z]) characters so that the
+// 'leet' signing mode has enough capacity for the team id + signature bits.
+const BASE = 'rctf{abcdefghijklmnopqrstuvwxyz}'
+const KEY = 'signing-key'
+
+const teamA = '11111111-1111-1111-1111-111111111111'
+const teamB = '22222222-2222-2222-2222-222222222222'
+const challX = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+const challY = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+
+describe('generateDynamicFlag / verifyDynamicFlag', () => {
+  // Properties that hold for every signing mode.
+  for (const mode of ['leet', 'basic'] as const) {
+    describe(`mode: ${mode}`, () => {
+      test('verify returns ACCEPTED for a freshly minted flag (round trip)', () => {
+        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        expect(verifyDynamicFlag(BASE, teamA, challX, flag, mode, KEY)).toBe(
+          FlagVerifyStatus.ACCEPTED
+        )
+      })
+
+      test('generation is deterministic', () => {
+        const first = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        const second = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        expect(first).toBe(second)
+      })
+
+      test('output keeps the base flag format and is brace-delimited', () => {
+        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        expect(flag.startsWith('rctf{')).toBe(true)
+        expect(flag.endsWith('}')).toBe(true)
+      })
+
+      test("another team's flag is CHEATED, not ACCEPTED", () => {
+        const flagForA = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        // The base is a real minted flag, but the embedded team id/sig is team
+        // A's, so submitting it as team B is the flag-sharing case (CHEATED).
+        expect(
+          verifyDynamicFlag(BASE, teamB, challX, flagForA, mode, KEY)
+        ).toBe(FlagVerifyStatus.CHEATED)
+        // ...and the two teams get distinct flags in the first place.
+        const flagForB = generateDynamicFlag(BASE, teamB, challX, mode, KEY)
+        expect(flagForA).not.toBe(flagForB)
+      })
+
+      test('a wrong signing key is CHEATED', () => {
+        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
+        // Same base + team, but the signature was computed with a different
+        // key, so the signature bits no longer match (CHEATED).
+        expect(
+          verifyDynamicFlag(BASE, teamA, challX, flag, mode, 'other-key')
+        ).toBe(FlagVerifyStatus.CHEATED)
+      })
+
+      test('a submission with no brace body is REJECTED', () => {
+        expect(
+          verifyDynamicFlag(BASE, teamA, challX, 'no-braces-here', mode, KEY)
+        ).toBe(FlagVerifyStatus.REJECTED)
+      })
+    })
+  }
+
+  describe('mode: leet', () => {
+    test('the untransformed base flag is a valid variant (CHEATED)', () => {
+      // The all-lowercase base is a valid leetspeak rendering of itself, so it
+      // reads as a well-formed flag with the wrong team/sig bits (CHEATED).
+      expect(verifyDynamicFlag(BASE, teamA, challX, BASE, 'leet', KEY)).toBe(
+        FlagVerifyStatus.CHEATED
+      )
+    })
+
+    test('a same-length non-variant character is REJECTED', () => {
+      // First char replaced with 'x', which is not a leet variant of base 'a'.
+      const bogus = 'rctf{xbcdefghijklmnopqrstuvwxyz}'
+      expect(verifyDynamicFlag(BASE, teamA, challX, bogus, 'leet', KEY)).toBe(
+        FlagVerifyStatus.REJECTED
+      )
+    })
+
+    test('a wrong-length submission is REJECTED', () => {
+      expect(
+        verifyDynamicFlag(BASE, teamA, challX, 'rctf{short}', 'leet', KEY)
+      ).toBe(FlagVerifyStatus.REJECTED)
+    })
+
+    test('generation throws when the base has too few encodable characters', () => {
+      expect(() =>
+        generateDynamicFlag('rctf{abc}', teamA, challX, 'leet', KEY)
+      ).toThrow()
+    })
+  })
+
+  describe('mode: basic', () => {
+    test('embeds the dash-stripped team id', () => {
+      const flag = generateDynamicFlag(BASE, teamA, challX, 'basic', KEY)
+      expect(flag.includes(teamA.replace(/-/g, ''))).toBe(true)
+    })
+
+    test('binds the flag to the challenge id (CHEATED)', () => {
+      // 'basic' mode folds the challenge id into the signature, so a flag
+      // minted for one challenge has a valid base but a mismatched signature on
+      // another.
+      const flag = generateDynamicFlag(BASE, teamA, challX, 'basic', KEY)
+      expect(verifyDynamicFlag(BASE, teamA, challY, flag, 'basic', KEY)).toBe(
+        FlagVerifyStatus.CHEATED
+      )
+    })
+
+    test('a well-formed flag with the right base but forged tail is CHEATED', () => {
+      const forged = 'rctf{abcdefghijklmnopqrstuvwxyz:deadbeef:0000}'
+      expect(verifyDynamicFlag(BASE, teamA, challX, forged, 'basic', KEY)).toBe(
+        FlagVerifyStatus.CHEATED
+      )
+    })
+
+    test('the untransformed base flag is REJECTED (no team/sig chunks)', () => {
+      expect(verifyDynamicFlag(BASE, teamA, challX, BASE, 'basic', KEY)).toBe(
+        FlagVerifyStatus.REJECTED
+      )
+    })
+
+    test('too few colon-separated chunks is REJECTED', () => {
+      const tooFew = 'rctf{abcdefghijklmnopqrstuvwxyz:onlyone}'
+      expect(verifyDynamicFlag(BASE, teamA, challX, tooFew, 'basic', KEY)).toBe(
+        FlagVerifyStatus.REJECTED
+      )
+    })
+
+    test('a different base body is REJECTED', () => {
+      const wrongBase = 'rctf{wrongbase:team:sig}'
+      expect(
+        verifyDynamicFlag(BASE, teamA, challX, wrongBase, 'basic', KEY)
+      ).toBe(FlagVerifyStatus.REJECTED)
+    })
+  })
+
+  describe('input validation', () => {
+    test('generation throws on a base flag with no brace-delimited body', () => {
+      expect(() =>
+        generateDynamicFlag('not-a-flag', teamA, challX, 'basic', KEY)
+      ).toThrow()
+    })
+
+    test('verification throws on a base flag with no brace-delimited body', () => {
+      expect(() =>
+        verifyDynamicFlag('not-a-flag', teamA, challX, 'rctf{x}', 'basic', KEY)
+      ).toThrow()
+    })
+  })
+})
