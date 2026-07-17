@@ -1,0 +1,22 @@
+{
+  "name": "@rctf/csp",
+  "version": "0.0.0",
+  "type": "module",
+  "bin": {
+    "csp": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "bun src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap=linked",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rctf/config": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14"
+  },
+  "peerDependencies": {
+    "typescript": "7.0.2"
+  }
+}

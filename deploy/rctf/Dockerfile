@@ -21,6 +21,7 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/cli/package.json ./apps/cli/
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/web/package.json ./apps/web/
+COPY deploy/rctf/csp/package.json ./deploy/rctf/csp/
 
 FROM build-base AS deps
 
@@ -58,6 +59,8 @@ COPY --from=package-configs /app/package.json /app/bun.lock ./
 
 COPY apps ./apps
 COPY packages ./packages
+COPY deploy/rctf/csp/package.json deploy/rctf/csp/tsconfig.json ./deploy/rctf/csp/
+COPY deploy/rctf/csp/src ./deploy/rctf/csp/src
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
@@ -71,11 +74,17 @@ RUN bun run --filter '@rctf/web' build
 FROM build-src AS build-cli
 RUN bun run --filter '@rctf/cli' build
 
+FROM build-src AS build-container-init
+RUN bun run --filter '@rctf/csp' build
+
 FROM runtime-base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/rctf/security-headers.conf.template /etc/rctf/nginx/security-headers.conf.template
+COPY deploy/rctf/entrypoint.sh /usr/local/bin/rctf-entrypoint
+RUN chmod +x /usr/local/bin/rctf-entrypoint
 
 COPY --from=build-api /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
@@ -87,8 +96,11 @@ COPY --from=build-cli /app/apps/cli/dist ./apps/cli/dist
 RUN printf '#!/bin/sh\ncd /app\nexec bun /app/apps/cli/dist/index.js "$@"\n' > /usr/local/bin/rctf \
     && chmod +x /usr/local/bin/rctf
 
+COPY --from=build-container-init /app/deploy/rctf/csp/dist ./deploy/rctf/csp/dist
+
 COPY --from=build-web /app/apps/web/build ./static
 
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js
+ENTRYPOINT ["/usr/local/bin/rctf-entrypoint"]
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]
