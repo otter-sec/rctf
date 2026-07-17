@@ -10,7 +10,6 @@
     "apps/cli",
     "apps/docs",
     "apps/web",
-    "deploy/rctf/csp",
     "packages/*",
     "tests/server",
     "tests/admin-bot",

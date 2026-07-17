@@ -161,22 +161,6 @@
         "vite": "8.1.3",
       },
     },
-    "deploy/rctf/csp": {
-      "name": "@rctf/csp",
-      "version": "0.0.0",
-      "bin": {
-        "csp": "./src/index.ts",
-      },
-      "dependencies": {
-        "@rctf/config": "workspace:*",
-      },
-      "devDependencies": {
-        "@types/bun": "1.3.14",
-      },
-      "peerDependencies": {
-        "typescript": "7.0.2",
-      },
-    },
     "packages/config": {
       "name": "@rctf/config",
       "version": "0.0.0",
@@ -736,8 +720,6 @@
     "@rctf/cli": ["@rctf/cli@workspace:apps/cli"],
 
     "@rctf/config": ["@rctf/config@workspace:packages/config"],
-
-    "@rctf/csp": ["@rctf/csp@workspace:deploy/rctf/csp"],
 
     "@rctf/db": ["@rctf/db@workspace:packages/db"],
 
