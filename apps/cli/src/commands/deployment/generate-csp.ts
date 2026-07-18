@@ -20,6 +20,7 @@ const BASE_CSP: Csp = {
   'manifest-src': ["'none'"],
 }
 
+// TODO: instead of hardcoding links here, we should define them on provider level somehow
 const UPLOAD_PROVIDER_CSP: Record<string, Csp> = {
   'uploads/local': {},
 

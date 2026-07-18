@@ -7,7 +7,7 @@ order: 3
 Upload providers handle storage for both challenge file attachments **and team avatars**. Both share the same provider, so anything you configure here applies to both.
 
 :::warning[v2 needs delete permissions]
-Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and the admin-side file deletion flows both depend on it. If you reuse a v1 IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, add `<green>s3:DeleteObject</green>` to it (or the equivalent permission for R2 or GCS).
+Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and admin-side file deletion both depend on it. If you reuse a v1 AWS policy that only grants `<green>s3:GetObject</green>` and `<green>s3:PutObject</green>`, add `<green>s3:DeleteObject</green>`. For GCS, the equivalent permission is `<green>storage.objects.delete</green>`; an R2 token needs object read/write access to the bucket.
 :::
 
 ## Configuration
@@ -83,19 +83,19 @@ uploadProvider:
   name: uploads/r2
   options:
     bucketName: my-ctf-uploads
-    cfAccountId: 023e105f4ecef8ad9ca31a8372d0c353
+    cfAccountId: 0123456789abcdef0123456789abcdef
     cfKeyId: 0123456789abcdef0123456789abcdef
     cfKeySecret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-    publicBaseUrl: https://files.example.com
+    publicBaseUrl: https://cdn.example.com
 ```
 
-| Option                       | Environment Variable                         | Description           |
-| ---------------------------- | -------------------------------------------- |-----------------------|
-| `<red>bucketName</red>`      | `<yellow>RCTF_R2_BUCKET</yellow>`            | R2 bucket name        |
-| `<red>cfAccountId</red>`     | `<yellow>RCTF_R2_ACCOUNT_ID</yellow>`        | Cloudflare account ID |
-| `<red>cfKeyId</red>`         | `<yellow>RCTF_R2_KEY_ID</yellow>`            | R2 access key ID      |
-| `<red>cfKeySecret</red>`     | `<yellow>RCTF_R2_KEY_SECRET</yellow>`        | R2 secret access key  |
-| `<red>publicBaseUrl</red>`   | `<yellow>RCTF_R2_PUBLIC_BASE_URL</yellow>`   | Public bucket URL     |
+| Option | Environment Variable | Description |
+| --- | --- | --- |
+| `<red>bucketName</red>` | `<yellow>RCTF_R2_BUCKET</yellow>` | R2 bucket name |
+| `<red>cfAccountId</red>` | `<yellow>RCTF_R2_ACCOUNT_ID</yellow>` | Cloudflare account ID |
+| `<red>cfKeyId</red>` | `<yellow>RCTF_R2_KEY_ID</yellow>` | R2 access key ID |
+| `<red>cfKeySecret</red>` | `<yellow>RCTF_R2_KEY_SECRET</yellow>` | R2 secret access key |
+| `<red>publicBaseUrl</red>` | `<yellow>RCTF_R2_PUBLIC_BASE_URL</yellow>` | Public bucket URL or custom domain |
 
 The R2 API token needs permission to read, write, and delete objects. Configure the bucket for public access and set `<red>publicBaseUrl</red>` to its custom domain. Files are stored with `attachment` content disposition.
 ::::
@@ -169,9 +169,9 @@ $ <red>terraform</red> apply <dim>-var=</dim><green>"location=weur"</green> <dim
 
 The public R2 hostname defaults to `cdn.<your-zone-domain>`. Override the optional `subdomain` variable if you want a different hostname, for example with `<dim>-var=</dim><green>"subdomain=files"</green>`.
 
-Terraform requires a Cloudflare account API token with `<route>Workers R2 Storage: Edit</route>`, `<route>Account API Tokens: Edit</route>`, and `<route>Zone: Read</route>`. Create one with the [preconfigured token template](https://dash.cloudflare.com/?to=/:account/api-tokens&permissionGroupKeys=%5B%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_api_tokens%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%5D&name=rCTF%20Terraform%20Bootstrap). The module derives the account ID and base domain from the supplied zone ID, then creates a separate account API token with object access scoped to the new bucket. Only use the bootstrap token for Terraform; use the generated bucket-scoped credentials in rCTF.
+Terraform requires a Cloudflare account API token with `<route>Workers R2 Storage: Edit</route>`, `<route>Account API Tokens: Edit</route>`, and `<route>Zone: Read</route>`. Create one with this [preconfigured token template](https://dash.cloudflare.com/?to=/:account/api-tokens&permissionGroupKeys=%5B%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_api_tokens%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%5D&name=rCTF%20Terraform%20Bootstrap). The module derives the account ID and base domain from the supplied zone ID, then creates a separate account API token with object access scoped to the new bucket. Only use the bootstrap token for Terraform; use the generated bucket-scoped credentials in rCTF.
 
-Read the generated bucket-scoped credentials from the sensitive outputs (`account_id`, `bucket`, and `public_base_url` are printed to stdout on apply):
+Read the generated values from the Terraform outputs. The access key and secret are sensitive, so Terraform does not print them after apply:
 
 ```ansi
 $ <red>terraform</red> output -raw access_key_id
@@ -184,16 +184,14 @@ Drop the outputs into your config:
 uploadProvider:
   name: uploads/r2
   options:
-    bucketName: my-ctf-uploads
+    bucketName: <bucket output>
     cfAccountId: <account_id output>
     cfKeyId: <access_key_id output>
     cfKeySecret: <secret_access_key output>
     publicBaseUrl: <public_base_url output>
 ```
 
-The module creates the R2 bucket, configures CORS, connects the derived hostname as its public custom domain, and creates an account API token with object read/write access scoped to that bucket. Cloudflare creates the custom domain's DNS record when it connects the bucket. The hostname must not already have a conflicting DNS record.
-
-:::
+The module creates the R2 bucket, connects the derived hostname as its public custom domain, and creates an account API token with object read, write, and delete access scoped to that bucket. Cloudflare creates the custom domain's DNS record when it connects the bucket, so the hostname must not already have a conflicting DNS record. It also allows CORS `<route>GET</route>` and `<route>HEAD</route>` requests from any origin by default. Restrict the allowed origins with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`.
 :::
 :::tab[GCS]
 ```ansi

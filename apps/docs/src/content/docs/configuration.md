@@ -36,7 +36,7 @@ The following environment variables are supported. They override values from con
 | `<yellow>RCTF_SHUTDOWN_TIMEOUT</yellow>` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit. `0` disables the cap. |
 | `<yellow>RCTF_IDLE_TIMEOUT</yellow>` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
 | `<yellow>RCTF_MAX_REQUEST_BODY_SIZE</yellow>` | `integer{:ts}` | Maximum accepted request body size in bytes |
-| `<yellow>RCTF_UPLOAD_PROVIDER</yellow>` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
+| `<yellow>RCTF_UPLOAD_PROVIDER</yellow>` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, `<green>uploads/r2</green>`, or `<green>uploads/gcs</green>`. See [Uploads](/providers/uploads) for each provider's variables. |
 | `<yellow>RCTF_CONF_PATH</yellow>` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database

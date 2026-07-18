@@ -1,10 +1,10 @@
 ---
 title: CLI
-description: Operational command-line tool for managing admin permissions, seeding demo data, and exporting archives.
+description: Operational command-line tool for deployment tasks, managing admin permissions, seeding demo data, and exporting archives.
 order: 8
 ---
 
-The `<red>rctf</red>` CLI bundles rCTF's operational tooling: admin management, database seeding, and static exports.
+The `<red>rctf</red>` CLI bundles rCTF's operational tooling: deployment helpers, admin management, database seeding, and static exports.
 
 ## Invocation
 
@@ -64,3 +64,9 @@ Seeding deletes all users, challenges, solves, submissions, and settings. When `
 ### `<red>rctf</red> export`
 
 Exports a static, read-only archive of a running instance. See [Static export](/archiving) for the full flag reference.
+
+### `<red>rctf</red> deployment generate-csp`
+
+Generates nginx security-header directives from the current configuration and outputs it to stdout. The output includes a provider-aware `Content-Security-Policy{:http}` header plus `Referrer-Policy{:http}`, `X-Frame-Options{:http}`, and `X-Content-Type-Options{:http}`.
+
+The production container runs this command automatically at startup. 
