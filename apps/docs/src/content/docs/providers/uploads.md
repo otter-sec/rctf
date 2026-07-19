@@ -7,7 +7,7 @@ order: 3
 Upload providers handle storage for both challenge file attachments **and team avatars**. Both share the same provider, so anything you configure here applies to both.
 
 :::warning[v2 needs delete permissions]
-Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and admin-side file deletion both depend on it. If you reuse a v1 AWS policy that only grants `<green>s3:GetObject</green>` and `<green>s3:PutObject</green>`, add `<green>s3:DeleteObject</green>`. For GCS, the equivalent permission is `<green>storage.objects.delete</green>`; an R2 token needs object read/write access to the bucket.
+Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload them. Avatar replacement and admin-side file deletion both depend on it. If you reuse a v1 GCS IAM, add `<green>storage.objects.delete</green>`.
 :::
 
 ## Configuration
