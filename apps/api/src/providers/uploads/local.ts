@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
+import type { Csp } from '../base'
 import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 export default class LocalProvider extends UploadProvider {
@@ -13,6 +14,13 @@ export default class LocalProvider extends UploadProvider {
     this.uploadDirectory = path.resolve(
       options.uploadDirectory ?? path.join(process.cwd(), 'uploads')
     )
+  }
+
+  override getCspRules(): Csp {
+    return {
+      // download all frontend button
+      'frame-src': ["'self'"],
+    }
   }
 
   private resolveUploadPath(key: string): string {

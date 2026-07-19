@@ -1,9 +1,10 @@
-import type { MessageProvider } from './base'
+import { MessageProvider } from './base'
 
-export default class DiscordMessagesProvider implements MessageProvider {
+export default class DiscordMessagesProvider extends MessageProvider {
   private readonly url: string
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{ url: string }>
     if (!options.url) {
       throw new Error(

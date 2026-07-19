@@ -1,5 +1,5 @@
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses'
-import type { Mail, MailProvider } from './base'
+import { MailProvider, type Mail } from './base'
 
 interface SesProviderOptions {
   awsKeyId: string
@@ -15,10 +15,11 @@ export class SesError extends Error {
   }
 }
 
-export default class SesProvider implements MailProvider {
+export default class SesProvider extends MailProvider {
   private readonly client: SESClient
 
   constructor(_options: any) {
+    super()
     const options = {
       awsKeyId: process.env.RCTF_SES_KEY_ID ?? _options.awsKeyId,
       awsKeySecret: process.env.RCTF_SES_KEY_SECRET ?? _options.awsKeySecret,

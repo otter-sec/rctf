@@ -21,17 +21,17 @@ The `<red>name</red>` selects the provider, while `<red>options</red>` contains 
 
 ## Available providers
 
-| Type | Config Field | Available Providers | Default |
-| --- | --- | --- | --- |
-| [Captcha](/providers/captcha) | `<red>captcha.provider</red>` | `<green>captcha/recaptcha</green>`, `<green>captcha/hcaptcha</green>`, `<green>captcha/turnstile</green>` | None (disabled) |
-| [Email](/providers/emails) | `<red>email.provider</red>` | `<green>emails/smtp</green>`, `<green>emails/ses</green>`, `<green>emails/postmark</green>`, `<green>emails/mailgun</green>` | None (disabled) |
-| [Uploads](/providers/uploads) | `<red>uploadProvider</red>` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, `<green>uploads/gcs</green>` | `<green>uploads/local</green>` |
-| [Scoring](/providers/scores) | `<red>scoreProvider</red>` | `<green>scores/classic</green>`, `<green>scores/sekai</green>`, `<green>scores/steep</green>`, `<green>scores/jammy</green>`, `<green>scores/genni</green>`, `<green>scores/legacy</green>` | `<green>scores/classic</green>` |
-| [Moderation](/providers/moderation) | `<red>avatarsModeration.provider</red>` | `<green>moderation/openai</green>` | None (disabled) |
-| [Messages](/integrations/bloodbot)\* | `<red>bloodBot.destinations[].provider</red>` | `<green>messages/discord</green>`, `<green>messages/telegram</green>` | None (disabled) |
-| [Analytics](/providers/analytics) | `<red>analytics.provider</red>` | `<green>analytics/google</green>`, `<green>analytics/cloudflare</green>` | None (disabled) |
-| [Instancer](/integrations/instancer) | `<red>instancers</red>` | `<green>instancers/docker</green>`, `<green>instancers/k8s</green>` | None (disabled) |
-| [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>` | `<green>admin-bots/rctf-ts</green>` | None (disabled) |
+| Type                                 | Config Field                                  | Available Providers                                                                                                                                                                         | Default                         |
+| ------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| [Captcha](/providers/captcha)        | `<red>captcha.provider</red>`                 | `<green>captcha/recaptcha</green>`, `<green>captcha/hcaptcha</green>`, `<green>captcha/turnstile</green>`                                                                                   | None (disabled)                 |
+| [Email](/providers/emails)           | `<red>email.provider</red>`                   | `<green>emails/smtp</green>`, `<green>emails/ses</green>`, `<green>emails/postmark</green>`, `<green>emails/mailgun</green>`                                                                | None (disabled)                 |
+| [Uploads](/providers/uploads)        | `<red>uploadProvider</red>`                   | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, `<green>uploads/gcs</green>`, `<green>uploads/r2</green>`                                                                      | `<green>uploads/local</green>`  |
+| [Scoring](/providers/scores)         | `<red>scoreProvider</red>`                    | `<green>scores/classic</green>`, `<green>scores/sekai</green>`, `<green>scores/steep</green>`, `<green>scores/jammy</green>`, `<green>scores/genni</green>`, `<green>scores/legacy</green>` | `<green>scores/classic</green>` |
+| [Moderation](/providers/moderation)  | `<red>avatarsModeration.provider</red>`       | `<green>moderation/openai</green>`                                                                                                                                                          | None (disabled)                 |
+| [Messages](/integrations/bloodbot)\* | `<red>bloodBot.destinations[].provider</red>` | `<green>messages/discord</green>`, `<green>messages/telegram</green>`                                                                                                                       | None (disabled)                 |
+| [Analytics](/providers/analytics)    | `<red>analytics.provider</red>`               | `<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`                                                                                                                    | None (disabled)                 |
+| [Instancer](/integrations/instancer) | `<red>instancers</red>`                       | `<green>instancers/docker</green>`, `<green>instancers/k8s</green>`                                                                                                                         | None (disabled)                 |
+| [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>`                | `<green>admin-bots/rctf-ts</green>`                                                                                                                                                         | None (disabled)                 |
 
 Providers marked "None (disabled)" are optional. Their features remain unavailable until a provider is configured.
 

@@ -1,5 +1,6 @@
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
+import { BaseProvider } from '../base'
 
 export const encodeKey = (key: string): string => {
   const components = key.split('/')
@@ -11,7 +12,7 @@ export interface FileInfo {
   size: number | null
 }
 
-export abstract class UploadProvider {
+export abstract class UploadProvider extends BaseProvider {
   abstract startupWebPart(app: Hono<AppEnv>): Promise<void>
 
   abstract uploadFile: (data: Buffer, key: string) => Promise<string>

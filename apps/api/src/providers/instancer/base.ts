@@ -1,6 +1,7 @@
 import type { InstancerConfig, User } from '@rctf/db'
 import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
+import { BaseProvider } from '../base'
 
 export { InstanceStatus }
 
@@ -66,26 +67,26 @@ export interface InstancerActionDefinition {
   rateLimit?: { burst: number; intervalMilliseconds: number }
 }
 
-export interface InstancerProvider {
-  readonly configSchema: z.ZodMiniType<ProviderConfig, unknown>
-  readonly capabilities: InstancerCapabilities
+export abstract class InstancerProvider extends BaseProvider {
+  abstract readonly configSchema: z.ZodMiniType<ProviderConfig, unknown>
+  abstract readonly capabilities: InstancerCapabilities
 
-  getDefaults: () => ProviderConfig
+  abstract getDefaults: () => ProviderConfig
 
-  createInstance: (
+  abstract createInstance: (
     options: CreateInstanceOptions
   ) => Promise<instanceDetailsOrError>
 
   // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
-  getInstance: (
+  abstract getInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>
 
-  deleteInstance: (
+  abstract deleteInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>
 
-  extendInstance: (
+  abstract extendInstance: (
     options: ExtendInstanceOptions
   ) => Promise<instanceDetailsOrError>
 

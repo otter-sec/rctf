@@ -1,10 +1,11 @@
-import type { Mail, MailProvider } from './base'
+import { MailProvider, type Mail } from './base'
 
-export default class MailgunProvider implements MailProvider {
+export default class MailgunProvider extends MailProvider {
   private readonly apiKey: string
   private readonly domain: string
 
   constructor(_options: any) {
+    super()
     const apiKey: string | undefined =
       process.env.RCTF_MAILGUN_API_KEY ?? _options.apiKey
     const domain: string | undefined =

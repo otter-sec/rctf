@@ -76,6 +76,8 @@ FROM runtime-base AS production
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/rctf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
 
 COPY --from=build-api /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
@@ -91,4 +93,4 @@ COPY --from=build-web /app/apps/web/build ./static
 
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]

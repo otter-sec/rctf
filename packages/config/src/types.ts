@@ -198,6 +198,8 @@ export const ServerConfigSchema = z.object({
     {}
   ),
 
+  csp: z._default(z.record(z.string(), z.array(z.string())), {}),
+
   // First blood messages
   bloodBot: z.optional(
     z.object({

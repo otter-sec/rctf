@@ -1,9 +1,10 @@
-import type { Mail, MailProvider } from './base'
+import { MailProvider, type Mail } from './base'
 
-export default class PostmarkProvider implements MailProvider {
+export default class PostmarkProvider extends MailProvider {
   private readonly serverToken: string
 
   constructor(_options: any) {
+    super()
     const serverToken: string | undefined =
       process.env.RCTF_POSTMARK_SERVER_TOKEN ?? _options.serverToken
     if (!serverToken) {

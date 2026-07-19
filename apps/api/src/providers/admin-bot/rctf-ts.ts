@@ -2,8 +2,8 @@ import type { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
 import { z } from 'zod/mini'
 import type { AppEnv } from '../../lib/app-env'
-import type { AdminBotProvider, LoadedAdminBotConfig } from './base'
-import { AdminBotConfigLanguage } from './base'
+import type { LoadedAdminBotConfig } from './base'
+import { AdminBotConfigLanguage, AdminBotProvider } from './base'
 
 const RegexRuleSchema = z.object({
   pattern: z.string(),
@@ -16,7 +16,7 @@ export const TestEndpointResponseSchema = z.object({
   requireInstancerInstancesRunning: z.boolean(),
 })
 
-export default class RctfTSProvider implements AdminBotProvider {
+export default class RctfTSProvider extends AdminBotProvider {
   readonly configLanguage = AdminBotConfigLanguage.TypeScript
   readonly configFileExtension = '.ts'
   readonly authMiddleware
@@ -25,6 +25,7 @@ export default class RctfTSProvider implements AdminBotProvider {
   private readonly endpoint: string
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{ secretKey: string; endpoint: string }>
     const secretKey = process.env.RCTF_ADMIN_BOT_SECRET_KEY ?? options.secretKey
     const endpoint = process.env.RCTF_ADMIN_BOT_ENDPOINT ?? options.endpoint

@@ -1,11 +1,12 @@
 import nodemailer from 'nodemailer'
 import Mailer from 'nodemailer/lib/mailer'
-import type { Mail, MailProvider } from './base'
+import { MailProvider, type Mail } from './base'
 
-export default class SmtpProvider implements MailProvider {
+export default class SmtpProvider extends MailProvider {
   private readonly mailer: Mailer
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{ smtpUrl: string }>
     const url = process.env.RCTF_SMTP_URL ?? options.smtpUrl
     if (!url) {

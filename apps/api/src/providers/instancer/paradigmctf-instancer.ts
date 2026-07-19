@@ -1,13 +1,13 @@
 import { ExposeKind } from '@rctf/types'
 import * as z from 'zod/mini'
 import {
+  InstancerProvider,
   InstanceStatus,
   type CreateInstanceOptions,
   type ExtendInstanceOptions,
   type instanceDetailsOrError,
   type InstanceQueryOptions,
   type instancerActionOutcome,
-  type InstancerProvider,
   type ProviderConfig,
 } from './base'
 
@@ -38,7 +38,7 @@ const misconfigured = () => ({
   message: 'Instancer is missing a valid apiUrl in the challenge config',
 })
 
-export default class ParadigmctfInstancerProvider implements InstancerProvider {
+export default class ParadigmctfInstancerProvider extends InstancerProvider {
   readonly configSchema = z.object({
     apiUrl: z
       .string()
@@ -57,7 +57,7 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     ),
   })
   readonly capabilities = { canStop: true, canExtend: false }
-  readonly actions = [
+  override readonly actions = [
     {
       id: 'get-flag',
       label: 'Get flag',
@@ -65,7 +65,9 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     },
   ]
 
-  constructor(_options: unknown) {}
+  constructor(_options: unknown) {
+    super()
+  }
 
   getDefaults = (): ProviderConfig => ({ apiUrl: '', apiToken: '' })
 
@@ -232,7 +234,7 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     message: 'This instancer does not support extending instances',
   })
 
-  runAction = async (
+  override runAction = async (
     actionId: string,
     options: InstanceQueryOptions
   ): Promise<instancerActionOutcome> => {

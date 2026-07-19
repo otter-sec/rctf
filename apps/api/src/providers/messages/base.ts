@@ -1,5 +1,7 @@
-export interface MessageProvider {
-  sendMarkdown: (message: string) => Promise<void>
-  escapeText: (text: string) => string
-  escapeUrl: (text: string) => string
+import { BaseProvider } from '../base'
+
+export abstract class MessageProvider extends BaseProvider {
+  abstract sendMarkdown(message: string): Promise<void>
+  abstract escapeText(text: string): string
+  abstract escapeUrl(text: string): string
 }
