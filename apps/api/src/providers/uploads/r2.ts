@@ -1,12 +1,24 @@
 import { S3Client } from '@aws-sdk/client-s3'
 import S3CompatibleProvider from './s3-compatible'
 
+export type R2Jurisdiction = 'none' | 'eu' | 'fedramp'
+
 interface R2ProviderOptions {
   bucketName: string
   cfAccountId: string
   cfKeyId: string
   cfKeySecret: string
   publicBaseUrl: string
+  jurisdiction: R2Jurisdiction
+}
+
+export const getR2Endpoint = (
+  accountId: string,
+  jurisdiction: R2Jurisdiction
+): string => {
+  const jurisdictionSubdomain =
+    jurisdiction === 'none' ? '' : `.${jurisdiction}`
+  return `https://${accountId}${jurisdictionSubdomain}.r2.cloudflarestorage.com`
 }
 
 export default class R2Provider extends S3CompatibleProvider {
@@ -18,6 +30,10 @@ export default class R2Provider extends S3CompatibleProvider {
       cfKeySecret: process.env.RCTF_R2_KEY_SECRET ?? _options.cfKeySecret,
       publicBaseUrl:
         process.env.RCTF_R2_PUBLIC_BASE_URL ?? _options.publicBaseUrl,
+      jurisdiction:
+        process.env.RCTF_R2_JURISDICTION ??
+        _options.jurisdiction ??
+        ('none' as R2Jurisdiction),
     } as R2ProviderOptions
 
     if (
@@ -28,14 +44,14 @@ export default class R2Provider extends S3CompatibleProvider {
       !options.publicBaseUrl
     ) {
       throw new Error(
-        'Missing one of the bucketName, cfAccountId, cfKeyId, cfKeySecret or publicUrl for the R2 upload provider.'
+        'Missing one of the bucketName, cfAccountId, cfKeyId, cfKeySecret or publicBaseUrl for the R2 upload provider.'
       )
     }
 
     super({
       client: new S3Client({
         region: 'auto',
-        endpoint: `https://${options.cfAccountId}.r2.cloudflarestorage.com`,
+        endpoint: getR2Endpoint(options.cfAccountId, options.jurisdiction),
         credentials: {
           accessKeyId: options.cfKeyId,
           secretAccessKey: options.cfKeySecret,

@@ -87,6 +87,7 @@ uploadProvider:
     cfKeyId: 0123456789abcdef0123456789abcdef
     cfKeySecret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
     publicBaseUrl: https://cdn.example.com
+    jurisdiction: none # optional: none, eu, or fedramp
 ```
 
 | Option | Environment Variable | Description |
@@ -96,8 +97,9 @@ uploadProvider:
 | `<red>cfKeyId</red>` | `<yellow>RCTF_R2_KEY_ID</yellow>` | R2 access key ID |
 | `<red>cfKeySecret</red>` | `<yellow>RCTF_R2_KEY_SECRET</yellow>` | R2 secret access key |
 | `<red>publicBaseUrl</red>` | `<yellow>RCTF_R2_PUBLIC_BASE_URL</yellow>` | Public bucket URL or custom domain |
+| `<red>jurisdiction</red>` | `<yellow>RCTF_R2_JURISDICTION</yellow>` | R2 jurisdiction: `<green>none</green>` (default), `<green>eu</green>`, or `<green>fedramp</green>` |
 
-The R2 API token needs permission to read, write, and delete objects. Configure the bucket for public access and set `<red>publicBaseUrl</red>` to its custom domain. Files are stored with `attachment` content disposition.
+The R2 API token needs permission to read, write, and delete objects. Configure the bucket for public access and set `<red>publicBaseUrl</red>` to its custom domain. Set `<red>jurisdiction</red>` for buckets created in the EU or FedRAMP jurisdiction; the location hint used when creating a default-jurisdiction bucket does not change this setting.
 ::::
 ::::tab[uploads/gcs]
 Stores files in a Google Cloud Storage bucket.
