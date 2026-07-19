@@ -17,6 +17,11 @@ interface S3CompatibleProviderOptions {
   acl?: PutObjectCommandInput['ACL']
 }
 
+const isObjectMissingError = (error: any): boolean =>
+  error?.$metadata?.httpStatusCode === 404 ||
+  error?.name === 'NotFound' ||
+  error?.$metadata?.httpStatusCode === 301 // bucket redirect due to not existing
+
 export default abstract class S3CompatibleProvider extends UploadProvider {
   private readonly client: S3Client
   private readonly bucket: string
@@ -56,12 +61,7 @@ export default abstract class S3CompatibleProvider extends UploadProvider {
       )
       return true
     } catch (error: any) {
-      if (
-        error?.$metadata?.httpStatusCode === 404 ||
-        error?.name === 'NotFound' ||
-        error?.$metadata?.httpStatusCode === 403 ||
-        error?.$metadata?.httpStatusCode === 301 // bucket redirect due to not existing
-      ) {
+      if (isObjectMissingError(error)) {
         return false
       }
       throw error
@@ -118,8 +118,11 @@ export default abstract class S3CompatibleProvider extends UploadProvider {
         url: this.toUrl(key),
         size: response.ContentLength ?? null,
       }
-    } catch {
-      return { url: null, size: null }
+    } catch (error: any) {
+      if (isObjectMissingError(error)) {
+        return { url: null, size: null }
+      }
+      throw error
     }
   }
 }
