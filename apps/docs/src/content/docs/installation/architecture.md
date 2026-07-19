@@ -77,7 +77,6 @@ COPY --from=build-web /app/apps/web/build ./static
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 ```
 
 `<yellow>WORKER_EXTENSION</yellow>` is set to `<green>.js</green>` so the API process resolves its compiled worker entry (`./leaderboard.js{:file}`) rather than the `.ts` source used in development.

@@ -94,4 +94,3 @@ COPY --from=build-web /app/apps/web/build ./static
 ENV NODE_ENV=production
 ENV WORKER_EXTENSION=.js
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
