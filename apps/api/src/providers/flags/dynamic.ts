@@ -1,4 +1,5 @@
 import { config as serverConfig } from '@rctf/config'
+import { DynamicFlagMode } from '@rctf/types'
 import { createHash } from 'node:crypto'
 import { z } from 'zod/mini'
 import {
@@ -15,7 +16,7 @@ export const dynamicFlagConfigSchema = z.strictObject({
   base: z.string().check(z.minLength(1)).register(z.globalRegistry, {
     description: 'Base flag the per-team signature is encoded into',
   }),
-  mode: z.string().check(z.minLength(1)).register(z.globalRegistry, {
+  mode: z.enum(DynamicFlagMode).register(z.globalRegistry, {
     description: "Signing mode, 'leet' or 'basic'",
   }),
 })
@@ -64,7 +65,7 @@ export const generateDynamicFlag = (
   baseFlag: string,
   teamId: string,
   challengeId: string,
-  signingMode: string,
+  signingMode: DynamicFlagMode,
   signingKey: string
 ): string => {
   let baseFlagStripped = baseFlag.match(/{.*}/) || []
@@ -78,7 +79,7 @@ export const generateDynamicFlag = (
   let encodedFlagContent = ''
 
   switch (signingMode) {
-    case 'leet':
+    case DynamicFlagMode.LEET:
       let teamIdNum = BigInt('0x' + teamId.replace(/-/g, ''))
       let sig = createHash('sha256')
         .update(`${baseFlag}:${teamId}:${signingKey}`)
@@ -127,7 +128,7 @@ export const generateDynamicFlag = (
       }
       break
 
-    case 'basic':
+    case DynamicFlagMode.BASIC:
       if (baseFlagContent.length > 0) {
         encodedFlagContent = `${baseFlagContent}:${teamId.replace(/-/g, '')}`
       } else {
@@ -149,7 +150,7 @@ export const verifyDynamicFlag = (
   teamId: string,
   challengeId: string,
   submitted: string,
-  signingMode: string,
+  signingMode: DynamicFlagMode,
   signingKey: string
 ): FlagVerifyStatus => {
   if (
@@ -178,7 +179,7 @@ export const verifyDynamicFlag = (
   let submittedFlagContent = submittedFlagStripped[0].slice(1, -1)
 
   switch (signingMode) {
-    case 'leet':
+    case DynamicFlagMode.LEET:
       if (baseFlagContent.length != submittedFlagContent.length) {
         return FlagVerifyStatus.REJECTED
       }
@@ -197,7 +198,7 @@ export const verifyDynamicFlag = (
       }
       break
 
-    case 'basic':
+    case DynamicFlagMode.BASIC:
       let submittedFlagContentChunks = submittedFlagContent.split(':')
 
       if (submittedFlagContentChunks.length < 3) {
