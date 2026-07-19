@@ -6,12 +6,12 @@ import {
 } from '@kubernetes/client-node'
 import * as z from 'zod/mini'
 import {
+  InstancerProvider,
   InstanceStatus,
   type CreateInstanceOptions,
   type ExtendInstanceOptions,
   type instanceDetailsOrError,
   type InstanceQueryOptions,
-  type InstancerProvider,
   type ProviderConfig,
 } from './base'
 
@@ -432,13 +432,14 @@ const k8sInstancerConfigSchema = z.object({
     .check(z.describe('Pods')),
 })
 
-export default class K8sInstancerProvider implements InstancerProvider {
+export default class K8sInstancerProvider extends InstancerProvider {
   private readonly client: CustomObjectsApi
 
   readonly configSchema = k8sInstancerConfigSchema
   readonly capabilities = { canStop: true, canExtend: true }
 
   constructor(_options: unknown) {
+    super()
     const options = {
       authToken:
         process.env.K8S_INSTANCER_AUTH_TOKEN ??

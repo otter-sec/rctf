@@ -1,11 +1,12 @@
-import type { MessageProvider } from './base'
+import { MessageProvider } from './base'
 
-export default class TelegramMessagesProvider implements MessageProvider {
+export default class TelegramMessagesProvider extends MessageProvider {
   private readonly botToken: string
   private readonly chatId: string | number
   private readonly threadId: number | undefined
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{
       botToken: string
       chatId: string | number

@@ -1,6 +1,7 @@
 import { Bucket, File, Storage } from '@google-cloud/storage'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
+import type { Csp } from '../base'
 import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 interface GcsProviderOptions {
@@ -49,6 +50,12 @@ export default class GcsProvider extends UploadProvider {
   }
 
   override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
+
+  override getCspRules(): Csp {
+    return {
+      'connect-src': [`https://${this.bucketName}.storage.googleapis.com`],
+    }
+  }
 
   override uploadFile = async (data: Buffer, key: string): Promise<string> => {
     const file = this.getGcsFile(key)

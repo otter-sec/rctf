@@ -1,10 +1,12 @@
-import type { CaptchaOptions, CaptchaProvider } from './base'
+import type { Csp } from '../base'
+import { CaptchaProvider, type CaptchaOptions } from './base'
 
-export default class RecaptchaProvider implements CaptchaProvider {
+export default class RecaptchaProvider extends CaptchaProvider {
   private readonly secretKey: string
   private readonly siteKey: string
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{ secretKey: string; siteKey: string }>
     const secretKey = process.env.RCTF_RECAPTCHA_SECRET_KEY ?? options.secretKey
     const siteKey = process.env.RCTF_RECAPTCHA_SITE_KEY ?? options.siteKey
@@ -20,6 +22,17 @@ export default class RecaptchaProvider implements CaptchaProvider {
   getPublicOptions(): Record<string, string> {
     return {
       siteKey: this.siteKey,
+    }
+  }
+
+  // https://developers.google.com/recaptcha/docs/faq#im-using-content-security-policy-csp-on-my-website.-how-can-i-configure-it-to-work-with-recaptcha
+  override getCspRules(): Csp {
+    return {
+      'connect-src': ['https://www.google.com/recaptcha/'],
+      'frame-src': [
+        'https://www.google.com/recaptcha/',
+        'https://recaptcha.google.com/recaptcha/',
+      ],
     }
   }
 

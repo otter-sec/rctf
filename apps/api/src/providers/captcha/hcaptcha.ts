@@ -1,10 +1,12 @@
-import type { CaptchaOptions, CaptchaProvider } from './base'
+import type { Csp } from '../base'
+import { CaptchaProvider, type CaptchaOptions } from './base'
 
-export default class HCaptchaProvider implements CaptchaProvider {
+export default class HCaptchaProvider extends CaptchaProvider {
   private readonly secretKey: string
   private readonly siteKey: string
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<{ secretKey: string; siteKey: string }>
     const secretKey = process.env.RCTF_HCAPTCHA_SECRET_KEY ?? options.secretKey
     const siteKey = process.env.RCTF_HCAPTCHA_SITE_KEY ?? options.siteKey
@@ -20,6 +22,15 @@ export default class HCaptchaProvider implements CaptchaProvider {
   getPublicOptions(): Record<string, string> {
     return {
       siteKey: this.siteKey,
+    }
+  }
+
+  // https://docs.hcaptcha.com/#content-security-policy-settings
+  override getCspRules(): Csp {
+    return {
+      'style-src': ['https://hcaptcha.com', 'https://*.hcaptcha.com'],
+      'connect-src': ['https://hcaptcha.com/', 'https://*.hcaptcha.com/'],
+      'frame-src': ['https://hcaptcha.com', 'https://*.hcaptcha.com'],
     }
   }
 

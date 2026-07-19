@@ -1,3 +1,5 @@
+import { BaseProvider } from '../base'
+
 export interface Mail {
   from: string
   to: string
@@ -6,6 +8,6 @@ export interface Mail {
   text: string
 }
 
-export interface MailProvider {
-  send: (options: Mail) => Promise<void>
+export abstract class MailProvider extends BaseProvider {
+  abstract send(options: Mail): Promise<void>
 }

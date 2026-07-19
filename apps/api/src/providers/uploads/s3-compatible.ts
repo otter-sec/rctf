@@ -7,6 +7,7 @@ import {
 } from '@aws-sdk/client-s3'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
+import type { Csp } from '../base'
 import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 interface S3CompatibleProviderOptions {
@@ -31,6 +32,12 @@ export default abstract class S3CompatibleProvider extends UploadProvider {
   }
 
   override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
+
+  override getCspRules(): Csp {
+    return {
+      'connect-src': [this.publicBaseUrl],
+    }
+  }
 
   private getObjectKey(key: string): string {
     return `uploads/${key}`

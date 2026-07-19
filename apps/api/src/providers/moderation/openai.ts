@@ -1,11 +1,12 @@
 import OpenAI, { type ClientOptions } from 'openai'
-import type { ModerationProvider } from './base'
+import { ModerationProvider } from './base'
 
-export default class OpenAIModerationProvider implements ModerationProvider {
+export default class OpenAIModerationProvider extends ModerationProvider {
   private readonly client: OpenAI
   private readonly model: string
 
   constructor(_options: any) {
+    super()
     const options = _options as Partial<ClientOptions & { model: string }>
 
     const apiKey =

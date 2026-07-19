@@ -1,6 +1,7 @@
 import type { Hono } from 'hono'
 import type { MiddlewareHandler } from 'hono/types'
 import type { AppEnv } from '../../lib/app-env'
+import { BaseProvider } from '../base'
 
 export interface RegexRule {
   pattern: string
@@ -17,11 +18,11 @@ export enum AdminBotConfigLanguage {
   TypeScript = 'typescript',
 }
 
-export interface AdminBotProvider {
-  readonly configLanguage: AdminBotConfigLanguage
-  readonly configFileExtension: string
-  readonly authMiddleware: MiddlewareHandler
+export abstract class AdminBotProvider extends BaseProvider {
+  abstract readonly configLanguage: AdminBotConfigLanguage
+  abstract readonly configFileExtension: string
+  abstract readonly authMiddleware: MiddlewareHandler
 
-  startupWebPart(app: Hono<AppEnv>): Promise<void>
-  loadConfig(config: string): Promise<LoadedAdminBotConfig | string>
+  abstract startupWebPart(app: Hono<AppEnv>): Promise<void>
+  abstract loadConfig(config: string): Promise<LoadedAdminBotConfig | string>
 }

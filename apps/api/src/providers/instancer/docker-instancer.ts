@@ -2,11 +2,11 @@ import * as z from 'zod/mini'
 import {
   instanceDetailsSchema,
   instancerErrorSchema,
+  InstancerProvider,
   type CreateInstanceOptions,
   type ExtendInstanceOptions,
   type instanceDetailsOrError,
   type InstanceQueryOptions,
-  type InstancerProvider,
   type ProviderConfig,
 } from './base'
 import { docker, linux, net } from './util'
@@ -435,7 +435,7 @@ const tinyInstancerConfigSchema = z
     }, 'Services reference undefined volumes')
   )
 
-export default class TinyInstancerProvider implements InstancerProvider {
+export default class TinyInstancerProvider extends InstancerProvider {
   private readonly authToken: string
   private readonly apiUrl: string
 
@@ -443,6 +443,7 @@ export default class TinyInstancerProvider implements InstancerProvider {
   readonly capabilities = { canStop: true, canExtend: true }
 
   constructor(_options: unknown) {
+    super()
     const options = {
       authToken:
         process.env.DOCKER_INSTANCER_AUTH_TOKEN ??
