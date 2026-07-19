@@ -35,12 +35,17 @@ The production container has the following layout:
 - etc/
   - supervisord.conf Process definitions
   - nginx/
+    - nginx.conf Main config
     - http.d/
       - default.conf Static + /api proxy
-      - security-headers.conf CSP
+- tmp/
+  - nginx/
+    - security-headers.conf CSP, generated at startup
 :::
 
 The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}`.
+
+Everything the container writes at runtime lives under `/tmp/{:dir}`, so it can run with a read-only root filesystem; `compose.yml{:file}` sets `read_only: true{:yaml}` and mounts `/tmp/{:dir}` as a tmpfs.
 
 ## Build stages
 
@@ -111,7 +116,7 @@ When `<red>instanceType</red>` is `<green>frontend</green>`, the API process doe
 
 ## Nginx
 
-The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration from `rctf.d/{:dir}`, writes it to `/etc/nginx/http.d/security-headers.conf{:file}`, and runs `$ <red>nginx</red> <dim>-t</dim>` to validate the complete configuration.
+The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration from `rctf.d/{:dir}`, writes it to `/tmp/nginx/security-headers.conf{:file}`, and runs `$ <red>nginx</red> <dim>-t -e stderr</dim>` to validate the complete configuration.
 
 ```nginx title="deploy/rctf/nginx.conf"
 server {
@@ -119,7 +124,7 @@ server {
     root /app/static;
     gzip_static on;
     brotli_static on;
-    include /etc/nginx/http.d/security-headers.conf;
+    include /tmp/nginx/security-headers.conf;
     # ...
 
     location ~ ^/api/v[12]/admin/upload$ {
@@ -134,7 +139,7 @@ server {
 
     location /_app/immutable/ {
         add_header Cache-Control "public, max-age=86400, immutable";
-        include /etc/nginx/http.d/security-headers.conf;
+        include /tmp/nginx/security-headers.conf;
         try_files $uri $uri/ /index.html;
     }
 

@@ -75,6 +75,7 @@ FROM runtime-base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
+COPY deploy/rctf/nginx-main.conf /etc/nginx/nginx.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
 COPY deploy/rctf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
