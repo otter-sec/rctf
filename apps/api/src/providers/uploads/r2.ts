@@ -1,7 +1,7 @@
 import { S3Client } from '@aws-sdk/client-s3'
 import S3CompatibleProvider from './s3-compatible'
 
-export type R2Jurisdiction = 'none' | 'eu' | 'fedramp'
+export type R2Jurisdiction = 'default' | 'eu' | 'fedramp'
 
 interface R2ProviderOptions {
   bucketName: string
@@ -17,7 +17,7 @@ export const getR2Endpoint = (
   jurisdiction: R2Jurisdiction
 ): string => {
   const jurisdictionSubdomain =
-    jurisdiction === 'none' ? '' : `.${jurisdiction}`
+    jurisdiction === 'default' ? '' : `.${jurisdiction}`
   return `https://${accountId}${jurisdictionSubdomain}.r2.cloudflarestorage.com`
 }
 
@@ -33,7 +33,7 @@ export default class R2Provider extends S3CompatibleProvider {
       jurisdiction:
         process.env.RCTF_R2_JURISDICTION ??
         _options.jurisdiction ??
-        ('none' as R2Jurisdiction),
+        ('default' as R2Jurisdiction),
     } as R2ProviderOptions
 
     if (
