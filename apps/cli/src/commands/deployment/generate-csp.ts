@@ -1,8 +1,11 @@
 import '@rctf/api/src/providers'
 import { registeredProviders, type Csp } from '@rctf/api/src/providers/base'
+import { join } from 'path'
 import { defineCommand } from 'citty'
+import { extractCspFromMeta, mergeCsp, serializeCsp } from '../../lib/csp'
 
 const BASE_CSP: Csp = {
+  'default-src': ["'none'"],
   'style-src': ["'self'", "'unsafe-inline'"],
   'connect-src': ["'self'", 'data:', 'blob:'],
   'font-src': ["'self'"],
@@ -19,28 +22,13 @@ const BASE_CSP: Csp = {
   'manifest-src': ["'none'"],
 }
 
-const mergeCsp = (...fragments: Csp[]): string => {
-  const merge: Csp = {}
-
-  for (const fragment of fragments) {
-    for (const [directive, sources] of Object.entries(fragment)) {
-      merge[directive] ??= []
-      merge[directive].push(...sources)
-    }
-  }
-
-  let output = ''
-  for (const [directive, sources] of Object.entries(merge)) {
-    output += `${directive} ${sources.join(' ')}; `
-  }
-
-  return output.trimEnd()
-}
-
-const getSecurityHeaders = (): string => {
-  const csp = mergeCsp(
-    BASE_CSP,
-    ...registeredProviders.map(provider => provider.getCspRules())
+const getSecurityHeaders = (svelteCsp: Csp): string => {
+  const csp = serializeCsp(
+    mergeCsp(
+      BASE_CSP,
+      svelteCsp,
+      ...registeredProviders.map(provider => provider.getCspRules())
+    )
   )
 
   return [
@@ -57,7 +45,16 @@ export default defineCommand({
     name: 'generate-csp',
     description: 'Generate nginx CSP header',
   },
-  run: () => {
-    process.stdout.write(getSecurityHeaders())
+  args: {
+    'web-build': {
+      type: 'string',
+      default: 'apps/web/build',
+      description: 'Path to the SvelteKit web build directory',
+    },
+  },
+  run: async ({ args }) => {
+    const html = await Bun.file(join(args['web-build'], 'index.html')).text()
+    const svelteCsp = extractCspFromMeta(html)
+    process.stdout.write(getSecurityHeaders(svelteCsp))
   },
 })

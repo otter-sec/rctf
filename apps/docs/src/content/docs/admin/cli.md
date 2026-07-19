@@ -67,6 +67,6 @@ Exports a static, read-only archive of a running instance. See [Static export](/
 
 ### `<red>rctf</red> deployment generate-csp`
 
-Generates nginx security-header directives from the current configuration and outputs it to stdout. The output includes a provider-aware `Content-Security-Policy{:http}` header plus `Referrer-Policy{:http}`, `X-Frame-Options{:http}`, and `X-Content-Type-Options{:http}`.
+Generates nginx security-header directives from the current configuration and outputs it to stdout. The output includes a provider-aware `Content-Security-Policy{:http}` header plus `Referrer-Policy{:http}`, `X-Frame-Options{:http}`, and `X-Content-Type-Options{:http}`. The command reads Svelte's generated CSP directives from `<dim>--web-build</dim>` (default: `apps/web/build/{:dir}`), merges them with the runtime policy, and removes duplicate sources.
 
-The production container runs this command automatically at startup. 
+The production container runs this command automatically at startup.
