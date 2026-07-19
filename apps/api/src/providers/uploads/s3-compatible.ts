@@ -35,7 +35,10 @@ export default abstract class S3CompatibleProvider extends UploadProvider {
 
   override getCspRules(): Csp {
     return {
+      // avatars downloading for screenshot mode
       'connect-src': [this.publicBaseUrl],
+      // download all frontend button
+      'frame-src': [this.publicBaseUrl],
     }
   }
 

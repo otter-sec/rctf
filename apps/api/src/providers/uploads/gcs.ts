@@ -52,8 +52,12 @@ export default class GcsProvider extends UploadProvider {
   override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
 
   override getCspRules(): Csp {
+    const origin = `https://${this.bucketName}.storage.googleapis.com`
     return {
-      'connect-src': [`https://${this.bucketName}.storage.googleapis.com`],
+      // avatars downloading for screenshot mode
+      'connect-src': [origin],
+      // download all frontend button
+      'frame-src': [origin],
     }
   }
 
