@@ -3,6 +3,7 @@ import { challenges, createDatabase, solves, submissions } from '@rctf/db'
 import type { ChallengeData } from '@rctf/db'
 import {
   BadFlag,
+  DynamicFlagMode,
   GoodAdminChallengeV2,
   GoodChallengeUpdateV2,
   GoodFlag,
@@ -20,7 +21,7 @@ import {
 } from '../../util'
 
 const DYNAMIC_BASE = 'rctf{abcdefghijklmnopqrstuvwxyz}'
-const DYNAMIC_MODE = 'basic'
+const DYNAMIC_MODE = DynamicFlagMode.BASIC
 const signingKey = config.dynamicFlagSigningKey ?? ''
 
 const getDb = () => createDatabase(config.database.sql).db

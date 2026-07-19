@@ -151,13 +151,18 @@ export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
+export enum DynamicFlagMode {
+  LEET = 'leet',
+  BASIC = 'basic',
+}
+
 export const DynamicFlagSchema = z.object({
   base: example(z.string(), 'rctf{baby_rev}').check(
     z.describe('Base flag passed to the dynamic flag signing function.')
   ),
-  mode: example(z.string(), 'default').check(
+  mode: example(z.enum(DynamicFlagMode), 'basic').check(
     z.describe(
-      'Signing mode string passed to the dynamic flag generation and verification functions.'
+      'Signing mode passed to the dynamic flag generation and verification functions.'
     )
   ),
 })

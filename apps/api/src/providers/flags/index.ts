@@ -1,3 +1,4 @@
+import { DynamicFlagMode } from '@rctf/types'
 import { timingSafeEqual } from '../../util/timing-safe-equal'
 import { DynamicFlagResult } from './result'
 import { createHash } from 'node:crypto'
@@ -49,7 +50,7 @@ export const generateDynamicFlag = (
   baseFlag: string,
   teamId: string,
   challengeId: string,
-  signingMode: string,
+  signingMode: DynamicFlagMode,
   signingKey: string
 ): string => {
   let baseFlagStripped = baseFlag.match(/{.*}/) || []
@@ -63,7 +64,7 @@ export const generateDynamicFlag = (
   let encodedFlagContent = ''
 
   switch (signingMode) {
-    case 'leet':
+    case DynamicFlagMode.LEET:
       let teamIdNum = BigInt('0x' + teamId.replace(/-/g, ''))
       let sig = createHash('sha256')
         .update(`${baseFlag}:${teamId}:${signingKey}`)
@@ -112,7 +113,7 @@ export const generateDynamicFlag = (
       }
       break
 
-    case 'basic':
+    case DynamicFlagMode.BASIC:
       if (baseFlagContent.length > 0) {
         encodedFlagContent = `${baseFlagContent}:${teamId.replace(/-/g, '')}`
       } else {
@@ -134,7 +135,7 @@ export const verifyDynamicFlag = (
   teamId: string,
   challengeId: string,
   submitted: string,
-  signingMode: string,
+  signingMode: DynamicFlagMode,
   signingKey: string
 ): DynamicFlagResult => {
   if (
@@ -163,7 +164,7 @@ export const verifyDynamicFlag = (
   let submittedFlagContent = submittedFlagStripped[0].slice(1, -1)
 
   switch (signingMode) {
-    case 'leet':
+    case DynamicFlagMode.LEET:
       if (baseFlagContent.length != submittedFlagContent.length) {
         return DynamicFlagResult.Invalid
       }
@@ -182,7 +183,7 @@ export const verifyDynamicFlag = (
       }
       break
 
-    case 'basic':
+    case DynamicFlagMode.BASIC:
       let submittedFlagContentChunks = submittedFlagContent.split(':')
 
       if (submittedFlagContentChunks.length < 3) {

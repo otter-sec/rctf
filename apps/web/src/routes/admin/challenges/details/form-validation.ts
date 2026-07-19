@@ -9,7 +9,6 @@ export interface FormErrors {
   description?: string
   flag?: string
   dynamicFlagBase?: string
-  dynamicFlagMode?: string
   secret?: string
 }
 
@@ -29,9 +28,6 @@ export function formErrors(form: EditorForm): FormErrors {
     if (form.dynamicFlagBase.trim() === '') {
       errors.dynamicFlagBase = 'Base flag is required'
     }
-    if (form.dynamicFlagMode.trim() === '') {
-      errors.dynamicFlagMode = 'Signing mode is required'
-    }
   } else if (form.flag.trim() === '') {
     errors.flag = 'Flag is required'
   }
@@ -49,8 +45,7 @@ export function detailsTabInvalid(errors: FormErrors): boolean {
     errors.author ||
     errors.description ||
     errors.flag ||
-    errors.dynamicFlagBase ||
-    errors.dynamicFlagMode
+    errors.dynamicFlagBase
   )
 }
 

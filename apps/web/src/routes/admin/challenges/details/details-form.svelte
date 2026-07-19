@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     ChallengeScoringKind,
+    DynamicFlagMode,
     DynamicScoringTransport,
     type InstancerConfig,
   } from '@rctf/types'
@@ -105,6 +106,19 @@
     },
   ])
 
+  const dynamicFlagModeLabels: Record<DynamicFlagMode, string> = {
+    [DynamicFlagMode.BASIC]: 'Basic (team id + signature suffix)',
+    [DynamicFlagMode.LEET]: 'Leet (bits encoded via leetspeak)',
+  }
+  const dynamicFlagModeItems = $derived<MenuItem[]>(
+    Object.values(DynamicFlagMode).map(mode => ({
+      value: mode,
+      label: dynamicFlagModeLabels[mode],
+      checked: form.dynamicFlagMode === mode,
+      onSelect: () => onFieldChange('dynamicFlagMode', mode),
+    }))
+  )
+
   let tab = $state('details')
   let nameFieldEl = $state<HTMLElement | null>(null)
 
@@ -121,7 +135,6 @@
     description: false,
     flag: false,
     dynamicFlagBase: false,
-    dynamicFlagMode: false,
   })
 
   type TouchedField = keyof typeof touched
@@ -386,31 +399,17 @@
                       />
                       {@render fieldError('dynamicFlagBase')}
                     </form-field>
-                    <form-field
-                      data-invalid={showError('dynamicFlagMode')
-                        ? ''
-                        : undefined}
-                    >
+                    <form-field>
                       <field-label>
-                        Signing mode<req>*</req>
+                        Signing mode
                         <field-hint>(passed to the signing function)</field-hint
                         >
                       </field-label>
-                      <Input
-                        type="text"
-                        data-mono
-                        placeholder="default"
-                        value={form.dynamicFlagMode}
+                      <FieldSelect
+                        label={dynamicFlagModeLabels[form.dynamicFlagMode]}
+                        items={dynamicFlagModeItems}
                         {disabled}
-                        aria-invalid={showError('dynamicFlagMode')}
-                        oninput={e =>
-                          onFieldChange(
-                            'dynamicFlagMode',
-                            e.currentTarget.value
-                          )}
-                        onblur={() => (touched.dynamicFlagMode = true)}
                       />
-                      {@render fieldError('dynamicFlagMode')}
                     </form-field>
                   {:else}
                     <form-field

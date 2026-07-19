@@ -1,3 +1,4 @@
+import { DynamicFlagMode } from '@rctf/types'
 import { describe, expect, test } from 'bun:test'
 import {
   generateDynamicFlag,
@@ -17,7 +18,7 @@ const challY = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
 
 describe('generateDynamicFlag / verifyDynamicFlag', () => {
   // Properties that hold for every signing mode.
-  for (const mode of ['leet', 'basic'] as const) {
+  for (const mode of Object.values(DynamicFlagMode)) {
     describe(`mode: ${mode}`, () => {
       test('verify returns Valid for a freshly minted flag (round trip)', () => {
         const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
@@ -71,35 +72,54 @@ describe('generateDynamicFlag / verifyDynamicFlag', () => {
     test('the untransformed base flag is a valid variant (ValidBaseWrongTeamOrSig)', () => {
       // The all-lowercase base is a valid leetspeak rendering of itself, so it
       // reads as a well-formed flag with the wrong team/sig bits (code 1).
-      expect(verifyDynamicFlag(BASE, teamA, challX, BASE, 'leet', KEY)).toBe(
-        DynamicFlagResult.ValidBaseWrongTeamOrSig
-      )
+      expect(
+        verifyDynamicFlag(BASE, teamA, challX, BASE, DynamicFlagMode.LEET, KEY)
+      ).toBe(DynamicFlagResult.ValidBaseWrongTeamOrSig)
     })
 
     test('a same-length non-variant character is Invalid', () => {
       // First char replaced with 'x', which is not a leet variant of base 'a'.
       const bogus = 'rctf{xbcdefghijklmnopqrstuvwxyz}'
-      expect(verifyDynamicFlag(BASE, teamA, challX, bogus, 'leet', KEY)).toBe(
-        DynamicFlagResult.Invalid
-      )
+      expect(
+        verifyDynamicFlag(BASE, teamA, challX, bogus, DynamicFlagMode.LEET, KEY)
+      ).toBe(DynamicFlagResult.Invalid)
     })
 
     test('a wrong-length submission is Invalid', () => {
       expect(
-        verifyDynamicFlag(BASE, teamA, challX, 'rctf{short}', 'leet', KEY)
+        verifyDynamicFlag(
+          BASE,
+          teamA,
+          challX,
+          'rctf{short}',
+          DynamicFlagMode.LEET,
+          KEY
+        )
       ).toBe(DynamicFlagResult.Invalid)
     })
 
     test('generation throws when the base has too few encodable characters', () => {
       expect(() =>
-        generateDynamicFlag('rctf{abc}', teamA, challX, 'leet', KEY)
+        generateDynamicFlag(
+          'rctf{abc}',
+          teamA,
+          challX,
+          DynamicFlagMode.LEET,
+          KEY
+        )
       ).toThrow()
     })
   })
 
   describe('mode: basic', () => {
     test('embeds the dash-stripped team id', () => {
-      const flag = generateDynamicFlag(BASE, teamA, challX, 'basic', KEY)
+      const flag = generateDynamicFlag(
+        BASE,
+        teamA,
+        challX,
+        DynamicFlagMode.BASIC,
+        KEY
+      )
       expect(flag.includes(teamA.replace(/-/g, ''))).toBe(true)
     })
 
@@ -107,36 +127,63 @@ describe('generateDynamicFlag / verifyDynamicFlag', () => {
       // 'basic' mode folds the challenge id into the signature, so a flag
       // minted for one challenge has a valid base but a mismatched signature on
       // another.
-      const flag = generateDynamicFlag(BASE, teamA, challX, 'basic', KEY)
-      expect(verifyDynamicFlag(BASE, teamA, challY, flag, 'basic', KEY)).toBe(
-        DynamicFlagResult.ValidBaseWrongTeamOrSig
+      const flag = generateDynamicFlag(
+        BASE,
+        teamA,
+        challX,
+        DynamicFlagMode.BASIC,
+        KEY
       )
+      expect(
+        verifyDynamicFlag(BASE, teamA, challY, flag, DynamicFlagMode.BASIC, KEY)
+      ).toBe(DynamicFlagResult.ValidBaseWrongTeamOrSig)
     })
 
     test('a well-formed flag with the right base but forged tail is ValidBaseWrongTeamOrSig', () => {
       const forged = 'rctf{abcdefghijklmnopqrstuvwxyz:deadbeef:0000}'
-      expect(verifyDynamicFlag(BASE, teamA, challX, forged, 'basic', KEY)).toBe(
-        DynamicFlagResult.ValidBaseWrongTeamOrSig
-      )
+      expect(
+        verifyDynamicFlag(
+          BASE,
+          teamA,
+          challX,
+          forged,
+          DynamicFlagMode.BASIC,
+          KEY
+        )
+      ).toBe(DynamicFlagResult.ValidBaseWrongTeamOrSig)
     })
 
     test('the untransformed base flag is Invalid (no team/sig chunks)', () => {
-      expect(verifyDynamicFlag(BASE, teamA, challX, BASE, 'basic', KEY)).toBe(
-        DynamicFlagResult.Invalid
-      )
+      expect(
+        verifyDynamicFlag(BASE, teamA, challX, BASE, DynamicFlagMode.BASIC, KEY)
+      ).toBe(DynamicFlagResult.Invalid)
     })
 
     test('too few colon-separated chunks is Invalid', () => {
       const tooFew = 'rctf{abcdefghijklmnopqrstuvwxyz:onlyone}'
-      expect(verifyDynamicFlag(BASE, teamA, challX, tooFew, 'basic', KEY)).toBe(
-        DynamicFlagResult.Invalid
-      )
+      expect(
+        verifyDynamicFlag(
+          BASE,
+          teamA,
+          challX,
+          tooFew,
+          DynamicFlagMode.BASIC,
+          KEY
+        )
+      ).toBe(DynamicFlagResult.Invalid)
     })
 
     test('a different base body is Invalid', () => {
       const wrongBase = 'rctf{wrongbase:team:sig}'
       expect(
-        verifyDynamicFlag(BASE, teamA, challX, wrongBase, 'basic', KEY)
+        verifyDynamicFlag(
+          BASE,
+          teamA,
+          challX,
+          wrongBase,
+          DynamicFlagMode.BASIC,
+          KEY
+        )
       ).toBe(DynamicFlagResult.Invalid)
     })
   })
@@ -144,13 +191,26 @@ describe('generateDynamicFlag / verifyDynamicFlag', () => {
   describe('input validation', () => {
     test('generation throws on a base flag with no brace-delimited body', () => {
       expect(() =>
-        generateDynamicFlag('not-a-flag', teamA, challX, 'basic', KEY)
+        generateDynamicFlag(
+          'not-a-flag',
+          teamA,
+          challX,
+          DynamicFlagMode.BASIC,
+          KEY
+        )
       ).toThrow()
     })
 
     test('verification throws on a base flag with no brace-delimited body', () => {
       expect(() =>
-        verifyDynamicFlag('not-a-flag', teamA, challX, 'rctf{x}', 'basic', KEY)
+        verifyDynamicFlag(
+          'not-a-flag',
+          teamA,
+          challX,
+          'rctf{x}',
+          DynamicFlagMode.BASIC,
+          KEY
+        )
       ).toThrow()
     })
   })

@@ -1,12 +1,18 @@
 import {
   ChallengeScoringKind,
+  DynamicFlagMode,
   DynamicScoringTransport,
   ExposeKind,
 } from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import { index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core'
 
-export { ChallengeScoringKind, DynamicScoringTransport, ExposeKind }
+export {
+  ChallengeScoringKind,
+  DynamicFlagMode,
+  DynamicScoringTransport,
+  ExposeKind,
+}
 
 export interface ChallengePoints {
   min: number
@@ -67,7 +73,7 @@ export type ChallengeScoring =
 //  persisted, validity is recomputed from the submitting team on each attempt.
 export interface DynamicFlagConfig {
   base: string
-  mode: string
+  mode: DynamicFlagMode
 }
 
 export interface ChallengeFlags {
