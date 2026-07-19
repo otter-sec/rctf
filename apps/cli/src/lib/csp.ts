@@ -1,5 +1,11 @@
 import type { Csp } from '@rctf/api/src/providers/base'
 
+// oxlint-disable-next-line no-control-regex
+const unsafeCspCharacters = /[\u0000-\u0020"$;\\\u007f-\u009f]/g
+
+export const sanitizeCspToken = (value: string): string =>
+  value.replace(unsafeCspCharacters, encodeURIComponent)
+
 export const extractCspFromMeta = (html: string): Csp => {
   let content: string | undefined
 
@@ -50,6 +56,6 @@ export const mergeCsp = (...fragments: Csp[]): Csp => {
 export const serializeCsp = (csp: Csp): string =>
   Object.entries(csp)
     .map(([directive, sources]) =>
-      [directive, ...sources].join(' ').concat(';')
+      [directive, ...sources].map(sanitizeCspToken).join(' ').concat(';')
     )
     .join(' ')
