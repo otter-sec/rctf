@@ -166,12 +166,16 @@ The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any or
 ```ansi
 $ <red>cd</red> deploy/terraform/storage/r2
 $ <red>terraform</red> init
-$ <red>terraform</red> apply <dim>-var=</dim><green>"location=weur"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green> <dim>-var=</dim><green>"zone_id=your-domain-zone-id"</green>
+$ <red>terraform</red> apply <dim>-var=</dim><green>"cloudflare_api_token=[your bootstrap token]"</green> <dim>-var=</dim><green>"location=weur"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green> <dim>-var=</dim><green>"zone_id=your-domain-zone-id"</green>
 ```
+
+The `location` variable is an R2 location hint; see the [available hints](https://developers.cloudflare.com/r2/reference/data-location/#available-hints) for the possible values.
 
 The public R2 hostname defaults to `cdn.<your-zone-domain>`. Override the optional `subdomain` variable if you want a different hostname, for example with `<dim>-var=</dim><green>"subdomain=files"</green>`.
 
-Terraform requires a Cloudflare account API token with `<route>Workers R2 Storage: Edit</route>`, `<route>Account API Tokens: Edit</route>`, and `<route>Zone: Read</route>`. Create one with this [preconfigured token template](https://dash.cloudflare.com/?to=/:account/api-tokens&permissionGroupKeys=%5B%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_api_tokens%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%5D&name=rCTF%20Terraform%20Bootstrap). The module derives the account ID and base domain from the supplied zone ID, then creates a separate account API token with object access scoped to the new bucket. Only use the bootstrap token for Terraform; use the generated bucket-scoped credentials in rCTF.
+Terraform requires a Cloudflare account API token with `<route>Workers R2 Storage: Edit</route>`, `<route>Account API Tokens: Edit</route>`, and `<route>Zone: Read</route>`. Create one with this [preconfigured token template](https://dash.cloudflare.com/?to=/:account/api-tokens&permissionGroupKeys=%5B%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_api_tokens%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22zone%22%2C%22type%22%3A%22read%22%7D%5D&name=rCTF%20Terraform%20Bootstrap) and pass it as the sensitive `cloudflare_api_token` variable. The module derives the account ID and base domain from the supplied zone ID, then creates a separate account API token with object access scoped to the new bucket. Only use the bootstrap token for Terraform; use the generated bucket-scoped credentials in rCTF.
+
+Buckets are created in the standard jurisdiction by default. Pass `<dim>-var=</dim><green>"jurisdiction=eu"</green>` or `<dim>-var=</dim><green>"jurisdiction=fedramp"</green>` to create the bucket, its custom domain, and the bucket-scoped token inside a jurisdiction, and set the matching `<red>jurisdiction</red>` option in the rCTF config.
 
 Read the generated values from the Terraform outputs. The access key and secret are sensitive, so Terraform does not print them after apply:
 

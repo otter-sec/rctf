@@ -1,3 +1,6 @@
+# terraform init && terraform apply -var="cloudflare_api_token=[...]" -var="location=weur" -var="bucket_name=[...]" -var="zone_id=[...]"
+# terraform output -raw access_key_id && terraform output -raw secret_access_key
+
 terraform {
   required_providers {
     cloudflare = {
@@ -7,14 +10,21 @@ terraform {
   }
 }
 
+variable "cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare API token with Workers R2 Storage: Edit, Account API Tokens: Edit, and Zone: Read"
+  sensitive   = true
+  default     = null
+}
+
 variable "location" {
   type        = string
-  description = "The R2 location hint."
+  description = "https://developers.cloudflare.com/r2/reference/data-location/#available-hints"
 }
 
 variable "bucket_name" {
   type        = string
-  description = "The bucket name where all of the challenges should be stored."
+  description = "The bucket name where all of the files should be stored."
 }
 
 variable "zone_id" {
@@ -34,7 +44,15 @@ variable "cors_allowed_origins" {
   default     = ["*"]
 }
 
-provider "cloudflare" {}
+variable "jurisdiction" {
+  type        = string
+  description = "The R2 jurisdiction: default, eu, or fedramp."
+  default     = "default"
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
 
 data "cloudflare_zone" "domain" {
   zone_id = var.zone_id
@@ -50,11 +68,13 @@ resource "cloudflare_r2_bucket" "challenges" {
   name          = var.bucket_name
   location      = var.location
   storage_class = "Standard"
+  jurisdiction  = var.jurisdiction
 }
 
 resource "cloudflare_r2_bucket_cors" "challenges" {
-  account_id  = local.account_id
-  bucket_name = cloudflare_r2_bucket.challenges.name
+  account_id   = local.account_id
+  bucket_name  = cloudflare_r2_bucket.challenges.name
+  jurisdiction = var.jurisdiction
 
   rules = [{
     allowed = {
@@ -68,12 +88,12 @@ resource "cloudflare_r2_bucket_cors" "challenges" {
 }
 
 resource "cloudflare_r2_custom_domain" "challenges" {
-  account_id  = local.account_id
-  bucket_name = cloudflare_r2_bucket.challenges.name
-  domain      = local.custom_domain
-  zone_id     = var.zone_id
-  enabled     = true
-  min_tls     = "1.2"
+  account_id   = local.account_id
+  bucket_name  = cloudflare_r2_bucket.challenges.name
+  jurisdiction = var.jurisdiction
+  domain       = local.custom_domain
+  zone_id      = var.zone_id
+  enabled      = true
 }
 
 data "cloudflare_account_api_token_permission_groups_list" "r2_object_write" {
@@ -93,7 +113,7 @@ resource "cloudflare_account_token" "rctf" {
     }]
 
     resources = jsonencode({
-      "com.cloudflare.edge.r2.bucket.${local.account_id}_default_${cloudflare_r2_bucket.challenges.name}" = "*"
+      "com.cloudflare.edge.r2.bucket.${local.account_id}_${var.jurisdiction}_${cloudflare_r2_bucket.challenges.name}" = "*"
     })
   }]
 }
