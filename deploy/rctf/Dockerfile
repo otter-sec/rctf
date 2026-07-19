@@ -73,7 +73,10 @@ RUN bun run --filter '@rctf/cli' build
 
 FROM runtime-base AS production
 
-RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
+RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli \
+    && addgroup -g 1001 rctf \
+    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf
+
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx-main.conf /etc/nginx/nginx.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
