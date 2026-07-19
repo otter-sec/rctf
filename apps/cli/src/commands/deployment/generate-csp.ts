@@ -19,7 +19,7 @@ const BASE_CSP: Csp = {
   'form-action': ["'self'"],
   'object-src': ["'none'"],
   'media-src': ["'none'"],
-  'manifest-src': ["'none'"],
+  'manifest-src': ["'self'"],
 }
 
 const getSecurityHeaders = (svelteCsp: Csp): string => {
