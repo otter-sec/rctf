@@ -481,6 +481,22 @@ The bundled nginx inside the container counts as the first hop, so the default o
 A hop count must match your topology exactly. Setting it too high lets participants spoof `X-Forwarded-For{:http}` to evade per-IP rate limits, while setting it too low attributes all traffic to one of your proxies. Increase it if you add another layer (such as a load balancer), set it to `1{:ts}` if the container is exposed directly, and behind Cloudflare set `<red>proxy.cloudflare</red>` to `true{:ts}` instead.
 :::
 
+### CSP
+
+```yaml
+csp:
+  frame-src:
+    - https://challenges.example.com
+  script-src:
+    - https://embed.example.com
+```
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `<red>csp</red>` | `object{:ts}` | `{}{:ts}` | Extra `Content-Security-Policy{:http}` sources keyed by directive, merged into the header emitted by the `$ <red>rctf</red> deployment generate-csp` command of the [rctf CLI](/admin/cli) |
+
+Sources are added on top of the built-in policy, the SvelteKit build policy, and provider rules; duplicates are removed. Existing sources cannot be overridden or removed from the config.
+
 ### Blood bot
 
 ```yaml

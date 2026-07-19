@@ -1,5 +1,6 @@
 import '@rctf/api/src/providers'
 import { registeredProviders, type Csp } from '@rctf/api/src/providers/base'
+import { config } from '@rctf/config'
 import { join } from 'path'
 import { defineCommand } from 'citty'
 import { extractCspFromMeta, mergeCsp, serializeCsp } from '../../lib/csp'
@@ -27,7 +28,8 @@ const getSecurityHeaders = (svelteCsp: Csp): string => {
     mergeCsp(
       BASE_CSP,
       svelteCsp,
-      ...registeredProviders.map(provider => provider.getCspRules())
+      ...registeredProviders.map(provider => provider.getCspRules()),
+      config.csp
     )
   )
 

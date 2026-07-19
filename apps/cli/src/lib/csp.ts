@@ -9,6 +9,7 @@ export const sanitizeCspToken = (value: string): string =>
 export const extractCspFromMeta = (html: string): Csp => {
   let content: string | undefined
 
+  // FIXME(es3n1n): i really dont like parsing html here but i think this is the only way
   new HTMLRewriter()
     .on('meta[http-equiv="content-security-policy" i]', {
       element(element) {
