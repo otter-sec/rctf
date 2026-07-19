@@ -22,7 +22,7 @@ export const AdminChallengeSchemaV2 = z.object({
   points: ChallengePointsSchema,
   flag: example(z.string(), 'rctf{baby_rev}').check(
     z.describe(
-      'The challenge flag. Empty when the challenge uses dynamic flags.'
+      'The challenge flag; used as the base flag when dynamic flags are enabled.'
     )
   ),
   flags: z

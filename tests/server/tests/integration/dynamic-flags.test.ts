@@ -30,9 +30,6 @@ let app: Hono<any>
 const challengeCleanups: Array<() => Promise<void>> = []
 const userCleanups: Array<() => Promise<void>> = []
 
-// Inserts a dynamic-flag challenge straight into the DB. The base flag lives in
-// `flags.dynamic`; the flat `flag` stays empty, mirroring how a real dynamic
-// challenge is stored.
 const createDynamicChallenge = async () => {
   const db = getDb()
   const id = crypto.randomUUID()
@@ -42,8 +39,8 @@ const createDynamicChallenge = async () => {
     category: crypto.randomUUID(),
     author: crypto.randomUUID(),
     files: [],
-    flag: '',
-    flags: { dynamic: { base: DYNAMIC_BASE, mode: DYNAMIC_MODE } },
+    flag: DYNAMIC_BASE,
+    flags: { dynamic: { mode: DYNAMIC_MODE } },
     tiebreakEligible: true,
     points: { min: 100, max: 500 },
   }
@@ -209,14 +206,14 @@ describe('admin dynamic flag configuration', () => {
           description: 'desc',
           category: 'misc',
           author: 'tester',
-          flag: '',
-          flags: { dynamic: { base: DYNAMIC_BASE, mode: DYNAMIC_MODE } },
+          flag: DYNAMIC_BASE,
+          flags: { dynamic: { mode: DYNAMIC_MODE } },
           points: { min: 100, max: 500 },
         },
       }),
     })
     let body = await expectResponse(res, GoodChallengeUpdateV2)
-    expect(body.data.flags.dynamic.base).toBe(DYNAMIC_BASE)
+    expect(body.data.flag).toBe(DYNAMIC_BASE)
     expect(body.data.flags.dynamic.mode).toBe(DYNAMIC_MODE)
 
     // Read it back through the admin GET route.
@@ -225,7 +222,8 @@ describe('admin dynamic flag configuration', () => {
       headers: { Authorization: `Bearer ${authToken}` },
     })
     body = await expectResponse(res, GoodAdminChallengeV2)
-    expect(body.data.flags.dynamic.base).toBe(DYNAMIC_BASE)
+    expect(body.data.flag).toBe(DYNAMIC_BASE)
+    expect(body.data.flags.dynamic.mode).toBe(DYNAMIC_MODE)
 
     // Clearing it with an empty flags object drops the dynamic config.
     res = await request(app, `/api/v2/admin/challs/${challengeId}`, {

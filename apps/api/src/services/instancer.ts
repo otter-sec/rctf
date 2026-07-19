@@ -131,7 +131,7 @@ export const buildCreateInstanceOptions = (
     // static flag; undefined when the challenge has no flag at all.
     flag: dynamic
       ? generateDynamicFlag(
-          dynamic.base,
+          challenge.data.flag,
           user.id,
           challenge.id,
           dynamic.mode,

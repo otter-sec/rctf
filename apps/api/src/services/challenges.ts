@@ -1130,10 +1130,10 @@ export const submitFlag = async (
   }
 
   const challenge = await getChallenge(db, params.challengeId)
-  // Dynamic-flag challenges keep their base flag under `flags.dynamic`, not the
-  // flat `flag` field, so accept either as evidence a flag is configured.
+  // For dynamic-flag challenges the flat `flag` field holds the base flag the
+  // per-team flags are minted from, so it must be set either way.
   const dynamicFlag = challenge?.data.flags?.dynamic
-  if (!challenge || (!challenge.data.flag && !dynamicFlag)) {
+  if (!challenge || !challenge.data.flag) {
     return res.badChallenge()
   }
 
@@ -1159,7 +1159,7 @@ export const submitFlag = async (
   // 0 = valid, 1 = valid base but wrong team id/signature, 2 = invalid.
   const dynamicResult = dynamicFlag
     ? verifyDynamicFlag(
-        dynamicFlag.base,
+        challenge.data.flag,
         params.userId,
         params.challengeId,
         params.flag,

@@ -406,7 +406,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
           .optional(ChallengeFlagsSchema)
           .check(
             z.describe(
-              'Structured flag configuration. Set `dynamic` (with `base` and `mode`) to enable per-team signed flags, or send an empty object to clear it.'
+              'Structured flag configuration. Set `dynamic` (with `mode`) to sign the `flag` per team, or send an empty object to clear it.'
             )
           ),
         name: example(z.optional(z.string()), 'baby-rev').check(

@@ -157,9 +157,6 @@ export enum DynamicFlagMode {
 }
 
 export const DynamicFlagSchema = z.object({
-  base: example(z.string(), 'rctf{baby_rev}').check(
-    z.describe('Base flag passed to the dynamic flag signing function.')
-  ),
   mode: example(z.enum(DynamicFlagMode), 'basic').check(
     z.describe(
       'Signing mode passed to the dynamic flag generation and verification functions.'
@@ -172,7 +169,7 @@ export const ChallengeFlagsSchema = z.object({
     .optional(DynamicFlagSchema)
     .check(
       z.describe(
-        'Dynamic (per-team signed) flag configuration. When present, the challenge issues per-team signed flags and validates submissions against the submitting team.'
+        'Dynamic (per-team signed) flag configuration. When present, the challenge `flag` is used as the base flag: per-team signed flags are issued from it and submissions are validated against the submitting team.'
       )
     ),
 })

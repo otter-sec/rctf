@@ -28,7 +28,6 @@ export interface EditorForm {
   description: string
   flag: string
   dynamicFlagEnabled: boolean
-  dynamicFlagBase: string
   dynamicFlagMode: DynamicFlagMode
   pointsMin: number
   pointsMax: number
@@ -76,7 +75,6 @@ export function defaultForm(): EditorForm {
     description: '',
     flag: '',
     dynamicFlagEnabled: false,
-    dynamicFlagBase: '',
     dynamicFlagMode: DynamicFlagMode.BASIC,
     pointsMin: 50,
     pointsMax: 500,
@@ -135,7 +133,6 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
     description: source.description,
     flag: source.flag,
     dynamicFlagEnabled: Boolean(source.flags?.dynamic),
-    dynamicFlagBase: source.flags?.dynamic?.base ?? '',
     dynamicFlagMode: source.flags?.dynamic?.mode ?? DynamicFlagMode.BASIC,
     pointsMin: source.points.min,
     pointsMax: source.points.max,

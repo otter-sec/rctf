@@ -134,7 +134,6 @@
     author: false,
     description: false,
     flag: false,
-    dynamicFlagBase: false,
   })
 
   type TouchedField = keyof typeof touched
@@ -371,34 +370,30 @@
                     />
                   </form-field>
 
-                  {#if dynamicFlagEnabled}
-                    <form-field
-                      data-invalid={showError('dynamicFlagBase')
-                        ? ''
-                        : undefined}
-                    >
-                      <field-label>
-                        Base flag<req>*</req>
+                  <form-field data-invalid={showError('flag') ? '' : undefined}>
+                    <field-label>
+                      Flag<req>*</req>
+                      {#if dynamicFlagEnabled}
                         <field-hint
                           >(signed per team before delivery)</field-hint
                         >
-                      </field-label>
-                      <Input
-                        type="text"
-                        data-mono
-                        placeholder={flagPlaceholder}
-                        value={form.dynamicFlagBase}
-                        {disabled}
-                        aria-invalid={showError('dynamicFlagBase')}
-                        oninput={e =>
-                          onFieldChange(
-                            'dynamicFlagBase',
-                            e.currentTarget.value
-                          )}
-                        onblur={() => (touched.dynamicFlagBase = true)}
-                      />
-                      {@render fieldError('dynamicFlagBase')}
-                    </form-field>
+                      {/if}
+                    </field-label>
+                    <Input
+                      type="text"
+                      data-mono
+                      placeholder={flagPlaceholder}
+                      value={form.flag}
+                      {disabled}
+                      aria-invalid={showError('flag')}
+                      oninput={e =>
+                        onFieldChange('flag', e.currentTarget.value)}
+                      onblur={() => (touched.flag = true)}
+                    />
+                    {@render fieldError('flag')}
+                  </form-field>
+
+                  {#if dynamicFlagEnabled}
                     <form-field>
                       <field-label>
                         Signing mode
@@ -410,24 +405,6 @@
                         items={dynamicFlagModeItems}
                         {disabled}
                       />
-                    </form-field>
-                  {:else}
-                    <form-field
-                      data-invalid={showError('flag') ? '' : undefined}
-                    >
-                      <field-label>Flag<req>*</req></field-label>
-                      <Input
-                        type="text"
-                        data-mono
-                        placeholder={flagPlaceholder}
-                        value={form.flag}
-                        {disabled}
-                        aria-invalid={showError('flag')}
-                        oninput={e =>
-                          onFieldChange('flag', e.currentTarget.value)}
-                        onblur={() => (touched.flag = true)}
-                      />
-                      {@render fieldError('flag')}
                     </form-field>
                   {/if}
                 {/if}

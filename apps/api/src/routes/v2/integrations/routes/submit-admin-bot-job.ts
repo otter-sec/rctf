@@ -190,11 +190,11 @@ integrationsGroup.route(
     }
 
     // For dynamic-flag challenges the bot acts as this team, so it must receive
-    // the flag minted for that team rather than the (empty) flat base flag.
+    // the flag minted for that team rather than the raw base flag.
     const dynamicFlag = challenge.data.flags?.dynamic
     const botFlag = dynamicFlag
       ? generateDynamicFlag(
-          dynamicFlag.base,
+          challenge.data.flag,
           user.id,
           params.id,
           dynamicFlag.mode,
