@@ -75,7 +75,8 @@ FROM runtime-base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli \
     && addgroup -g 1001 rctf \
-    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf
+    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf \
+    && install -d -m 0755 -o rctf -g rctf /app/uploads
 
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx-main.conf /etc/nginx/nginx.conf

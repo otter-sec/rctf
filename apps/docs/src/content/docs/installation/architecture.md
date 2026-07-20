@@ -20,14 +20,11 @@ The production container has the following layout:
     - api/
       - dist/ Bun-built API + leaderboard worker
       - templates/ Email templates
+    - cli/
+      - dist/ rctf CLI
   - packages/
-    - config/ Loader sources
     - db/
-      - src/
       - migrations/ Drizzle SQL migrations
-    - scoring/
-    - types/
-    - util/
   - node_modules/ Production-only deps
   - static/ SvelteKit static build, served by nginx
   - rctf.d/ Mounted config directory
@@ -40,12 +37,18 @@ The production container has the following layout:
       - default.conf Static + /api proxy
 - tmp/
   - nginx/
+    - nginx.pid
     - security-headers.conf CSP, generated at startup
+    - client_body/ Buffered request bodies
+    - proxy/ Proxy temp directory
+  - supervisor/
+    - supervisor.sock Control socket
+    - supervisord.pid
 :::
 
 The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}`.
 
-Everything the container writes at runtime lives under `/tmp/{:dir}`, so it can run with a read-only root filesystem; `compose.yml{:file}` sets `read_only: true{:yaml}` and mounts `/tmp/{:dir}` as a tmpfs.
+The container's ephemeral runtime state lives under `/tmp/{:dir}`. Local uploads are written to the `/app/uploads/{:dir}` bind mount instead of the root filesystem. This allows `compose.yml{:file}` to set `read_only: true{:yaml}` while mounting `/tmp/{:dir}` as a tmpfs.
 
 ## Build stages
 
@@ -60,7 +63,7 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 | `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
 | `build-src` | `build-base` | Assembles the full sources plus dev `node_modules/{:dir}` as the shared base for the build stages. |
 | `build-api` / `build-web` / `build-cli` | `build-src` | Each runs its workspace's `$ <red>bun</red> run build`. Independent stages, so BuildKit builds all three in parallel. |
-| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
+| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`; creates the unprivileged `rctf` user and upload directory; then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
 
 ```dockerfile title="deploy/rctf/Dockerfile"
 FROM oven/bun:1.3.14-alpine AS runtime-base
@@ -70,7 +73,8 @@ FROM runtime-base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli \
     && addgroup -g 1001 rctf \
-    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf
+    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf \
+    && install -d -m 0755 -o rctf -g rctf /app/uploads
 
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
 COPY deploy/rctf/nginx-main.conf /etc/nginx/nginx.conf
@@ -97,7 +101,7 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 | Program | Command | Role |
 | --- | --- | --- |
 | `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`, running as the unprivileged `rctf` user. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. Workers run as the `nginx` user. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green> <dim>-e</dim> <green>stderr</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. Workers run as the `nginx` user. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -108,12 +112,12 @@ autorestart=true
 # ...
 
 [program:nginx]
-command=/usr/sbin/nginx -g 'daemon off;'
+command=/usr/sbin/nginx -g 'daemon off;' -e stderr
 autostart=true
 autorestart=true
 ```
 
-If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program. It is a thread inside the API process, so it restarts together with the API.
+If either process exits, `supervisord` restarts it. The leaderboard worker is not a separate supervised program. It is a thread inside the API process, so it restarts together with the API.
 
 :::note[Leaderboard updates without a worker thread]
 When `<red>instanceType</red>` is `<green>frontend</green>`, the API process does not start the worker. Another process running with `<green>leaderboard</green>` or `<green>all</green>` must be reachable on the same Redis instance for cached leaderboard reads to stay fresh.
@@ -129,17 +133,30 @@ server {
     root /app/static;
     gzip_static on;
     brotli_static on;
+    proxy_max_temp_file_size 0;
+    client_max_body_size 1m;
     include /tmp/nginx/security-headers.conf;
     # ...
 
     location ~ ^/api/v[12]/admin/upload$ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://rctf_api;
         client_max_body_size 0;
         proxy_request_buffering off;
     }
 
+    location = /api/v2/users/me/avatar {
+        proxy_pass http://rctf_api;
+        client_max_body_size 2m;
+    }
+
+    location ~ ^/api/v[12]/admin/ {
+        proxy_pass http://rctf_api;
+        client_max_body_size 8m;
+        proxy_request_buffering off;
+    }
+
     location ~ ^/(api|uploads) {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://rctf_api;
     }
 
     location /_app/immutable/ {
