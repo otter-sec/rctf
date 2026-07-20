@@ -6,6 +6,9 @@ services:
       dockerfile: deploy/rctf/Dockerfile
     restart: unless-stopped
     stop_grace_period: 45s
+    read_only: true
+    tmpfs:
+      - /tmp
     ports:
       - '127.0.0.1:8080:80'
     networks:

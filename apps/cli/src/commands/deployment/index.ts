@@ -7,5 +7,7 @@ export default defineCommand({
   },
   subCommands: {
     'generate-csp': () => import('./generate-csp').then(m => m.default),
+    'generate-avatar-body-limit': () =>
+      import('./generate-avatar-body-limit').then(m => m.default),
   },
 })

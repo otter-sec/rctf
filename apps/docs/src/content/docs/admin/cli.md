@@ -70,3 +70,9 @@ Exports a static, read-only archive of a running instance. See [Static export](/
 Generates nginx security-header directives from the current configuration and outputs it to stdout. The output includes a provider-aware `Content-Security-Policy{:http}` header plus `Referrer-Policy{:http}`, `X-Frame-Options{:http}`, and `X-Content-Type-Options{:http}`. The command reads Svelte's generated CSP directives from `<dim>--web-build</dim>` (default: `apps/web/build/{:dir}`), merges them with the runtime policy and any extra sources from the [`<red>csp</red>` config option](/configuration#csp), and removes duplicate sources.
 
 The production container runs this command automatically at startup.
+
+### `<red>rctf</red> deployment generate-avatar-body-limit`
+
+Generates a nginx `client_max_body_size{:nginx}` directive for the avatar upload endpoint and outputs it to stdout. The limit is the [`<red>maxAvatarSize</red>` config option](/configuration#limits) plus headroom for the multipart request framing, so the proxy never rejects uploads the API would accept.
+
+The production container runs this command automatically at startup.

@@ -13,6 +13,9 @@ services:
     volumes:
       - ./rctf.d:/app/rctf.d
       - ./.data/uploads:/app/uploads
+    read_only: true
+    tmpfs:
+      - /tmp
     depends_on:
       redis-new:
         condition: service_healthy

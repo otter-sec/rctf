@@ -20,14 +20,11 @@ The production container has the following layout:
     - api/
       - dist/ Bun-built API + leaderboard worker
       - templates/ Email templates
+    - cli/
+      - dist/ rctf CLI
   - packages/
-    - config/ Loader sources
     - db/
-      - src/
       - migrations/ Drizzle SQL migrations
-    - scoring/
-    - types/
-    - util/
   - node_modules/ Production-only deps
   - static/ SvelteKit static build, served by nginx
   - rctf.d/ Mounted config directory
@@ -35,12 +32,24 @@ The production container has the following layout:
 - etc/
   - supervisord.conf Process definitions
   - nginx/
+    - nginx.conf Main config
     - http.d/
       - default.conf Static + /api proxy
-      - security-headers.conf CSP
+- tmp/
+  - nginx/
+    - nginx.pid
+    - security-headers.conf CSP, generated at startup
+    - avatar-body-limit.conf Avatar upload size limit, generated at startup
+    - client_body/ Buffered request bodies
+    - proxy/ Proxy temp directory
+  - supervisor/
+    - supervisor.sock Control socket
+    - supervisord.pid
 :::
 
 The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}`.
+
+The container's ephemeral runtime state lives under `/tmp/{:dir}`. Local uploads are written to the `/app/uploads/{:dir}` bind mount instead of the root filesystem. This allows `compose.yml{:file}` to set `read_only: true{:yaml}` while mounting `/tmp/{:dir}` as a tmpfs.
 
 ## Build stages
 
@@ -55,7 +64,7 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 | `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
 | `build-src` | `build-base` | Assembles the full sources plus dev `node_modules/{:dir}` as the shared base for the build stages. |
 | `build-api` / `build-web` / `build-cli` | `build-src` | Each runs its workspace's `$ <red>bun</red> run build`. Independent stages, so BuildKit builds all three in parallel. |
-| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
+| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`; creates the unprivileged `rctf` user and upload directory; then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
 
 ```dockerfile title="deploy/rctf/Dockerfile"
 FROM oven/bun:1.3.14-alpine AS runtime-base
@@ -63,8 +72,13 @@ WORKDIR /app
 # ...
 FROM runtime-base AS production
 
-RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
+RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli \
+    && addgroup -g 1001 rctf \
+    && adduser -S -D -H -G rctf -u 1001 -s /sbin/nologin rctf \
+    && install -d -m 0755 -o rctf -g rctf /app/uploads
+
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
+COPY deploy/rctf/nginx-main.conf /etc/nginx/nginx.conf
 COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
 COPY deploy/rctf/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
@@ -87,23 +101,24 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
 | Program | Command | Role |
 | --- | --- | --- |
-| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. |
+| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`, running as the unprivileged `rctf` user. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green> <dim>-e</dim> <green>stderr</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. Workers run as the `nginx` user. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
 command=/usr/local/bin/bun run /app/apps/api/dist/index.js
+user=rctf
 autostart=true
 autorestart=true
 # ...
 
 [program:nginx]
-command=/usr/sbin/nginx -g 'daemon off;'
+command=/usr/sbin/nginx -g 'daemon off;' -e stderr
 autostart=true
 autorestart=true
 ```
 
-If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program. It is a thread inside the API process, so it restarts together with the API.
+If either process exits, `supervisord` restarts it. The leaderboard worker is not a separate supervised program. It is a thread inside the API process, so it restarts together with the API.
 
 :::note[Leaderboard updates without a worker thread]
 When `<red>instanceType</red>` is `<green>frontend</green>`, the API process does not start the worker. Another process running with `<green>leaderboard</green>` or `<green>all</green>` must be reachable on the same Redis instance for cached leaderboard reads to stay fresh.
@@ -111,7 +126,7 @@ When `<red>instanceType</red>` is `<green>frontend</green>`, the API process doe
 
 ## Nginx
 
-The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration from `rctf.d/{:dir}`, writes it to `/etc/nginx/http.d/security-headers.conf{:file}`, and runs `$ <red>nginx</red> <dim>-t</dim>` to validate the complete configuration.
+The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration and the avatar upload body limit (derived from the [`<red>maxAvatarSize</red>` config option](/configuration#limits)) from `rctf.d/{:dir}`, writes them to `/tmp/nginx/{:dir}`, and runs `$ <red>nginx</red> <dim>-t -e stderr</dim>` to validate the complete configuration.
 
 ```nginx title="deploy/rctf/nginx.conf"
 server {
@@ -119,22 +134,35 @@ server {
     root /app/static;
     gzip_static on;
     brotli_static on;
-    include /etc/nginx/http.d/security-headers.conf;
+    proxy_max_temp_file_size 0;
+    client_max_body_size 1m;
+    include /tmp/nginx/security-headers.conf;
     # ...
 
     location ~ ^/api/v[12]/admin/upload$ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://rctf_api;
         client_max_body_size 0;
         proxy_request_buffering off;
     }
 
+    location = /api/v2/users/me/avatar {
+        proxy_pass http://rctf_api;
+        include /tmp/nginx/avatar-body-limit.conf;
+    }
+
+    location ~ ^/api/v[12]/admin/ {
+        proxy_pass http://rctf_api;
+        client_max_body_size 8m;
+        proxy_request_buffering off;
+    }
+
     location ~ ^/(api|uploads) {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://rctf_api;
     }
 
     location /_app/immutable/ {
         add_header Cache-Control "public, max-age=86400, immutable";
-        include /etc/nginx/http.d/security-headers.conf;
+        include /tmp/nginx/security-headers.conf;
         try_files $uri $uri/ /index.html;
     }
 
