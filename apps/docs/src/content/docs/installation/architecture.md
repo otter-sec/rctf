@@ -92,12 +92,13 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 
 | Program | Command | Role |
 | --- | --- | --- |
-| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. |
+| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`, running as the unprivileged `rctf` user. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. Workers run as the `nginx` user. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
 command=/usr/local/bin/bun run /app/apps/api/dist/index.js
+user=rctf
 autostart=true
 autorestart=true
 # ...
