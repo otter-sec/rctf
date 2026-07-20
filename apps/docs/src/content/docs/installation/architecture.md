@@ -39,6 +39,7 @@ The production container has the following layout:
   - nginx/
     - nginx.pid
     - security-headers.conf CSP, generated at startup
+    - avatar-body-limit.conf Avatar upload size limit, generated at startup
     - client_body/ Buffered request bodies
     - proxy/ Proxy temp directory
   - supervisor/
@@ -125,7 +126,7 @@ When `<red>instanceType</red>` is `<green>frontend</green>`, the API process doe
 
 ## Nginx
 
-The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration from `rctf.d/{:dir}`, writes it to `/tmp/nginx/security-headers.conf{:file}`, and runs `$ <red>nginx</red> <dim>-t -e stderr</dim>` to validate the complete configuration.
+The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`. Before supervisor starts, the container entrypoint generates the security-header configuration and the avatar upload body limit (derived from the [`<red>maxAvatarSize</red>` config option](/configuration#limits)) from `rctf.d/{:dir}`, writes them to `/tmp/nginx/{:dir}`, and runs `$ <red>nginx</red> <dim>-t -e stderr</dim>` to validate the complete configuration.
 
 ```nginx title="deploy/rctf/nginx.conf"
 server {
@@ -146,7 +147,7 @@ server {
 
     location = /api/v2/users/me/avatar {
         proxy_pass http://rctf_api;
-        client_max_body_size 2m;
+        include /tmp/nginx/avatar-body-limit.conf;
     }
 
     location ~ ^/api/v[12]/admin/ {

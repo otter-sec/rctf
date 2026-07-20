@@ -15,6 +15,7 @@ if [ -d /app/uploads ] && [ "$(stat -c '%u' /app/uploads)" != "$(id -u rctf)" ];
 fi
 
 rctf deployment generate-csp --web-build /app/static > /tmp/nginx/security-headers.conf
+rctf deployment generate-avatar-body-limit > /tmp/nginx/avatar-body-limit.conf
 nginx -t -e stderr
 
 exec supervisord -c /etc/supervisord.conf
