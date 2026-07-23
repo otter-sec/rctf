@@ -175,10 +175,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
        options:
          apiUrl: https://203.0.113.10
          authToken: <rctf_instancer_auth_token>
-         caCertificate: |
-           -----BEGIN CERTIFICATE-----
-           ...
-           -----END CERTIFICATE-----
+         caCertificate: <base64-encoded-ca>
    ```
 
    `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host.
