@@ -4,6 +4,7 @@ import {
   ResponseContext,
   wrapHttpLibrary,
 } from '@kubernetes/client-node'
+import { getEnvBoolean } from '@rctf/config'
 import * as z from 'zod/mini'
 import {
   InstancerProvider,
@@ -20,9 +21,10 @@ const version = 'v1'
 const plural = 'challengeinstances'
 
 interface K8sInstancerProviderOptions {
-  authToken: string
-  apiUrl: string
-  caCertificate: string
+  authToken?: string
+  apiUrl?: string
+  caCertificate?: string
+  inCluster?: boolean
 }
 
 const defaultPod = {
@@ -450,38 +452,47 @@ export default class K8sInstancerProvider extends InstancerProvider {
       caCertificate:
         process.env.K8S_INSTANCER_CA_CERTIFICATE ??
         (_options as K8sInstancerProviderOptions).caCertificate,
-    }
-
-    if (!options.authToken || !options.apiUrl || !options.caCertificate) {
-      throw new Error(
-        'Missing authToken, apiUrl, and/or caCertificate for the K8sInstancerProvider.'
-      )
+      inCluster:
+        getEnvBoolean('K8S_INSTANCER_IN_CLUSTER') ??
+        (_options as K8sInstancerProviderOptions).inCluster ??
+        false,
     }
 
     const config = new KubeConfig()
-    config.loadFromOptions({
-      clusters: [
-        {
-          name: 'rctf',
-          server: options.apiUrl,
-          caData: options.caCertificate,
-        },
-      ],
-      users: [
-        {
-          name: 'rctf',
-          token: options.authToken,
-        },
-      ],
-      contexts: [
-        {
-          name: 'rctf',
-          cluster: 'rctf',
-          user: 'rctf',
-        },
-      ],
-      currentContext: 'rctf',
-    })
+    if (options.inCluster) {
+      config.loadFromCluster()
+    } else {
+      if (!options.authToken || !options.apiUrl || !options.caCertificate) {
+        throw new Error(
+          'Missing authToken, apiUrl, and/or caCertificate for the K8sInstancerProvider. ' +
+            'Alternatively, set inCluster to true when rCTF runs inside the cluster.'
+        )
+      }
+
+      config.loadFromOptions({
+        clusters: [
+          {
+            name: 'rctf',
+            server: options.apiUrl,
+            caData: options.caCertificate,
+          },
+        ],
+        users: [
+          {
+            name: 'rctf',
+            token: options.authToken,
+          },
+        ],
+        contexts: [
+          {
+            name: 'rctf',
+            cluster: 'rctf',
+            user: 'rctf',
+          },
+        ],
+        currentContext: 'rctf',
+      })
+    }
 
     this.client = config.makeApiClient(CustomObjectsApi)
 

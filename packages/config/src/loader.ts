@@ -2,22 +2,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { PartialDeep } from 'type-fest'
 import yaml from 'yaml'
+import { getEnvBoolean, getEnvInteger, getEnvString } from './env'
 import type { ServerConfig } from './types'
 
 type ConfigLayer = PartialDeep<ServerConfig>
 
 const CONFIG_DIRECTORY_NAME = 'rctf.d'
 const DEFAULT_SEARCH_ROOT = path.resolve(__dirname, '../../')
-
-const TRUTHY_ENV_VALUES = new Set(['true', 'yes', 'y', '1'])
-
-const getString = (key: string): string | undefined => process.env[key]
-const getInteger = (key: string): number | undefined =>
-  process.env[key] ? Number.parseInt(process.env[key].trim()) : undefined
-const getBoolean = (key: string): boolean | undefined =>
-  process.env[key]
-    ? TRUTHY_ENV_VALUES.has(process.env[key].trim().toLowerCase())
-    : undefined
 
 const optionalObjectFrom = (entries: Array<[string, unknown | undefined]>) => {
   const result: Record<string, unknown> = {}
@@ -75,49 +66,49 @@ export const loadFileConfigs = (configPath?: string): ConfigLayer[] => {
 }
 
 export const loadEnvConfig = (): ConfigLayer => {
-  const databaseUrl = getString('RCTF_DATABASE_URL')
-  const databaseMigrate = getString('RCTF_DATABASE_MIGRATE')
+  const databaseUrl = getEnvString('RCTF_DATABASE_URL')
+  const databaseMigrate = getEnvString('RCTF_DATABASE_MIGRATE')
   const sqlDetails = optionalObjectFrom([
-    ['host', getString('RCTF_DATABASE_HOST')],
-    ['port', getInteger('RCTF_DATABASE_PORT')],
-    ['user', getString('RCTF_DATABASE_USERNAME')],
-    ['password', getString('RCTF_DATABASE_PASSWORD')],
-    ['database', getString('RCTF_DATABASE_DATABASE')],
+    ['host', getEnvString('RCTF_DATABASE_HOST')],
+    ['port', getEnvInteger('RCTF_DATABASE_PORT')],
+    ['user', getEnvString('RCTF_DATABASE_USERNAME')],
+    ['password', getEnvString('RCTF_DATABASE_PASSWORD')],
+    ['database', getEnvString('RCTF_DATABASE_DATABASE')],
   ])
 
-  const redisUrl = getString('RCTF_REDIS_URL')
+  const redisUrl = getEnvString('RCTF_REDIS_URL')
   const redisDetails = optionalObjectFrom([
-    ['host', getString('RCTF_REDIS_HOST')],
-    ['port', getInteger('RCTF_REDIS_PORT')],
-    ['password', getString('RCTF_REDIS_PASSWORD')],
-    ['database', getInteger('RCTF_REDIS_DATABASE')],
+    ['host', getEnvString('RCTF_REDIS_HOST')],
+    ['port', getEnvInteger('RCTF_REDIS_PORT')],
+    ['password', getEnvString('RCTF_REDIS_PASSWORD')],
+    ['database', getEnvInteger('RCTF_REDIS_DATABASE')],
   ])
 
   const ctftime = optionalObjectFrom([
-    ['clientId', getString('RCTF_CTFTIME_CLIENT_ID')],
-    ['clientSecret', getString('RCTF_CTFTIME_CLIENT_SECRET')],
+    ['clientId', getEnvString('RCTF_CTFTIME_CLIENT_ID')],
+    ['clientSecret', getEnvString('RCTF_CTFTIME_CLIENT_SECRET')],
   ])
 
   const meta = optionalObjectFrom([
-    ['description', getString('RCTF_META_DESCRIPTION')],
-    ['imageUrl', getString('RCTF_IMAGE_URL')],
+    ['description', getEnvString('RCTF_META_DESCRIPTION')],
+    ['imageUrl', getEnvString('RCTF_IMAGE_URL')],
   ])
 
   const email = optionalObjectFrom([
-    ['from', getString('RCTF_EMAIL_FROM')],
-    ['logoUrl', getString('RCTF_EMAIL_LOGO_URL')],
+    ['from', getEnvString('RCTF_EMAIL_FROM')],
+    ['logoUrl', getEnvString('RCTF_EMAIL_LOGO_URL')],
   ])
 
   const uploadProvider = optionalObjectFrom([
-    ['name', getString('RCTF_UPLOAD_PROVIDER')],
+    ['name', getEnvString('RCTF_UPLOAD_PROVIDER')],
   ])
 
   const leaderboard = optionalObjectFrom([
-    ['maxLimit', getInteger('RCTF_LEADERBOARD_MAX_LIMIT')],
-    ['maxOffset', getInteger('RCTF_LEADERBOARD_MAX_OFFSET')],
-    ['updateInterval', getInteger('RCTF_LEADERBOARD_UPDATE_INTERVAL')],
-    ['graphMaxTeams', getInteger('RCTF_LEADERBOARD_GRAPH_MAX_TEAMS')],
-    ['graphSampleTime', getInteger('RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME')],
+    ['maxLimit', getEnvInteger('RCTF_LEADERBOARD_MAX_LIMIT')],
+    ['maxOffset', getEnvInteger('RCTF_LEADERBOARD_MAX_OFFSET')],
+    ['updateInterval', getEnvInteger('RCTF_LEADERBOARD_UPDATE_INTERVAL')],
+    ['graphMaxTeams', getEnvInteger('RCTF_LEADERBOARD_GRAPH_MAX_TEAMS')],
+    ['graphSampleTime', getEnvInteger('RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME')],
   ])
 
   const database = optionalObjectFrom([
@@ -128,24 +119,24 @@ export const loadEnvConfig = (): ConfigLayer => {
 
   return (optionalObjectFrom([
     ['database', database],
-    ['instanceType', getString('RCTF_INSTANCE_TYPE')],
-    ['shutdownTimeout', getInteger('RCTF_SHUTDOWN_TIMEOUT')],
-    ['idleTimeout', getInteger('RCTF_IDLE_TIMEOUT')],
-    ['maxRequestBodySize', getInteger('RCTF_MAX_REQUEST_BODY_SIZE')],
-    ['tokenKey', getString('RCTF_TOKEN_KEY')],
-    ['origin', getString('RCTF_ORIGIN')],
+    ['instanceType', getEnvString('RCTF_INSTANCE_TYPE')],
+    ['shutdownTimeout', getEnvInteger('RCTF_SHUTDOWN_TIMEOUT')],
+    ['idleTimeout', getEnvInteger('RCTF_IDLE_TIMEOUT')],
+    ['maxRequestBodySize', getEnvInteger('RCTF_MAX_REQUEST_BODY_SIZE')],
+    ['tokenKey', getEnvString('RCTF_TOKEN_KEY')],
+    ['origin', getEnvString('RCTF_ORIGIN')],
     ['ctftime', ctftime],
-    ['userMembers', getBoolean('RCTF_USER_MEMBERS')],
-    ['homeContent', getString('RCTF_HOME_CONTENT')],
-    ['ctfName', getString('RCTF_NAME')],
+    ['userMembers', getEnvBoolean('RCTF_USER_MEMBERS')],
+    ['homeContent', getEnvString('RCTF_HOME_CONTENT')],
+    ['ctfName', getEnvString('RCTF_NAME')],
     ['meta', meta],
-    ['faviconUrl', getString('RCTF_FAVICON_URL')],
-    ['globalSiteTag', getString('RCTF_GLOBAL_SITE_TAG')],
+    ['faviconUrl', getEnvString('RCTF_FAVICON_URL')],
+    ['globalSiteTag', getEnvString('RCTF_GLOBAL_SITE_TAG')],
     ['email', email],
-    ['startTime', getInteger('RCTF_START_TIME')],
-    ['endTime', getInteger('RCTF_END_TIME')],
+    ['startTime', getEnvInteger('RCTF_START_TIME')],
+    ['endTime', getEnvInteger('RCTF_END_TIME')],
     ['leaderboard', leaderboard],
-    ['loginTimeout', getInteger('RCTF_LOGIN_TIMEOUT')],
+    ['loginTimeout', getEnvInteger('RCTF_LOGIN_TIMEOUT')],
     ['uploadProvider', uploadProvider],
   ]) || {}) as ConfigLayer
 }
