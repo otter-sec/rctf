@@ -55,7 +55,6 @@ export const instancers: Record<string, InstancerProvider> = Object.fromEntries(
     loadProvider(instancerProviders, providerConfig)!,
   ])
 )
-
 export const defaultInstancerName = resolvedInstancers.defaultName
 export const instancerEnabled = Object.keys(instancers).length > 0
 
@@ -97,6 +96,7 @@ export const adminBotProvider = loadProvider(
   adminBotProviders,
   config.adminBot?.provider
 )
+export const adminBotEnabled = adminBotProvider !== undefined
 
 export const analyticsProvider = (() => {
   if (config.analytics?.provider) {
