@@ -175,10 +175,10 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
        options:
          apiUrl: https://203.0.113.10
          authToken: <rctf_instancer_auth_token>
-         caCertificate: <base64-encoded-ca>
+         caCertificate: <rctf_instancer_ca_certificate> # base64-encoded value as is
    ```
 
-   `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host.
+   `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host. See [Provider options](#provider-options) for the full list of `<red>options</red>` fields.
 
    When the rCTF API itself runs inside the instancer cluster, skip all three options and set `<red>inCluster: true{:yml}</red>` (or `<yellow>K8S_INSTANCER_IN_CLUSTER</yellow>`) instead. The pod's service account needs the same `ClusterRole` as described in [RBAC and the rCTF service account](#rbac-and-the-rctf-service-account):
 
@@ -193,6 +193,23 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 5. **Verify end-to-end**
 
    Create an instanced challenge that uses the `<green>instancers/k8s</green>` provider and start it as a participant. The controller should create the `inst-<challenge-id>-<team-id>` namespace, and Traefik should serve the `<hostPrefix>-<uid>.<instancer-host>` hostname over HTTPS.
+:::
+
+## Provider options
+
+| Field or variable | Purpose |
+| --- | --- |
+| `<red>options.apiUrl</red>` | Kubernetes API server URL. |
+| `<red>options.authToken</red>` | Bearer token for a service account. |
+| `<red>options.caCertificate</red>` | base64-encoded Kubernetes API CA certificate. This is required by the provider unless `<red>inCluster</red>` is set. |
+| `<red>options.inCluster</red>` | Set to `true{:yml}` when rCTF runs inside the target cluster. Authenticates with the pod's mounted service account and ignores the three options above. Defaults to `false{:yml}`. |
+| `<yellow>K8S_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
+| `<yellow>K8S_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
+| `<yellow>K8S_INSTANCER_CA_CERTIFICATE</yellow>` | Environment override for `<red>caCertificate</red>`. |
+| `<yellow>K8S_INSTANCER_IN_CLUSTER</yellow>` | Environment override for `<red>inCluster</red>`. |
+
+:::note[Environment overrides and multiple instancers]
+The `<yellow>K8S_INSTANCER_*</yellow>` environment variables apply globally, so they're best suited to single-instancer deployments. When you run two Kubernetes instancers, set their `<red>options</red>` inline instead.
 :::
 
 ## What Terraform provisions

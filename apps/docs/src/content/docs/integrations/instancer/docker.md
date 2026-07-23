@@ -129,6 +129,19 @@ This splits the CGNAT range into 16,384 `/24` networks. Add more pools if your d
 
 Restart Docker after editing the file with `$ <red>systemctl</red> restart docker`. Existing networks keep their original ranges.
 
+## Provider options
+
+| Field or variable | Purpose |
+| --- | --- |
+| `<red>options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
+| `<red>options.authToken</red>` | Shared token sent when rCTF creates, reads, extends, or deletes an instance. |
+| `<yellow>DOCKER_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
+| `<yellow>DOCKER_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
+
+:::note[Environment overrides and multiple instancers]
+The `<yellow>DOCKER_INSTANCER_*</yellow>` environment variables apply globally, so they're best suited to single-instancer deployments. When you run two Docker instancers, set their `<red>options</red>` inline instead.
+:::
+
 ## Docker challenge config
 
 The Docker provider accepts a Docker Compose-like object under `<red>config</red>`:
