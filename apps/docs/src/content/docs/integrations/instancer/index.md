@@ -56,40 +56,10 @@ instancers:
       authToken: <shared-secret>
 ```
 
-::::tabs
-:::tab[Docker]
-`<green>instancers/docker</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API.
+Each provider documents its `<red>options</red>` fields and environment overrides on its own page:
 
-| Field or variable | Purpose |
-| --- | --- |
-| `<red>options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
-| `<red>options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` when rCTF creates, reads, extends, or deletes an instance. |
-| `<yellow>DOCKER_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
-| `<yellow>DOCKER_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
-
-See [Docker instancer](/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
-:::
-:::tab[Kubernetes]
-`<green>instancers/k8s</green>` creates cluster-scoped `ChallengeInstance` custom resources.
-
-| Field or variable | Purpose |
-| --- | --- |
-| `<red>options.apiUrl</red>` | Kubernetes API server URL. |
-| `<red>options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
-| `<red>options.caCertificate</red>` | base64-encoded Kubernetes API CA certificate. This is required by the provider unless `<red>inCluster</red>` is set. |
-| `<red>options.inCluster</red>` | Set to `true{:yml}` when rCTF runs inside the target cluster. Authenticates with the pod's mounted service account and makes the three options above unnecessary. Defaults to `false{:yml}`. |
-| `<yellow>K8S_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
-| `<yellow>K8S_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
-| `<yellow>K8S_INSTANCER_CA_CERTIFICATE</yellow>` | Environment override for `<red>caCertificate</red>`. |
-| `<yellow>K8S_INSTANCER_IN_CLUSTER</yellow>` | Environment override for `<red>inCluster</red>`. |
-
-See [Kubernetes instancer](/integrations/instancer/kubernetes) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
-:::
-::::
-
-:::note[Environment overrides and multiple instancers]
-The `<yellow>DOCKER_INSTANCER_*</yellow>` and `<yellow>K8S_INSTANCER_*</yellow>` environment variables apply globally per provider type, so they're best suited to single-instancer deployments. When you run two instancers of the same type, set their `<red>options</red>` inline instead.
-:::
+- [Docker instancer provider options](/integrations/instancer/docker#provider-options)
+- [Kubernetes instancer provider options](/integrations/instancer/kubernetes#provider-options)
 
 ## Challenge configuration
 
