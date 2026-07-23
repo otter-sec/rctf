@@ -174,7 +174,7 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
        name: instancers/k8s
        options:
          apiUrl: https://203.0.113.10
-         authToken: <rctf_instancer_auth_token>
+         authToken: <rctf_instancer_auth_token> # jwt value as is
          caCertificate: <rctf_instancer_ca_certificate> # base64-encoded value as is
    ```
 
