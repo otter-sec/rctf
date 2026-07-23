@@ -180,6 +180,16 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
    `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host.
 
+   When the rCTF API itself runs inside the instancer cluster, skip all three options and set `<red>inCluster: true{:yml}</red>` (or `<yellow>K8S_INSTANCER_IN_CLUSTER</yellow>`) instead. The pod's service account needs the same `ClusterRole` as described in [RBAC and the rCTF service account](#rbac-and-the-rctf-service-account):
+
+   ```yaml title="rctf.d/instancer.yaml"
+   instancers:
+     k8s:
+       name: instancers/k8s
+       options:
+         inCluster: true
+   ```
+
 5. **Verify end-to-end**
 
    Create an instanced challenge that uses the `<green>instancers/k8s</green>` provider and start it as a participant. The controller should create the `inst-<challenge-id>-<team-id>` namespace, and Traefik should serve the `<hostPrefix>-<uid>.<instancer-host>` hostname over HTTPS.

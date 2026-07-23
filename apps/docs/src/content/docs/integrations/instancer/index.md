@@ -76,10 +76,12 @@ See [Docker instancer](/integrations/instancer/docker) for the deployment walkth
 | --- | --- |
 | `<red>options.apiUrl</red>` | Kubernetes API server URL. |
 | `<red>options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
-| `<red>options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
+| `<red>options.caCertificate</red>` | base64-encoded Kubernetes API CA certificate. This is required by the provider unless `<red>inCluster</red>` is set. |
+| `<red>options.inCluster</red>` | Set to `true{:yml}` when rCTF runs inside the target cluster. Authenticates with the pod's mounted service account and makes the three options above unnecessary. Defaults to `false{:yml}`. |
 | `<yellow>K8S_INSTANCER_API_URL</yellow>` | Environment override for `<red>apiUrl</red>`. |
 | `<yellow>K8S_INSTANCER_AUTH_TOKEN</yellow>` | Environment override for `<red>authToken</red>`. |
 | `<yellow>K8S_INSTANCER_CA_CERTIFICATE</yellow>` | Environment override for `<red>caCertificate</red>`. |
+| `<yellow>K8S_INSTANCER_IN_CLUSTER</yellow>` | Environment override for `<red>inCluster</red>`. |
 
 See [Kubernetes instancer](/integrations/instancer/kubernetes) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
 :::
