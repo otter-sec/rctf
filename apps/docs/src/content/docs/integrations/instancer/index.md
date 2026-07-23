@@ -41,10 +41,7 @@ instancers:
     options:
       apiUrl: https://k8s.example.com
       authToken: <service-account-token>
-      caCertificate: |
-        -----BEGIN CERTIFICATE-----
-        ...
-        -----END CERTIFICATE-----
+      caCertificate: <base64-encoded-ca>
 defaultInstancer: docker
 ```
 
