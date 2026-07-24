@@ -3,6 +3,7 @@ import { response } from '../internal'
 import {
   AdminBotConfigSchema,
   ChallengeFileSchemaV2,
+  ChallengeFlagsSchema,
   ChallengePointsSchema,
   ChallengeScoringSchema,
   InstancerConfigSchema,
@@ -20,8 +21,17 @@ export const AdminChallengeSchemaV2 = z.object({
   files: z.array(ChallengeFileSchemaV2),
   points: ChallengePointsSchema,
   flag: example(z.string(), 'rctf{baby_rev}').check(
-    z.describe('The challenge flag.')
+    z.describe(
+      'The challenge flag; used as the base flag when dynamic flags are enabled.'
+    )
   ),
+  flags: z
+    .nullish(ChallengeFlagsSchema)
+    .check(
+      z.describe(
+        'Structured flag configuration. Present with a `dynamic` entry when the challenge uses per-team signed flags.'
+      )
+    ),
   tiebreakEligible: example(z.boolean(), true).check(
     z.describe('Whether solves count toward tiebreak ordering.')
   ),

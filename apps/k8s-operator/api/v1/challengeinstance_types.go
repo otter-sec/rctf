@@ -87,6 +87,9 @@ type ChallengeInstanceSpec struct {
 	// +kubebuilder:validation:MinLength=1
 	ChallengeId string `json:"challengeId"`
 
+	// +optional
+	Flag string `json:"flag,omitempty"`
+
 	// +required
 	ExpiresAt metav1.Time `json:"expiresAt"`
 

@@ -3,7 +3,11 @@ import type {
   AdminChallengeDetail,
   InstancerConfig,
 } from '@rctf/types'
-import { ChallengeScoringKind, DynamicScoringTransport } from '@rctf/types'
+import {
+  ChallengeScoringKind,
+  DynamicFlagMode,
+  DynamicScoringTransport,
+} from '@rctf/types'
 
 export interface AdminBotConfig {
   enabled: boolean
@@ -23,6 +27,8 @@ export interface EditorForm {
   author: string
   description: string
   flag: string
+  dynamicFlagEnabled: boolean
+  dynamicFlagMode: DynamicFlagMode
   pointsMin: number
   pointsMax: number
   tiebreakEligible: boolean
@@ -68,6 +74,8 @@ export function defaultForm(): EditorForm {
     author: '',
     description: '',
     flag: '',
+    dynamicFlagEnabled: false,
+    dynamicFlagMode: DynamicFlagMode.BASIC,
     pointsMin: 50,
     pointsMax: 500,
     tiebreakEligible: true,
@@ -124,6 +132,8 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
     author: source.author,
     description: source.description,
     flag: source.flag,
+    dynamicFlagEnabled: Boolean(source.flags?.dynamic),
+    dynamicFlagMode: source.flags?.dynamic?.mode ?? DynamicFlagMode.BASIC,
     pointsMin: source.points.min,
     pointsMax: source.points.max,
     tiebreakEligible: source.tiebreakEligible,

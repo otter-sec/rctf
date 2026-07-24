@@ -68,7 +68,10 @@ export function buildSavePayload(
   form: EditorForm,
   id: string
 ): InlineArgs<typeof UpdateChallengeRouteV2> {
-  const isDynamic = form.scoring.kind === ChallengeScoringKind.DYNAMIC
+  const isDynamicScoring = form.scoring.kind === ChallengeScoringKind.DYNAMIC
+  // Dynamic flags only apply to normally-scored challenges; the flat `flag`
+  // doubles as the base flag when they are enabled.
+  const useDynamicFlag = !isDynamicScoring && form.dynamicFlagEnabled
   return {
     id,
     data: {
@@ -76,7 +79,8 @@ export function buildSavePayload(
       category: form.category,
       author: form.author,
       description: form.description,
-      flag: isDynamic ? '' : form.flag,
+      flag: isDynamicScoring ? '' : form.flag,
+      flags: useDynamicFlag ? { dynamic: { mode: form.dynamicFlagMode } } : {},
       points: { min: form.pointsMin, max: form.pointsMax },
       tiebreakEligible: form.tiebreakEligible,
       sortWeight: form.sortWeight || undefined,

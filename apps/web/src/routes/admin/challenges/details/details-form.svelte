@@ -1,6 +1,7 @@
 <script lang="ts">
   import {
     ChallengeScoringKind,
+    DynamicFlagMode,
     DynamicScoringTransport,
     type InstancerConfig,
   } from '@rctf/types'
@@ -87,6 +88,36 @@
       : ''
   )
   const kindLocked = $derived(scoringKindLocked(totalSolves))
+
+  // Dynamic (per-team signed) flags only apply to normally-scored challenges.
+  const dynamicFlagEnabled = $derived(!isDynamic && form.dynamicFlagEnabled)
+  const dynamicFlagItems = $derived<MenuItem[]>([
+    {
+      value: 'static',
+      label: 'Static flag',
+      checked: !form.dynamicFlagEnabled,
+      onSelect: () => onFieldChange('dynamicFlagEnabled', false),
+    },
+    {
+      value: 'dynamic',
+      label: 'Dynamic (per-team signed)',
+      checked: form.dynamicFlagEnabled,
+      onSelect: () => onFieldChange('dynamicFlagEnabled', true),
+    },
+  ])
+
+  const dynamicFlagModeLabels: Record<DynamicFlagMode, string> = {
+    [DynamicFlagMode.BASIC]: 'Basic (team id + signature suffix)',
+    [DynamicFlagMode.LEET]: 'Leet (bits encoded via leetspeak)',
+  }
+  const dynamicFlagModeItems = $derived<MenuItem[]>(
+    Object.values(DynamicFlagMode).map(mode => ({
+      value: mode,
+      label: dynamicFlagModeLabels[mode],
+      checked: form.dynamicFlagMode === mode,
+      onSelect: () => onFieldChange('dynamicFlagMode', mode),
+    }))
+  )
 
   let tab = $state('details')
   let nameFieldEl = $state<HTMLElement | null>(null)
@@ -313,24 +344,70 @@
                   {@render fieldError('description')}
                 </form-field>
 
-                <form-field data-invalid={showError('flag') ? '' : undefined}>
-                  <field-label>
-                    Flag{#if !isDynamic}<req>*</req>{/if}
-                    {#if isDynamic}<field-hint>(unused for dynamic)</field-hint
-                      >{/if}
-                  </field-label>
-                  <Input
-                    type="text"
-                    data-mono
-                    placeholder={flagPlaceholder}
-                    value={isDynamic ? '' : form.flag}
-                    disabled={disabled || isDynamic}
-                    aria-invalid={showError('flag')}
-                    oninput={e => onFieldChange('flag', e.currentTarget.value)}
-                    onblur={() => (touched.flag = true)}
-                  />
-                  {@render fieldError('flag')}
-                </form-field>
+                {#if isDynamic}
+                  <form-field>
+                    <field-label>
+                      Flag
+                      <field-hint>(unused for dynamic scoring)</field-hint>
+                    </field-label>
+                    <Input
+                      type="text"
+                      data-mono
+                      placeholder={flagPlaceholder}
+                      value=""
+                      disabled
+                    />
+                  </form-field>
+                {:else}
+                  <form-field>
+                    <field-label>Flag type</field-label>
+                    <FieldSelect
+                      label={form.dynamicFlagEnabled
+                        ? 'Dynamic (per-team signed)'
+                        : 'Static flag'}
+                      items={dynamicFlagItems}
+                      {disabled}
+                    />
+                  </form-field>
+
+                  <form-field data-invalid={showError('flag') ? '' : undefined}>
+                    <field-label>
+                      Flag<req>*</req>
+                      {#if dynamicFlagEnabled}
+                        <field-hint
+                          >(signed per team before delivery)</field-hint
+                        >
+                      {/if}
+                    </field-label>
+                    <Input
+                      type="text"
+                      data-mono
+                      placeholder={flagPlaceholder}
+                      value={form.flag}
+                      {disabled}
+                      aria-invalid={showError('flag')}
+                      oninput={e =>
+                        onFieldChange('flag', e.currentTarget.value)}
+                      onblur={() => (touched.flag = true)}
+                    />
+                    {@render fieldError('flag')}
+                  </form-field>
+
+                  {#if dynamicFlagEnabled}
+                    <form-field>
+                      <field-label>
+                        Signing mode
+                        <field-hint>(passed to the signing function)</field-hint
+                        >
+                      </field-label>
+                      <FieldSelect
+                        label={dynamicFlagModeLabels[form.dynamicFlagMode]}
+                        items={dynamicFlagModeItems}
+                        {disabled}
+                      />
+                    </form-field>
+                  {/if}
+                {/if}
               </section-fields>
             </Section>
 
