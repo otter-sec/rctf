@@ -1,6 +1,18 @@
 import { ChallengeScoringKind, UpdateChallengeRouteV2 } from '@rctf/types'
 import type { InlineArgs } from '$lib/api'
-import type { EditorForm } from '../model/editor-state'
+import {
+  DEFAULT_FLAG_PROVIDER,
+  staticFlagValue,
+  type EditorFlagEntry,
+  type EditorForm,
+} from '../model/editor-state'
+
+function isBlankFlagEntry(entry: EditorFlagEntry): boolean {
+  return (
+    entry.provider === DEFAULT_FLAG_PROVIDER &&
+    staticFlagValue(entry).trim() === ''
+  )
+}
 
 export interface FormErrors {
   name?: string
@@ -23,7 +35,7 @@ export function formErrors(form: EditorForm): FormErrors {
     if (form.scoring.source.secret.trim() === '') {
       errors.secret = 'Webhook secret is required'
     }
-  } else if (!form.flags.some(entry => entry.config.flag.trim() !== '')) {
+  } else if (form.flags.every(isBlankFlagEntry)) {
     errors.flag = 'At least one flag is required'
   }
   return errors
@@ -78,7 +90,7 @@ export function buildSavePayload(
       description: form.description,
       flags: isDynamic
         ? []
-        : form.flags.filter(entry => entry.config.flag.trim() !== ''),
+        : form.flags.filter(entry => !isBlankFlagEntry(entry)),
       points: { min: form.pointsMin, max: form.pointsMax },
       tiebreakEligible: form.tiebreakEligible,
       sortWeight: form.sortWeight || undefined,

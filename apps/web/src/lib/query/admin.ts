@@ -7,6 +7,7 @@ import {
   GetAdminSettingsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUserVerificationsRouteV2,
+  GetFlagProvidersRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
@@ -17,6 +18,7 @@ import {
   GoodAdminUsersV2,
   GoodAdminUserV2,
   GoodAdminUserVerificationsV2,
+  GoodFlagProviders,
   GoodInstancerSchema,
   ListExternalAuthClientsRouteV2,
 } from '@rctf/types'
@@ -209,6 +211,19 @@ export const instancerSchemaQueryOptions = queryOptions({
 
 export function useInstancerSchema() {
   return createQuery(() => instancerSchemaQueryOptions)
+}
+
+export const flagProvidersQueryOptions = queryOptions({
+  queryKey: queryKeys.flagProviders,
+  queryFn: async () => {
+    const response = await apiRequest(GetFlagProvidersRouteV2)
+    return dataOrNull(response, GoodFlagProviders.kind)
+  },
+  staleTime: Infinity,
+})
+
+export function useFlagProviders() {
+  return createQuery(() => flagProvidersQueryOptions)
 }
 
 export const adminBotStatusQueryOptions = queryOptions({

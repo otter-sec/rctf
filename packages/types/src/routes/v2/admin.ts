@@ -44,6 +44,7 @@ import {
   GoodAvatarUpdated,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
+  GoodFlagProviders,
   GoodCreateUserTokenV2,
   GoodFilesUploadV2,
   GoodInstancerSchema,
@@ -501,6 +502,15 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
     userId: z.string().check(z.describe('Team ID whose solve to delete.')),
   }),
   permissions: Permissions.challsSolveWrite,
+})
+
+export const GetFlagProvidersRouteV2 = defineRoute({
+  path: '/v2/admin/flags/providers',
+  method: 'GET',
+  goodResponses: [GoodFlagProviders],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
 })
 
 export const GetInstancerSchemaRouteV2 = defineRoute({

@@ -10,13 +10,24 @@ export interface AdminBotConfig {
   code: string
 }
 
+export const DEFAULT_FLAG_PROVIDER = 'flags/static'
+
 export interface EditorFlagEntry {
   provider: string
-  config: { flag: string }
+  config: Record<string, unknown>
 }
 
-export function blankFlagEntry(): EditorFlagEntry {
-  return { provider: 'flags/static', config: { flag: '' } }
+export function blankFlagEntry(
+  provider: string = DEFAULT_FLAG_PROVIDER
+): EditorFlagEntry {
+  return {
+    provider,
+    config: provider === DEFAULT_FLAG_PROVIDER ? { flag: '' } : {},
+  }
+}
+
+export function staticFlagValue(entry: EditorFlagEntry): string {
+  return typeof entry.config.flag === 'string' ? entry.config.flag : ''
 }
 
 export type ScoringConfig =
@@ -132,10 +143,7 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
     category: source.category,
     author: source.author,
     description: source.description,
-    flags: source.flags.map(entry => ({
-      provider: entry.provider,
-      config: { flag: String(entry.config.flag ?? '') },
-    })),
+    flags: source.flags,
     pointsMin: source.points.min,
     pointsMax: source.points.max,
     tiebreakEligible: source.tiebreakEligible,

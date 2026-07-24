@@ -6,6 +6,7 @@ import {
   GoodAdminChallengeV2,
   GoodChallengeUpdate,
   GoodChallengeUpdateV2,
+  GoodFlagProviders,
   Permissions,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
@@ -69,6 +70,25 @@ const baseData = {
   author: 'tester',
   points: { min: 100, max: 500 },
 }
+
+describe('admin flag providers', () => {
+  test('lists the available providers with their config schemas', async () => {
+    const body = await expectResponse(
+      await adminRequest('/api/v2/admin/flags/providers'),
+      GoodFlagProviders
+    )
+    expect(body.data.defaultProvider).toBe('flags/static')
+
+    const names = body.data.providers.map(p => p.name)
+    expect(names).toContain('flags/static')
+
+    const staticProvider = body.data.providers.find(
+      p => p.name === 'flags/static'
+    )!
+    expect(staticProvider.schema.type).toBe('object')
+    expect(staticProvider.schema.required).toEqual(['flag'])
+  })
+})
 
 describe('admin flag entries', () => {
   test('v2 flags round-trip through update and get', async () => {

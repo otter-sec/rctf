@@ -15,6 +15,7 @@
     IconTrash,
     IconTrophy,
   } from '$lib/icons'
+  import { useFlagProviders } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import Button from '$lib/ui/button.svelte'
   import Input from '$lib/ui/input.svelte'
@@ -25,10 +26,13 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import {
     blankFlagEntry,
+    DEFAULT_FLAG_PROVIDER,
+    staticFlagValue,
     type AdminBotConfig,
     type EditorForm,
     type ScoringConfig,
   } from '../model/editor-state'
+  import { SchemaForm, type JsonSchema } from '../schema-form'
   import AdminChallengesDetailsAdminbot from './adminbot.svelte'
   import AdminChallengesDetailsAttachments from './attachments.svelte'
   import FieldSelect from './field-select.svelte'
@@ -53,6 +57,7 @@
     challengeId: string | null
     errors: FormErrors
     instancerValid?: boolean
+    flagsValid?: boolean
     onFieldChange: <K extends keyof EditorForm>(
       field: K,
       value: EditorForm[K]
@@ -71,6 +76,7 @@
     challengeId,
     errors,
     instancerValid = $bindable(true),
+    flagsValid = $bindable(true),
     onFieldChange,
     onScoringChange,
     onFilesChange,
@@ -82,6 +88,25 @@
   const flagPlaceholder = $derived(
     clientConfigQuery.data?.flagFormatPlaceholder ?? 'flag{...}'
   )
+
+  const flagProvidersQuery = useFlagProviders()
+  const flagProviderData = $derived(flagProvidersQuery.data ?? null)
+  const defaultFlagProvider = $derived(
+    flagProviderData?.defaultProvider ?? DEFAULT_FLAG_PROVIDER
+  )
+  const flagProviderNames = $derived(
+    flagProviderData?.providers.map(p => p.name) ?? [DEFAULT_FLAG_PROVIDER]
+  )
+  const hasMultipleFlagProviders = $derived(flagProviderNames.length > 1)
+
+  let flagConfigValidity = $state<boolean[]>([])
+  $effect(() => {
+    flagsValid = form.flags.every(
+      (entry, index) =>
+        entry.provider === DEFAULT_FLAG_PROVIDER ||
+        (flagConfigValidity[index] ?? true)
+    )
+  })
 
   const isDynamic = $derived(form.scoring.kind === ChallengeScoringKind.DYNAMIC)
   const dynamicSecret = $derived(
@@ -117,7 +142,8 @@
       value: 'details',
       label: 'Details',
       icon: IconFile,
-      invalid: detailsTabInvalid(errors) || scoringTabInvalid(errors),
+      invalid:
+        detailsTabInvalid(errors) || scoringTabInvalid(errors) || !flagsValid,
     },
     { value: 'instancer', label: 'Instancer', icon: IconCloud },
     ...(form.instancerConfig
@@ -179,7 +205,39 @@
   }
 
   function addFlag() {
-    onFieldChange('flags', [...form.flags, blankFlagEntry()])
+    onFieldChange('flags', [...form.flags, blankFlagEntry(defaultFlagProvider)])
+  }
+
+  function changeFlagProviderAt(index: number, provider: string) {
+    onFieldChange(
+      'flags',
+      form.flags.map((entry, i) =>
+        i === index && entry.provider !== provider
+          ? blankFlagEntry(provider)
+          : entry
+      )
+    )
+  }
+
+  function changeFlagConfigAt(index: number, config: Record<string, unknown>) {
+    onFieldChange(
+      'flags',
+      form.flags.map((entry, i) => (i === index ? { ...entry, config } : entry))
+    )
+  }
+
+  function flagProviderItems(index: number, current: string): MenuItem[] {
+    return flagProviderNames.map(name => ({
+      value: name,
+      label: name,
+      checked: name === current,
+      onSelect: () => changeFlagProviderAt(index, name),
+    }))
+  }
+
+  function flagProviderSchema(provider: string): JsonSchema | null {
+    const found = flagProviderData?.providers.find(p => p.name === provider)
+    return (found?.schema as JsonSchema | undefined) ?? null
   }
 
   function removeFlagAt(index: number) {
@@ -369,17 +427,49 @@
                     <flag-rows>
                       {#each form.flags as entry, index (index)}
                         <flag-row>
-                          <Input
-                            type="text"
-                            data-mono
-                            placeholder={flagPlaceholder}
-                            value={entry.config.flag}
-                            {disabled}
-                            aria-invalid={showError('flag')}
-                            oninput={e =>
-                              changeFlagAt(index, e.currentTarget.value)}
-                            onblur={() => (touched.flag = true)}
-                          />
+                          {#if hasMultipleFlagProviders}
+                            <flag-provider-select>
+                              <FieldSelect
+                                label={entry.provider}
+                                items={flagProviderItems(index, entry.provider)}
+                                {disabled}
+                              />
+                            </flag-provider-select>
+                          {/if}
+                          {#if entry.provider === DEFAULT_FLAG_PROVIDER}
+                            <Input
+                              type="text"
+                              data-mono
+                              placeholder={flagPlaceholder}
+                              value={staticFlagValue(entry)}
+                              {disabled}
+                              aria-invalid={showError('flag')}
+                              oninput={e =>
+                                changeFlagAt(index, e.currentTarget.value)}
+                              onblur={() => (touched.flag = true)}
+                            />
+                          {:else}
+                            {@const providerSchema = flagProviderSchema(
+                              entry.provider
+                            )}
+                            <flag-config>
+                              {#if providerSchema}
+                                <SchemaForm
+                                  schema={providerSchema}
+                                  value={entry.config}
+                                  onChange={config =>
+                                    changeFlagConfigAt(index, config)}
+                                  bind:valid={flagConfigValidity[index]}
+                                  {disabled}
+                                  rootLabel={entry.provider}
+                                />
+                              {:else}
+                                <field-hint>
+                                  Unknown provider {entry.provider}
+                                </field-hint>
+                              {/if}
+                            </flag-config>
+                          {/if}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -683,9 +773,21 @@
     align-items: center;
     gap: var(--space-2xs);
 
-    > :global(*:first-child) {
+    > :global(input),
+    > flag-config {
       flex: 1;
     }
+  }
+
+  flag-provider-select {
+    flex-shrink: 0;
+    inline-size: 11rem;
+  }
+
+  flag-config {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
   }
 
   field-grid {
