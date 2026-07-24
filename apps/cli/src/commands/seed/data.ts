@@ -239,7 +239,7 @@ const makeChallenge = (
     author: 'seed',
     files: [],
     points: { min: 0, max: 500 },
-    flag: '',
+    flags: [],
     tiebreakEligible: true,
     sortWeight: (slot + 1) * 10,
     hidden: false,
@@ -263,7 +263,20 @@ const buildChallenges = (): Challenge[] => {
       description: `Generated ${category} challenge ${ordinal}.`,
       category,
       points: { min: 50 + (index % 4) * 25, max: 500 },
-      flag: `rctf{${id.replaceAll('-', '_')}}`,
+      flags: [
+        {
+          provider: 'flags/static',
+          config: { flag: `rctf{${id.replaceAll('-', '_')}}` },
+        },
+        ...(index === 0
+          ? [
+              {
+                provider: 'flags/static',
+                config: { flag: `rctf{${id.replaceAll('-', '_')}_alt}` },
+              },
+            ]
+          : []),
+      ],
     })
   })
 
@@ -315,7 +328,12 @@ const buildChallenges = (): Challenge[] => {
           'On-demand instanced challenge for exercising the instancer panel.',
         category: 'web',
         points: { min: 100, max: 500 },
-        flag: 'rctf{instancer_playground}',
+        flags: [
+          {
+            provider: 'flags/static',
+            config: { flag: 'rctf{instancer_playground}' },
+          },
+        ],
         releaseTime: Date.now() - DAY,
         instancerConfig: {
           challengeIntegrationId: INSTANCER_CHALLENGE_ID,
@@ -360,7 +378,12 @@ const buildChallenges = (): Challenge[] => {
           'Standalone admin-bot challenge for exercising the admin-bot panel.',
         category: 'web',
         points: { min: 100, max: 500 },
-        flag: 'rctf{admin_bot_playground}',
+        flags: [
+          {
+            provider: 'flags/static',
+            config: { flag: 'rctf{admin_bot_playground}' },
+          },
+        ],
         releaseTime: Date.now() - DAY,
         adminBotConfig: {
           code: ADMIN_BOT_PLAYGROUND_CODE,
@@ -604,7 +627,12 @@ const buildSubmissions = (
   challenges: Challenge[],
   solves: Solve[]
 ): Submission[] => {
-  const flagsById = new Map(challenges.map(c => [c.id, c.data.flag]))
+  const flagsById = new Map(
+    challenges.map(c => [
+      c.id,
+      (c.data.flags[0]?.config as { flag?: string } | undefined)?.flag ?? '',
+    ])
+  )
   let counter = 0
   const base = () => ({
     id: `seed-sub-${String(++counter).padStart(6, '0')}`,

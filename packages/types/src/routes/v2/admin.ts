@@ -44,6 +44,7 @@ import {
   GoodAvatarUpdated,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
+  GoodFlagProviders,
   GoodCreateUserTokenV2,
   GoodFilesUploadV2,
   GoodInstancerSchema,
@@ -56,6 +57,7 @@ import {
   ChallengePointsSchema,
   ChallengeScoringSchema,
   FileFieldSchema,
+  FlagEntrySchema,
   HttpUrl,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
@@ -398,8 +400,12 @@ export const UpdateChallengeRouteV2 = defineRoute({
           z.optional(z.string()),
           'A gentle introduction.'
         ).check(z.describe('Challenge description in Markdown.')),
-        flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
-          z.describe('The challenge flag.')
+        flags: example(z.optional(z.array(FlagEntrySchema)), [
+          { provider: 'flags/static', config: { flag: 'rctf{baby_rev}' } },
+        ]).check(
+          z.describe(
+            'Flag entries; a submission solves the challenge when any entry validates. Replaces the whole list.'
+          )
         ),
         name: example(z.optional(z.string()), 'baby-rev').check(
           z.describe('Challenge name.')
@@ -496,6 +502,15 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
     userId: z.string().check(z.describe('Team ID whose solve to delete.')),
   }),
   permissions: Permissions.challsSolveWrite,
+})
+
+export const GetFlagProvidersRouteV2 = defineRoute({
+  path: '/v2/admin/flags/providers',
+  method: 'GET',
+  goodResponses: [GoodFlagProviders],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
 })
 
 export const GetInstancerSchemaRouteV2 = defineRoute({

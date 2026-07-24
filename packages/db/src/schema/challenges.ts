@@ -40,6 +40,11 @@ export interface InstancerConfig {
   extendable?: boolean
 }
 
+export interface FlagEntry {
+  provider?: string
+  config: Record<string, unknown>
+}
+
 export interface RegexRule {
   pattern: string
   flags?: string
@@ -69,7 +74,7 @@ export interface ChallengeData {
   author: string
   files: ChallengeFile[]
   points: ChallengePoints
-  flag: string
+  flags: FlagEntry[]
   tiebreakEligible: boolean
   sortWeight?: number
   tags?: string[]

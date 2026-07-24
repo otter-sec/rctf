@@ -246,6 +246,18 @@ export const PartialInstancerConfigSchema = z.object({
   ),
 })
 
+// NOTE(es3n1n): `config` is provider-specific
+export const FlagEntrySchema = z.object({
+  provider: example(
+    z._default(z.string(), 'flags/static'),
+    'flags/static'
+  ).check(z.describe('Flag validation provider that verifies this entry.')),
+  config: z
+    .record(z.string(), z.any())
+    .check(z.describe('Provider-specific flag configuration.')),
+})
+export type FlagEntry = z.output<typeof FlagEntrySchema>
+
 export const RegexRuleSchema = z.object({
   pattern: example(z.string(), '^https?://.*$').check(
     z.describe('Regular expression source the input must match.')

@@ -64,7 +64,9 @@ const insertChallenge = async (overrides?: Partial<ChallengeData>) => {
     category: crypto.randomUUID(),
     author: crypto.randomUUID(),
     files: [],
-    flag: crypto.randomUUID(),
+    flags: [
+      { provider: 'flags/static', config: { flag: crypto.randomUUID() } },
+    ],
     tiebreakEligible: true,
     points: {
       min: 100,

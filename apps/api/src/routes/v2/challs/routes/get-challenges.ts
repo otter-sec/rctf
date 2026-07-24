@@ -42,7 +42,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx, user }) => {
         adminBotInputs: adminBotEnabled
           ? (item.data.adminBotConfig?.inputs ?? null)
           : null,
-        hasFlag: Boolean(item.data.flag),
+        hasFlag: (item.data.flags?.length ?? 0) > 0,
         scoringKind: item.data.scoring?.kind ?? ChallengeScoringKind.DECAY,
         yourScore: item.myScore,
         yourPointDelta: item.myPointDelta,

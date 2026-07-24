@@ -21,7 +21,7 @@ function decayForm(overrides: Partial<EditorForm> = {}): EditorForm {
     category: 'rev',
     author: 'es3n1n',
     description: 'A gentle introduction.',
-    flag: 'rctf{baby_rev}',
+    flags: [{ provider: 'flags/static', config: { flag: 'rctf{baby_rev}' } }],
     ...overrides,
   }
 }
@@ -52,12 +52,19 @@ describe('formErrors', () => {
   })
 
   test('decay requires a flag but not a secret', () => {
-    expect(formErrors(decayForm({ flag: '' })).flag).toBeDefined()
-    expect(formErrors(decayForm({ flag: '' })).secret).toBeUndefined()
+    expect(formErrors(decayForm({ flags: [] })).flag).toBeDefined()
+    expect(
+      formErrors(
+        decayForm({
+          flags: [{ provider: 'flags/static', config: { flag: ' ' } }],
+        })
+      ).flag
+    ).toBeDefined()
+    expect(formErrors(decayForm({ flags: [] })).secret).toBeUndefined()
   })
 
   test('dynamic drops the flag requirement and adds a secret requirement', () => {
-    expect(formErrors(dynamicForm({ flag: '' })).flag).toBeUndefined()
+    expect(formErrors(dynamicForm({ flags: [] })).flag).toBeUndefined()
     const missingSecret = dynamicForm({
       scoring: {
         kind: ChallengeScoringKind.DYNAMIC,
@@ -72,7 +79,7 @@ describe('tab invalid flags', () => {
   test('details tab reflects name/category/author/description/flag', () => {
     expect(detailsTabInvalid(formErrors(decayForm()))).toBe(false)
     expect(detailsTabInvalid(formErrors(decayForm({ name: '' })))).toBe(true)
-    expect(detailsTabInvalid(formErrors(decayForm({ flag: '' })))).toBe(true)
+    expect(detailsTabInvalid(formErrors(decayForm({ flags: [] })))).toBe(true)
   })
 
   test('scoring tab reflects only the secret', () => {
@@ -115,16 +122,20 @@ describe('buildSavePayload', () => {
   test('passes the id through and keeps decay fields', () => {
     const payload = buildSavePayload(decayForm(), 'chal-1')
     expect(payload.id).toBe('chal-1')
-    expect(payload.data.flag).toBe('rctf{baby_rev}')
+    expect(payload.data.flags).toEqual([
+      { provider: 'flags/static', config: { flag: 'rctf{baby_rev}' } },
+    ])
     expect(payload.data.scoring).toEqual({ kind: ChallengeScoringKind.DECAY })
   })
 
-  test('dynamic scoring empties the flag', () => {
+  test('dynamic scoring empties the flags', () => {
     const payload = buildSavePayload(
-      dynamicForm({ flag: 'leftover' }),
+      dynamicForm({
+        flags: [{ provider: 'flags/static', config: { flag: 'leftover' } }],
+      }),
       'chal-1'
     )
-    expect(payload.data.flag).toBe('')
+    expect(payload.data.flags).toEqual([])
   })
 
   test('adminBotConfig is null when disabled and {code} when enabled', () => {

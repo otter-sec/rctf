@@ -81,7 +81,10 @@
 
   const errors = $derived(formErrors(editor.form))
   let instancerValid = $state(true)
-  const invalid = $derived(hasFormErrors(errors) || !instancerValid)
+  let flagsValid = $state(true)
+  const invalid = $derived(
+    hasFormErrors(errors) || !instancerValid || !flagsValid
+  )
 
   const heading = $derived(
     editor.mode === 'creating'
@@ -257,6 +260,7 @@
       challengeId={editor.challenge?.id ?? null}
       {errors}
       bind:instancerValid
+      bind:flagsValid
       {onFieldChange}
       {onScoringChange}
       {onFilesChange}

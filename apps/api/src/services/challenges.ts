@@ -30,7 +30,7 @@ import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { inJsonbArrayPlaceholder } from '../lib/db-bulk'
 import { preparedPerDb } from '../lib/prepared'
-import { verifyDefaultFlag } from '../providers/flags'
+import { type MatchedFlagEntry, verifyFlagEntries } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
@@ -338,6 +338,7 @@ export const createSolveAndGetBloodNumber = async (
     userId: string
     submissionIp?: string | null
     submittedFlag?: string
+    matchedFlag?: MatchedFlagEntry
   }
 ): Promise<number | null> => {
   const solveId = crypto.randomUUID()
@@ -373,9 +374,17 @@ export const createSolveAndGetBloodNumber = async (
       userId: params.userId,
       ip: params.submissionIp ?? 'unknown',
       result: SubmissionResult.CORRECT,
-      details: params.submittedFlag
-        ? { submittedFlag: params.submittedFlag }
-        : {},
+      details: {
+        ...(params.submittedFlag
+          ? { submittedFlag: params.submittedFlag }
+          : {}),
+        ...(params.matchedFlag
+          ? {
+              matchedFlagIndex: params.matchedFlag.index,
+              matchedFlagProvider: params.matchedFlag.provider,
+            }
+          : {}),
+      },
       relatedId: solveId,
       createdAt: new Date().toISOString(),
     })
@@ -391,7 +400,7 @@ const defaultChallengeData: ChallengeData = {
   author: '',
   files: [],
   points: { min: 0, max: 0 },
-  flag: '',
+  flags: [],
   tiebreakEligible: true,
   hidden: false,
   scoring: { kind: ChallengeScoringKind.DECAY },
@@ -1128,7 +1137,8 @@ export const submitFlag = async (
   }
 
   const challenge = await getChallenge(db, params.challengeId)
-  if (!challenge || !challenge.data.flag) {
+  const flagEntries = challenge?.data.flags ?? []
+  if (!challenge || flagEntries.length === 0) {
     return res.badChallenge()
   }
 
@@ -1150,7 +1160,8 @@ export const submitFlag = async (
     return res.badRateLimit({ timeLeft })
   }
 
-  if (!verifyDefaultFlag(params.flag, challenge.data.flag)) {
+  const matched = await verifyFlagEntries(flagEntries, params.flag)
+  if (matched === null) {
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
@@ -1172,6 +1183,7 @@ export const submitFlag = async (
       user: params.userId,
       chall: challenge.id,
       flag: params.flag,
+      matchedFlagIndex: matched.index,
     },
     'successfull flag submission'
   )
@@ -1183,6 +1195,7 @@ export const submitFlag = async (
       userId: params.userId,
       submissionIp: params.submissionIp,
       submittedFlag: params.flag,
+      matchedFlag: matched,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)

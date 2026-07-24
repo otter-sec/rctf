@@ -151,7 +151,9 @@ describe('challenge release time', () => {
         category: crypto.randomUUID(),
         author: crypto.randomUUID(),
         files: [],
-        flag: crypto.randomUUID(),
+        flags: [
+          { provider: 'flags/static', config: { flag: crypto.randomUUID() } },
+        ],
         tiebreakEligible: true,
         points: { min: 100, max: 500 },
         hidden: true,

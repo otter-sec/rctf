@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` Admin bot source"
 description: "`<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>`"
-order: 24
+order: 25
 ---
 
 :::aside

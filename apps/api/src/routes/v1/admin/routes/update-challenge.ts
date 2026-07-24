@@ -1,5 +1,9 @@
 import { UpdateChallengeRoute } from '@rctf/types'
 import {
+  createDefaultFlag,
+  getFirstDefaultFlag,
+} from '../../../../providers/flags'
+import {
   getPrivateChallenge,
   upsertChallenge,
 } from '../../../../services/challenges'
@@ -11,9 +15,17 @@ import { forceLeaderboardUpdate } from '../../../../workers'
 import adminGroup from '../group'
 
 adminGroup.route(UpdateChallengeRoute, async ({ res, ctx, params, body }) => {
+  const { flag, ...bodyData } = body.data
+
   const before = await getPrivateChallenge(ctx.var.db, params.id)
   const updated = await upsertChallenge(ctx.var.db, params.id, {
-    ...body.data,
+    ...bodyData,
+    flags:
+      flag === undefined
+        ? undefined
+        : flag === ''
+          ? []
+          : [createDefaultFlag(flag)],
     files: body.data.files?.map(file => ({
       ...file,
       size: -1,
@@ -31,5 +43,6 @@ adminGroup.route(UpdateChallengeRoute, async ({ res, ctx, params, body }) => {
   return res.goodChallengeUpdate({
     id: updated.id,
     ...updated.data,
+    flag: getFirstDefaultFlag(updated.data.flags),
   })
 })

@@ -1,6 +1,7 @@
 import type { AdminBotConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
 import { adminBotProvider, instancerEnabled } from '../../../../providers'
+import { getFlagProvider } from '../../../../providers/flags'
 import {
   ChallengeKindChangeBlockedError,
   getPrivateChallenge,
@@ -14,6 +15,7 @@ import {
   applyChallengeConfigChange,
   scoringConfigChanged,
 } from '../../../../services/solve-points'
+import { formatZodIssues } from '../../../../util/zod'
 import { forceLeaderboardUpdate } from '../../../../workers'
 import adminGroup from '../group'
 
@@ -25,6 +27,27 @@ const sha256Hex = (data: string): string => {
 
 adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   const before = await getPrivateChallenge(ctx.var.db, params.id)
+
+  // Validate flag entries against their provider config schemas if provided
+  if (body.data.flags) {
+    for (const [i, entry] of body.data.flags.entries()) {
+      const provider = getFlagProvider(entry.provider)
+      if (!provider) {
+        return res.badBody({
+          reason: `flags[${i}]: unknown flag provider ${entry.provider}`,
+        })
+      }
+
+      const configResult = provider.configSchema.safeParse(entry.config)
+      if (!configResult.success) {
+        return res.badBody({
+          reason: `flags[${i}]: ${formatZodIssues(configResult.error)}`,
+        })
+      }
+
+      entry.config = configResult.data
+    }
+  }
 
   // Validate instancer config if provided
   if (body.data.instancerConfig) {
@@ -51,9 +74,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
 
     if (!configResult.success) {
       return res.badInstancerConfig({
-        error: configResult.error.issues
-          .map(e => `${e.path.join('.')}: ${e.message}`)
-          .join(', '),
+        error: formatZodIssues(configResult.error),
       })
     }
 
