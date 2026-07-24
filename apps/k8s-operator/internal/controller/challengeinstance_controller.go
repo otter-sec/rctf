@@ -519,11 +519,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
 
 				annotationExposedHostnames: exposedHostnames,
-			}
-			// Per-team signed flag for dynamic-flag challenges. Surfaced to the
-			// pod via the downward API; the challenge decides how to use it.
-			if instance.Spec.Flag != "" {
-				podAnnotations[annotationFlag] = instance.Spec.Flag
+				annotationFlag:             instance.Spec.Flag,
 			}
 
 			deployment.Spec = appsv1.DeploymentSpec{
