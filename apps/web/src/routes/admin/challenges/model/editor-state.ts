@@ -10,6 +10,15 @@ export interface AdminBotConfig {
   code: string
 }
 
+export interface EditorFlagEntry {
+  provider: string
+  config: { flag: string }
+}
+
+export function blankFlagEntry(): EditorFlagEntry {
+  return { provider: 'flags/static', config: { flag: '' } }
+}
+
 export type ScoringConfig =
   | { kind: ChallengeScoringKind.DECAY }
   | {
@@ -22,7 +31,7 @@ export interface EditorForm {
   category: string
   author: string
   description: string
-  flag: string
+  flags: EditorFlagEntry[]
   pointsMin: number
   pointsMax: number
   tiebreakEligible: boolean
@@ -67,7 +76,7 @@ export function defaultForm(): EditorForm {
     category: '',
     author: '',
     description: '',
-    flag: '',
+    flags: [blankFlagEntry()],
     pointsMin: 50,
     pointsMax: 500,
     tiebreakEligible: true,
@@ -123,7 +132,10 @@ function seedForm(source: AdminChallenge | AdminChallengeDetail): EditorForm {
     category: source.category,
     author: source.author,
     description: source.description,
-    flag: source.flag,
+    flags: source.flags.map(entry => ({
+      provider: entry.provider,
+      config: { flag: String(entry.config.flag ?? '') },
+    })),
     pointsMin: source.points.min,
     pointsMax: source.points.max,
     tiebreakEligible: source.tiebreakEligible,

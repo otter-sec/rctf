@@ -36,7 +36,7 @@ function makeChallenge(
     author: 'author',
     files: [],
     points: { min: 100, max: 500 },
-    flag: '',
+    flags: [],
     tiebreakEligible: true,
     sortWeight: null,
     tags: null,
@@ -87,7 +87,11 @@ describe('initial state', () => {
 
 describe('select', () => {
   test('clean SELECT from idle switches to viewing and seeds both forms', () => {
-    const challenge = makeChallenge({ id: 'a', name: 'Alpha', flag: 'f' })
+    const challenge = makeChallenge({
+      id: 'a',
+      name: 'Alpha',
+      flags: [{ provider: 'flags/static', config: { flag: 'f' } }],
+    })
     const state = select(createEditorState(), challenge)
     expect(state.mode).toBe('viewing')
     expect(state.challenge).toBe(challenge)
@@ -334,7 +338,12 @@ describe('create-mode dirty matrix', () => {
       'description',
       updateForm(create(createEditorState()), 'description', 'x'),
     ],
-    ['flag', updateForm(create(createEditorState()), 'flag', 'x')],
+    [
+      'flags',
+      updateForm(create(createEditorState()), 'flags', [
+        { provider: 'flags/static', config: { flag: 'x' } },
+      ]),
+    ],
     ['pointsMin', updateForm(create(createEditorState()), 'pointsMin', 25)],
     ['pointsMax', updateForm(create(createEditorState()), 'pointsMax', 750)],
     [

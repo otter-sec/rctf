@@ -10,7 +10,9 @@
     IconCloud,
     IconFile,
     IconGear,
+    IconPlus,
     IconRobot,
+    IconTrash,
     IconTrophy,
   } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
@@ -21,10 +23,11 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import TagInput from '$lib/ui/tag-input.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
-  import type {
-    AdminBotConfig,
-    EditorForm,
-    ScoringConfig,
+  import {
+    blankFlagEntry,
+    type AdminBotConfig,
+    type EditorForm,
+    type ScoringConfig,
   } from '../model/editor-state'
   import AdminChallengesDetailsAdminbot from './adminbot.svelte'
   import AdminChallengesDetailsAttachments from './attachments.svelte'
@@ -150,7 +153,7 @@
 
   function changeScoringKind(kind: ChallengeScoringKind) {
     if (kind === ChallengeScoringKind.DYNAMIC) {
-      onFieldChange('flag', '')
+      onFieldChange('flags', [])
       onScoringChange({
         kind: ChallengeScoringKind.DYNAMIC,
         source: {
@@ -159,8 +162,31 @@
         },
       })
     } else {
+      if (form.flags.length === 0) {
+        onFieldChange('flags', [blankFlagEntry()])
+      }
       onScoringChange({ kind: ChallengeScoringKind.DECAY })
     }
+  }
+
+  function changeFlagAt(index: number, flag: string) {
+    onFieldChange(
+      'flags',
+      form.flags.map((entry, i) =>
+        i === index ? { ...entry, config: { ...entry.config, flag } } : entry
+      )
+    )
+  }
+
+  function addFlag() {
+    onFieldChange('flags', [...form.flags, blankFlagEntry()])
+  }
+
+  function removeFlagAt(index: number) {
+    onFieldChange(
+      'flags',
+      form.flags.filter((_, i) => i !== index)
+    )
   }
 
   function changeDynamicSecret(secret: string) {
@@ -315,20 +341,58 @@
 
                 <form-field data-invalid={showError('flag') ? '' : undefined}>
                   <field-label>
-                    Flag{#if !isDynamic}<req>*</req>{/if}
+                    Flags{#if !isDynamic}<req>*</req>{/if}
                     {#if isDynamic}<field-hint>(unused for dynamic)</field-hint
                       >{/if}
+                    {#if !isDynamic}
+                      <label-action>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          {disabled}
+                          onclick={addFlag}
+                        >
+                          <IconPlus /> Add flag
+                        </Button>
+                      </label-action>
+                    {/if}
                   </field-label>
-                  <Input
-                    type="text"
-                    data-mono
-                    placeholder={flagPlaceholder}
-                    value={isDynamic ? '' : form.flag}
-                    disabled={disabled || isDynamic}
-                    aria-invalid={showError('flag')}
-                    oninput={e => onFieldChange('flag', e.currentTarget.value)}
-                    onblur={() => (touched.flag = true)}
-                  />
+                  {#if isDynamic}
+                    <Input
+                      type="text"
+                      data-mono
+                      placeholder={flagPlaceholder}
+                      value=""
+                      disabled
+                    />
+                  {:else}
+                    <flag-rows>
+                      {#each form.flags as entry, index (index)}
+                        <flag-row>
+                          <Input
+                            type="text"
+                            data-mono
+                            placeholder={flagPlaceholder}
+                            value={entry.config.flag}
+                            {disabled}
+                            aria-invalid={showError('flag')}
+                            oninput={e =>
+                              changeFlagAt(index, e.currentTarget.value)}
+                            onblur={() => (touched.flag = true)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            {disabled}
+                            aria-label="Remove flag"
+                            onclick={() => removeFlagAt(index)}
+                          >
+                            <IconTrash />
+                          </Button>
+                        </flag-row>
+                      {/each}
+                    </flag-rows>
+                  {/if}
                   {@render fieldError('flag')}
                 </form-field>
               </section-fields>
@@ -606,6 +670,22 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
+  }
+
+  flag-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+  }
+
+  flag-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+
+    > :global(*:first-child) {
+      flex: 1;
+    }
   }
 
   field-grid {

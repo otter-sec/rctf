@@ -23,8 +23,8 @@ export function formErrors(form: EditorForm): FormErrors {
     if (form.scoring.source.secret.trim() === '') {
       errors.secret = 'Webhook secret is required'
     }
-  } else if (form.flag.trim() === '') {
-    errors.flag = 'Flag is required'
+  } else if (!form.flags.some(entry => entry.config.flag.trim() !== '')) {
+    errors.flag = 'At least one flag is required'
   }
   return errors
 }
@@ -76,7 +76,9 @@ export function buildSavePayload(
       category: form.category,
       author: form.author,
       description: form.description,
-      flag: isDynamic ? '' : form.flag,
+      flags: isDynamic
+        ? []
+        : form.flags.filter(entry => entry.config.flag.trim() !== ''),
       points: { min: form.pointsMin, max: form.pointsMax },
       tiebreakEligible: form.tiebreakEligible,
       sortWeight: form.sortWeight || undefined,

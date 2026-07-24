@@ -19,7 +19,14 @@ order: 3
     "category": "web",
     "author": "organizers",
     "description": "Solve it.",
-    "flag": "flag{example}",
+    "flags": [
+      {
+        "provider": "flags/static",
+        "config": {
+          "flag": "flag{example}"
+        }
+      }
+    ],
     "points": {
       "min": 100,
       "max": 500
@@ -94,6 +101,8 @@ order: 3
 ::route-meta{def="UpdateChallengeRouteV2"}
 
 This route creates a new challenge or updates an existing one. Fields left out of `data` keep their current values. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears that integration config.
+
+A challenge can have multiple flag entries; a submission solves the challenge when any entry validates. Each entry names a flag validation provider (`flags/static{:ts}` when omitted, which compares the submitted flag against `config.flag{:ts}`). Passing `flags{:ts}` replaces the whole list. On V1, the single `flag{:ts}` string maps to one `flags/static{:ts}` entry: reads return the first static entry, and writes replace all entries. Extra entries created via V2 are dropped when updating through V1.
 
 After a challenge changes, the leaderboard is recalculated. The active instancer provider validates `instancerConfig{:ts}`, and the active admin bot provider validates `adminBotConfig{:ts}` before saving a new revision.
 

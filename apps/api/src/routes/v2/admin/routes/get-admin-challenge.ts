@@ -21,6 +21,7 @@ adminGroup.route(GetAdminChallengeRouteV2, async ({ res, ctx, params }) => {
       ...file,
       size: file.size ?? null,
     })),
+    flags: data.data.flags ?? [],
     sortWeight: data.data.sortWeight ?? null,
     tags: data.data.tags ?? null,
     instancerConfig: data.data.instancerConfig ?? null,
