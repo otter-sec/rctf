@@ -12,7 +12,7 @@ order: 22
 
 ::route-meta{def="GetFlagProvidersRouteV2"}
 
-This route lists the available flag validation providers along with a JSON schema for each provider's flag entry `config{:ts}`. The challenge editor uses this response to build and validate the `flags{:ts}` entries before saving a challenge.
+This route lists the available [flag validation providers](/providers/flags) along with a JSON schema for each provider's flag entry `config{:ts}`. The challenge editor uses this response to build and validate the `flags{:ts}` entries before saving a challenge.
 
 Entries that omit `provider{:ts}` use `defaultProvider{:ts}`.
 

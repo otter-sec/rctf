@@ -230,7 +230,7 @@ challenges:
 | `<red>tags</red>` | Free-form label list synced to both rCTF and CTFd. |
 | `<red>attachments</red>` | File list or full `<red>AttachmentConfig</red>`. See below. |
 | `<red>scoring</red>` | Initial / minimum point values plus per-platform overrides (`<red>scoring.rctf.eligibleForTiebreaks</red>`, `<red>scoring.ctfd.decay</red>`, ...). |
-| `<red>flags</red>` | Per-platform flags. `<red>flags.rctf</red>` is either a literal string or `<red>{ file: <path> }</red>` / `<red>{ strContent: <value> }</red>`. |
+| `<red>flags</red>` | Per-platform flags. `<red>flags.rctf</red>` takes one flag or a list of flag entries, `<red>flags.ctfd</red>` a list of CTFd flags. See [Flags](#flags). |
 | `<red>endpoints</red>` | Static endpoints (host/port) rendered into the description by the endpoints template. |
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
 | `<red>releaseTime</red>` / `<red>release_time</red>` | Optional datetime for delayed release. |
@@ -334,7 +334,9 @@ A `<red>files</red>` glob that matches nothing, a named file that doesn't exist,
 
 ### Flags
 
-`<red>flags</red>` is configured separately for each platform. rCTF accepts exactly one flag, while CTFd accepts a list. A flag can be an inline string, `<red>{ str: ... }</red>` / `<red>{ strContent: ... }</red>`, or `<red>{ file: ... }</red>`. Konata reads file-backed flags during sync and resolves their paths relative to the challenge directory.
+`<red>flags</red>` is configured separately for each platform. A flag value can be an inline string, `<red>{ str: ... }</red>` / `<red>{ strContent: ... }</red>`, or `<red>{ file: ... }</red>`. Konata reads file-backed flags during sync and resolves their paths relative to the challenge directory.
+
+`<red>flags.rctf</red>` takes either a single flag or a list. Every flag value becomes a `<red>flags/static</red>` entry on rCTF, and a submission solves the challenge when any entry accepts it.
 
 ```yaml
 # rCTF flag, inline literal. This form is the most common.
@@ -351,14 +353,33 @@ flags:
 flags:
   rctf:
     file: flag.txt
+
+# Several accepted flags. Values can be mixed with full entries.
+flags:
+  rctf:
+    - SEKAI{example}
+    - file: flag.txt
 ```
+
+List items (or the single value itself) can also be full rCTF flag entries with a `<red>provider</red>` and a provider-specific `<red>config</red>`. This is how you get non-static validation, such as regex flags:
+
+```yaml
+flags:
+  rctf:
+    - provider: flags/regex
+      config:
+        pattern: '^SEKAI\{c4se_insens1tive\}$'
+        flags: i
+```
+
+`<red>provider</red>` defaults to `<green>flags/static</green>` with `<red>config.flag</red>` holding the flag. Konata passes `<red>config</red>` through to rCTF as-is, and rCTF validates it against the provider's schema on sync. See [Flag providers](/providers/flags) for the providers rCTF ships with.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `<red>flags.rctf</red>` | `string{:ts}` \| `{ str }{:ts}` \| `{ strContent }{:ts}` \| `{ file }{:ts}` | Single flag synced to rCTF. |
+| `<red>flags.rctf</red>` | flag \| entry \| list | Flag entries synced to rCTF. A flag value is `string{:ts}` \| `{ str }{:ts}` \| `{ strContent }{:ts}` \| `{ file }{:ts}`; an entry is `{ provider, config }{:ts}`. |
 | `<red>flags.ctfd[]</red>` | list | Multiple flags synced to CTFd. |
 | `<red>flags.ctfd[].type</red>` | `string{:ts}` | CTFd flag type. Defaults to `<green>static</green>`. Pass `<green>regex</green>` for regex flags. |
-| `<red>flags.ctfd[].flag</red>` | `string{:ts}` \| `{ str }{:ts}` \| `{ strContent }{:ts}` \| `{ file }{:ts}` | Flag value. Same forms as `<red>flags.rctf</red>`. |
+| `<red>flags.ctfd[].flag</red>` | `string{:ts}` \| `{ str }{:ts}` \| `{ strContent }{:ts}` \| `{ file }{:ts}` | Flag value. Same forms as `<red>flags.rctf</red>` values. |
 
 ### Endpoints
 
