@@ -82,7 +82,7 @@ afterAll(async () => {
 })
 
 describe('multi-flag submission', () => {
-  test('either of two static flags solves the challenge', async () => {
+  test('either of two static flags solves and records the matched entry', async () => {
     const challengeId = await insertChallenge([
       { provider: 'flags/static', config: { flag: 'flag{first}' } },
       { provider: 'flags/static', config: { flag: 'flag{second}' } },
@@ -101,6 +101,22 @@ describe('multi-flag submission', () => {
       await submit(challengeId, second.user.id, 'flag{second}'),
       GoodFlag
     )
+
+    const db = getDb()
+    const rows = await db
+      .select()
+      .from(submissions)
+      .where(eq(submissions.challengeId, challengeId))
+    expect(rows.map(row => row.details)).toContainEqual({
+      submittedFlag: 'flag{first}',
+      matchedFlagIndex: 0,
+      matchedFlagProvider: 'flags/static',
+    })
+    expect(rows.map(row => row.details)).toContainEqual({
+      submittedFlag: 'flag{second}',
+      matchedFlagIndex: 1,
+      matchedFlagProvider: 'flags/static',
+    })
   })
 
   test('a wrong flag is rejected and audited', async () => {
@@ -126,33 +142,6 @@ describe('multi-flag submission', () => {
     expect(rows[0]!.details).toEqual({ submittedFlag: 'flag{third}' })
   })
 
-  test('a correct submission records the matched entry', async () => {
-    const challengeId = await insertChallenge([
-      { provider: 'flags/static', config: { flag: 'flag{first}' } },
-      { provider: 'flags/static', config: { flag: 'flag{second}' } },
-    ])
-
-    const { user, cleanup } = await generateRealTestUser()
-    createdUserCleanups.push(cleanup)
-
-    await expectResponse(
-      await submit(challengeId, user.id, 'flag{second}'),
-      GoodFlag
-    )
-
-    const db = getDb()
-    const rows = await db
-      .select()
-      .from(submissions)
-      .where(eq(submissions.challengeId, challengeId))
-    expect(rows).toHaveLength(1)
-    expect(rows[0]!.details).toEqual({
-      submittedFlag: 'flag{second}',
-      matchedFlagIndex: 1,
-      matchedFlagProvider: 'flags/static',
-    })
-  })
-
   test('a challenge without flag entries rejects submissions', async () => {
     const challengeId = await insertChallenge([])
 
@@ -165,7 +154,7 @@ describe('multi-flag submission', () => {
     )
   })
 
-  test('v2 challenge list exposes hasFlag but never the entries', async () => {
+  test('challenge lists expose hasFlag but never the entries', async () => {
     const withFlags = await insertChallenge([
       { provider: 'flags/static', config: { flag: 'flag{secret}' } },
     ])
@@ -175,32 +164,90 @@ describe('multi-flag submission', () => {
     createdUserCleanups.push(cleanup)
     const authToken = await generateAuthToken(user.id)
 
-    const res = await request(app, '/api/v2/challs', {
+    const v2Res = await request(app, '/api/v2/challs', {
       headers: { Authorization: `Bearer ${authToken}` },
     })
-    const body = await expectResponse(res, GoodChallengesV2)
+    const v2Body = await expectResponse(v2Res, GoodChallengesV2)
 
-    const flagged = body.data.find((c: any) => c.id === withFlags)
-    const unflagged = body.data.find((c: any) => c.id === withoutFlags)
+    const flagged = v2Body.data.find((c: any) => c.id === withFlags)
+    const unflagged = v2Body.data.find((c: any) => c.id === withoutFlags)
     expect(flagged?.hasFlag).toBe(true)
     expect(unflagged?.hasFlag).toBe(false)
     expect(flagged).not.toHaveProperty('flags')
     expect(flagged).not.toHaveProperty('flag')
-    expect(JSON.stringify(body)).not.toContain('flag{secret}')
+    expect(JSON.stringify(v2Body)).not.toContain('flag{secret}')
+
+    const v1Res = await request(app, '/api/v1/challs', {})
+    const v1Body = await expectResponse(v1Res, GoodChallenges)
+
+    const v1Found = v1Body.data.find((c: any) => c.id === withFlags)
+    expect(v1Found).toBeDefined()
+    expect(v1Found).not.toHaveProperty('flags')
+    expect(v1Found).not.toHaveProperty('flag')
+    expect(JSON.stringify(v1Body)).not.toContain('flag{secret}')
   })
 
-  test('v1 challenge list never leaks flag entries', async () => {
+  test('a regex entry matches with its pattern and flags', async () => {
     const challengeId = await insertChallenge([
-      { provider: 'flags/static', config: { flag: 'flag{secret-v1}' } },
+      {
+        provider: 'flags/regex',
+        config: { pattern: '^flag\\{regex-[0-9]+\\}$', flags: 'i' },
+      },
     ])
 
-    const res = await request(app, '/api/v1/challs')
-    const body = await expectResponse(res, GoodChallenges)
+    const wrong = await generateRealTestUser()
+    createdUserCleanups.push(wrong.cleanup)
+    await expectResponse(
+      await submit(challengeId, wrong.user.id, 'flag{regex-abc}'),
+      BadFlag
+    )
+    await expectResponse(
+      await submit(challengeId, wrong.user.id, 'padding flag{regex-1} padding'),
+      BadFlag
+    )
 
-    const found = body.data.find((c: any) => c.id === challengeId)
-    expect(found).toBeDefined()
-    expect(found).not.toHaveProperty('flags')
-    expect(found).not.toHaveProperty('flag')
-    expect(JSON.stringify(body)).not.toContain('flag{secret-v1}')
+    const right = await generateRealTestUser()
+    createdUserCleanups.push(right.cleanup)
+    await expectResponse(
+      await submit(challengeId, right.user.id, 'FLAG{REGEX-1337}'),
+      GoodFlag
+    )
+  })
+
+  test('a matched regex entry is recorded in the submission details', async () => {
+    const challengeId = await insertChallenge([
+      { provider: 'flags/static', config: { flag: 'flag{exact}' } },
+      { provider: 'flags/regex', config: { pattern: '^flag\\{v[0-9]\\}$' } },
+    ])
+
+    const staticSolver = await generateRealTestUser()
+    createdUserCleanups.push(staticSolver.cleanup)
+    const regexSolver = await generateRealTestUser()
+    createdUserCleanups.push(regexSolver.cleanup)
+
+    await expectResponse(
+      await submit(challengeId, staticSolver.user.id, 'flag{exact}'),
+      GoodFlag
+    )
+    await expectResponse(
+      await submit(challengeId, regexSolver.user.id, 'flag{v2}'),
+      GoodFlag
+    )
+
+    const db = getDb()
+    const rows = await db
+      .select()
+      .from(submissions)
+      .where(eq(submissions.challengeId, challengeId))
+    expect(rows.map(row => row.details)).toContainEqual({
+      submittedFlag: 'flag{exact}',
+      matchedFlagIndex: 0,
+      matchedFlagProvider: 'flags/static',
+    })
+    expect(rows.map(row => row.details)).toContainEqual({
+      submittedFlag: 'flag{v2}',
+      matchedFlagIndex: 1,
+      matchedFlagProvider: 'flags/regex',
+    })
   })
 })

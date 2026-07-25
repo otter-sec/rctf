@@ -87,15 +87,26 @@ describe('admin flag providers', () => {
     )!
     expect(staticProvider.schema.type).toBe('object')
     expect(staticProvider.schema.required).toEqual(['flag'])
+
+    expect(names).toContain('flags/regex')
+    const regexProvider = body.data.providers.find(
+      p => p.name === 'flags/regex'
+    )!
+    expect(regexProvider.schema.type).toBe('object')
+    expect(regexProvider.schema.required).toEqual(['pattern'])
   })
 })
 
 describe('admin flag entries', () => {
-  test('v2 flags round-trip through update and get', async () => {
+  test('v2 flags round-trip and default an omitted provider', async () => {
     const id = trackChallenge(crypto.randomUUID())
     const flags = [
       { provider: 'flags/static', config: { flag: 'flag{one}' } },
-      { provider: 'flags/static', config: { flag: 'flag{two}' } },
+      { config: { flag: 'flag{implicit}' } },
+    ]
+    const normalized = [
+      { provider: 'flags/static', config: { flag: 'flag{one}' } },
+      { provider: 'flags/static', config: { flag: 'flag{implicit}' } },
     ]
 
     const putRes = await adminRequest(`/api/v2/admin/challs/${id}`, {
@@ -103,31 +114,11 @@ describe('admin flag entries', () => {
       body: { data: { ...baseData, flags } },
     })
     const putBody = await expectResponse(putRes, GoodChallengeUpdateV2)
-    expect(putBody.data.flags).toEqual(flags)
+    expect(putBody.data.flags).toEqual(normalized)
 
     const getRes = await adminRequest(`/api/v2/admin/challs/${id}`)
     const getBody = await expectResponse(getRes, GoodAdminChallengeV2)
-    expect(getBody.data.flags).toEqual(flags)
-  })
-
-  test('v2 defaults an omitted provider to flags/static', async () => {
-    const id = trackChallenge(crypto.randomUUID())
-
-    const putBody = await expectResponse(
-      await adminRequest(`/api/v2/admin/challs/${id}`, {
-        method: 'PUT',
-        body: {
-          data: {
-            ...baseData,
-            flags: [{ config: { flag: 'flag{implicit}' } }],
-          },
-        },
-      }),
-      GoodChallengeUpdateV2
-    )
-    expect(putBody.data.flags).toEqual([
-      { provider: 'flags/static', config: { flag: 'flag{implicit}' } },
-    ])
+    expect(getBody.data.flags).toEqual(normalized)
   })
 
   test('v2 update without flags keeps the current entries', async () => {
@@ -209,7 +200,7 @@ describe('admin flag entries', () => {
     )
   })
 
-  test('v1 flag string maps to a single static entry', async () => {
+  test('v1 flag string maps onto the entry list', async () => {
     const id = trackChallenge(crypto.randomUUID())
 
     const putBody = await expectResponse(
@@ -230,48 +221,11 @@ describe('admin flag entries', () => {
       { provider: 'flags/static', config: { flag: 'flag{v1}' } },
     ])
 
-    const v1Body = await expectResponse(
-      await adminRequest(`/api/v1/admin/challs/${id}`),
-      GoodAdminChallenge
-    )
-    expect(v1Body.data.flag).toBe('flag{v1}')
-    expect(v1Body.data).not.toHaveProperty('flags')
-  })
-
-  test('v1 empty flag clears the entries', async () => {
-    const id = trackChallenge(crypto.randomUUID())
-
-    await expectResponse(
-      await adminRequest(`/api/v1/admin/challs/${id}`, {
-        method: 'PUT',
-        body: { data: { ...baseData, flag: 'flag{v1}' } },
-      }),
-      GoodChallengeUpdate
-    )
-    await expectResponse(
-      await adminRequest(`/api/v1/admin/challs/${id}`, {
-        method: 'PUT',
-        body: { data: { flag: '' } },
-      }),
-      GoodChallengeUpdate
-    )
-
-    const v2Body = await expectResponse(
-      await adminRequest(`/api/v2/admin/challs/${id}`),
-      GoodAdminChallengeV2
-    )
-    expect(v2Body.data.flags).toEqual([])
-  })
-
-  test('v1 shows the first static entry of a multi-flag challenge', async () => {
-    const id = trackChallenge(crypto.randomUUID())
-
     await expectResponse(
       await adminRequest(`/api/v2/admin/challs/${id}`, {
         method: 'PUT',
         body: {
           data: {
-            ...baseData,
             flags: [
               { provider: 'flags/static', config: { flag: 'flag{first}' } },
               { provider: 'flags/static', config: { flag: 'flag{second}' } },
@@ -281,11 +235,125 @@ describe('admin flag entries', () => {
       }),
       GoodChallengeUpdateV2
     )
-
     const v1Body = await expectResponse(
       await adminRequest(`/api/v1/admin/challs/${id}`),
       GoodAdminChallenge
     )
     expect(v1Body.data.flag).toBe('flag{first}')
+    expect(v1Body.data).not.toHaveProperty('flags')
+
+    await expectResponse(
+      await adminRequest(`/api/v1/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { flag: '' } },
+      }),
+      GoodChallengeUpdate
+    )
+    const clearedBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(clearedBody.data.flags).toEqual([])
+  })
+})
+
+describe('admin regex flag entries', () => {
+  test('v2 regex entries round-trip through update and get', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+    const flags = [
+      {
+        provider: 'flags/regex',
+        config: { pattern: '^flag\\{[0-9]+\\}$', flags: 'i' },
+      },
+    ]
+
+    const putBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { ...baseData, flags } },
+      }),
+      GoodChallengeUpdateV2
+    )
+    expect(putBody.data.flags).toEqual(flags)
+
+    const getBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(getBody.data.flags).toEqual(flags)
+
+    const v1Body = await expectResponse(
+      await adminRequest(`/api/v1/admin/challs/${id}`),
+      GoodAdminChallenge
+    )
+    expect(v1Body.data.flag).toBe('')
+  })
+
+  test('v2 rejects invalid regex configs', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+    const invalidConfigs = [
+      {},
+      { pattern: '(' },
+      { pattern: 'flag', flags: 'x' }, // unknown flag
+      { pattern: 'flag', flags: 'gg' }, // duplicate flags
+      { pattern: 'flag', flags: 'uv' }, // u and v
+      { pattern: '\\p{Invalid}', flags: 'u' }, // compiles alone but not with flags
+    ]
+
+    for (const config of invalidConfigs) {
+      await expectResponse(
+        await adminRequest(`/api/v2/admin/challs/${id}`, {
+          method: 'PUT',
+          body: {
+            data: { ...baseData, flags: [{ provider: 'flags/regex', config }] },
+          },
+        }),
+        BadBody
+      )
+    }
+  })
+
+  test('v1 flag update replaces regex entries, other updates keep them', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+    const flags = [
+      { provider: 'flags/regex', config: { pattern: '^x$' } },
+      { provider: 'flags/static', config: { flag: 'flag{old}' } },
+    ]
+
+    await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { ...baseData, flags } },
+      }),
+      GoodChallengeUpdateV2
+    )
+
+    await expectResponse(
+      await adminRequest(`/api/v1/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { name: 'Renamed via v1' } },
+      }),
+      GoodChallengeUpdate
+    )
+    const keptBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(keptBody.data.flags).toEqual(flags)
+
+    await expectResponse(
+      await adminRequest(`/api/v1/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { flag: 'flag{new}' } },
+      }),
+      GoodChallengeUpdate
+    )
+    const replacedBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(replacedBody.data.flags).toEqual([
+      { provider: 'flags/static', config: { flag: 'flag{new}' } },
+    ])
   })
 })

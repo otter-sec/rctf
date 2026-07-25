@@ -61,43 +61,33 @@ const legacyBase = {
 }
 
 describe('0026_multi_flags migration', () => {
-  test('converts a non-empty legacy flag into one static entry', async () => {
-    const id = await insertRaw({ ...legacyBase, flag: 'flag{legacy}' })
+  test('converts a legacy flag into one static entry, preserved exactly', async () => {
+    const tricky = 'flag{"quo\\ted"__éß字}'
+    const simple = await insertRaw({ ...legacyBase, flag: 'flag{legacy}' })
+    const special = await insertRaw({ ...legacyBase, flag: tricky })
     await runMigration()
 
-    const data = await getData(id)
-    expect(data.flags).toEqual([
+    const simpleData = await getData(simple)
+    expect(simpleData.flags).toEqual([
       { provider: 'flags/static', config: { flag: 'flag{legacy}' } },
     ])
-    expect(data).not.toHaveProperty('flag')
-  })
+    expect(simpleData).not.toHaveProperty('flag')
 
-  test('converts an empty legacy flag into an empty list', async () => {
-    const id = await insertRaw({ ...legacyBase, flag: '' })
-    await runMigration()
-
-    const data = await getData(id)
-    expect(data.flags).toEqual([])
-    expect(data).not.toHaveProperty('flag')
-  })
-
-  test('converts a missing legacy flag into an empty list', async () => {
-    const id = await insertRaw({ ...legacyBase })
-    await runMigration()
-
-    const data = await getData(id)
-    expect(data.flags).toEqual([])
-  })
-
-  test('preserves flags with special characters exactly', async () => {
-    const tricky = 'flag{"quo\\ted"__éß字}'
-    const id = await insertRaw({ ...legacyBase, flag: tricky })
-    await runMigration()
-
-    const data = await getData(id)
-    expect(data.flags).toEqual([
+    const specialData = await getData(special)
+    expect(specialData.flags).toEqual([
       { provider: 'flags/static', config: { flag: tricky } },
     ])
+  })
+
+  test('converts an empty or missing legacy flag into an empty list', async () => {
+    const empty = await insertRaw({ ...legacyBase, flag: '' })
+    const missing = await insertRaw({ ...legacyBase })
+    await runMigration()
+
+    const emptyData = await getData(empty)
+    expect(emptyData.flags).toEqual([])
+    expect(emptyData).not.toHaveProperty('flag')
+    expect((await getData(missing)).flags).toEqual([])
   })
 
   test('is idempotent and leaves migrated rows untouched', async () => {
