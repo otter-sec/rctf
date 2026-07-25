@@ -459,7 +459,10 @@
                                   value={entry.config}
                                   onChange={config =>
                                     changeFlagConfigAt(index, config)}
-                                  bind:valid={flagConfigValidity[index]}
+                                  bind:valid={
+                                    () => flagConfigValidity[index] ?? true,
+                                    v => (flagConfigValidity[index] = v)
+                                  }
                                   {disabled}
                                   rootLabel={entry.provider}
                                 />

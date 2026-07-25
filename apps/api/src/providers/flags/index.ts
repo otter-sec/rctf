@@ -1,10 +1,12 @@
 import type { FlagEntry } from '@rctf/db'
 import type { FlagProvider } from './base'
+import RegexFlagProvider from './regex'
 import StaticFlagProvider, { staticFlagConfigSchema } from './static'
 
 export const DEFAULT_FLAG_PROVIDER = 'flags/static'
 export const flagProviders: Record<string, FlagProvider> = {
   'flags/static': new StaticFlagProvider(),
+  'flags/regex': new RegexFlagProvider(),
 }
 
 export const resolveFlagProviderName = (entry: FlagEntry): string =>
