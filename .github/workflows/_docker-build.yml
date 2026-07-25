@@ -64,7 +64,9 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
           IMAGE: ${{ inputs.image-name }}
         run: |
+          IMAGE="${IMAGE,,}"
           echo "platform-pair=${PLATFORM//\//-}" >> "$GITHUB_OUTPUT"
+          echo "image-name=${IMAGE}" >> "$GITHUB_OUTPUT"
           echo "image-safe=${IMAGE//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
@@ -91,7 +93,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
-          images: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          images: ${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }}
 
       - name: Build and push by digest
         if: inputs.push
@@ -102,9 +104,9 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ inputs.image-name }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=${{ inputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
-          cache-to: type=gha,mode=max,scope=${{ inputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ steps.prep.outputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
+          cache-to: type=gha,mode=max,scope=${{ steps.prep.outputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
           provenance: mode=max
           sbom: true
 
@@ -117,7 +119,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=cacheonly
-          cache-from: type=gha,scope=${{ inputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
+          cache-from: type=gha,scope=${{ steps.prep.outputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
 
       - name: Export digest
         if: inputs.push
@@ -150,6 +152,8 @@ jobs:
         env:
           IMAGE: ${{ inputs.image-name }}
         run: |
+          IMAGE="${IMAGE,,}"
+          echo "image-name=${IMAGE}" >> "$GITHUB_OUTPUT"
           echo "image-safe=${IMAGE//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Download digests
@@ -173,7 +177,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
-          images: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          images: ${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
@@ -187,7 +191,7 @@ jobs:
         shell: bash
         working-directory: /tmp/digests
         env:
-          IMAGE_REF: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
@@ -198,14 +202,14 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          subject-name: ${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
       - name: Inspect image
         shell: bash
         env:
-          IMAGE_REF: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ steps.prep.outputs.image-name }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           docker buildx imagetools inspect "${IMAGE_REF}:${VERSION}"
