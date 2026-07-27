@@ -48,6 +48,9 @@ export const regexFlagConfigSchema = z
         if (config.flagValue === undefined) {
           return true
         }
+        if (!compiles(config.pattern, config.flags)) {
+          return true
+        }
         return new RegExp(config.pattern, config.flags).test(config.flagValue)
       },
       {
