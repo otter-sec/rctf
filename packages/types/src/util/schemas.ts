@@ -23,27 +23,6 @@ export const omitWhenNull = <T extends z.core.SomeType>(inner: T) =>
     z.transform((v: z.output<T> | null | undefined) => v ?? undefined)
   )
 
-const isValidRegex = (pattern: string): boolean => {
-  try {
-    new RegExp(pattern)
-    return true
-  } catch {
-    return false
-  }
-}
-
-export const regexString = (description?: string) =>
-  z
-    .string()
-    .check(
-      z.minLength(1),
-      z.refine(isValidRegex, { message: 'Invalid regular expression' })
-    )
-    .register(z.globalRegistry, {
-      format: 'regex',
-      ...(description === undefined ? {} : { description }),
-    })
-
 export const ChallengeFileSchemaV1 = z.object({
   name: example(z.string(), 'chall.zip').check(z.describe('File name.')),
   url: example(z.string(), 'https://rctf.osec.io/uploads/chall.zip').check(

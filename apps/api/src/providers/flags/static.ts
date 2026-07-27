@@ -15,4 +15,10 @@ export default class StaticFlagProvider extends FlagProvider {
   ): Promise<boolean> {
     return timingSafeEqual(config.flag, submitted)
   }
+
+  protected async getForTeamParsed(
+    config: StaticFlagConfig
+  ): Promise<string | null> {
+    return config.flag
+  }
 }

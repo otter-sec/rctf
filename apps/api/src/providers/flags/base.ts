@@ -17,8 +17,24 @@ export abstract class FlagProvider extends BaseProvider {
     return await this.verifyParsed(parsed.data, submitted)
   }
 
+  async getForTeam(
+    config: FlagProviderConfig,
+    team: string
+  ): Promise<string | null> {
+    const parsed = this.configSchema.safeParse(config)
+    if (!parsed.success) {
+      return null
+    }
+    return await this.getForTeamParsed(parsed.data, team)
+  }
+
   protected abstract verifyParsed(
     config: FlagProviderConfig,
     submitted: string
   ): Promise<boolean>
+
+  protected abstract getForTeamParsed(
+    config: FlagProviderConfig,
+    team: string
+  ): Promise<string | null>
 }

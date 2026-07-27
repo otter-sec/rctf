@@ -44,6 +44,23 @@ export const verifyFlagEntries = async (
   return matched
 }
 
+export const getFlagForTeam = async (
+  entries: FlagEntry[] | undefined,
+  team: string
+): Promise<string> => {
+  for (const entry of entries ?? []) {
+    const provider = getFlagProvider(resolveFlagProviderName(entry))
+    if (!provider) {
+      continue
+    }
+    const flag = await provider.getForTeam(entry.config, team)
+    if (flag !== null) {
+      return flag
+    }
+  }
+  return ''
+}
+
 export const getFirstDefaultFlag = (
   entries: FlagEntry[] | undefined
 ): string => {

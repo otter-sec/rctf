@@ -34,9 +34,9 @@ Exact string match. The submission is compared against `<red>config.flag</red>` 
 }
 ```
 
-| Option              | Description             |
-| ------------------- | ----------------------- |
-| `<red>flag</red>`   | The exact flag string.  |
+| Option            | Description            |
+| ----------------- | ---------------------- |
+| `<red>flag</red>` | The exact flag string. |
 
 :::
 :::tab[flags/regex]
@@ -45,14 +45,19 @@ Regular expression match. The submission is tested against the JavaScript regex 
 ```json
 {
   "provider": "flags/regex",
-  "config": { "pattern": "^rctf\\{example\\}$", "flags": "i" }
+  "config": {
+    "pattern": "^rctf\\{example\\}$",
+    "flags": "i",
+    "flagValue": "rctf{example}"
+  }
 }
 ```
 
-| Option               | Description                                                                                          |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| `<red>pattern</red>` | Regular expression source. Must compile as a JavaScript regex.                                       |
-| `<red>flags</red>`   | Optional regex flags, such as `<green>i</green>` for case-insensitive matching. Any subset of `dgimsuvy{:ts}`. |
+| Option                | Description                                                                                                                                                                                                 |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<red>pattern</red>`  | Regular expression source. Must compile as a JavaScript regex.                                                                                                                                              |
+| `<red>flags</red>`    | Optional regex flags, such as `<green>i</green>` for case-insensitive matching. Any subset of `dgimsuvy{:ts}`.                                                                                               |
+| `<red>flagValue</red>` | Optional concrete flag handed to per-team consumers such as the [admin bot](/integrations/admin-bot), which need an actual flag value that cannot be derived from the pattern alone. Must match the pattern. |
 
 :::
 ::::
