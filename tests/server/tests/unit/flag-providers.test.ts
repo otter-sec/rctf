@@ -49,6 +49,9 @@ describe('static flag provider', () => {
     const provider = flagProviders['flags/static']!
     expect(await provider.verify({}, 'flag{a}')).toBe(false)
     expect(await provider.verify({ flag: '' }, '')).toBe(false)
+    expect(
+      await provider.verify({ flag: 'flag{a}', typo: true }, 'flag{a}')
+    ).toBe(false)
   })
 })
 

@@ -223,6 +223,24 @@ describe('admin flag entries', () => {
         body: {
           data: {
             ...baseData,
+            flags: [
+              {
+                provider: 'flags/static',
+                config: { flag: 'flag{x}', typo: true },
+              },
+            ],
+          },
+        },
+      }),
+      BadBody
+    )
+
+    await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: {
+          data: {
+            ...baseData,
             flags: [{ provider: 'flags/static', config: {} }],
           },
         },
@@ -353,6 +371,7 @@ describe('admin regex flag entries', () => {
       {},
       { pattern: '(' },
       { pattern: 'flag', flags: 'x' }, // unknown flag
+      { pattern: 'flag', flgas: 'i' }, // unknown option
       { pattern: 'flag', flags: 'gg' }, // duplicate flags
       { pattern: 'flag', flags: 'uv' }, // u and v
       { pattern: '\\p{Invalid}', flags: 'u' }, // compiles alone but not with flags

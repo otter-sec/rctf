@@ -2,7 +2,7 @@ import { z } from 'zod/mini'
 import { timingSafeEqual } from '../../util/timing-safe-equal'
 import { FlagProvider } from './base'
 
-export const staticFlagConfigSchema = z.object({
+export const staticFlagConfigSchema = z.strictObject({
   flag: z.string().check(z.minLength(1)),
 })
 export type StaticFlagConfig = z.output<typeof staticFlagConfigSchema>

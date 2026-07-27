@@ -11,7 +11,7 @@ const compiles = (pattern: string, flags?: string): boolean => {
 }
 
 export const regexFlagConfigSchema = z
-  .object({
+  .strictObject({
     pattern: z.string().check(z.minLength(1)).register(z.globalRegistry, {
       format: 'regex',
       description: 'Add ^ and $ to require a full match',
