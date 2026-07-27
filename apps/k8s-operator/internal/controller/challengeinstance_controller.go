@@ -438,6 +438,10 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 	}, objectManagerInNamespaces(namespace.Name))
 	var serviceHostAliases []corev1.HostAlias
 	for _, pod := range instance.Spec.Pods {
+		if len(pod.Ports) == 0 {
+			continue
+		}
+
 		service := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: pod.Name, Namespace: namespace.Name}}
 		_, err := ctrl.CreateOrUpdate(ctx, r.Client, service, func() error {
 			service.Labels = map[string]string{
