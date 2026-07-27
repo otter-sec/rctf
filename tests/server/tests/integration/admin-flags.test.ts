@@ -143,6 +143,64 @@ describe('admin flag entries', () => {
     expect(putBody.data.flags).toEqual(flags)
   })
 
+  test('v2 accepts the deprecated scalar flag without persisting it', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+
+    const putBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { ...baseData, flag: 'flag{legacy-v2}' } },
+      }),
+      GoodChallengeUpdateV2
+    )
+    expect(putBody.data.flags).toEqual([
+      {
+        provider: 'flags/static',
+        config: { flag: 'flag{legacy-v2}' },
+      },
+    ])
+    expect(putBody.data).not.toHaveProperty('flag')
+
+    const getBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(getBody.data.flags).toEqual(putBody.data.flags)
+    expect(getBody.data).not.toHaveProperty('flag')
+
+    const clearedBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { flag: '' } },
+      }),
+      GoodChallengeUpdateV2
+    )
+    expect(clearedBody.data.flags).toEqual([])
+  })
+
+  test('v2 rejects ambiguous scalar and entry-list flags', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+
+    await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: {
+          data: {
+            ...baseData,
+            flag: 'flag{legacy-v2}',
+            flags: [
+              {
+                provider: 'flags/static',
+                config: { flag: 'flag{new-v2}' },
+              },
+            ],
+          },
+        },
+      }),
+      BadBody
+    )
+  })
+
   test('v2 rejects unknown providers and invalid configs', async () => {
     const id = trackChallenge(crypto.randomUUID())
 

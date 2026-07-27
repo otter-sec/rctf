@@ -400,6 +400,11 @@ export const UpdateChallengeRouteV2 = defineRoute({
           z.optional(z.string()),
           'A gentle introduction.'
         ).check(z.describe('Challenge description in Markdown.')),
+        flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
+          z.describe(
+            'Deprecated scalar flag compatibility field. Use `flags` instead.'
+          )
+        ),
         flags: example(z.optional(z.array(FlagEntrySchema)), [
           { provider: 'flags/static', config: { flag: 'rctf{baby_rev}' } },
         ]).check(

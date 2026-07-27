@@ -76,6 +76,6 @@ export const getFirstDefaultFlag = (
   return ''
 }
 
-export const createDefaultFlag = (flag: string): FlagEntry => {
+export const createDefaultFlag = (flag: string) => {
   return { provider: DEFAULT_FLAG_PROVIDER, config: { flag } }
 }

@@ -1,7 +1,7 @@
 import type { AdminBotConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
 import { adminBotProvider, instancerEnabled } from '../../../../providers'
-import { getFlagProvider } from '../../../../providers/flags'
+import { createDefaultFlag, getFlagProvider } from '../../../../providers/flags'
 import {
   ChallengeKindChangeBlockedError,
   getPrivateChallenge,
@@ -27,6 +27,18 @@ const sha256Hex = (data: string): string => {
 
 adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   const before = await getPrivateChallenge(ctx.var.db, params.id)
+
+  // pre v2.0.3 compatibility
+  if (body.data.flag !== undefined) {
+    if (body.data.flags !== undefined) {
+      return res.badBody({
+        reason: 'flag and flags cannot be provided together',
+      })
+    }
+    body.data.flags =
+      body.data.flag === '' ? [] : [createDefaultFlag(body.data.flag)]
+    delete body.data.flag
+  }
 
   // Validate flag entries against their provider config schemas if provided
   if (body.data.flags) {

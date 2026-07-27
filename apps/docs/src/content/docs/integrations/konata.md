@@ -92,10 +92,11 @@ rctf:
     secret: token
 
 templates:
-  challengeDescription: |
-    {{ challenge.description }}
+  challengeDescription:
+    rctf: |
+      {{ challenge.description }}
 
-    {{ endpoints_rendered.strip() }}
+      {{ endpoints_rendered.strip() }}
 ```
 
 ### `<red>secrets</red>`
@@ -156,12 +157,13 @@ Templates control the final challenge description and connection block. They use
 
 | Field | Purpose |
 | --- | --- |
-| `<red>challenge_description</red>` | Top-level description template. Receives `<red>endpoints_rendered</red>` already filled in by the per-provider endpoints template. |
+| `<red>challenge_description.rctf</red>` | Description template used for rCTF. Receives `<red>endpoints_rendered</red>` already filled in by the rCTF endpoints template. |
+| `<red>challenge_description.ctfd</red>` | Description template used for CTFd. Receives `<red>endpoints_rendered</red>` already filled in by the CTFd endpoints template. |
 | `<red>endpoints_text.rctf</red>` | Endpoints template used when syncing to rCTF. The default renders a `> [!CONNECTION]{:md}` callout, which the rCTF frontend turns into a styled connection-info box. |
 | `<red>endpoints_text.ctfd</red>` | Endpoints template used when syncing to CTFd. The default is plain `socat`/`nc`/`ncat --ssl`/`http(s)` lines. |
 | `<red>ctfd_attribution</red>` | Suffix appended to the description on CTFd syncs (defaults to `**Author**: {{ challenge.author }}`). |
 
-rCTF and CTFd have separate endpoint templates, so either format can be changed independently.
+rCTF and CTFd have separate description and endpoint templates, so either format can be changed independently. For compatibility with older configurations, a scalar `<red>challenge_description</red>` is still accepted and applied to both platforms.
 
 ```yaml
 templates:
