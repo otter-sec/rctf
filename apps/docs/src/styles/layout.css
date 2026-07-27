@@ -19,8 +19,10 @@
   --space-xl-2xl: clamp(2.8125rem, 2.4614rem + 1.7177vw, 4.25rem);
   --space-2xl-3xl: clamp(3.75rem, 3.1089rem + 3.1367vw, 6.375rem);
 
+  --space-s-l: clamp(0.9375rem, 0.6475rem + 1.419vw, 2.125rem);
+
   --grid-max-width: 104.13rem;
-  --grid-gutter: var(--space-s-l, clamp(0.9375rem, 0.6475rem + 1.419vw, 2.125rem));
+  --grid-gutter: var(--space-s-l);
   --grid-columns: 12;
   --grid-edge: max(var(--grid-gutter), (100% - var(--grid-max-width)) / 2 + var(--grid-gutter));
   --grid-column-width: calc(

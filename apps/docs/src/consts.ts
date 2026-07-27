@@ -9,7 +9,6 @@ export const SITE = {
   locale: 'en-US',
   dir: 'ltr',
   defaultPageImage: '/static/opengraph-image.png',
-  defaultPostImage: '/static/1200x630.png',
 } as const
 
 export const NAVIGATION = [{ href: '/', label: 'Docs' }]

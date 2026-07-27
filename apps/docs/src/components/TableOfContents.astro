@@ -25,7 +25,7 @@ const title = asInline(titleLabel)
     <toc-current><Fragment set:html={title.html} /></toc-current>
     <ChevronIcon aria-hidden="true" />
   </label>
-  <ul data-bar>
+  <ul data-bar data-scroll-fade>
     {
       sections.map(({ id, label, open, headings }) =>
         id ? (
@@ -142,8 +142,7 @@ const title = asInline(titleLabel)
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        color: var(--foreground);
-        opacity: 0.6;
+        color: var(--muted-foreground);
       }
 
       > svg:last-of-type {
@@ -200,12 +199,11 @@ const title = asInline(titleLabel)
     gap: var(--space-3xs);
 
     a {
-      color: var(--foreground);
-      opacity: 0.6;
+      color: var(--muted-foreground);
 
       &:hover,
       &[data-active] {
-        opacity: 1;
+        color: var(--foreground);
       }
     }
 
@@ -256,7 +254,7 @@ const title = asInline(titleLabel)
       }
 
       details:not([open]):has(a[data-active]) summary a {
-        opacity: 1;
+        color: var(--foreground);
       }
     }
 
@@ -307,6 +305,9 @@ const title = asInline(titleLabel)
     const toggle = nav.querySelector<HTMLInputElement>('input')
     const heading = document.querySelector('article > header h1')
     if (articles.length === 0 || !list || links.size === 0) return
+
+    const scrollPaddingTop =
+      Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBlockStart) || 0
 
     const fallback = currentLabel?.innerHTML ?? ''
 
@@ -362,6 +363,9 @@ const title = asInline(titleLabel)
       }
     })
 
+    const observerOptions = {
+      rootMargin: `-${scrollPaddingTop}px 0px 0px`,
+    }
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         if (entry.target === heading) {
@@ -408,7 +412,7 @@ const title = asInline(titleLabel)
       }
       prevActive = activeTargets
       if (grew) center()
-    })
+    }, observerOptions)
 
     for (const block of sectionOf.keys()) observer.observe(block)
     if (heading) {

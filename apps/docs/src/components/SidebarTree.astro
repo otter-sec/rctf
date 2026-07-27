@@ -57,13 +57,12 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
 
   a,
   summary > span {
-    color: var(--foreground);
-    opacity: 0.6;
+    color: var(--muted-foreground);
   }
 
   a:hover,
   a[aria-current='page'] {
-    opacity: 1;
+    color: var(--foreground);
   }
 
   summary {

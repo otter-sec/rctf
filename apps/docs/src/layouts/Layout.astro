@@ -8,6 +8,7 @@ import '@/styles/typography-inline.css'
 import '@/styles/typography-lists.css'
 import '@/styles/typography-block.css'
 import '@/styles/typography-tables.css'
+import '@/styles/typography-math.css'
 import '@/styles/callout.css'
 import '@/styles/steps.css'
 import '@/styles/cards.css'
@@ -120,8 +121,6 @@ const { crumbs, tree, wide } = Astro.props
     grid-column: 1 / 3;
     grid-row: 1;
 
-    /* Fixed like desktop so the page's overscroll never moves it; the grid keeps
-       the nav column reserved, so pulling it out of flow shifts nothing. */
     @media (width >= 48rem) and (width < 64rem) {
       grid-area: nav;
       position: fixed;
@@ -150,11 +149,8 @@ const { crumbs, tree, wide } = Astro.props
       top: 0;
       z-index: 10;
 
-      /* The bar sits inside the content column here, not edge-to-edge, so drop
-         the mobile full-bleed gutter and inset border so it aligns with prose. */
       :global([data-bar]) {
         padding-inline: 0;
-        border-image: none;
       }
     }
 
