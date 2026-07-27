@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import type { FlagEntry } from '@rctf/db'
+import { DynamicFlagMode } from '@rctf/types'
 import { afterAll, describe, expect, test } from 'bun:test'
 import {
   FlagProvider,
@@ -160,21 +161,54 @@ describe('verifyFlagEntries', () => {
     expect(countingProvider.calls).toBe(3)
   })
 
-  test("reports another team's dynamic flag as cheated", async () => {
+  test("accepts another team's dynamic flag but reports it as cheated", async () => {
     const base = 'flag{abcdefghijklmnopqrstuvwxyz}'
     const entries: FlagEntry[] = [
-      { provider: 'flags/dynamic', config: { base, mode: 'basic' } },
+      {
+        provider: 'flags/dynamic',
+        config: { base, mode: DynamicFlagMode.BASIC },
+      },
     ]
     const otherTeamFlag = generateDynamicFlag(
       base,
       'team-b',
       ctx.challengeId,
-      'basic',
+      DynamicFlagMode.BASIC,
       config.dynamicFlagSigningKey ?? ''
     )
     expect(await verifyFlagEntries(entries, otherTeamFlag, ctx)).toEqual({
-      matched: null,
+      matched: {
+        index: 0,
+        provider: 'flags/dynamic',
+        config: { base, mode: DynamicFlagMode.BASIC },
+      },
       cheated: true,
+    })
+  })
+
+  test('an accepted entry wins over a cheated one', async () => {
+    const base = 'flag{abcdefghijklmnopqrstuvwxyz}'
+    const otherTeamFlag = generateDynamicFlag(
+      base,
+      'team-b',
+      ctx.challengeId,
+      DynamicFlagMode.BASIC,
+      config.dynamicFlagSigningKey ?? ''
+    )
+    const entries: FlagEntry[] = [
+      {
+        provider: 'flags/dynamic',
+        config: { base, mode: DynamicFlagMode.BASIC },
+      },
+      staticEntry(otherTeamFlag),
+    ]
+    expect(await verifyFlagEntries(entries, otherTeamFlag, ctx)).toEqual({
+      matched: {
+        index: 1,
+        provider: 'flags/static',
+        config: { flag: otherTeamFlag },
+      },
+      cheated: false,
     })
   })
 })

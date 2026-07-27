@@ -339,6 +339,7 @@ export const createSolveAndGetBloodNumber = async (
     submissionIp?: string | null
     submittedFlag?: string
     matchedFlag?: MatchedFlagEntry
+    cheated?: boolean
   }
 ): Promise<number | null> => {
   const solveId = crypto.randomUUID()
@@ -385,6 +386,7 @@ export const createSolveAndGetBloodNumber = async (
               matchedFlagConfig: params.matchedFlag.config,
             }
           : {}),
+        ...(params.cheated ? { cheated: true } : {}),
       },
       relatedId: solveId,
       createdAt: new Date().toISOString(),
@@ -1167,18 +1169,6 @@ export const submitFlag = async (
     { teamId: params.userId, challengeId: params.challengeId }
   )
   if (matched === null) {
-    // A valid flag that was minted for another team is the signature of flag
-    // sharing, not an ordinary wrong guess — alert on it distinctly.
-    if (cheated) {
-      log.warn(
-        {
-          user: params.userId,
-          chall: challenge.id,
-          flag: params.flag,
-        },
-        'valid flag for another team; possible flag sharing'
-      )
-    }
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
@@ -1187,7 +1177,6 @@ export const submitFlag = async (
       result: SubmissionResult.INCORRECT,
       details: {
         submittedFlag: params.flag,
-        ...(cheated ? { flagSharing: true } : {}),
       },
     }).catch(err =>
       log.error(
@@ -1196,6 +1185,17 @@ export const submitFlag = async (
       )
     )
     return res.badFlag()
+  }
+
+  if (cheated) {
+    log.warn(
+      {
+        user: params.userId,
+        chall: challenge.id,
+        flag: params.flag,
+      },
+      'valid flag for another team; possible flag sharing'
+    )
   }
 
   log.info(
@@ -1216,6 +1216,7 @@ export const submitFlag = async (
       submissionIp: params.submissionIp,
       submittedFlag: params.flag,
       matchedFlag: matched,
+      cheated,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)

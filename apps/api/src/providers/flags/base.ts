@@ -2,21 +2,14 @@ import { z } from 'zod/mini'
 import { BaseProvider } from '../base'
 
 export type FlagProviderConfig = Record<string, unknown>
-
-// Context of the team a flag is verified against or minted for. Providers
-// with per-team flags (e.g. flags/dynamic) need it; others may ignore it.
 export interface FlagTeamContext {
   teamId: string
   challengeId: string
 }
 
 export enum FlagVerifyStatus {
-  // The submission is a valid flag for the submitting team.
   ACCEPTED = 'accepted',
-  // An ordinary wrong guess.
   REJECTED = 'rejected',
-  // A valid flag that was not minted for the submitting team — the
-  // fingerprint of a flag shared from another team rather than a wrong guess.
   CHEATED = 'cheated',
 }
 

@@ -26,8 +26,6 @@ export interface MatchedFlagEntry {
 
 export interface FlagEntriesVerification {
   matched: MatchedFlagEntry | null
-  // A provider reported the submission as a valid flag minted for another
-  // team (see FlagVerifyStatus.CHEATED) — likely flag sharing.
   cheated: boolean
 }
 
@@ -36,8 +34,8 @@ export const verifyFlagEntries = async (
   submitted: string,
   context: FlagTeamContext
 ): Promise<FlagEntriesVerification> => {
-  let matched: MatchedFlagEntry | null = null
-  let cheated = false
+  let accepted: MatchedFlagEntry | null = null
+  let cheated: MatchedFlagEntry | null = null
 
   // NOTE(es3n1n): Intentionally no short-circuit on the first match so that
   //  the response timing doesn't leak which entry matched
@@ -49,15 +47,17 @@ export const verifyFlagEntries = async (
     }
 
     const result = await provider.verify(entry.config, submitted, context)
-    if (result.status === FlagVerifyStatus.ACCEPTED && matched === null) {
-      matched = { index, provider: name, config: entry.config }
+    if (result.status === FlagVerifyStatus.ACCEPTED && accepted === null) {
+      accepted = { index, provider: name, config: entry.config }
     }
-    if (result.status === FlagVerifyStatus.CHEATED) {
-      cheated = true
+    if (result.status === FlagVerifyStatus.CHEATED && cheated === null) {
+      cheated = { index, provider: name, config: entry.config }
     }
   }
 
-  return { matched, cheated }
+  return accepted !== null
+    ? { matched: accepted, cheated: false }
+    : { matched: cheated, cheated: cheated !== null }
 }
 
 export const getFlagForTeam = async (

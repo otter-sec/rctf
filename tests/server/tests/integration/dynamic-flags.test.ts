@@ -107,12 +107,13 @@ describe('dynamic flag submission', () => {
     await expectResponse(res, GoodFlag)
   })
 
-  test("rejects another team's dynamic flag (anti-sharing)", async () => {
+  test("accepts another team's dynamic flag but records it as cheated", async () => {
     const challengeId = await createDynamicChallenge()
     const owner = await newUser()
     const thief = await newUser()
 
-    // Flag minted for `owner`, submitted by `thief`.
+    // Flag minted for `owner`, submitted by `thief`. The solve goes through
+    // so the thief can't tell they were caught...
     const ownerFlag = generateDynamicFlag(
       DYNAMIC_BASE,
       owner.id,
@@ -122,23 +123,22 @@ describe('dynamic flag submission', () => {
     )
 
     const res = await submit(challengeId, thief.id, ownerFlag)
-    await expectResponse(res, BadFlag)
+    await expectResponse(res, GoodFlag)
 
-    // No solve should have been recorded for the thief.
     const thiefSolves = await getDb()
       .select()
       .from(solves)
       .where(eq(solves.userid, thief.id))
-    expect(thiefSolves).toHaveLength(0)
+    expect(thiefSolves).toHaveLength(1)
 
-    // ...and the attempt is recorded distinctly as a flag-sharing signal.
+    // ...but the submission is recorded distinctly as cheated.
     const thiefSubmissions = await getDb()
       .select()
       .from(submissions)
       .where(eq(submissions.userId, thief.id))
     expect(thiefSubmissions).toHaveLength(1)
     expect(thiefSubmissions[0]!.details).toMatchObject({
-      flagSharing: true,
+      cheated: true,
     })
   })
 
@@ -150,7 +150,7 @@ describe('dynamic flag submission', () => {
     await expectResponse(res, BadFlag)
   })
 
-  test('an ordinary wrong guess is not flagged as sharing', async () => {
+  test('an ordinary wrong guess is not recorded as cheated', async () => {
     const challengeId = await createDynamicChallenge()
     const user = await newUser()
 
@@ -166,7 +166,7 @@ describe('dynamic flag submission', () => {
       .from(submissions)
       .where(eq(submissions.userId, user.id))
     expect(userSubmissions).toHaveLength(1)
-    expect(userSubmissions[0]!.details.flagSharing).toBeUndefined()
+    expect(userSubmissions[0]!.details.cheated).toBeUndefined()
   })
 
   test('lists a dynamic challenge as having a flag', async () => {
