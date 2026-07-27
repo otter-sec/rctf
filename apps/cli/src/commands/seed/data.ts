@@ -1,7 +1,12 @@
 import { scoreProvider } from '@rctf/api/src/providers'
+import {
+  DynamicFlagMode,
+  mintDynamicFlag,
+} from '@rctf/api/src/providers/flags/dynamic'
 import type { ServerConfig } from '@rctf/config'
 import type {
   Challenge,
+  DynamicFlag,
   ScoreEvent,
   Settings,
   Solve,
@@ -26,6 +31,7 @@ export type SeedData = {
   solves: Solve[]
   scoreEvents: ScoreEvent[]
   submissions: Submission[]
+  dynamicFlags: DynamicFlag[]
   settings: Settings
 }
 
@@ -91,6 +97,9 @@ const AD_CHALLENGES = [
 ] as const
 const INSTANCER_CHALLENGE_ID = 'instancer-playground'
 const ADMIN_BOT_CHALLENGE_ID = 'admin-bot-playground'
+const DYNAMIC_CHALLENGE_ID = 'seed-dynamic-1'
+const DYNAMIC_FLAG_BASE = 'rctf{seed_dynamic_flag_minted_per_team}'
+const DYNAMIC_OWNER_STRIDE = 25
 const KOTH_TICK_INTERVAL = 15 * 60_000
 const KOTH_MAX_POINTS = 880
 const KOTH_PAYOUT_EXPONENT = 1.1
@@ -410,7 +419,24 @@ const buildChallenges = (): Challenge[] => {
     ),
   ]
 
-  return [...flags, ...koths, ...ads, ...playgrounds]
+  const dynamic = makeChallenge(
+    DYNAMIC_CHALLENGE_ID,
+    FLAG_CHALLENGE_COUNT + KOTH_CHALLENGES.length + 2 + AD_CHALLENGES.length,
+    {
+      name: 'Dynamic Flags',
+      description: 'Per-team dynamic flags with cheat detection.',
+      category: 'misc',
+      points: { min: 100, max: 500 },
+      flags: [
+        {
+          provider: 'flags/dynamic',
+          config: { base: DYNAMIC_FLAG_BASE, mode: DynamicFlagMode.AUTO },
+        },
+      ],
+    }
+  )
+
+  return [...flags, ...koths, ...ads, ...playgrounds, dynamic]
 }
 
 const pickChallengeIndices = (weights: readonly number[], count: number) =>
@@ -477,6 +503,8 @@ type ChallengeScoreState = {
   solves: Solve[]
 }
 
+const FLAG_RESCORE_INTERVAL = 3 * 60 * 60 * 1000
+
 const buildFlagScoreEvents = (
   timing: SeedTiming,
   teams: User[],
@@ -494,10 +522,11 @@ const buildFlagScoreEvents = (
   )
   const trackMaxSolves = scoreProvider.requiredFields.includes('maxSolves')
   const events: ScoreEvent[] = []
+  const emittedPoints = new Map<Solve, number>()
   let maxSolves = 0
 
-  const rescore = (state: ChallengeScoreState, eventAt: string) => {
-    const points = scoreProvider.calculate({
+  const pointsFor = (state: ChallengeScoreState) =>
+    scoreProvider.calculate({
       minPoints: state.challenge.data.points.min,
       maxPoints: state.challenge.data.points.max,
       solves: state.solves.length,
@@ -507,22 +536,39 @@ const buildFlagScoreEvents = (
       firstSolveTime: state.firstSolveTime,
     })
 
-    for (const solve of state.solves) {
-      const pointsDelta = points - (solve.points ?? 0)
-      if (pointsDelta === 0) {
+  const emit = (
+    state: ChallengeScoreState,
+    solve: Solve,
+    points: number,
+    eventAt: string
+  ) => {
+    const pointsDelta = points - (emittedPoints.get(solve) ?? 0)
+    if (pointsDelta === 0) {
+      return
+    }
+
+    emittedPoints.set(solve, points)
+    solve.points = points
+    solve.pointsUpdatedAt = eventAt
+    events.push({
+      id: `seed-score-flag-${String(events.length + 1).padStart(6, '0')}`,
+      challengeid: state.challenge.id,
+      userid: solve.userid,
+      pointsDelta,
+      eventAt,
+      source: 'flag',
+    })
+  }
+
+  const flush = (eventAt: string) => {
+    for (const state of states.values()) {
+      if (state.solves.length === 0) {
         continue
       }
-
-      solve.points = points
-      solve.pointsUpdatedAt = eventAt
-      events.push({
-        id: `seed-score-flag-${String(events.length + 1).padStart(5, '0')}`,
-        challengeid: state.challenge.id,
-        userid: solve.userid,
-        pointsDelta,
-        eventAt,
-        source: 'flag',
-      })
+      const points = pointsFor(state)
+      for (const solve of state.solves) {
+        emit(state, solve, points, eventAt)
+      }
     }
   }
 
@@ -533,21 +579,34 @@ const buildFlagScoreEvents = (
         a.createdat.localeCompare(b.createdat) || a.id.localeCompare(b.id)
     )
 
+  // Emitting every devaluation for every earlier solver on every new solve
+  // explodes the event count (~20x the solve count); emit the new solver's
+  // own event immediately and settle everyone else on a coarse interval.
+  // Deltas are tracked against what was actually emitted, so cumulative
+  // sums stay exact regardless of the interval.
+  let nextFlushAt = timing.startTime + FLAG_RESCORE_INTERVAL
   for (const solve of ordered) {
     const state = states.get(solve.challengeid)!
     state.solves.push(solve)
     state.firstSolveTime ??= Date.parse(solve.createdat)
-
     if (trackMaxSolves && state.solves.length > maxSolves) {
       maxSolves = state.solves.length
-      for (const other of states.values()) {
-        if (other.solves.length > 0) {
-          rescore(other, solve.createdat)
-        }
+    }
+
+    const solvedAt = Date.parse(solve.createdat)
+    if (solvedAt >= nextFlushAt) {
+      flush(solve.createdat)
+      while (nextFlushAt <= solvedAt) {
+        nextFlushAt += FLAG_RESCORE_INTERVAL
       }
     } else {
-      rescore(state, solve.createdat)
+      emit(state, solve, pointsFor(state), solve.createdat)
     }
+  }
+
+  const lastSolve = ordered[ordered.length - 1]
+  if (lastSolve) {
+    flush(lastSolve.createdat)
   }
 
   return events
@@ -696,6 +755,72 @@ const buildSubmissions = (
   return submissions
 }
 
+const buildDynamicFlagData = (
+  timing: SeedTiming,
+  teams: User[]
+): { dynamicFlags: DynamicFlag[]; submissions: Submission[] } => {
+  const dynamicFlags: DynamicFlag[] = []
+  const submissions: Submission[] = []
+  const seen = new Set<string>()
+  let counter = 0
+
+  const submission = (
+    userId: string,
+    flag: string,
+    createdAt: string,
+    cheatedFrom?: string
+  ): Submission => ({
+    id: `seed-sub-dynamic-${String(++counter).padStart(3, '0')}`,
+    kind: SubmissionKind.FLAG,
+    challengeId: DYNAMIC_CHALLENGE_ID,
+    userId,
+    ip: randomIp(),
+    result: SubmissionResult.CORRECT,
+    details: {
+      submittedFlag: flag,
+      ...(cheatedFrom ? { cheated: true, cheatedFrom } : {}),
+    },
+    relatedId: null,
+    createdAt,
+  })
+
+  for (let index = 0; index < teams.length; index += DYNAMIC_OWNER_STRIDE) {
+    const owner = teams[index]!
+    let flag = mintDynamicFlag(DYNAMIC_FLAG_BASE, DynamicFlagMode.AUTO)!
+    while (seen.has(flag)) {
+      flag = mintDynamicFlag(DYNAMIC_FLAG_BASE, DynamicFlagMode.AUTO)!
+    }
+    seen.add(flag)
+
+    const mintedAt = new Date(
+      timing.startTime + randomInt(DAY - 120_000)
+    ).toISOString()
+    dynamicFlags.push({
+      challengeId: DYNAMIC_CHALLENGE_ID,
+      userId: owner.id,
+      base: DYNAMIC_FLAG_BASE,
+      flag,
+      createdAt: mintedAt,
+    })
+    submissions.push(submission(owner.id, flag, mintedAt))
+
+    // every second owner gets their flag stolen by the next team
+    const thief = teams[index + 1]
+    if (thief && index % (DYNAMIC_OWNER_STRIDE * 2) === 0) {
+      submissions.push(
+        submission(
+          thief.id,
+          flag,
+          new Date(Date.parse(mintedAt) + 60_000).toISOString(),
+          owner.id
+        )
+      )
+    }
+  }
+
+  return { dynamicFlags, submissions }
+}
+
 const buildSettings = (config: ServerConfig, timing: SeedTiming): Settings => {
   return {
     id: 'value-0',
@@ -727,6 +852,8 @@ export const buildSeedData = (config: ServerConfig): SeedData => {
     solves
   )
   const submissions = buildSubmissions(timing, teams, flagChallenges, solves)
+  const dynamicFlagData = buildDynamicFlagData(timing, teams)
+  submissions.push(...dynamicFlagData.submissions)
 
   for (const dynamic of [...KOTH_CHALLENGES, ...AD_CHALLENGES]) {
     const scores = buildKothScores(timing, teams, dynamic.id, dynamic.penalties)
@@ -743,6 +870,7 @@ export const buildSeedData = (config: ServerConfig): SeedData => {
     solves,
     scoreEvents,
     submissions,
+    dynamicFlags: dynamicFlagData.dynamicFlags,
     settings: buildSettings(config, timing),
   }
 }

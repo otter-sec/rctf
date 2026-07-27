@@ -4,7 +4,6 @@ import { createToken, TokenKind } from '@rctf/api/src/lib/tokens'
 import { calculateLeaderboard } from '@rctf/api/src/services/leaderboard'
 import { config } from '@rctf/config'
 import {
-  adminBotJobs,
   challenges,
   dynamicFlags,
   scoreEvents,
@@ -18,29 +17,52 @@ import {
 import { withDbAndRedis } from '../../lib/context'
 import { buildSeedData, type SeedData } from './data'
 
+const step = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
+  const startedAt = performance.now()
+  const result = await fn()
+  console.log(`${label}: ${Math.round(performance.now() - startedAt)}ms`)
+  return result
+}
+
 const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
   await db.transaction(async tx => {
-    await tx.delete(adminBotJobs)
-    await tx.delete(scoreEvents)
-    await tx.delete(submissions)
-    await tx.delete(solves)
-    await tx.delete(dynamicFlags)
-    await tx.delete(userMembers)
-    await tx.delete(challenges)
-    await tx.delete(users)
-    await tx.delete(settings)
+    await tx.execute(
+      `TRUNCATE TABLE
+        "admin_bot_jobs", "score_events", "submission_logs", "solves",
+        "dynamic_flags", "user_members", "challenges", "users", "settings"
+      CASCADE`
+    )
 
-    await insertInChunks(data.users, chunk => tx.insert(users).values(chunk))
-    await insertInChunks(data.members, chunk =>
-      tx.insert(userMembers).values(chunk)
+    await insertInChunks(
+      data.users,
+      chunk => tx.insert(users).values(chunk),
+      2000
+    )
+    await insertInChunks(
+      data.members,
+      chunk => tx.insert(userMembers).values(chunk),
+      10_000
     )
     await tx.insert(challenges).values(data.challenges)
-    await insertInChunks(data.solves, chunk => tx.insert(solves).values(chunk))
-    await insertInChunks(data.scoreEvents, chunk =>
-      tx.insert(scoreEvents).values(chunk)
+    await insertInChunks(
+      data.dynamicFlags,
+      chunk => tx.insert(dynamicFlags).values(chunk),
+      5000
     )
-    await insertInChunks(data.submissions, chunk =>
-      tx.insert(submissions).values(chunk)
+    await insertInChunks(
+      data.solves,
+      chunk => tx.insert(solves).values(chunk),
+      5000
+    )
+    await insertInChunks(
+      data.scoreEvents,
+      chunk => tx.insert(scoreEvents).values(chunk),
+      8000
+    )
+    await insertInChunks(
+      data.submissions,
+      chunk => tx.insert(submissions).values(chunk),
+      5000
     )
     await tx.insert(settings).values(data.settings)
   })
@@ -54,11 +76,15 @@ const loginUrl = (origin: string, token: string) => {
 
 export const runSeed = async () => {
   await withDbAndRedis(async ({ db, redis }) => {
-    const data = buildSeedData(config)
+    const data = await step('build seed data', async () =>
+      buildSeedData(config)
+    )
 
-    await redis.flushdb()
-    await resetAndSeedDatabase(db, data)
-    await cacheLeaderboardAndGraph(db, redis, await calculateLeaderboard(db))
+    await step('reset redis', () => redis.flushdb())
+    await step('reset and insert', () => resetAndSeedDatabase(db, data))
+    await step('leaderboard cache', async () =>
+      cacheLeaderboardAndGraph(db, redis, await calculateLeaderboard(db))
+    )
 
     const adminToken = await createToken(TokenKind.Team, data.admin.id)
     const teamToken = await createToken(TokenKind.Team, data.teams[0]!.id)
