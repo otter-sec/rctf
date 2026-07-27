@@ -402,3 +402,11 @@ export function updateScoring(
 ): EditorState {
   return patchForm(state, { ...state.form, scoring })
 }
+
+export function updateScoringAndFlags(
+  state: EditorState,
+  scoring: ScoringConfig,
+  flags: EditorFlagEntry[]
+): EditorState {
+  return patchForm(state, { ...state.form, scoring, flags })
+}

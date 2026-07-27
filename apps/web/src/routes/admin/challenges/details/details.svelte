@@ -41,6 +41,7 @@
     updateForm,
     updateInstancer,
     updateScoring,
+    updateScoringAndFlags,
     type AdminBotConfig,
     type EditorForm,
     type EditorState,
@@ -104,6 +105,13 @@
 
   function onScoringChange(scoring: ScoringConfig) {
     onEditorChange(updateScoring(editor, scoring))
+  }
+
+  function onScoringAndFlagsChange(
+    scoring: ScoringConfig,
+    flags: EditorForm['flags']
+  ) {
+    onEditorChange(updateScoringAndFlags(editor, scoring, flags))
   }
 
   function onFilesChange(files: EditorForm['files']) {
@@ -263,6 +271,7 @@
       bind:flagsValid
       {onFieldChange}
       {onScoringChange}
+      {onScoringAndFlagsChange}
       {onFilesChange}
       {onInstancerChange}
       {onAdminBotChange}

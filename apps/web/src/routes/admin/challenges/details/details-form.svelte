@@ -63,6 +63,10 @@
       value: EditorForm[K]
     ) => void
     onScoringChange: (scoring: ScoringConfig) => void
+    onScoringAndFlagsChange: (
+      scoring: ScoringConfig,
+      flags: EditorForm['flags']
+    ) => void
     onFilesChange: (files: EditorForm['files']) => void
     onInstancerChange: (config: InstancerConfig | null) => void
     onAdminBotChange: (config: AdminBotConfig) => void
@@ -79,6 +83,7 @@
     flagsValid = $bindable(true),
     onFieldChange,
     onScoringChange,
+    onScoringAndFlagsChange,
     onFilesChange,
     onInstancerChange,
     onAdminBotChange,
@@ -179,19 +184,21 @@
 
   function changeScoringKind(kind: ChallengeScoringKind) {
     if (kind === ChallengeScoringKind.DYNAMIC) {
-      onFieldChange('flags', [])
-      onScoringChange({
-        kind: ChallengeScoringKind.DYNAMIC,
-        source: {
-          transport: DynamicScoringTransport.WEBHOOK,
-          secret: dynamicSecret || crypto.randomUUID(),
+      onScoringAndFlagsChange(
+        {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: dynamicSecret || crypto.randomUUID(),
+          },
         },
-      })
+        []
+      )
     } else {
-      if (form.flags.length === 0) {
-        onFieldChange('flags', [blankFlagEntry()])
-      }
-      onScoringChange({ kind: ChallengeScoringKind.DECAY })
+      onScoringAndFlagsChange(
+        { kind: ChallengeScoringKind.DECAY },
+        form.flags.length === 0 ? [blankFlagEntry()] : form.flags
+      )
     }
   }
 
