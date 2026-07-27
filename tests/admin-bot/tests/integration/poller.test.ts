@@ -31,6 +31,7 @@ const makeJob = (overrides: Partial<PulledJob> = {}): PulledJob => ({
   configRevision: 'rev-1',
   userId: 'user-1',
   submittedAt: '2024-01-01T00:00:00Z',
+  flags: [{ provider: 'flags/static', flag: 'flag{test}' }],
   flag: 'flag{test}',
   inputs: { url: 'http://example.com' },
   instancerInstances: [],

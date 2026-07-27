@@ -1,4 +1,5 @@
 import type { FlagEntry } from '@rctf/db'
+import type { TeamFlag } from '@rctf/types'
 import type { FlagProvider, FlagTeamContext } from './base'
 import { FlagVerifyStatus } from './base'
 import DynamicFlagProvider from './dynamic'
@@ -60,21 +61,23 @@ export const verifyFlagEntries = async (
     : { matched: cheated, cheated: cheated !== null }
 }
 
-export const getFlagForTeam = async (
+export const getFlagsForTeam = async (
   entries: FlagEntry[] | undefined,
   context: FlagTeamContext
-): Promise<string> => {
+): Promise<TeamFlag[]> => {
+  const flags: TeamFlag[] = []
   for (const entry of entries ?? []) {
-    const provider = getFlagProvider(resolveFlagProviderName(entry))
+    const name = resolveFlagProviderName(entry)
+    const provider = getFlagProvider(name)
     if (!provider) {
       continue
     }
     const flag = await provider.getForTeam(entry.config, context)
     if (flag !== null) {
-      return flag
+      flags.push({ provider: name, flag })
     }
   }
-  return ''
+  return flags
 }
 
 export const getFirstDefaultFlag = (

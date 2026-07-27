@@ -88,7 +88,7 @@ type ChallengeInstanceSpec struct {
 	ChallengeId string `json:"challengeId"`
 
 	// +optional
-	Flag string `json:"flag,omitempty"`
+	Flags string `json:"flags,omitempty"`
 
 	// +required
 	ExpiresAt metav1.Time `json:"expiresAt"`

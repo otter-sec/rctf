@@ -9,15 +9,12 @@ import {
   type FlagVerifyResult,
 } from './base'
 
-// NOTE(sy1vi3): dynamic flags are per-team signed flags. The base flag and
-//  mode are passed to the signing/verification functions; nothing per-team is
-//  persisted, validity is recomputed from the submitting team on each attempt.
 export const dynamicFlagConfigSchema = z.strictObject({
   base: z.string().check(z.minLength(1)).register(z.globalRegistry, {
     description: 'Base flag the per-team signature is encoded into',
   }),
   mode: z.enum(DynamicFlagMode).register(z.globalRegistry, {
-    description: "Signing mode, 'leet' or 'basic'",
+    description: 'Signing mode',
   }),
 })
 export type DynamicFlagConfig = z.output<typeof dynamicFlagConfigSchema>
@@ -213,8 +210,6 @@ export const verifyDynamicFlag = (
       break
   }
 
-  // The base flag matches but the embedded team id / signature does not —
-  // this looks like a flag minted for another team.
   return FlagVerifyStatus.CHEATED
 }
 
@@ -240,7 +235,6 @@ export default class DynamicFlagProvider extends FlagProvider {
         ),
       }
     } catch {
-      // Misconfigured base flag (bad format / not enough encodable chars)
       return { status: FlagVerifyStatus.REJECTED }
     }
   }

@@ -1,4 +1,5 @@
 import type { InstancerConfig, User } from '@rctf/db'
+import type { TeamFlag } from '@rctf/types'
 import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
 import { BaseProvider } from '../base'
@@ -7,12 +8,7 @@ export { InstanceStatus }
 
 export interface CreateInstanceOptions extends InstancerConfig {
   user: User
-  // NOTE(sy1vi3): the flag delivered to this instance — the per-team signed
-  //  flag for dynamic-flag challenges, otherwise the challenge's static flag.
-  //  Providers that support it deliver this to the instance (e.g. k8s via the
-  //  downward API); other providers may ignore it. Undefined when the challenge
-  //  has no flag configured.
-  flag?: string
+  flags: TeamFlag[]
 }
 
 export interface InstanceQueryOptions {

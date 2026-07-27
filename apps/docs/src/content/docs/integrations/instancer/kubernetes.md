@@ -299,9 +299,9 @@ instancerConfig:
 
 `<yellow>RCTF_EXPOSED_HOSTNAMES</yellow>` is a JSON string. Hidden endpoints (`shouldDisplay: false{:yml}`) are included because they still exist for routing.
 
-## The flag inside pods
+## The flags inside pods
 
-At instance-creation time rCTF writes the challenge's flag onto the instance pod template as the annotation `<red>rctf.osec.io/flag</red>`, and the controller carries it through to the pod. For a challenge with a dynamic (per-team signed) flag this is the flag minted for the team that started the instance; for an ordinary challenge it is the static flag. The annotation is omitted only when the challenge has no flag configured. Read it through the downward API the same way as the exposed hostnames:
+At instance-creation time rCTF writes the challenge's flags onto the instance pod template as the annotation `<red>rctf.osec.io/flags</red>`, and the controller carries it through to the pod. The value is a JSON list with one entry per configured flag, each shaped as `{"provider": "flags/static", "flag": "..."}{:json}`, for the team that started the instance. Read it through the downward API the same way as the exposed hostnames:
 
 ```yaml title="challenge.yaml"
 instancerConfig:
@@ -313,13 +313,12 @@ instancerConfig:
             - name: app
               image: ghcr.io/example/web-demo:latest
               env:
-                - name: RCTF_FLAG
+                - name: RCTF_FLAGS
                   valueFrom:
                     fieldRef:
-                      fieldPath: metadata.annotations['rctf.osec.io/flag']
+                      fieldPath: metadata.annotations['rctf.osec.io/flags']
 ```
 
-The challenge decides what to do with `<yellow>RCTF_FLAG</yellow>` (serve it, bake it into a file, ignore it). When the challenge uses a dynamic flag, the value is signed for the team that spun up the instance, so a flag captured from one team's instance is rejected when a different team submits it.
 
 ## Per-pod safety checklist
 

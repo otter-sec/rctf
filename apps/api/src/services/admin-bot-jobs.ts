@@ -2,6 +2,7 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { adminBotJobs, submissions, type InstancerInstance } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
+import type { TeamFlag } from '@rctf/types'
 import {
   AdminBotJobStatus,
   SubmissionKind,
@@ -18,7 +19,7 @@ type PulledJob = Record<string, unknown> & {
   user_id: string
   status: string
   config_revision: string
-  flag: string
+  flags: TeamFlag[]
   inputs: Record<string, string>
   instancer_instances: InstancerInstance[]
   timeout_ms: number
@@ -158,7 +159,7 @@ export const createJob = async (
     challengeId: string
     userId: string
     configRevision: string
-    flag: string
+    flags: TeamFlag[]
     inputs: Record<string, string>
     instancerInstances: InstancerInstance[]
     timeoutMs: number
@@ -175,7 +176,7 @@ export const createJob = async (
     userId: params.userId,
     status: AdminBotJobStatus.QUEUED,
     configRevision: params.configRevision,
-    flag: params.flag,
+    flags: params.flags,
     inputs: params.inputs,
     instancerInstances: params.instancerInstances,
     timeoutMs: params.timeoutMs,

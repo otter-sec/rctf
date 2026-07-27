@@ -64,7 +64,7 @@ const (
 	labelEgress                 = "rctf.osec.io/egress"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
-	annotationFlag              = "rctf.osec.io/flag"
+	annotationFlags             = "rctf.osec.io/flags"
 	managedBy                   = "rctf-operator"
 	typeReady                   = "Ready"
 	typeNamespaceDeployed       = "NamespaceDeployed"
@@ -516,6 +516,10 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				podSpec.EnableServiceLinks = ptr.To(false)
 			}
 			podSpec.HostAliases = serviceHostAliases
+			flags := instance.Spec.Flags
+			if flags == "" {
+				flags = "[]"
+			}
 
 			podAnnotations := map[string]string{
 				// Allow the cluster autoscaler to evict these pods during scale-down,
@@ -523,7 +527,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
 
 				annotationExposedHostnames: exposedHostnames,
-				annotationFlag:             instance.Spec.Flag,
+				annotationFlags:            flags,
 			}
 
 			deployment.Spec = appsv1.DeploymentSpec{

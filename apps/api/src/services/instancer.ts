@@ -13,7 +13,7 @@ import {
   instancerEnabled,
   instancers,
 } from '../providers'
-import { getFlagForTeam } from '../providers/flags'
+import { getFlagsForTeam } from '../providers/flags'
 import {
   type CreateInstanceOptions,
   type instanceDetailsOrError,
@@ -114,9 +114,6 @@ export const getInstancerChallenge = async (
   return { challenge, provider }
 }
 
-// Builds the options handed to a provider's createInstance, minting the
-// per-team flag here (generically, for every provider) so the instance can
-// deliver it to the team.
 export const buildCreateInstanceOptions = async (
   challenge: Challenge,
   user: User
@@ -125,12 +122,10 @@ export const buildCreateInstanceOptions = async (
     user,
     ...challenge.data.instancerConfig!,
     challengeIntegrationId: inferChallengeIntegrationId(challenge),
-    // undefined when the challenge has no flag at all
-    flag:
-      (await getFlagForTeam(challenge.data.flags, {
-        teamId: user.id,
-        challengeId: challenge.id,
-      })) || undefined,
+    flags: await getFlagsForTeam(challenge.data.flags, {
+      teamId: user.id,
+      challengeId: challenge.id,
+    }),
   }
 }
 

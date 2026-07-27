@@ -111,6 +111,7 @@ export const runChallenge = async (opts: {
     configRevision: 'rev-1',
     userId: 'test-user',
     submittedAt: new Date(),
+    flags: [{ provider: 'flags/static', flag: 'flag{test}' }],
     flag: 'flag{test}',
     instancerInstances: [],
   }

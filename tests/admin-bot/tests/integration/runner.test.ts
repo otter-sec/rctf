@@ -29,6 +29,7 @@ const makeJobMeta = (): JobMetadata => ({
   configRevision: 'rev-1',
   userId: 'user-1',
   submittedAt: new Date('2024-01-01'),
+  flags: [{ provider: 'flags/static', flag: 'flag{test}' }],
   flag: 'flag{test}',
   instancerInstances: [],
 })

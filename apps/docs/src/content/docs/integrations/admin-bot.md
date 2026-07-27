@@ -7,7 +7,7 @@ order: 3
 The admin bot lets a web challenge accept participant input and open it in a controlled Chrome or Firefox session. Each challenge supplies a trusted TypeScript handler that prepares the browser, visits the submitted URL, and records logs for the participant and organizers.
 
 :::warning[Trusted challenge code]
-Challenge handlers run as trusted code inside the admin bot service. Their source is available through the public challenge integration API, so do not put secrets in it. Store the flag in challenge data and read it from `ctx.job.flag{:ts}` while the job runs.
+Challenge handlers run as trusted code inside the admin bot service. Their source is available through the public challenge integration API, so do not put secrets in it. Store flags in challenge data and read them from `ctx.job.flags{:ts}` (a list of `{ provider, flag }{:ts}` entries for the submitting team) while the job runs.
 :::
 
 ## How a job runs
@@ -263,7 +263,7 @@ The handler receives a `ChallengeContext{:ts}`:
 | `ctx.browserContext{:ts}` | Fresh Puppeteer browser context for the job. |
 | `ctx.input{:ts}` | Participant input values after API-side regex validation. |
 | `ctx.output{:ts}` | Structured log writer shown to participants and admins. |
-| `ctx.job{:ts}` | Job metadata, including challenge ID, user ID, config revision, submitted time, flag, and optional instancer endpoints. |
+| `ctx.job{:ts}` | Job metadata, including challenge ID, user ID, config revision, submitted time, per-team flags, and optional instancer endpoints. |
 
 Use `ctx.output.info(){:ts}`, `ctx.output.warn(){:ts}`, `ctx.output.error(){:ts}`, and `ctx.output.fatal(){:ts}` for participant-visible logs:
 

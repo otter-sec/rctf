@@ -6,7 +6,7 @@ import {
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
 import { adminBotProvider } from '../../../../providers'
-import { getFlagForTeam } from '../../../../providers/flags'
+import { getFlagsForTeam } from '../../../../providers/flags'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
 import {
@@ -192,9 +192,7 @@ integrationsGroup.route(
       challengeId: params.id,
       userId: user.id,
       configRevision: adminBotConfig.revision,
-      // The bot acts as this team, so it receives the flag minted for it —
-      // for per-team (dynamic) flags this differs from the stored config.
-      flag: await getFlagForTeam(challenge.data.flags, {
+      flags: await getFlagsForTeam(challenge.data.flags, {
         teamId: user.id,
         challengeId: params.id,
       }),

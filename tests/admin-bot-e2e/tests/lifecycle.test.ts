@@ -62,7 +62,8 @@ for (const browser of browsers) {
         source: challengeSource({
           handler: `
     ctx.output.info('challenge', 'user=' + ctx.job.userId)
-    ctx.output.info('challenge', 'flag=' + ctx.job.flag)`,
+    ctx.output.info('challenge', 'flag=' + ctx.job.flags[0].flag)
+    ctx.output.info('challenge', 'legacyflag=' + ctx.job.flag)`,
           browser,
         }),
       })
@@ -74,6 +75,9 @@ for (const browser of browsers) {
       expect(result.parsed.some(l => l.line.includes('flag=flag{test}'))).toBe(
         true
       )
+      expect(
+        result.parsed.some(l => l.line.includes('legacyflag=flag{test}'))
+      ).toBe(true)
     }, 30_000)
 
     test('handler can write to output directly', async () => {
