@@ -253,6 +253,7 @@ describe('dynamic flag submission', () => {
           userId: first.id,
           base: DYNAMIC_BASE,
           flag,
+          allowDuplicate: true,
           createdAt: '2024-01-01T00:00:00.000Z',
         },
         {
@@ -260,6 +261,7 @@ describe('dynamic flag submission', () => {
           userId: second.id,
           base: DYNAMIC_BASE,
           flag,
+          allowDuplicate: true,
           createdAt: '2024-01-02T00:00:00.000Z',
         },
       ])
@@ -277,6 +279,33 @@ describe('dynamic flag submission', () => {
       cheated: true,
       cheatedFrom: first.id,
     })
+  })
+
+  test('the database rejects a cross-team duplicate outside duplicate mode', async () => {
+    const challengeId = crypto.randomUUID()
+    const first = await newUser()
+    const second = await newUser()
+    const db = getDb()
+    challengeCleanups.push(async () => {
+      await db
+        .delete(dynamicFlags)
+        .where(eq(dynamicFlags.challengeId, challengeId))
+    })
+
+    const flag = `rctf{race_${crypto.randomUUID()}}`
+    await db
+      .insert(dynamicFlags)
+      .values({ challengeId, userId: first.id, base: DYNAMIC_BASE, flag })
+
+    let rejected = false
+    try {
+      await db
+        .insert(dynamicFlags)
+        .values({ challengeId, userId: second.id, base: DYNAMIC_BASE, flag })
+    } catch {
+      rejected = true
+    }
+    expect(rejected).toBe(true)
   })
 
   test('rejects a flag minted for another challenge', async () => {
@@ -346,11 +375,23 @@ describe('dynamic flag submission', () => {
 })
 
 describe('dynamic flag exhaustion', () => {
-  const exhaustedProvider = (isTaken: (flag: string) => boolean) => {
+  type InsertTeamFlag = (
+    flag: string,
+    config: unknown,
+    context: unknown,
+    allowDuplicate?: boolean
+  ) => Promise<string | null>
+
+  const exhaustedProvider = (blocked: (flag: string) => boolean) => {
     const provider = new DynamicFlagProvider()
-    ;(provider as unknown as Record<string, unknown>)['isFlagTaken'] = (
-      flag: string
-    ) => Promise.resolve(isTaken(flag))
+    const target = provider as unknown as { insertTeamFlag: InsertTeamFlag }
+    const original = target.insertTeamFlag.bind(provider) as InsertTeamFlag
+    target.insertTeamFlag = (flag, config, context, allowDuplicate) => {
+      if (!allowDuplicate && blocked(flag)) {
+        return Promise.resolve(null)
+      }
+      return original(flag, config, context, allowDuplicate)
+    }
     return provider
   }
 

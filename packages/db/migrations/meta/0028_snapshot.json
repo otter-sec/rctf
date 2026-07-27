@@ -1,5 +1,5 @@
 {
-  "id": "67782cc4-eba9-44ea-b39e-42445aed0ee4",
+  "id": "4bf28933-1b2b-4267-8631-e0bed33b311c",
   "prevId": "0caf8dae-4ffd-4b60-95d1-846b124b0968",
   "version": "7",
   "dialect": "postgresql",
@@ -300,6 +300,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "allow_duplicate": {
+          "name": "allow_duplicate",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -309,6 +316,28 @@
         }
       },
       "indexes": {
+        "dynamic_flags_challenge_id_flag_key": {
+          "name": "dynamic_flags_challenge_id_flag_key",
+          "columns": [
+            {
+              "expression": "challenge_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "flag",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "NOT \"dynamic_flags\".\"allow_duplicate\"",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "dynamic_flags_challenge_id_flag_index": {
           "name": "dynamic_flags_challenge_id_flag_index",
           "columns": [

@@ -79,12 +79,11 @@ export default class DynamicFlagProvider extends FlagProvider {
 
     for (const attemptCarrier of carriers) {
       for (let attempt = 0; attempt < MAX_MINT_ATTEMPTS; attempt++) {
-        const flag = randomizeFlag(parsed, attemptCarrier)
-        if (await this.isFlagTaken(flag, context)) {
-          continue
-        }
-
-        const inserted = await this.insertTeamFlag(flag, config, context)
+        const inserted = await this.insertTeamFlag(
+          randomizeFlag(parsed, attemptCarrier),
+          config,
+          context
+        )
         if (inserted !== null) {
           return inserted
         }
@@ -104,7 +103,8 @@ export default class DynamicFlagProvider extends FlagProvider {
     const duplicate = await this.insertTeamFlag(
       randomizeFlag(parsed, carrier),
       config,
-      context
+      context,
+      true
     )
     if (duplicate !== null) {
       return duplicate
@@ -131,28 +131,11 @@ export default class DynamicFlagProvider extends FlagProvider {
     return existing?.flag ?? null
   }
 
-  private async isFlagTaken(
-    flag: string,
-    context: FlagTeamContext
-  ): Promise<boolean> {
-    const taken = await context.db
-      .select({ userId: dynamicFlags.userId })
-      .from(dynamicFlags)
-      .where(
-        and(
-          eq(dynamicFlags.challengeId, context.challengeId),
-          eq(dynamicFlags.flag, flag)
-        )
-      )
-      .limit(1)
-      .then(takeUnique)
-    return taken !== undefined
-  }
-
   private async insertTeamFlag(
     flag: string,
     config: DynamicFlagConfig,
-    context: FlagTeamContext
+    context: FlagTeamContext,
+    allowDuplicate = false
   ): Promise<string | null> {
     const inserted = await context.db
       .insert(dynamicFlags)
@@ -161,6 +144,7 @@ export default class DynamicFlagProvider extends FlagProvider {
         userId: context.teamId,
         base: config.base,
         flag,
+        allowDuplicate,
       })
       .onConflictDoNothing()
       .returning({ flag: dynamicFlags.flag })

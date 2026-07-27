@@ -1,10 +1,13 @@
+import { sql } from 'drizzle-orm'
 import {
+  boolean,
   foreignKey,
   index,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
@@ -15,6 +18,7 @@ export const dynamicFlags = pgTable(
     userId: text('user_id').notNull(),
     base: text().notNull(),
     flag: text().notNull(),
+    allowDuplicate: boolean('allow_duplicate').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
       .notNull(),
@@ -24,6 +28,9 @@ export const dynamicFlags = pgTable(
       name: 'dynamic_flags_pkey',
       columns: [table.challengeId, table.userId, table.base],
     }),
+    uniqueIndex('dynamic_flags_challenge_id_flag_key')
+      .on(table.challengeId, table.flag)
+      .where(sql`NOT ${table.allowDuplicate}`),
     index('dynamic_flags_challenge_id_flag_index').on(
       table.challengeId,
       table.flag
