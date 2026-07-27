@@ -143,6 +143,36 @@ describe('admin flag entries', () => {
     expect(putBody.data.flags).toEqual(flags)
   })
 
+  test('v2 update with an explicit empty list clears the entries', async () => {
+    const id = trackChallenge(crypto.randomUUID())
+    const flags = [
+      { provider: 'flags/static', config: { flag: 'flag{clear-me}' } },
+    ]
+
+    await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { ...baseData, flags } },
+      }),
+      GoodChallengeUpdateV2
+    )
+
+    const putBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`, {
+        method: 'PUT',
+        body: { data: { flags: [] } },
+      }),
+      GoodChallengeUpdateV2
+    )
+    expect(putBody.data.flags).toEqual([])
+
+    const getBody = await expectResponse(
+      await adminRequest(`/api/v2/admin/challs/${id}`),
+      GoodAdminChallengeV2
+    )
+    expect(getBody.data.flags).toEqual([])
+  })
+
   test('v2 accepts the deprecated scalar flag without persisting it', async () => {
     const id = trackChallenge(crypto.randomUUID())
 

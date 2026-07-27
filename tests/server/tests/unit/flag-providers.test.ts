@@ -65,10 +65,12 @@ describe('verifyFlagEntries', () => {
     expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
       index: 0,
       provider: 'flags/static',
+      config: { flag: 'flag{a}' },
     })
     expect(await verifyFlagEntries(entries, 'flag{b}')).toEqual({
       index: 1,
       provider: 'flags/static',
+      config: { flag: 'flag{b}' },
     })
     expect(await verifyFlagEntries(entries, 'flag{c}')).toBeNull()
     expect(await verifyFlagEntries([], 'flag{a}')).toBeNull()
@@ -82,6 +84,7 @@ describe('verifyFlagEntries', () => {
     expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
       index: 1,
       provider: 'flags/static',
+      config: { flag: 'flag{a}' },
     })
 
     for (const provider of ['constructor', 'toString', '__proto__']) {
@@ -100,6 +103,7 @@ describe('verifyFlagEntries', () => {
     expect(await verifyFlagEntries(entries, 'flag{a}')).toEqual({
       index: 0,
       provider: 'test-counting',
+      config: { flag: 'flag{a}' },
     })
     expect(countingProvider.calls).toBe(3)
   })

@@ -18,6 +18,7 @@ export const getFlagProvider = (name: string): FlagProvider | undefined =>
 export interface MatchedFlagEntry {
   index: number
   provider: string
+  config: FlagEntry['config']
 }
 
 export const verifyFlagEntries = async (
@@ -37,7 +38,7 @@ export const verifyFlagEntries = async (
 
     const ok = await provider.verify(entry.config, submitted)
     if (ok && matched === null) {
-      matched = { index, provider: name }
+      matched = { index, provider: name, config: entry.config }
     }
   }
 

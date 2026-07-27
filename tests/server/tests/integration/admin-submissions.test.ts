@@ -158,6 +158,7 @@ describe('admin submissions', () => {
       submittedFlag: alphaChallenge.challenge.flag,
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
+      matchedFlagConfig: { flag: alphaChallenge.challenge.flag },
     })
     expect(
       storedSubmissions.map(submission => submission.details)

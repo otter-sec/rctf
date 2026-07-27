@@ -11,4 +11,7 @@ SET "data" = jsonb_set(
   END,
   true
 )
-WHERE NOT ("data" ? 'flags');
+WHERE NOT ("data" ? 'flags');--> statement-breakpoint
+UPDATE "challenges"
+SET "data" = "data" - 'flag'
+WHERE ("data" ? 'flags') AND ("data" ? 'flag');

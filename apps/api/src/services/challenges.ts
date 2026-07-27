@@ -382,6 +382,7 @@ export const createSolveAndGetBloodNumber = async (
           ? {
               matchedFlagIndex: params.matchedFlag.index,
               matchedFlagProvider: params.matchedFlag.provider,
+              matchedFlagConfig: params.matchedFlag.config,
             }
           : {}),
       },

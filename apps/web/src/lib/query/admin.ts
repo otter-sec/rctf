@@ -217,7 +217,7 @@ export const flagProvidersQueryOptions = queryOptions({
   queryKey: queryKeys.flagProviders,
   queryFn: async () => {
     const response = await apiRequest(GetFlagProvidersRouteV2)
-    return dataOrNull(response, GoodFlagProviders.kind)
+    return unwrapData(response, GoodFlagProviders)
   },
   staleTime: Infinity,
 })

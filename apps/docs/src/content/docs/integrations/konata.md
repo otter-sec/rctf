@@ -374,7 +374,7 @@ flags:
         flags: i
 ```
 
-`<red>provider</red>` defaults to `<green>flags/static</green>` with `<red>config.flag</red>` holding the flag. Konata passes `<red>config</red>` through to rCTF as-is, and rCTF validates it against the provider's schema on sync. See [Flag providers](/providers/flags) for the providers rCTF ships with.
+`<red>provider</red>` defaults to `<green>flags/static</green>` with `<red>config.flag</red>` holding the flag. Inside `<red>config</red>`, values under `<red>flag</red>` and `<red>flagValue</red>` keys can use the flag-value forms (`{ str }{:ts}` / `{ strContent }{:ts}` / `{ file }{:ts}`) and are resolved during sync; everything else is passed through to rCTF as-is and validated against the provider's schema. See [Flag providers](/providers/flags) for the providers rCTF ships with.
 
 | Field | Type | Notes |
 | --- | --- | --- |

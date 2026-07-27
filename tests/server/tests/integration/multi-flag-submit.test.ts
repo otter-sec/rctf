@@ -111,11 +111,13 @@ describe('multi-flag submission', () => {
       submittedFlag: 'flag{first}',
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
+      matchedFlagConfig: { flag: 'flag{first}' },
     })
     expect(rows.map(row => row.details)).toContainEqual({
       submittedFlag: 'flag{second}',
       matchedFlagIndex: 1,
       matchedFlagProvider: 'flags/static',
+      matchedFlagConfig: { flag: 'flag{second}' },
     })
   })
 
@@ -243,11 +245,13 @@ describe('multi-flag submission', () => {
       submittedFlag: 'flag{exact}',
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
+      matchedFlagConfig: { flag: 'flag{exact}' },
     })
     expect(rows.map(row => row.details)).toContainEqual({
       submittedFlag: 'flag{v2}',
       matchedFlagIndex: 1,
       matchedFlagProvider: 'flags/regex',
+      matchedFlagConfig: { pattern: '^flag\\{v[0-9]\\}$' },
     })
   })
 })

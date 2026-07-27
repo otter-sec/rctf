@@ -36,7 +36,9 @@ const getData = async (id: string): Promise<Record<string, unknown>> => {
 
 const runMigration = async () => {
   const db = getDb()
-  await db.execute(sql.raw(migrationSql))
+  for (const statement of migrationSql.split('--> statement-breakpoint')) {
+    await db.execute(sql.raw(statement))
+  }
 }
 
 beforeAll(async () => {
@@ -88,6 +90,16 @@ describe('0026_multi_flags migration', () => {
     expect(emptyData.flags).toEqual([])
     expect(emptyData).not.toHaveProperty('flag')
     expect((await getData(missing)).flags).toEqual([])
+  })
+
+  test('drops a stale legacy flag from an already-migrated row', async () => {
+    const flags = [{ provider: 'flags/static', config: { flag: 'flag{new}' } }]
+    const id = await insertRaw({ ...legacyBase, flag: 'flag{stale}', flags })
+    await runMigration()
+
+    const data = await getData(id)
+    expect(data.flags).toEqual(flags)
+    expect(data).not.toHaveProperty('flag')
   })
 
   test('is idempotent and leaves migrated rows untouched', async () => {

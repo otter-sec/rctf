@@ -276,6 +276,18 @@ const buildChallenges = (): Challenge[] => {
               },
             ]
           : []),
+        ...(index === 1
+          ? [
+              {
+                provider: 'flags/regex',
+                config: {
+                  pattern: `^rctf\\{${id.replaceAll('-', '_')}_regex_[0-9]+\\}$`,
+                  flags: 'i',
+                  flagValue: `rctf{${id.replaceAll('-', '_')}_regex_1}`,
+                },
+              },
+            ]
+          : []),
       ],
     })
   })
