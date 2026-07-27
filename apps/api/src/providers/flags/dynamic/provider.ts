@@ -12,8 +12,10 @@ import {
   type Carrier,
   DynamicFlagExhaustion,
   DynamicFlagMode,
+  type ParsedDynamicFlag,
   parseDynamicFlag,
 } from './format'
+import { countDynamicFlagCarrierBits } from './leet'
 import { pickCarrier, randomizeFlag } from './mint'
 
 const MAX_MINT_ATTEMPTS = 5
@@ -78,19 +80,28 @@ export default class DynamicFlagProvider extends FlagProvider {
         : [carrier]
 
     for (const attemptCarrier of carriers) {
-      for (let attempt = 0; attempt < MAX_MINT_ATTEMPTS; attempt++) {
-        const inserted = await this.insertTeamFlag(
-          randomizeFlag(parsed, attemptCarrier),
-          config,
-          context
-        )
-        if (inserted !== null) {
-          return inserted
+      while (true) {
+        for (let attempt = 0; attempt < MAX_MINT_ATTEMPTS; attempt++) {
+          const inserted = await this.insertTeamFlag(
+            randomizeFlag(parsed, attemptCarrier),
+            config,
+            context
+          )
+          if (inserted !== null) {
+            return inserted
+          }
+
+          const concurrent = await this.readTeamFlag(config, context)
+          if (concurrent !== null) {
+            return concurrent
+          }
         }
 
-        const concurrent = await this.readTeamFlag(config, context)
-        if (concurrent !== null) {
-          return concurrent
+        if (
+          attemptCarrier !== DynamicFlagMode.LEET ||
+          (await this.isLeetSpaceExhausted(parsed, config, context))
+        ) {
+          break
         }
       }
     }
@@ -110,6 +121,32 @@ export default class DynamicFlagProvider extends FlagProvider {
       return duplicate
     }
     return await this.readTeamFlag(config, context)
+  }
+
+  private async isLeetSpaceExhausted(
+    parsed: ParsedDynamicFlag,
+    config: DynamicFlagConfig,
+    context: FlagTeamContext
+  ): Promise<boolean> {
+    const carrierBits = countDynamicFlagCarrierBits(parsed.content)
+    const capacity = 1n << BigInt(carrierBits)
+    const row = await context.db
+      .select({
+        count: sql<string>`COUNT(DISTINCT ${dynamicFlags.flag})::text`.as(
+          'variant_count'
+        ),
+      })
+      .from(dynamicFlags)
+      .where(
+        and(
+          eq(dynamicFlags.challengeId, context.challengeId),
+          eq(dynamicFlags.base, config.base),
+          // leet only
+          sql`char_length(${dynamicFlags.flag}) = char_length(${config.base})`
+        )
+      )
+      .then(takeUnique)
+    return BigInt(row?.count ?? '0') >= capacity
   }
 
   private async readTeamFlag(

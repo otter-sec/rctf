@@ -27,6 +27,7 @@ import { deleteChallenge } from '../../../../apps/api/src/services/challenges'
 import DynamicFlagProvider, {
   DynamicFlagExhaustion,
   DynamicFlagMode,
+  parseDynamicFlag,
 } from '../../../../apps/api/src/providers/flags/dynamic'
 import { getApp, request } from '../../app'
 import {
@@ -401,10 +402,18 @@ describe('dynamic flag exhaustion', () => {
     context: unknown,
     allowDuplicate?: boolean
   ) => Promise<string | null>
+  type IsLeetSpaceExhausted = (
+    parsed: unknown,
+    config: unknown,
+    context: unknown
+  ) => Promise<boolean>
 
   const exhaustedProvider = (blocked: (flag: string) => boolean) => {
     const provider = new DynamicFlagProvider()
-    const target = provider as unknown as { insertTeamFlag: InsertTeamFlag }
+    const target = provider as unknown as {
+      insertTeamFlag: InsertTeamFlag
+      isLeetSpaceExhausted: IsLeetSpaceExhausted
+    }
     const original = target.insertTeamFlag.bind(provider) as InsertTeamFlag
     target.insertTeamFlag = (flag, config, context, allowDuplicate) => {
       if (!allowDuplicate && blocked(flag)) {
@@ -412,6 +421,7 @@ describe('dynamic flag exhaustion', () => {
       }
       return original(flag, config, context, allowDuplicate)
     }
+    target.isLeetSpaceExhausted = () => Promise.resolve(true)
     return provider
   }
 
@@ -425,6 +435,68 @@ describe('dynamic flag exhaustion', () => {
     })
     return { db: getDb(), teamId: user.id, challengeId }
   }
+
+  test('keeps minting when the retry budget collides before exhaustion', async () => {
+    const context = await newExhaustionContext()
+    const provider = new DynamicFlagProvider()
+    const target = provider as unknown as {
+      insertTeamFlag: InsertTeamFlag
+      isLeetSpaceExhausted: IsLeetSpaceExhausted
+    }
+    const original = target.insertTeamFlag.bind(provider) as InsertTeamFlag
+    let attempts = 0
+    let exhaustionChecks = 0
+    target.insertTeamFlag = (flag, config, innerContext, allowDuplicate) => {
+      attempts++
+      if (attempts <= 5) {
+        return Promise.resolve(null)
+      }
+      return original(flag, config, innerContext, allowDuplicate)
+    }
+    target.isLeetSpaceExhausted = () => {
+      exhaustionChecks++
+      return Promise.resolve(false)
+    }
+
+    const flag = await provider.getForTeam(
+      { base: LEET_BASE, mode: DynamicFlagMode.LEET },
+      context
+    )
+    expect(flag).toHaveLength(LEET_BASE.length)
+    expect(attempts).toBe(6)
+    expect(exhaustionChecks).toBe(1)
+  })
+
+  test('detects exhaustion from the distinct stored leet variants', async () => {
+    const context = await newExhaustionContext()
+    const other = await newUser()
+    const base = 'rctf{a}'
+    const parsed = parseDynamicFlag(base)!
+    const provider = new DynamicFlagProvider()
+    const target = provider as unknown as {
+      isLeetSpaceExhausted: IsLeetSpaceExhausted
+    }
+
+    await context.db.insert(dynamicFlags).values({
+      challengeId: context.challengeId,
+      userId: context.teamId,
+      base,
+      flag: 'rctf{a}',
+    })
+    expect(await target.isLeetSpaceExhausted(parsed, { base }, context)).toBe(
+      false
+    )
+
+    await context.db.insert(dynamicFlags).values({
+      challengeId: context.challengeId,
+      userId: other.id,
+      base,
+      flag: 'rctf{4}',
+    })
+    expect(await target.isLeetSpaceExhausted(parsed, { base }, context)).toBe(
+      true
+    )
+  })
 
   test('falls back to tail once every leet variant is taken', async () => {
     const context = await newExhaustionContext()
