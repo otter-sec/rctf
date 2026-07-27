@@ -7,7 +7,14 @@ import type {
   InstancerConfig,
   Solve,
 } from '@rctf/db'
-import { challenges, scoreEvents, solves, submissions, users } from '@rctf/db'
+import {
+  challenges,
+  dynamicFlags,
+  scoreEvents,
+  solves,
+  submissions,
+  users,
+} from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
@@ -527,6 +534,7 @@ export const deleteChallenge = async (
   await db.transaction(async tx => {
     await lockChallenge(tx, id)
     await tx.delete(solves).where(eq(solves.challengeid, id))
+    await tx.delete(dynamicFlags).where(eq(dynamicFlags.challengeId, id))
     await tx.delete(challenges).where(eq(challenges.id, id))
   })
 }

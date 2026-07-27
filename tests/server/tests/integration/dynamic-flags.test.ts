@@ -23,6 +23,7 @@ import {
   getFlagsForTeam,
   verifyFlagEntries,
 } from '../../../../apps/api/src/providers/flags'
+import { deleteChallenge } from '../../../../apps/api/src/services/challenges'
 import DynamicFlagProvider, {
   DynamicFlagExhaustion,
   DynamicFlagMode,
@@ -72,9 +73,11 @@ let app: Hono<any>
 const challengeCleanups: Array<() => Promise<void>> = []
 const userCleanups: Array<() => Promise<void>> = []
 
-const createDynamicChallenge = async (dynamicConfig = defaultDynamicConfig) => {
+const createDynamicChallenge = async (
+  dynamicConfig = defaultDynamicConfig,
+  id = crypto.randomUUID()
+) => {
   const db = getDb()
-  const id = crypto.randomUUID()
   const data: ChallengeData = {
     name: crypto.randomUUID(),
     description: crypto.randomUUID(),
@@ -316,6 +319,23 @@ describe('dynamic flag submission', () => {
 
     const ownerFlag = await mint(ownerChallengeId, owner.id)
     const res = await submit(submittedChallengeId, thief.id, ownerFlag)
+    await expectResponse(res, BadFlag)
+  })
+
+  test('deleting a challenge removes its flags, even for a recreated id', async () => {
+    const challengeId = await createDynamicChallenge()
+    const user = await newUser()
+    const flag = await mint(challengeId, user.id)
+
+    await deleteChallenge(getDb(), challengeId)
+    const rows = await getDb()
+      .select()
+      .from(dynamicFlags)
+      .where(eq(dynamicFlags.challengeId, challengeId))
+    expect(rows).toHaveLength(0)
+
+    await createDynamicChallenge(defaultDynamicConfig, challengeId)
+    const res = await submit(challengeId, user.id, flag)
     await expectResponse(res, BadFlag)
   })
 
