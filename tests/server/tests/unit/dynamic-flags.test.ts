@@ -1,217 +1,200 @@
 import { describe, expect, test } from 'bun:test'
-import { FlagVerifyStatus } from '../../../../apps/api/src/providers/flags/base'
 import {
+  countDynamicFlagCarrierBits,
+  DYNAMIC_FLAG_MIN_BITS,
+  DynamicFlagExhaustion,
   DynamicFlagMode,
-  generateDynamicFlag,
-  verifyDynamicFlag,
+  dynamicFlagConfigSchema,
+  mintDynamicFlag,
+  parseDynamicFlag,
 } from '../../../../apps/api/src/providers/flags/dynamic'
 
-// A base flag with plenty of leet-encodable ([a-z]) characters so that the
-// 'leet' signing mode has enough capacity for the team id + signature bits.
-const BASE = 'rctf{abcdefghijklmnopqrstuvwxyz}'
-const KEY = 'signing-key'
+const LEET_BASE = 'rctf{abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrst}'
+const SHORT_BASE = 'rctf{short_dynamic_flag}'
 
-const teamA = '11111111-1111-1111-1111-111111111111'
-const teamB = '22222222-2222-2222-2222-222222222222'
-const challX = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
-const challY = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+const leetDigits: Record<string, string> = {
+  a: '4',
+  e: '3',
+  g: '6',
+  i: '1',
+  l: '1',
+  o: '0',
+  s: '5',
+  t: '7',
+}
 
-describe('generateDynamicFlag / verifyDynamicFlag', () => {
-  // Properties that hold for every signing mode.
-  for (const mode of Object.values(DynamicFlagMode)) {
-    describe(`mode: ${mode}`, () => {
-      test('verify returns ACCEPTED for a freshly minted flag (round trip)', () => {
-        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        expect(verifyDynamicFlag(BASE, teamA, challX, flag, mode, KEY)).toBe(
-          FlagVerifyStatus.ACCEPTED
-        )
-      })
-
-      test('generation is deterministic', () => {
-        const first = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        const second = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        expect(first).toBe(second)
-      })
-
-      test('output keeps the base flag format and is brace-delimited', () => {
-        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        expect(flag.startsWith('rctf{')).toBe(true)
-        expect(flag.endsWith('}')).toBe(true)
-      })
-
-      test("another team's flag is CHEATED, not ACCEPTED", () => {
-        const flagForA = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        // The base is a real minted flag, but the embedded team id/sig is team
-        // A's, so submitting it as team B is the flag-sharing case (CHEATED).
-        expect(
-          verifyDynamicFlag(BASE, teamB, challX, flagForA, mode, KEY)
-        ).toBe(FlagVerifyStatus.CHEATED)
-        // ...and the two teams get distinct flags in the first place.
-        const flagForB = generateDynamicFlag(BASE, teamB, challX, mode, KEY)
-        expect(flagForA).not.toBe(flagForB)
-      })
-
-      test('a wrong signing key is CHEATED', () => {
-        const flag = generateDynamicFlag(BASE, teamA, challX, mode, KEY)
-        // Same base + team, but the signature was computed with a different
-        // key, so the signature bits no longer match (CHEATED).
-        expect(
-          verifyDynamicFlag(BASE, teamA, challX, flag, mode, 'other-key')
-        ).toBe(FlagVerifyStatus.CHEATED)
-      })
-
-      test('a submission with no brace body is REJECTED', () => {
-        expect(
-          verifyDynamicFlag(BASE, teamA, challX, 'no-braces-here', mode, KEY)
-        ).toBe(FlagVerifyStatus.REJECTED)
-      })
-    })
+const isLeetVariant = (base: string, actual: string): boolean => {
+  if (actual === base) {
+    return true
   }
+  if (!/^[a-z]$/.test(base)) {
+    return false
+  }
+  return actual === (leetDigits[base] ?? base.toUpperCase())
+}
 
-  describe('mode: leet', () => {
-    test('the untransformed base flag is a valid variant (CHEATED)', () => {
-      // The all-lowercase base is a valid leetspeak rendering of itself, so it
-      // reads as a well-formed flag with the wrong team/sig bits (CHEATED).
-      expect(
-        verifyDynamicFlag(BASE, teamA, challX, BASE, DynamicFlagMode.LEET, KEY)
-      ).toBe(FlagVerifyStatus.CHEATED)
+describe('parseDynamicFlag', () => {
+  test('parses prefix and content', () => {
+    expect(parseDynamicFlag('rctf{abc}')).toEqual({
+      prefix: 'rctf',
+      content: 'abc',
     })
-
-    test('a same-length non-variant character is REJECTED', () => {
-      // First char replaced with 'x', which is not a leet variant of base 'a'.
-      const bogus = 'rctf{xbcdefghijklmnopqrstuvwxyz}'
-      expect(
-        verifyDynamicFlag(BASE, teamA, challX, bogus, DynamicFlagMode.LEET, KEY)
-      ).toBe(FlagVerifyStatus.REJECTED)
-    })
-
-    test('a wrong-length submission is REJECTED', () => {
-      expect(
-        verifyDynamicFlag(
-          BASE,
-          teamA,
-          challX,
-          'rctf{short}',
-          DynamicFlagMode.LEET,
-          KEY
-        )
-      ).toBe(FlagVerifyStatus.REJECTED)
-    })
-
-    test('generation throws when the base has too few encodable characters', () => {
-      expect(() =>
-        generateDynamicFlag(
-          'rctf{abc}',
-          teamA,
-          challX,
-          DynamicFlagMode.LEET,
-          KEY
-        )
-      ).toThrow()
-    })
+    expect(parseDynamicFlag('rctf{}')).toEqual({ prefix: 'rctf', content: '' })
   })
 
-  describe('mode: basic', () => {
-    test('embeds the dash-stripped team id', () => {
-      const flag = generateDynamicFlag(
-        BASE,
-        teamA,
-        challX,
-        DynamicFlagMode.BASIC,
-        KEY
-      )
-      expect(flag.includes(teamA.replace(/-/g, ''))).toBe(true)
-    })
+  test('rejects malformed flags', () => {
+    expect(parseDynamicFlag('{abc}')).toBeNull()
+    expect(parseDynamicFlag('rctf{abc')).toBeNull()
+    expect(parseDynamicFlag('rctfabc}')).toBeNull()
+    expect(parseDynamicFlag('rctf{abc}x')).toBeNull()
+    expect(parseDynamicFlag('rctf{ab\nc}')).toBeNull()
+  })
+})
 
-    test('binds the flag to the challenge id (CHEATED)', () => {
-      // 'basic' mode folds the challenge id into the signature, so a flag
-      // minted for one challenge has a valid base but a mismatched signature on
-      // another.
-      const flag = generateDynamicFlag(
-        BASE,
-        teamA,
-        challX,
-        DynamicFlagMode.BASIC,
-        KEY
-      )
-      expect(
-        verifyDynamicFlag(BASE, teamA, challY, flag, DynamicFlagMode.BASIC, KEY)
-      ).toBe(FlagVerifyStatus.CHEATED)
-    })
+describe('countDynamicFlagCarrierBits', () => {
+  test('counts only lowercase letters', () => {
+    expect(countDynamicFlagCarrierBits('abc_123')).toBe(3)
+    expect(countDynamicFlagCarrierBits('ABC')).toBe(0)
+    expect(countDynamicFlagCarrierBits('')).toBe(0)
+  })
+})
 
-    test('a well-formed flag with the right base but forged tail is CHEATED', () => {
-      const forged = 'rctf{abcdefghijklmnopqrstuvwxyz:deadbeef:0000}'
-      expect(
-        verifyDynamicFlag(
-          BASE,
-          teamA,
-          challX,
-          forged,
-          DynamicFlagMode.BASIC,
-          KEY
-        )
-      ).toBe(FlagVerifyStatus.CHEATED)
-    })
+describe('mintDynamicFlag', () => {
+  test('leet flags keep the base shape and only substitute variants', () => {
+    const flag = mintDynamicFlag(LEET_BASE, DynamicFlagMode.LEET)
+    expect(flag).not.toBeNull()
+    expect(flag).toHaveLength(LEET_BASE.length)
 
-    test('the untransformed base flag is REJECTED (no team/sig chunks)', () => {
-      expect(
-        verifyDynamicFlag(BASE, teamA, challX, BASE, DynamicFlagMode.BASIC, KEY)
-      ).toBe(FlagVerifyStatus.REJECTED)
-    })
-
-    test('too few colon-separated chunks is REJECTED', () => {
-      const tooFew = 'rctf{abcdefghijklmnopqrstuvwxyz:onlyone}'
-      expect(
-        verifyDynamicFlag(
-          BASE,
-          teamA,
-          challX,
-          tooFew,
-          DynamicFlagMode.BASIC,
-          KEY
-        )
-      ).toBe(FlagVerifyStatus.REJECTED)
-    })
-
-    test('a different base body is REJECTED', () => {
-      const wrongBase = 'rctf{wrongbase:team:sig}'
-      expect(
-        verifyDynamicFlag(
-          BASE,
-          teamA,
-          challX,
-          wrongBase,
-          DynamicFlagMode.BASIC,
-          KEY
-        )
-      ).toBe(FlagVerifyStatus.REJECTED)
-    })
+    const base = parseDynamicFlag(LEET_BASE)!
+    const minted = parseDynamicFlag(flag!)!
+    expect(minted.prefix).toBe(base.prefix)
+    for (let i = 0; i < base.content.length; i++) {
+      expect(isLeetVariant(base.content[i]!, minted.content[i]!)).toBe(true)
+    }
   })
 
-  describe('input validation', () => {
-    test('generation throws on a base flag with no brace-delimited body', () => {
-      expect(() =>
-        generateDynamicFlag(
-          'not-a-flag',
-          teamA,
-          challX,
-          DynamicFlagMode.BASIC,
-          KEY
-        )
-      ).toThrow()
-    })
+  test('leet flags randomize every carrier over repeated mints', () => {
+    const base = parseDynamicFlag(LEET_BASE)!
+    const changed = new Set<number>()
+    for (let mints = 0; mints < 64; mints++) {
+      const flag = mintDynamicFlag(LEET_BASE, DynamicFlagMode.LEET)!
+      const minted = parseDynamicFlag(flag)!
+      for (let i = 0; i < base.content.length; i++) {
+        if (minted.content[i] !== base.content[i]) {
+          changed.add(i)
+        }
+      }
+    }
 
-    test('verification throws on a base flag with no brace-delimited body', () => {
-      expect(() =>
-        verifyDynamicFlag(
-          'not-a-flag',
-          teamA,
-          challX,
-          'rctf{x}',
-          DynamicFlagMode.BASIC,
-          KEY
-        )
-      ).toThrow()
+    // With 64 mints, every carrier flips away from its base form at least
+    // once except with probability ~2^-58
+    expect(changed.size).toBe(countDynamicFlagCarrierBits(base.content))
+  })
+
+  test('leet mode works at exactly the minimum carrier count', () => {
+    const base = `rctf{${'abcdefghijklmnopqrstuvwxyz'.slice(0, DYNAMIC_FLAG_MIN_BITS)}}`
+    const flag = mintDynamicFlag(base, DynamicFlagMode.LEET)
+    expect(flag).not.toBeNull()
+    expect(flag).toHaveLength(base.length)
+  })
+
+  test('tail flags append 10 hex characters', () => {
+    const flag = mintDynamicFlag(SHORT_BASE, DynamicFlagMode.TAIL)
+    expect(flag).toMatch(/^rctf\{short_dynamic_flag_[0-9a-f]{10}\}$/)
+  })
+
+  test('tail flags on an empty content omit the separator', () => {
+    const flag = mintDynamicFlag('flag{}', DynamicFlagMode.TAIL)
+    expect(flag).toMatch(/^flag\{[0-9a-f]{10}\}$/)
+  })
+
+  test('tail mode overrides a leet-capable base', () => {
+    expect(mintDynamicFlag(LEET_BASE, DynamicFlagMode.TAIL)).toMatch(
+      /_[0-9a-f]{10}\}$/
+    )
+  })
+
+  test('auto picks leet when the base has capacity and tail otherwise', () => {
+    expect(mintDynamicFlag(LEET_BASE, DynamicFlagMode.AUTO)).toHaveLength(
+      LEET_BASE.length
+    )
+    expect(mintDynamicFlag(SHORT_BASE, DynamicFlagMode.AUTO)).toMatch(
+      /^rctf\{short_dynamic_flag_[0-9a-f]{10}\}$/
+    )
+  })
+
+  test('leet mode fails when the base lacks capacity', () => {
+    expect(mintDynamicFlag(SHORT_BASE, DynamicFlagMode.LEET)).toBeNull()
+  })
+
+  test('rejects a malformed base', () => {
+    expect(mintDynamicFlag('no braces here', DynamicFlagMode.AUTO)).toBeNull()
+  })
+
+  test('mints are random', () => {
+    expect(mintDynamicFlag(LEET_BASE, DynamicFlagMode.LEET)).not.toBe(
+      mintDynamicFlag(LEET_BASE, DynamicFlagMode.LEET)
+    )
+    expect(mintDynamicFlag(SHORT_BASE, DynamicFlagMode.TAIL)).not.toBe(
+      mintDynamicFlag(SHORT_BASE, DynamicFlagMode.TAIL)
+    )
+  })
+})
+
+describe('dynamicFlagConfigSchema', () => {
+  test('accepts a valid config and applies defaults', () => {
+    const parsed = dynamicFlagConfigSchema.safeParse({ base: SHORT_BASE })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(parsed.data.mode).toBe(DynamicFlagMode.AUTO)
+      expect(parsed.data.exhaustion).toBe(DynamicFlagExhaustion.TAIL)
+    }
+  })
+
+  test('accepts duplicate exhaustion and rejects unknown values', () => {
+    expect(
+      dynamicFlagConfigSchema.safeParse({
+        base: SHORT_BASE,
+        exhaustion: DynamicFlagExhaustion.DUPLICATE,
+      }).success
+    ).toBe(true)
+    expect(
+      dynamicFlagConfigSchema.safeParse({ base: SHORT_BASE, exhaustion: 'nah' })
+        .success
+    ).toBe(false)
+  })
+
+  test('rejects a base without the flag format', () => {
+    expect(dynamicFlagConfigSchema.safeParse({ base: 'nope' }).success).toBe(
+      false
+    )
+    expect(dynamicFlagConfigSchema.safeParse({ base: '' }).success).toBe(false)
+  })
+
+  test('rejects leet mode without enough carriers', () => {
+    const parsed = dynamicFlagConfigSchema.safeParse({
+      base: SHORT_BASE,
+      mode: DynamicFlagMode.LEET,
     })
+    expect(parsed.success).toBe(false)
+    if (!parsed.success) {
+      expect(JSON.stringify(parsed.error.issues)).toContain(
+        `Leet mode requires at least ${DYNAMIC_FLAG_MIN_BITS} encodable characters`
+      )
+    }
+  })
+
+  test('rejects an unknown mode', () => {
+    expect(
+      dynamicFlagConfigSchema.safeParse({ base: SHORT_BASE, mode: 'bogus' })
+        .success
+    ).toBe(false)
+  })
+
+  test('rejects unknown keys', () => {
+    expect(
+      dynamicFlagConfigSchema.safeParse({ base: SHORT_BASE, extra: true })
+        .success
+    ).toBe(false)
   })
 })

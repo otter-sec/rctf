@@ -1,8 +1,10 @@
+import type { DatabaseClient } from '@rctf/db'
 import { z } from 'zod/mini'
 import { BaseProvider } from '../base'
 
 export type FlagProviderConfig = Record<string, unknown>
 export interface FlagTeamContext {
+  db: DatabaseClient
   teamId: string
   challengeId: string
 }
@@ -15,6 +17,7 @@ export enum FlagVerifyStatus {
 
 export interface FlagVerifyResult {
   status: FlagVerifyStatus
+  cheatedFromTeamId?: string
 }
 
 export abstract class FlagProvider extends BaseProvider {

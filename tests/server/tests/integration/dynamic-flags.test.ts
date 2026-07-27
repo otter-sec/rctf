@@ -1,7 +1,15 @@
 import { config } from '@rctf/config'
-import { challenges, createDatabase, solves, submissions } from '@rctf/db'
+import {
+  challenges,
+  createDatabase,
+  dynamicFlags,
+  solves,
+  submissions,
+  users,
+} from '@rctf/db'
 import type { ChallengeData } from '@rctf/db'
 import {
+  BadBody,
   BadFlag,
   GoodAdminChallengeV2,
   GoodChallengeUpdateV2,
@@ -12,8 +20,12 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import {
+  getFlagsForTeam,
+  verifyFlagEntries,
+} from '../../../../apps/api/src/providers/flags'
+import DynamicFlagProvider, {
+  DynamicFlagExhaustion,
   DynamicFlagMode,
-  generateDynamicFlag,
 } from '../../../../apps/api/src/providers/flags/dynamic'
 import { getApp, request } from '../../app'
 import {
@@ -23,19 +35,44 @@ import {
 } from '../../util'
 
 const DYNAMIC_BASE = 'rctf{abcdefghijklmnopqrstuvwxyz}'
-const DYNAMIC_MODE = DynamicFlagMode.BASIC
-const signingKey = config.dynamicFlagSigningKey ?? ''
+const DYNAMIC_MODE = DynamicFlagMode.AUTO
+const LEET_BASE = 'rctf{abcdefghijklmnopqrstuvwxyzabcdefghijklmn}'
 
 const getDb = () => createDatabase(config.database.sql).db
+
+type DynamicConfig = {
+  base: string
+  mode: DynamicFlagMode
+}
+
+const defaultDynamicConfig: DynamicConfig = {
+  base: DYNAMIC_BASE,
+  mode: DYNAMIC_MODE,
+}
+
+const mint = async (
+  challengeId: string,
+  teamId: string,
+  dynamicConfig = defaultDynamicConfig
+) => {
+  const flags = await getFlagsForTeam(
+    [
+      {
+        provider: 'flags/dynamic',
+        config: dynamicConfig,
+      },
+    ],
+    { db: getDb(), teamId, challengeId }
+  )
+  expect(flags).toHaveLength(1)
+  return flags[0]!.flag
+}
 
 let app: Hono<any>
 const challengeCleanups: Array<() => Promise<void>> = []
 const userCleanups: Array<() => Promise<void>> = []
 
-// Inserts a dynamic-flag challenge straight into the DB. The base flag lives
-// in the `flags/dynamic` entry's config, mirroring how a real dynamic
-// challenge is stored.
-const createDynamicChallenge = async () => {
+const createDynamicChallenge = async (dynamicConfig = defaultDynamicConfig) => {
   const db = getDb()
   const id = crypto.randomUUID()
   const data: ChallengeData = {
@@ -47,7 +84,7 @@ const createDynamicChallenge = async () => {
     flags: [
       {
         provider: 'flags/dynamic',
-        config: { base: DYNAMIC_BASE, mode: DYNAMIC_MODE },
+        config: dynamicConfig,
       },
     ],
     tiebreakEligible: true,
@@ -57,6 +94,7 @@ const createDynamicChallenge = async () => {
   challengeCleanups.push(async () => {
     await db.delete(submissions).where(eq(submissions.challengeId, id))
     await db.delete(solves).where(eq(solves.challengeid, id))
+    await db.delete(dynamicFlags).where(eq(dynamicFlags.challengeId, id))
     await db.delete(challenges).where(eq(challenges.id, id))
   })
   return id
@@ -97,16 +135,80 @@ describe('dynamic flag submission', () => {
   test('accepts the flag minted for the submitting team', async () => {
     const challengeId = await createDynamicChallenge()
     const user = await newUser()
-    const flag = generateDynamicFlag(
-      DYNAMIC_BASE,
-      user.id,
-      challengeId,
-      DYNAMIC_MODE,
-      signingKey
-    )
+    const flag = await mint(challengeId, user.id)
 
     const res = await submit(challengeId, user.id, flag)
     await expectResponse(res, GoodFlag)
+  })
+
+  test('mints a stable flag for the same team and challenge', async () => {
+    const challengeId = await createDynamicChallenge()
+    const user = await newUser()
+    expect(await mint(challengeId, user.id)).toBe(
+      await mint(challengeId, user.id)
+    )
+  })
+
+  test('accepts a leet flag with the base shape', async () => {
+    const dynamicConfig = {
+      base: LEET_BASE,
+      mode: DynamicFlagMode.LEET,
+    }
+    const challengeId = await createDynamicChallenge(dynamicConfig)
+    const user = await newUser()
+    const flag = await mint(challengeId, user.id, dynamicConfig)
+
+    expect(flag).toHaveLength(LEET_BASE.length)
+    expect(flag).not.toBe(LEET_BASE)
+    await expectResponse(await submit(challengeId, user.id, flag), GoodFlag)
+  })
+
+  test('concurrent mints for the same team settle on a single flag', async () => {
+    const challengeId = await createDynamicChallenge()
+    const user = await newUser()
+
+    const flags = await Promise.all([
+      mint(challengeId, user.id),
+      mint(challengeId, user.id),
+      mint(challengeId, user.id),
+      mint(challengeId, user.id),
+    ])
+    expect(new Set(flags).size).toBe(1)
+
+    const rows = await getDb()
+      .select()
+      .from(dynamicFlags)
+      .where(eq(dynamicFlags.challengeId, challengeId))
+    expect(rows).toHaveLength(1)
+  })
+
+  test('mints different flags for different teams', async () => {
+    const challengeId = await createDynamicChallenge()
+    const first = await newUser()
+    const second = await newUser()
+
+    expect(await mint(challengeId, first.id)).not.toBe(
+      await mint(challengeId, second.id)
+    )
+  })
+
+  test('a flag minted for one base is rejected for another', async () => {
+    const challengeId = await createDynamicChallenge()
+    const user = await newUser()
+    const flag = await mint(challengeId, user.id)
+
+    const rotated = [
+      {
+        provider: 'flags/dynamic',
+        config: { base: LEET_BASE, mode: DYNAMIC_MODE },
+      },
+    ]
+    const { matched } = await verifyFlagEntries(rotated, flag, {
+      db: getDb(),
+      teamId: user.id,
+      challengeId,
+    })
+    expect(matched).toBeNull()
   })
 
   test("accepts another team's dynamic flag but records it as cheated", async () => {
@@ -114,15 +216,7 @@ describe('dynamic flag submission', () => {
     const owner = await newUser()
     const thief = await newUser()
 
-    // Flag minted for `owner`, submitted by `thief`. The solve goes through
-    // so the thief can't tell they were caught...
-    const ownerFlag = generateDynamicFlag(
-      DYNAMIC_BASE,
-      owner.id,
-      challengeId,
-      DYNAMIC_MODE,
-      signingKey
-    )
+    const ownerFlag = await mint(challengeId, owner.id)
 
     const res = await submit(challengeId, thief.id, ownerFlag)
     await expectResponse(res, GoodFlag)
@@ -133,7 +227,6 @@ describe('dynamic flag submission', () => {
       .where(eq(solves.userid, thief.id))
     expect(thiefSolves).toHaveLength(1)
 
-    // ...but the submission is recorded distinctly as cheated.
     const thiefSubmissions = await getDb()
       .select()
       .from(submissions)
@@ -141,7 +234,71 @@ describe('dynamic flag submission', () => {
     expect(thiefSubmissions).toHaveLength(1)
     expect(thiefSubmissions[0]!.details).toMatchObject({
       cheated: true,
+      cheatedFrom: owner.id,
     })
+  })
+
+  test('duplicate flags accept every owner and attribute cheats to the earliest', async () => {
+    const challengeId = await createDynamicChallenge()
+    const first = await newUser()
+    const second = await newUser()
+    const thief = await newUser()
+
+    const flag = `rctf{dup_${crypto.randomUUID()}}`
+    await getDb()
+      .insert(dynamicFlags)
+      .values([
+        {
+          challengeId,
+          userId: first.id,
+          base: DYNAMIC_BASE,
+          flag,
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+        {
+          challengeId,
+          userId: second.id,
+          base: DYNAMIC_BASE,
+          flag,
+          createdAt: '2024-01-02T00:00:00.000Z',
+        },
+      ])
+
+    await expectResponse(await submit(challengeId, first.id, flag), GoodFlag)
+    await expectResponse(await submit(challengeId, second.id, flag), GoodFlag)
+    await expectResponse(await submit(challengeId, thief.id, flag), GoodFlag)
+
+    const thiefSubmissions = await getDb()
+      .select()
+      .from(submissions)
+      .where(eq(submissions.userId, thief.id))
+    expect(thiefSubmissions).toHaveLength(1)
+    expect(thiefSubmissions[0]!.details).toMatchObject({
+      cheated: true,
+      cheatedFrom: first.id,
+    })
+  })
+
+  test('rejects a flag minted for another challenge', async () => {
+    const ownerChallengeId = await createDynamicChallenge()
+    const submittedChallengeId = await createDynamicChallenge()
+    const owner = await newUser()
+    const thief = await newUser()
+
+    const ownerFlag = await mint(ownerChallengeId, owner.id)
+    const res = await submit(submittedChallengeId, thief.id, ownerFlag)
+    await expectResponse(res, BadFlag)
+  })
+
+  test('rejects a minted flag after its owner is deleted', async () => {
+    const challengeId = await createDynamicChallenge()
+    const owner = await newUser()
+    const thief = await newUser()
+    const ownerFlag = await mint(challengeId, owner.id)
+
+    await getDb().delete(users).where(eq(users.id, owner.id))
+    const res = await submit(challengeId, thief.id, ownerFlag)
+    await expectResponse(res, BadFlag)
   })
 
   test('rejects the untransformed base flag', async () => {
@@ -188,8 +345,107 @@ describe('dynamic flag submission', () => {
   })
 })
 
+describe('dynamic flag exhaustion', () => {
+  const exhaustedProvider = (isTaken: (flag: string) => boolean) => {
+    const provider = new DynamicFlagProvider()
+    ;(provider as unknown as Record<string, unknown>)['isFlagTaken'] = (
+      flag: string
+    ) => Promise.resolve(isTaken(flag))
+    return provider
+  }
+
+  const newExhaustionContext = async () => {
+    const challengeId = crypto.randomUUID()
+    const user = await newUser()
+    challengeCleanups.push(async () => {
+      await getDb()
+        .delete(dynamicFlags)
+        .where(eq(dynamicFlags.challengeId, challengeId))
+    })
+    return { db: getDb(), teamId: user.id, challengeId }
+  }
+
+  test('falls back to tail once every leet variant is taken', async () => {
+    const context = await newExhaustionContext()
+    const provider = exhaustedProvider(flag => flag.length === LEET_BASE.length)
+
+    const flag = await provider.getForTeam(
+      { base: LEET_BASE, mode: DynamicFlagMode.LEET },
+      context
+    )
+    expect(flag).toMatch(/_[0-9a-f]{10}\}$/)
+  })
+
+  test('assigns a duplicate leet flag when configured', async () => {
+    const context = await newExhaustionContext()
+    const provider = exhaustedProvider(() => true)
+
+    const flag = await provider.getForTeam(
+      {
+        base: LEET_BASE,
+        mode: DynamicFlagMode.LEET,
+        exhaustion: DynamicFlagExhaustion.DUPLICATE,
+      },
+      context
+    )
+    expect(flag).toHaveLength(LEET_BASE.length)
+
+    const rows = await getDb()
+      .select()
+      .from(dynamicFlags)
+      .where(eq(dynamicFlags.challengeId, context.challengeId))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.flag).toBe(flag!)
+  })
+
+  test('returns no flag at exhaustion when duplicates are not allowed', async () => {
+    const context = await newExhaustionContext()
+    const provider = exhaustedProvider(() => true)
+
+    const flag = await provider.getForTeam(
+      { base: LEET_BASE, mode: DynamicFlagMode.LEET },
+      context
+    )
+    expect(flag).toBeNull()
+  })
+})
+
 describe('admin dynamic flag configuration', () => {
   const adminPerms = Permissions.challsRead | Permissions.challsWrite
+
+  test('rejects forced leet mode when the base has fewer than 20 carriers', async () => {
+    const admin = await newUser(adminPerms)
+    const authToken = await generateAuthToken(admin.id)
+    const challengeId = crypto.randomUUID()
+
+    const res = await request(app, `/api/v2/admin/challs/${challengeId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        data: {
+          name: 'Undersized Dynamic Challenge',
+          description: 'desc',
+          category: 'misc',
+          author: 'tester',
+          flags: [
+            {
+              provider: 'flags/dynamic',
+              config: { base: 'rctf{tiny}', mode: DynamicFlagMode.LEET },
+            },
+          ],
+          points: { min: 100, max: 500 },
+        },
+      }),
+    })
+
+    const body = await expectResponse(res, BadBody)
+    expect(body.data.reason).toContain(
+      'Leet mode requires at least 20 encodable characters'
+    )
+  })
 
   test('persists and reads back a flags/dynamic entry, and clears it', async () => {
     const admin = await newUser(adminPerms)
@@ -229,7 +485,11 @@ describe('admin dynamic flag configuration', () => {
     expect(body.data.flags).toEqual([
       {
         provider: 'flags/dynamic',
-        config: { base: DYNAMIC_BASE, mode: DYNAMIC_MODE },
+        config: {
+          base: DYNAMIC_BASE,
+          mode: DYNAMIC_MODE,
+          exhaustion: DynamicFlagExhaustion.TAIL,
+        },
       },
     ])
 

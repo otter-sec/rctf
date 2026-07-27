@@ -193,6 +193,7 @@ integrationsGroup.route(
       userId: user.id,
       configRevision: adminBotConfig.revision,
       flags: await getFlagsForTeam(challenge.data.flags, {
+        db: ctx.var.db,
         teamId: user.id,
         challengeId: params.id,
       }),

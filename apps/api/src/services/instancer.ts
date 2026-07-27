@@ -115,6 +115,7 @@ export const getInstancerChallenge = async (
 }
 
 export const buildCreateInstanceOptions = async (
+  db: DatabaseClient,
   challenge: Challenge,
   user: User
 ): Promise<CreateInstanceOptions> => {
@@ -123,6 +124,7 @@ export const buildCreateInstanceOptions = async (
     ...challenge.data.instancerConfig!,
     challengeIntegrationId: inferChallengeIntegrationId(challenge),
     flags: await getFlagsForTeam(challenge.data.flags, {
+      db,
       teamId: user.id,
       challengeId: challenge.id,
     }),

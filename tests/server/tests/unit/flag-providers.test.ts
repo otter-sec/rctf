@@ -1,6 +1,6 @@
-import { config } from '@rctf/config'
-import type { FlagEntry } from '@rctf/db'
-import { afterAll, describe, expect, test } from 'bun:test'
+import { createDatabase, users, type FlagEntry } from '@rctf/db'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { inArray } from 'drizzle-orm'
 import {
   FlagProvider,
   FlagVerifyStatus,
@@ -11,16 +11,16 @@ import {
   flagProviders,
   verifyFlagEntries,
 } from '../../../../apps/api/src/providers/flags'
-import {
-  DynamicFlagMode,
-  generateDynamicFlag,
-} from '../../../../apps/api/src/providers/flags/dynamic'
+import { DynamicFlagMode } from '../../../../apps/api/src/providers/flags/dynamic'
 import {
   staticFlagConfigSchema,
   type StaticFlagConfig,
 } from '../../../../apps/api/src/providers/flags/static'
 
-const ctx = { teamId: 'team-a', challengeId: 'chall-x' }
+const db = createDatabase('unused-by-test-mock').db
+const teamA = crypto.randomUUID()
+const teamB = crypto.randomUUID()
+const ctx = { db, teamId: teamA, challengeId: 'chall-x' }
 
 const staticEntry = (flag: string): FlagEntry => ({
   provider: 'flags/static',
@@ -52,8 +52,28 @@ class CountingFlagProvider extends FlagProvider {
 const countingProvider = new CountingFlagProvider()
 flagProviders['test-counting'] = countingProvider
 
-afterAll(() => {
+beforeAll(async () => {
+  await db.insert(users).values([
+    {
+      id: teamA,
+      name: crypto.randomUUID(),
+      email: `${crypto.randomUUID()}@example.com`,
+      division: 'other',
+      perms: 0,
+    },
+    {
+      id: teamB,
+      name: crypto.randomUUID(),
+      email: `${crypto.randomUUID()}@example.com`,
+      division: 'other',
+      perms: 0,
+    },
+  ])
+})
+
+afterAll(async () => {
   delete flagProviders['test-counting']
+  await db.delete(users).where(inArray(users.id, [teamA, teamB]))
 })
 
 const verifyStatus = async (
@@ -165,46 +185,45 @@ describe('verifyFlagEntries', () => {
 
   test("accepts another team's dynamic flag but reports it as cheated", async () => {
     const base = 'flag{abcdefghijklmnopqrstuvwxyz}'
+    const dynamicConfig = { base, mode: DynamicFlagMode.TAIL }
     const entries: FlagEntry[] = [
       {
         provider: 'flags/dynamic',
-        config: { base, mode: DynamicFlagMode.BASIC },
+        config: dynamicConfig,
       },
     ]
-    const otherTeamFlag = generateDynamicFlag(
-      base,
-      'team-b',
-      ctx.challengeId,
-      DynamicFlagMode.BASIC,
-      config.dynamicFlagSigningKey ?? ''
+    const otherTeamFlag = await flagProviders['flags/dynamic']!.getForTeam(
+      dynamicConfig,
+      { ...ctx, teamId: teamB }
     )
-    expect(await verifyFlagEntries(entries, otherTeamFlag, ctx)).toEqual({
+    expect(otherTeamFlag).not.toBeNull()
+    expect(await verifyFlagEntries(entries, otherTeamFlag!, ctx)).toEqual({
       matched: {
         index: 0,
         provider: 'flags/dynamic',
-        config: { base, mode: DynamicFlagMode.BASIC },
+        config: dynamicConfig,
       },
       cheated: true,
+      cheatedFrom: teamB,
     })
   })
 
   test('an accepted entry wins over a cheated one', async () => {
     const base = 'flag{abcdefghijklmnopqrstuvwxyz}'
-    const otherTeamFlag = generateDynamicFlag(
-      base,
-      'team-b',
-      ctx.challengeId,
-      DynamicFlagMode.BASIC,
-      config.dynamicFlagSigningKey ?? ''
+    const dynamicConfig = { base, mode: DynamicFlagMode.TAIL }
+    const otherTeamFlag = await flagProviders['flags/dynamic']!.getForTeam(
+      dynamicConfig,
+      { ...ctx, teamId: teamB }
     )
+    expect(otherTeamFlag).not.toBeNull()
     const entries: FlagEntry[] = [
       {
         provider: 'flags/dynamic',
-        config: { base, mode: DynamicFlagMode.BASIC },
+        config: dynamicConfig,
       },
-      staticEntry(otherTeamFlag),
+      staticEntry(otherTeamFlag!),
     ]
-    expect(await verifyFlagEntries(entries, otherTeamFlag, ctx)).toEqual({
+    expect(await verifyFlagEntries(entries, otherTeamFlag!, ctx)).toEqual({
       matched: {
         index: 1,
         provider: 'flags/static',

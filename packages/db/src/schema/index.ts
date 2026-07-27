@@ -1,5 +1,6 @@
 export * from './admin-bot-jobs'
 export * from './challenges'
+export * from './dynamic-flags'
 export * from './external-auth-clients'
 export * from './pending-user-verifications'
 export * from './score-events'

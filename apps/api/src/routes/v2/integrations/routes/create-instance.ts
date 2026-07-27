@@ -20,7 +20,7 @@ integrationsGroup.route(
     }
 
     const instanceStatus = await provider.createInstance(
-      await buildCreateInstanceOptions(challenge, user)
+      await buildCreateInstanceOptions(ctx.var.db, challenge, user)
     )
 
     return await returnInstanceStatusOrError(

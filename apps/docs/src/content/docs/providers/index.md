@@ -32,7 +32,7 @@ The `<red>name</red>` selects the provider, while `<red>options</red>` contains 
 | [Analytics](/providers/analytics)    | `<red>analytics.provider</red>`               | `<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`                                                                                                                    | None (disabled)                 |
 | [Instancer](/integrations/instancer) | `<red>instancers</red>`                       | `<green>instancers/docker</green>`, `<green>instancers/k8s</green>`                                                                                                                         | None (disabled)                 |
 | [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>`                | `<green>admin-bots/rctf-ts</green>`                                                                                                                                                         | None (disabled)                 |
-| [Flags](/providers/flags)\*\*        | `<red>flags[].provider</red>`                 | `<green>flags/static</green>`, `<green>flags/regex</green>`                                                                                                                                 | `<green>flags/static</green>`   |
+| [Flags](/providers/flags)\*\*        | `<red>flags[].provider</red>`                 | `<green>flags/static</green>`, `<green>flags/regex</green>`, `<green>flags/dynamic</green>`                                                                                                 | `<green>flags/static</green>`   |
 
 Providers marked "None (disabled)" are optional. Their features remain unavailable until a provider is configured.
 

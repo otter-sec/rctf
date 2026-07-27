@@ -340,6 +340,7 @@ export const createSolveAndGetBloodNumber = async (
     submittedFlag?: string
     matchedFlag?: MatchedFlagEntry
     cheated?: boolean
+    cheatedFrom?: string
   }
 ): Promise<number | null> => {
   const solveId = crypto.randomUUID()
@@ -387,6 +388,7 @@ export const createSolveAndGetBloodNumber = async (
             }
           : {}),
         ...(params.cheated ? { cheated: true } : {}),
+        ...(params.cheatedFrom ? { cheatedFrom: params.cheatedFrom } : {}),
       },
       relatedId: solveId,
       createdAt: new Date().toISOString(),
@@ -1163,10 +1165,10 @@ export const submitFlag = async (
     return res.badRateLimit({ timeLeft })
   }
 
-  const { matched, cheated } = await verifyFlagEntries(
+  const { matched, cheated, cheatedFrom } = await verifyFlagEntries(
     flagEntries,
     params.flag,
-    { teamId: params.userId, challengeId: params.challengeId }
+    { db, teamId: params.userId, challengeId: params.challengeId }
   )
   if (matched === null) {
     await createSubmission(db, {
@@ -1193,6 +1195,7 @@ export const submitFlag = async (
         user: params.userId,
         chall: challenge.id,
         flag: params.flag,
+        cheatedFrom,
       },
       'valid flag for another team; possible flag sharing'
     )
@@ -1217,6 +1220,7 @@ export const submitFlag = async (
       submittedFlag: params.flag,
       matchedFlag: matched,
       cheated,
+      cheatedFrom,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)

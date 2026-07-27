@@ -28,6 +28,7 @@ export interface MatchedFlagEntry {
 export interface FlagEntriesVerification {
   matched: MatchedFlagEntry | null
   cheated: boolean
+  cheatedFrom?: string
 }
 
 export const verifyFlagEntries = async (
@@ -37,6 +38,7 @@ export const verifyFlagEntries = async (
 ): Promise<FlagEntriesVerification> => {
   let accepted: MatchedFlagEntry | null = null
   let cheated: MatchedFlagEntry | null = null
+  let cheatedFrom: string | undefined
 
   // NOTE(es3n1n): Intentionally no short-circuit on the first match so that
   //  the response timing doesn't leak which entry matched
@@ -53,12 +55,17 @@ export const verifyFlagEntries = async (
     }
     if (result.status === FlagVerifyStatus.CHEATED && cheated === null) {
       cheated = { index, provider: name, config: entry.config }
+      cheatedFrom = result.cheatedFromTeamId
     }
   }
 
   return accepted !== null
     ? { matched: accepted, cheated: false }
-    : { matched: cheated, cheated: cheated !== null }
+    : {
+        matched: cheated,
+        cheated: cheated !== null,
+        ...(cheatedFrom ? { cheatedFrom } : {}),
+      }
 }
 
 export const getFlagsForTeam = async (

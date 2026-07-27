@@ -1,6 +1,6 @@
 ---
 title: Flag providers
-description: Flag validation providers for exact-match and regex flags.
+description: Flag validation providers for static, regex, and per-team flags.
 order: 7
 ---
 
@@ -17,6 +17,10 @@ Unlike the other providers in this section, flag providers are not selected in t
   {
     "provider": "flags/regex",
     "config": { "pattern": "^rctf\\{example\\}$", "flags": "i" }
+  },
+  {
+    "provider": "flags/dynamic",
+    "config": { "base": "rctf{example}", "mode": "auto" }
   }
 ]
 ```
@@ -58,6 +62,30 @@ Regular expression match. The submission is tested against the JavaScript regex 
 | `<red>pattern</red>`  | Regular expression source. Must compile as a JavaScript regex.                                                                                                                                              |
 | `<red>flags</red>`    | Optional regex flags, such as `<green>i</green>` for case-insensitive matching. Any subset of `dgimsuvy{:ts}`.                                                                                               |
 | `<red>flagValue</red>` | Optional concrete flag handed to per-team consumers such as the [admin bot](/integrations/admin-bot), which need an actual flag value that cannot be derived from the pattern alone. Must match the pattern. |
+
+:::
+:::tab[flags/dynamic]
+Mints a random per-team flag for each challenge and stores it in the database. Another team's valid flag is accepted, but the solve is recorded as cheated.
+
+```json
+{
+  "provider": "flags/dynamic",
+  "config": {
+    "base": "rctf{this_base_has_enough_lowercase_letters_for_leet_encoding}",
+    "mode": "auto"
+  }
+}
+```
+
+| Option             | Description                                                                                                                                                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<red>base</red>` | Flag in `<red>prefix{content}</red>` format. In leet mode, every encodable lowercase character is independently randomized to itself, a digit lookalike, or its uppercase form — one random bit per character. |
+| `<red>mode</red>` | `<green>auto</green>` (default) uses leet when the base has at least 20 encodable characters and a tail otherwise. `<green>leet</green>` requires at least 20 encodable characters. `<green>tail</green>` always appends 10 random lowercase hexadecimal characters after `_`. |
+| `<red>exhaustion</red>` | What happens once every leet variant of the base is taken. `<green>tail</green>` (default) falls back to a tail flag so late teams still receive one. `<green>duplicate</green>` keeps the leet shape and assigns an already-taken flag; cheating is then attributed to the earliest team the flag was minted for. |
+
+A team's flag is minted on first delivery and stays stable afterwards. Flags are bound to the challenge and base: changing the base invalidates previously minted flags, and deleting a team deletes its minted flags.
+
+Dynamic flags are delivered to instancers and admin bots through the same flags JSON as other concrete flag values.
 
 :::
 ::::

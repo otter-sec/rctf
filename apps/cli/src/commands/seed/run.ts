@@ -6,6 +6,7 @@ import { config } from '@rctf/config'
 import {
   adminBotJobs,
   challenges,
+  dynamicFlags,
   scoreEvents,
   settings,
   solves,
@@ -23,6 +24,7 @@ const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
     await tx.delete(scoreEvents)
     await tx.delete(submissions)
     await tx.delete(solves)
+    await tx.delete(dynamicFlags)
     await tx.delete(userMembers)
     await tx.delete(challenges)
     await tx.delete(users)
