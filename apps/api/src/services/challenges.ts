@@ -382,7 +382,9 @@ export const createSolveAndGetBloodNumber = async (
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp ?? 'unknown',
-      result: SubmissionResult.CORRECT,
+      result: params.cheated
+        ? SubmissionResult.CHEATED
+        : SubmissionResult.CORRECT,
       details: {
         ...(params.submittedFlag
           ? { submittedFlag: params.submittedFlag }
@@ -394,7 +396,6 @@ export const createSolveAndGetBloodNumber = async (
               matchedFlagConfig: params.matchedFlag.config,
             }
           : {}),
-        ...(params.cheated ? { cheated: true } : {}),
         ...(params.cheatedFrom ? { cheatedFrom: params.cheatedFrom } : {}),
       },
       relatedId: solveId,

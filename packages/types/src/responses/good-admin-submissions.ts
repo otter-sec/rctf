@@ -55,6 +55,16 @@ export const GoodAdminSubmissions = response('goodAdminSubmissions', {
         result: example(z.enum(SubmissionResult), 'correct').check(
           z.describe('Outcome of the submission.')
         ),
+        cheatedFromId: example(z.nullable(z.string()), null).check(
+          z.describe(
+            'For `cheated` results, the team ID the flag was created for; `null` otherwise.'
+          )
+        ),
+        cheatedFromName: example(z.nullable(z.string()), null).check(
+          z.describe(
+            'For `cheated` results, the team name the flag was created for; `null` when the team was deleted.'
+          )
+        ),
         details: example(z.record(z.string(), z.any()), {}).check(
           z.describe('Result-specific details.')
         ),

@@ -363,6 +363,7 @@ export enum SubmissionSortOrder {
 
 export enum SubmissionResult {
   CORRECT = 'correct',
+  CHEATED = 'cheated',
   INCORRECT = 'incorrect',
   ALREADY_SOLVED = 'already_solved',
   QUEUED = 'queued',

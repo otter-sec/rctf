@@ -24,7 +24,11 @@
           title={`${entry.label}: ${entry.value}`}
         >
           <pill-label>{entry.label}</pill-label>
-          <code>{entry.value}</code>
+          {#if entry.href}
+            <a href={entry.href}><code>{entry.value}</code></a>
+          {:else}
+            <code>{entry.value}</code>
+          {/if}
         </detail-pill>
       {/each}
     {/if}
@@ -94,6 +98,17 @@
     color: var(--foreground-l1);
     font-size: var(--step--2);
     text-overflow: ellipsis;
+  }
+
+  a {
+    display: contents;
+    text-decoration: none;
+
+    &:hover code,
+    &:focus-visible code {
+      color: var(--foreground-accent);
+      text-decoration: underline;
+    }
   }
 
   detail-empty {

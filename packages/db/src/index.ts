@@ -26,6 +26,7 @@ export type PendingUserVerification = InferInsertModel<
   typeof schema.pendingUserVerifications
 >
 export type Submission = InferInsertModel<typeof schema.submissions>
+export type DynamicFlag = InferInsertModel<typeof schema.dynamicFlags>
 export type ScoreEvent = InferInsertModel<typeof schema.scoreEvents>
 export type ExternalAuthClient = InferInsertModel<
   typeof schema.externalAuthClients

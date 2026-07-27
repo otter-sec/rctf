@@ -18,6 +18,7 @@ export const submissionKindEnum = pgEnum('submission_log_kind', [
 
 export const submissionResultEnum = pgEnum('submission_log_result', [
   SubmissionResult.CORRECT,
+  SubmissionResult.CHEATED,
   SubmissionResult.INCORRECT,
   SubmissionResult.ALREADY_SOLVED,
   SubmissionResult.QUEUED,

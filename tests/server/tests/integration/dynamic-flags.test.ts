@@ -236,8 +236,8 @@ describe('dynamic flag submission', () => {
       .from(submissions)
       .where(eq(submissions.userId, thief.id))
     expect(thiefSubmissions).toHaveLength(1)
+    expect(thiefSubmissions[0]!.result).toBe('cheated')
     expect(thiefSubmissions[0]!.details).toMatchObject({
-      cheated: true,
       cheatedFrom: owner.id,
     })
   })
@@ -279,8 +279,8 @@ describe('dynamic flag submission', () => {
       .from(submissions)
       .where(eq(submissions.userId, thief.id))
     expect(thiefSubmissions).toHaveLength(1)
+    expect(thiefSubmissions[0]!.result).toBe('cheated')
     expect(thiefSubmissions[0]!.details).toMatchObject({
-      cheated: true,
       cheatedFrom: first.id,
     })
   })
@@ -375,7 +375,7 @@ describe('dynamic flag submission', () => {
       .from(submissions)
       .where(eq(submissions.userId, user.id))
     expect(userSubmissions).toHaveLength(1)
-    expect(userSubmissions[0]!.details.cheated).toBeUndefined()
+    expect(userSubmissions[0]!.result).not.toBe('cheated')
   })
 
   test('lists a dynamic challenge as having a flag', async () => {

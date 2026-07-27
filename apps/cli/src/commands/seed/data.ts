@@ -775,10 +775,10 @@ const buildDynamicFlagData = (
     challengeId: DYNAMIC_CHALLENGE_ID,
     userId,
     ip: randomIp(),
-    result: SubmissionResult.CORRECT,
+    result: cheatedFrom ? SubmissionResult.CHEATED : SubmissionResult.CORRECT,
     details: {
       submittedFlag: flag,
-      ...(cheatedFrom ? { cheated: true, cheatedFrom } : {}),
+      ...(cheatedFrom ? { cheatedFrom } : {}),
     },
     relatedId: null,
     createdAt,

@@ -1,5 +1,5 @@
 {
-  "id": "4bf28933-1b2b-4267-8631-e0bed33b311c",
+  "id": "5c768d70-1ef3-42ae-a9ad-2d20a732a052",
   "prevId": "0caf8dae-4ffd-4b60-95d1-846b124b0968",
   "version": "7",
   "dialect": "postgresql",
@@ -1449,6 +1449,7 @@
       "schema": "public",
       "values": [
         "correct",
+        "cheated",
         "incorrect",
         "already_solved",
         "queued",

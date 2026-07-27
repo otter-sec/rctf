@@ -1,3 +1,4 @@
+ALTER TYPE "public"."submission_log_result" ADD VALUE 'cheated' BEFORE 'incorrect';--> statement-breakpoint
 CREATE TABLE "dynamic_flags" (
 	"challenge_id" text NOT NULL,
 	"user_id" text NOT NULL,
