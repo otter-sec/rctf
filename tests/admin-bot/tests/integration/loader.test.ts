@@ -1,12 +1,17 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
-import { Challenge } from '../../../../apps/admin-bot/src/types'
+import {
+  Challenge,
+  type ChallengeConfig,
+} from '../../../../apps/admin-bot/src/types'
 
 const validChallengeSource = `
 const { Challenge } = require('../types')
 export const challenge = new Challenge({
   timeoutMilliseconds: 5000,
   inputs: { url: { pattern: '^https?://.*' } },
+  browser: 'chrome',
+  browserArguments: ['--no-sandbox'],
   handler: async (ctx) => {},
   hooksConfig: {
     showConsoleLogs: false,
@@ -65,6 +70,24 @@ describe('ChallengeLoader.loadChallenge', () => {
     const result = await loader.loadChallenge(source)
     expect(typeof result).toBe('string')
     expect(result as string).toContain('not allowed')
+  })
+
+  test('merges defaults with challenge config', async () => {
+    const defaultConfig: Partial<ChallengeConfig> = {
+      maxLogLines: 100,
+      browser: 'firefox',
+      browserArguments: ['--default-argument'],
+    }
+    const loaderWithDefaults = new ChallengeLoader(defaultConfig)
+    const result = await loaderWithDefaults.loadChallenge(validChallengeSource)
+
+    expect(result).toBeInstanceOf(Challenge)
+
+    if (result instanceof Challenge) {
+      expect(result.config.maxLogLines).toBe(100)
+      expect(result.config.browser).toBe('chrome')
+      expect(result.config.browserArguments).toEqual(['--no-sandbox'])
+    }
   })
 })
 

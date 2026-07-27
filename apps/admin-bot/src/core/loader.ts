@@ -1,29 +1,45 @@
-import { Challenge } from '../types'
+import { Challenge, type ChallengeConfig } from '../types'
 import * as TypesModule from '../types'
+import deepmerge from 'deepmerge'
 import { createLogger } from './logger'
 
 const logger = createLogger('loader')
 
-const MODULES_MAPPING: Map<string[], any> = new Map([
-  [
-    [
-      '../src/types',
-      '../types',
-      './types',
-      './src/types',
-      'src/types',
-      'types',
-    ],
-    TypesModule,
-  ],
-])
+const TYPES_MODULE_PATHS = [
+  '../src/types',
+  '../types',
+  './types',
+  './src/types',
+  'src/types',
+  'types',
+]
 
 const cacheKey = (id: string, revision: string): string => `${id}:${revision}`
+
+const mergeChallengeConfig = (
+  defaults: Partial<ChallengeConfig>,
+  config: ChallengeConfig
+): ChallengeConfig =>
+  deepmerge<ChallengeConfig>(defaults, config, {
+    arrayMerge: (_defaults, configValues) => configValues,
+  })
 
 export class ChallengeLoader {
   // key is "id:revision"
   private challenges = new Map<string, Challenge>()
   private currentRevisions = new Map<string, string>()
+  private typesModule: typeof TypesModule
+
+  constructor(defaults: Partial<ChallengeConfig> = {}) {
+    this.typesModule = {
+      ...TypesModule,
+      Challenge: class extends Challenge {
+        constructor(config: ChallengeConfig) {
+          super(mergeChallengeConfig(defaults, config))
+        }
+      },
+    }
+  }
 
   async loadChallenge(source: string): Promise<Challenge | string> {
     try {
@@ -31,7 +47,7 @@ export class ChallengeLoader {
         entrypoints: ['<challenge>'],
         format: 'cjs',
         target: 'bun',
-        external: MODULES_MAPPING.keys().toArray().flat(),
+        external: TYPES_MODULE_PATHS,
         plugins: [
           {
             name: 'challenge-loader',
@@ -59,13 +75,11 @@ export class ChallengeLoader {
       const moduleExports: any = {}
       const module = { exports: moduleExports }
       const customRequire = (name: string) => {
-        for (const [k, v] of MODULES_MAPPING.entries()) {
-          if (k.includes(name)) {
-            return v
-          }
+        if (TYPES_MODULE_PATHS.includes(name)) {
+          return this.typesModule
         }
         throw new Error(
-          `Module '${name}' is not allowed. Allowed modules: ${MODULES_MAPPING.keys().toArray().flat().join(', ')}`
+          `Module '${name}' is not allowed. Allowed modules: ${TYPES_MODULE_PATHS.join(', ')}`
         )
       }
 
