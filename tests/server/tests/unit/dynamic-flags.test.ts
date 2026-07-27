@@ -1,7 +1,7 @@
-import { DynamicFlagMode } from '@rctf/types'
 import { describe, expect, test } from 'bun:test'
 import { FlagVerifyStatus } from '../../../../apps/api/src/providers/flags/base'
 import {
+  DynamicFlagMode,
   generateDynamicFlag,
   verifyDynamicFlag,
 } from '../../../../apps/api/src/providers/flags/dynamic'

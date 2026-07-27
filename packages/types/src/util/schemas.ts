@@ -151,12 +151,6 @@ export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
-// Signing modes understood by the flags/dynamic provider.
-export enum DynamicFlagMode {
-  LEET = 'leet',
-  BASIC = 'basic',
-}
-
 // solves.points is a PG `integer` (32-bit signed)
 const INT32_MIN = -2_147_483_648
 const INT32_MAX = 2_147_483_647

@@ -1,6 +1,5 @@
 import { config } from '@rctf/config'
 import type { FlagEntry } from '@rctf/db'
-import { DynamicFlagMode } from '@rctf/types'
 import { afterAll, describe, expect, test } from 'bun:test'
 import {
   FlagProvider,
@@ -12,7 +11,10 @@ import {
   flagProviders,
   verifyFlagEntries,
 } from '../../../../apps/api/src/providers/flags'
-import { generateDynamicFlag } from '../../../../apps/api/src/providers/flags/dynamic'
+import {
+  DynamicFlagMode,
+  generateDynamicFlag,
+} from '../../../../apps/api/src/providers/flags/dynamic'
 import {
   staticFlagConfigSchema,
   type StaticFlagConfig,

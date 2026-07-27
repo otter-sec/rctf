@@ -3,7 +3,6 @@ import { challenges, createDatabase, solves, submissions } from '@rctf/db'
 import type { ChallengeData } from '@rctf/db'
 import {
   BadFlag,
-  DynamicFlagMode,
   GoodAdminChallengeV2,
   GoodChallengeUpdateV2,
   GoodFlag,
@@ -12,7 +11,10 @@ import {
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
-import { generateDynamicFlag } from '../../../../apps/api/src/providers/flags/dynamic'
+import {
+  DynamicFlagMode,
+  generateDynamicFlag,
+} from '../../../../apps/api/src/providers/flags/dynamic'
 import { getApp, request } from '../../app'
 import {
   expectResponse,

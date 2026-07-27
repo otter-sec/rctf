@@ -1,5 +1,4 @@
 import { config as serverConfig } from '@rctf/config'
-import { DynamicFlagMode } from '@rctf/types'
 import { createHash } from 'node:crypto'
 import { z } from 'zod/mini'
 import {
@@ -8,6 +7,11 @@ import {
   type FlagTeamContext,
   type FlagVerifyResult,
 } from './base'
+
+export enum DynamicFlagMode {
+  LEET = 'leet',
+  BASIC = 'basic',
+}
 
 export const dynamicFlagConfigSchema = z.strictObject({
   base: z.string().check(z.minLength(1)).register(z.globalRegistry, {
