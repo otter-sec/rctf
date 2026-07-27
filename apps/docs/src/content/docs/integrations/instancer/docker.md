@@ -156,7 +156,7 @@ instancerConfig:
       app:
         image: ghcr.io/example/web-demo:latest
         environment:
-          FLAG: flag{example}
+          FLAGS: ${RCTF_FLAGS}
         networks:
           - internal
         expose:
@@ -199,3 +199,25 @@ Services may only reference networks declared under `<red>config.networks</red>`
 Services do not join Docker's shared default bridge unless configured to do so. With no `<red>networks</red>`, `<red>expose</red>`, or `<red>network_mode</red>`, a service gets `<red>network_mode: none</red>`.
 
 When several challenge services need to communicate, declare a user-defined network with `<red>internal: true</red>` and attach each service to it. They can then reach one another without reaching the host or internet. Use `<red>network_mode: bridge</red>` only when the service specifically needs Docker's default bridge.
+
+## Per-team flags and hostnames
+
+At instance-creation time the instancer substitutes placeholders in service `<red>environment</red>` values with the team's flags and the instance hostnames. Reference a placeholder to opt a service in:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  config:
+    services:
+      app:
+        image: ghcr.io/example/web-demo:latest
+        environment:
+          RCTF_FLAGS: ${RCTF_FLAGS}
+          RCTF_EXPOSED_HOSTNAMES: ${RCTF_EXPOSED_HOSTNAMES}
+```
+
+| Placeholder | Value |
+| --- | --- |
+| `<yellow>RCTF_FLAGS</yellow>` | JSON list with one entry per configured flag, each shaped as `{"provider": "flags/static", "flag": "..."}{:json}`, for the team that started the instance. Same shape as the `<red>rctf.osec.io/flags</red>` annotation on the [Kubernetes instancer](/integrations/instancer/kubernetes#the-flags-inside-pods). |
+| `<yellow>RCTF_EXPOSED_HOSTNAMES</yellow>` | JSON list with one entry per `<red>expose</red>` item, each shaped as `{"kind", "hostPrefix", "host", "port", "containerName", "containerPort", "title"?}{:json}`. Same shape as the `<red>rctf.osec.io/exposed-hostnames</red>` annotation on the Kubernetes instancer. Hidden endpoints (`shouldDisplay: false{:yml}`) are included, and `<green>tcp</green>` exposes appear as `<green>tcp-ssl</green>` since that is how they're routed. |
+
+Both `$RCTF_FLAGS` and `${RCTF_FLAGS}` forms substitute. Unknown placeholders such as `${OTHER}` pass through untouched, and `$$` escapes a literal `$`. Substitution only activates for services whose environment references at least one of the placeholders above.

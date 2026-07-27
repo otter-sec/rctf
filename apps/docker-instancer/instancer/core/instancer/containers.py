@@ -6,6 +6,7 @@ from aiodocker.containers import DockerContainer
 
 from instancer.core.config import config
 from instancer.core.instancer.const import ContainerLabels, get_search_filters
+from instancer.core.instancer.interpolation import interpolate_environment
 from instancer.core.instancer.traefik import expose_ports
 from instancer.core.instancer.volumes import parse_volume_mounts
 from instancer.protocol import types as protocol
@@ -37,6 +38,7 @@ async def create_container(  # noqa: PLR0913
     container: protocol.Service,
     routing_network: str | None,
     global_indices: list[int],
+    env_context: dict[str, str],
 ) -> tuple[DockerContainer, list[protocol.RCTFInstanceDetails.Endpoint]]:
     labels = common_labels.copy()
     instance_id = common_labels[ContainerLabels.INSTANCE_ID]
@@ -55,7 +57,7 @@ async def create_container(  # noqa: PLR0913
             config={
                 'Image': container.image,
                 'Hostname': container.hostname or svc_name.replace('_', '-'),
-                'Env': [f'{k}={v}' for k, v in container.environment.items()],
+                'Env': [f'{k}={v}' for k, v in interpolate_environment(container.environment, env_context).items()],
                 'Cmd': sh(container.command),
                 'Entrypoint': sh(container.entrypoint),
                 'WorkingDir': container.working_dir,

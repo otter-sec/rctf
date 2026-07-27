@@ -3,6 +3,7 @@ import uuid
 from functools import cache
 from http import HTTPStatus
 
+import orjson
 from aiodocker import Docker, DockerError
 from aiodocker.containers import DockerContainer
 from fastapi import HTTPException
@@ -17,7 +18,7 @@ from instancer.core.instancer.containers import (
     instance_exists,
 )
 from instancer.core.instancer.networks import cleanup_networks, create_networks, create_routing_network
-from instancer.core.instancer.traefik import extract_exposes
+from instancer.core.instancer.traefik import build_exposed_hostnames, extract_exposes
 from instancer.core.instancer.volumes import cleanup_volumes, create_volumes
 from instancer.protocol import types as protocol
 from instancer.util.expiration import get_effective_expiration
@@ -97,6 +98,11 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
             exposes.setdefault(expose.container_name, []).append(expose)
             expose_indices.setdefault(expose.container_name, []).append(index)
 
+        env_context = {
+            'RCTF_FLAGS': orjson.dumps([flag.model_dump() for flag in form.flags]).decode(),
+            'RCTF_EXPOSED_HOSTNAMES': orjson.dumps(build_exposed_hostnames(form.expose, instance_id)).decode(),
+        }
+
         created_containers: list[DockerContainer] = []
         networks_created: dict[str, str] = {}
         routing_networks_created: list[str] = []
@@ -125,6 +131,7 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
                     container=container,
                     routing_network=routing_network,
                     global_indices=expose_indices.get(svc_name, []),
+                    env_context=env_context,
                 )
                 created_containers.append(created)
                 indexed_endpoints.extend(zip(expose_indices.get(svc_name, []), endpoints, strict=True))
