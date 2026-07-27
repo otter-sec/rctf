@@ -154,6 +154,7 @@ export const createDecayChallenge = async (
   id: string,
   data: DecayChallengeData
 ): Promise<ApiResponse> => {
+  const { flag, ...rest } = data
   return await api(
     `/api/v2/admin/challs/${id}`,
     withBearer(
@@ -161,7 +162,11 @@ export const createDecayChallenge = async (
         method: 'PUT',
         body: {
           data: {
-            ...data,
+            ...rest,
+            flags:
+              flag === ''
+                ? []
+                : [{ provider: 'flags/static', config: { flag } }],
             files: data.files ?? [],
             tiebreakEligible: data.tiebreakEligible ?? true,
             scoring: { kind: 'decay' },
@@ -189,7 +194,10 @@ export const createDynamicChallenge = async (
     description: overrides?.description ?? '',
     category: overrides?.category ?? 'dynamic',
     author: overrides?.author ?? 'test',
-    flag: overrides?.flag ?? '',
+    flags:
+      overrides?.flag !== undefined && overrides.flag !== ''
+        ? [{ provider: 'flags/static', config: { flag: overrides.flag } }]
+        : [],
     points: overrides?.points ?? { min: 0, max: 0 },
     tiebreakEligible: overrides?.tiebreakEligible ?? true,
     files: overrides?.files ?? [],

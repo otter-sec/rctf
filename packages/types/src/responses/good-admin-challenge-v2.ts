@@ -5,6 +5,7 @@ import {
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   ChallengeScoringSchema,
+  FlagEntrySchema,
   InstancerConfigSchema,
 } from '../util'
 import { example } from '../util/example'
@@ -19,8 +20,12 @@ export const AdminChallengeSchemaV2 = z.object({
   author: example(z.string(), 'es3n1n').check(z.describe('Challenge author.')),
   files: z.array(ChallengeFileSchemaV2),
   points: ChallengePointsSchema,
-  flag: example(z.string(), 'rctf{baby_rev}').check(
-    z.describe('The challenge flag.')
+  flags: example(z.array(FlagEntrySchema), [
+    { provider: 'flags/static', config: { flag: 'rctf{baby_rev}' } },
+  ]).check(
+    z.describe(
+      'Flag entries; a submission solves the challenge when any entry validates.'
+    )
   ),
   tiebreakEligible: example(z.boolean(), true).check(
     z.describe('Whether solves count toward tiebreak ordering.')

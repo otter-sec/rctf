@@ -35,7 +35,7 @@ const decayChallengeData = (): ChallengeData => ({
   category: 'misc',
   author: 'test',
   files: [],
-  flag: crypto.randomUUID(),
+  flags: [{ provider: 'flags/static', config: { flag: crypto.randomUUID() } }],
   tiebreakEligible: true,
   points: { min: 100, max: 500 },
 })
@@ -46,7 +46,7 @@ const dynamicChallengeData = (): ChallengeData => ({
   category: 'dynamic',
   author: 'test',
   files: [],
-  flag: '',
+  flags: [],
   tiebreakEligible: true,
   points: { min: 0, max: 0 },
   scoring: {

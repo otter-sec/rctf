@@ -1,4 +1,5 @@
 import { GetAdminChallengesRoute } from '@rctf/types'
+import { getFirstDefaultFlag } from '../../../../providers/flags'
 import { getPrivateChallenges } from '../../../../services/challenges'
 import adminGroup from '../group'
 
@@ -9,6 +10,7 @@ adminGroup.route(GetAdminChallengesRoute, async ({ res, ctx }) => {
       return {
         id: item.id,
         ...item.data,
+        flag: getFirstDefaultFlag(item.data.flags),
         sortWeight: item.data.sortWeight ?? null,
       }
     })

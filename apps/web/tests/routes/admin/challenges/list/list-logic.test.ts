@@ -18,7 +18,7 @@ function makeChallenge(
     author: '',
     files: [],
     points: { min: 100, max: 500 },
-    flag: '',
+    flags: [],
     tiebreakEligible: true,
     sortWeight: null,
     tags: null,

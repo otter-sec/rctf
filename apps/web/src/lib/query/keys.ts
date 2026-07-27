@@ -56,6 +56,7 @@ export const queryKeys = {
     ['challenges', id, 'admin-bot', 'history'] as const,
   members: ['members'] as const,
   instancerSchema: ['admin', 'instancer', 'schema'] as const,
+  flagProviders: ['admin', 'flags', 'providers'] as const,
   adminBotStatus: ['admin', 'admin-bot', 'status'] as const,
   adminExternalAuthClients: ['admin', 'external-auth', 'clients'] as const,
   adminSettings: ['admin', 'settings'] as const,

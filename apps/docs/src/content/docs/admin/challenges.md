@@ -10,6 +10,14 @@ Create and manage challenges from `/admin/challs`.
 
 Every challenge has a unique ID and uses either decay or dynamic scoring. Changes that affect points automatically recalculate the leaderboard. See [Scoring](/admin/scoring) for both models and the dynamic score API.
 
+## Flags
+
+A challenge holds a list of flag entries, and a submission solves the challenge when any entry accepts it. Most challenges need a single entry, but the list form covers cases like keeping an old flag valid after a rotation or accepting several spellings of the same answer.
+
+See [Flag providers](/providers/flags) for all providers and their options.
+
+Dynamically scored challenges don't take flag submissions, so switching a challenge to dynamic scoring clears its entries.
+
 ## Challenge visibility
 
 Challenges support two visibility controls:

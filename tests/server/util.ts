@@ -83,7 +83,7 @@ export const generateChallenge = async () => {
     category: crypto.randomUUID(),
     author: crypto.randomUUID(),
     files: [],
-    flag,
+    flags: [{ provider: 'flags/static', config: { flag } }],
     tiebreakEligible: true,
     points: {
       min: 100,
@@ -116,7 +116,7 @@ export const generateChallengeWithReleaseTime = async (
     category: crypto.randomUUID(),
     author: crypto.randomUUID(),
     files: [],
-    flag,
+    flags: [{ provider: 'flags/static', config: { flag } }],
     tiebreakEligible: true,
     points: {
       min: 100,

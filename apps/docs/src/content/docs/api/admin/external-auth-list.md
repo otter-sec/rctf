@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` List external-auth clients"
 description: "`<route>GET /api/v2/admin/external-auth/clients</route>`"
-order: 28
+order: 29
 ---
 
 :::aside

@@ -148,6 +148,13 @@ export function validateValue(
         }
       } catch {}
     }
+    if (schema.format === 'regex') {
+      try {
+        new RegExp(value)
+      } catch {
+        return { valid: false, error: 'Must be a valid regular expression' }
+      }
+    }
   }
 
   if (typeof value === 'number') {

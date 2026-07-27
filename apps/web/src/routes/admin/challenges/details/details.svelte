@@ -41,6 +41,7 @@
     updateForm,
     updateInstancer,
     updateScoring,
+    updateScoringAndFlags,
     type AdminBotConfig,
     type EditorForm,
     type EditorState,
@@ -81,7 +82,10 @@
 
   const errors = $derived(formErrors(editor.form))
   let instancerValid = $state(true)
-  const invalid = $derived(hasFormErrors(errors) || !instancerValid)
+  let flagsValid = $state(true)
+  const invalid = $derived(
+    hasFormErrors(errors) || !instancerValid || !flagsValid
+  )
 
   const heading = $derived(
     editor.mode === 'creating'
@@ -101,6 +105,13 @@
 
   function onScoringChange(scoring: ScoringConfig) {
     onEditorChange(updateScoring(editor, scoring))
+  }
+
+  function onScoringAndFlagsChange(
+    scoring: ScoringConfig,
+    flags: EditorForm['flags']
+  ) {
+    onEditorChange(updateScoringAndFlags(editor, scoring, flags))
   }
 
   function onFilesChange(files: EditorForm['files']) {
@@ -257,8 +268,10 @@
       challengeId={editor.challenge?.id ?? null}
       {errors}
       bind:instancerValid
+      bind:flagsValid
       {onFieldChange}
       {onScoringChange}
+      {onScoringAndFlagsChange}
       {onFilesChange}
       {onInstancerChange}
       {onAdminBotChange}

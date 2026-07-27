@@ -76,7 +76,9 @@ const insertChallenge = async (overrides?: Partial<ChallengeData>) => {
     category: crypto.randomUUID(),
     author: crypto.randomUUID(),
     files: [],
-    flag: crypto.randomUUID(),
+    flags: [
+      { provider: 'flags/static', config: { flag: crypto.randomUUID() } },
+    ],
     tiebreakEligible: true,
     points: {
       min: 100,
@@ -238,7 +240,7 @@ describe('cached leaderboard calculator', () => {
     const db = getDb()
     const user = await insertUser()
     const challenge = await insertChallenge({
-      flag: '',
+      flags: [],
       scoring: {
         kind: ChallengeScoringKind.DYNAMIC,
         source: {
@@ -282,7 +284,7 @@ describe('cached leaderboard calculator', () => {
     const existingUser = await insertUser('existing-dynamic')
     const newUser = await insertUser('new-dynamic')
     const challenge = await insertChallenge({
-      flag: '',
+      flags: [],
       scoring: {
         kind: ChallengeScoringKind.DYNAMIC,
         source: {

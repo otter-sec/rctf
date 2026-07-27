@@ -156,6 +156,9 @@ describe('admin submissions', () => {
       storedSubmissions.map(submission => submission.details)
     ).toContainEqual({
       submittedFlag: alphaChallenge.challenge.flag,
+      matchedFlagIndex: 0,
+      matchedFlagProvider: 'flags/static',
+      matchedFlagConfig: { flag: alphaChallenge.challenge.flag },
     })
     expect(
       storedSubmissions.map(submission => submission.details)

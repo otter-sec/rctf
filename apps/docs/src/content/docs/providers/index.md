@@ -32,7 +32,10 @@ The `<red>name</red>` selects the provider, while `<red>options</red>` contains 
 | [Analytics](/providers/analytics)    | `<red>analytics.provider</red>`               | `<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`                                                                                                                    | None (disabled)                 |
 | [Instancer](/integrations/instancer) | `<red>instancers</red>`                       | `<green>instancers/docker</green>`, `<green>instancers/k8s</green>`                                                                                                                         | None (disabled)                 |
 | [Admin Bot](/integrations/admin-bot) | `<red>adminBot.provider</red>`                | `<green>admin-bots/rctf-ts</green>`                                                                                                                                                         | None (disabled)                 |
+| [Flags](/providers/flags)\*\*        | `<red>flags[].provider</red>`                 | `<green>flags/static</green>`, `<green>flags/regex</green>`                                                                                                                                 | `<green>flags/static</green>`   |
 
 Providers marked "None (disabled)" are optional. Their features remain unavailable until a provider is configured.
 
 \* Unlike the other providers, message providers are not selected by a top-level config field. They are nested inside each [blood bot](/integrations/bloodbot) destination entry, so the same deployment can post to multiple destinations using different providers.
+
+\*\* Flag providers are not part of the server configuration at all. Each [flag entry](/admin/challenges#flags) of a challenge picks its own provider, and all flag providers are always available.

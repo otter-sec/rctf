@@ -23,7 +23,7 @@ import {
 import { getChallengeLeaderboardWithTotal } from '../../../../apps/api/src/services/leaderboard'
 import {
   applyDecayPointsForChallenge,
-  upsertDynamicSolves,
+  upsertDynamicSolves as rawUpsertDynamicSolves,
 } from '../../../../apps/api/src/services/solve-points'
 import {
   deleteAdminUser,
@@ -36,6 +36,16 @@ import { clearDatabase, generateRealTestUser } from '../../util'
 
 const getDb = () => createDatabase(config.database.sql).db
 
+// pglite's now() is coarse enough that two back-to-back feed
+// upserts can land on the same event_at and merge into a single tick :(
+const upsertDynamicSolves = async (
+  ...args: Parameters<typeof rawUpsertDynamicSolves>
+): ReturnType<typeof rawUpsertDynamicSolves> => {
+  const result = await rawUpsertDynamicSolves(...args)
+  await Bun.sleep(3)
+  return result
+}
+
 const dynamicData = (
   overrides: Partial<ChallengeData> = {},
   secret = 'shared-secret'
@@ -45,7 +55,7 @@ const dynamicData = (
   category: 'dynamic',
   author: 'test',
   files: [],
-  flag: '',
+  flags: [],
   tiebreakEligible: true,
   points: { min: 0, max: 0 },
   scoring: {
@@ -83,7 +93,12 @@ const createDecayChallenge = async (
       category: 'decay',
       author: 'test',
       files: [],
-      flag: 'flag{' + crypto.randomUUID() + '}',
+      flags: [
+        {
+          provider: 'flags/static',
+          config: { flag: 'flag{' + crypto.randomUUID() + '}' },
+        },
+      ],
       tiebreakEligible: true,
       points: { min: 100, max: 500 },
       scoring: { kind: ChallengeScoringKind.DECAY },

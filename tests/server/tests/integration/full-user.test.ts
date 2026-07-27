@@ -236,7 +236,7 @@ describe('full-user service', () => {
         category: 'dynamic',
         author: 'test',
         files: [],
-        flag: '',
+        flags: [],
         tiebreakEligible: true,
         points: { min: 0, max: 0 },
         scoring: {
