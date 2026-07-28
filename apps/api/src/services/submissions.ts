@@ -14,7 +14,7 @@ import {
   SubmissionTeamStatus,
 } from '@rctf/types'
 import { and, asc, count, desc, eq, gte, lte, sql, type SQL } from 'drizzle-orm'
-import type { PgColumn } from 'drizzle-orm/pg-core'
+import { alias, type PgColumn } from 'drizzle-orm/pg-core'
 import { setFilter } from '../lib/db-filters'
 
 export const createSubmission = async (
@@ -47,6 +47,9 @@ type AdminSubmissionsQuery = RouteQuery<typeof GetAdminSubmissionsRouteV2> &
 
 const challengeCategoryExpr = sql<string>`${challenges.data} ->> 'category'`
 const teamBannedExpr = sql<boolean>`coalesce(${users.banned}, false)`
+const cheatedFromIdExpr = sql<
+  string | null
+>`${submissions.details} ->> 'cheatedFrom'`
 
 const likePattern = (value: string) => `%${value.trim().toLowerCase()}%`
 
@@ -121,6 +124,8 @@ export type AdminSubmissionInfo = {
   userBanned: boolean
   ip: string
   result: SubmissionResult
+  cheatedFromId: string | null
+  cheatedFromName: string | null
   details: SubmissionDetails
   relatedId: string | null
   createdAt: string
@@ -132,6 +137,7 @@ export const getSubmissions = async (
 ): Promise<{ total: number; submissions: AdminSubmissionInfo[] }> => {
   const filters = buildSubmissionsFilters(params)
   const orderBy = buildSubmissionsOrderBy(params)
+  const cheatedFromUsers = alias(users, 'cheated_from_users')
 
   const baseQuery = db
     .select({
@@ -149,6 +155,8 @@ export const getSubmissions = async (
       userBanned: teamBannedExpr,
       ip: submissions.ip,
       result: submissions.result,
+      cheatedFromId: cheatedFromIdExpr,
+      cheatedFromName: sql<string | null>`${cheatedFromUsers.name}::text`,
       details: submissions.details,
       relatedId: submissions.relatedId,
       createdAt: submissions.createdAt,
@@ -156,6 +164,7 @@ export const getSubmissions = async (
     .from(submissions)
     .leftJoin(challenges, eq(challenges.id, submissions.challengeId))
     .leftJoin(users, eq(users.id, submissions.userId))
+    .leftJoin(cheatedFromUsers, eq(cheatedFromUsers.id, cheatedFromIdExpr))
     .where(filters)
     .$dynamic()
 

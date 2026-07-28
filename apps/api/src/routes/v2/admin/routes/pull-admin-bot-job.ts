@@ -15,7 +15,9 @@ adminGroup.route(PullAdminBotJobRouteV2, async ({ ctx, res }) => {
       configRevision: pulled.config_revision,
       userId: pulled.user_id,
       submittedAt: pulled.created_at,
-      flag: pulled.flag,
+      flags: pulled.flags,
+      // kept for backwards compatibility
+      flag: pulled.flags[0]?.flag ?? '',
       inputs: pulled.inputs,
       instancerInstances: pulled.instancer_instances,
     },

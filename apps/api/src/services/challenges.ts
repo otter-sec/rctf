@@ -7,7 +7,14 @@ import type {
   InstancerConfig,
   Solve,
 } from '@rctf/db'
-import { challenges, scoreEvents, solves, submissions, users } from '@rctf/db'
+import {
+  challenges,
+  dynamicFlags,
+  scoreEvents,
+  solves,
+  submissions,
+  users,
+} from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
@@ -339,6 +346,8 @@ export const createSolveAndGetBloodNumber = async (
     submissionIp?: string | null
     submittedFlag?: string
     matchedFlag?: MatchedFlagEntry
+    cheated?: boolean
+    cheatedFrom?: string
   }
 ): Promise<number | null> => {
   const solveId = crypto.randomUUID()
@@ -373,7 +382,9 @@ export const createSolveAndGetBloodNumber = async (
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp ?? 'unknown',
-      result: SubmissionResult.CORRECT,
+      result: params.cheated
+        ? SubmissionResult.CHEATED
+        : SubmissionResult.CORRECT,
       details: {
         ...(params.submittedFlag
           ? { submittedFlag: params.submittedFlag }
@@ -385,6 +396,7 @@ export const createSolveAndGetBloodNumber = async (
               matchedFlagConfig: params.matchedFlag.config,
             }
           : {}),
+        ...(params.cheatedFrom ? { cheatedFrom: params.cheatedFrom } : {}),
       },
       relatedId: solveId,
       createdAt: new Date().toISOString(),
@@ -523,6 +535,7 @@ export const deleteChallenge = async (
   await db.transaction(async tx => {
     await lockChallenge(tx, id)
     await tx.delete(solves).where(eq(solves.challengeid, id))
+    await tx.delete(dynamicFlags).where(eq(dynamicFlags.challengeId, id))
     await tx.delete(challenges).where(eq(challenges.id, id))
   })
 }
@@ -1161,7 +1174,11 @@ export const submitFlag = async (
     return res.badRateLimit({ timeLeft })
   }
 
-  const matched = await verifyFlagEntries(flagEntries, params.flag)
+  const { matched, cheated, cheatedFrom } = await verifyFlagEntries(
+    flagEntries,
+    params.flag,
+    { db, teamId: params.userId, challengeId: params.challengeId }
+  )
   if (matched === null) {
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
@@ -1169,7 +1186,9 @@ export const submitFlag = async (
       userId: params.userId,
       ip: params.submissionIp,
       result: SubmissionResult.INCORRECT,
-      details: { submittedFlag: params.flag },
+      details: {
+        submittedFlag: params.flag,
+      },
     }).catch(err =>
       log.error(
         { err, challengeId: params.challengeId, userId: params.userId },
@@ -1177,6 +1196,18 @@ export const submitFlag = async (
       )
     )
     return res.badFlag()
+  }
+
+  if (cheated) {
+    log.warn(
+      {
+        user: params.userId,
+        chall: challenge.id,
+        flag: params.flag,
+        cheatedFrom,
+      },
+      'valid flag for another team; possible flag sharing'
+    )
   }
 
   log.info(
@@ -1197,6 +1228,8 @@ export const submitFlag = async (
       submissionIp: params.submissionIp,
       submittedFlag: params.flag,
       matchedFlag: matched,
+      cheated,
+      cheatedFrom,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)

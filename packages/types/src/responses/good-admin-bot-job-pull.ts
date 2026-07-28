@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { TeamFlagSchema } from '../util'
 import { example } from '../util/example'
 
 export const GoodAdminBotJobPull = response('goodAdminBotJobPull', {
@@ -23,8 +24,17 @@ export const GoodAdminBotJobPull = response('goodAdminBotJobPull', {
         submittedAt: example(z.string(), '2024-03-09T00:00:00.000Z').check(
           z.describe('Submission time as an ISO 8601 string.')
         ),
+        flags: z
+          .array(TeamFlagSchema)
+          .check(
+            z.describe(
+              'Flags minted for the submitting team, one per flag entry that can produce a concrete value.'
+            )
+          ),
         flag: example(z.string(), 'rctf{baby_rev}').check(
-          z.describe('Flag the bot should submit, when applicable.')
+          z.describe(
+            'Deprecated: the first entry of `flags`, kept for backwards compatibility. Empty when no flags are configured.'
+          )
         ),
         inputs: example(z.record(z.string(), z.string()), {
           url: 'https://example.com',

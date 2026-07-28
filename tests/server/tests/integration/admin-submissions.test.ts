@@ -14,6 +14,7 @@ import {
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { getFlagsForTeam } from '../../../../apps/api/src/providers/flags'
 import { getApp, request } from '../../app'
 import {
   clearDatabase,
@@ -223,6 +224,107 @@ describe('admin submissions', () => {
       scopedBody.data.submissions.map((submission: any) => submission.userName)
     ).toEqual(['Alpha Team'])
     expect(scopedBody.data.total).toBe(1)
+  })
+
+  test('surfaces cheated submissions with attribution and filtering', async () => {
+    const db = getDb()
+    const { admin } = await adminAuth()
+    const owner = await generateRealTestUser()
+    const thief = await generateRealTestUser()
+    await db
+      .update(users)
+      .set({ name: 'Flag Donors' })
+      .where(eq(users.id, owner.user.id))
+
+    const challengeId = crypto.randomUUID()
+    const dynamicEntry = {
+      provider: 'flags/dynamic',
+      config: { base: 'rctf{abcdefghijklmnopqrstuvwxyz}', mode: 'auto' },
+    }
+    await db.insert(challenges).values({
+      id: challengeId,
+      data: {
+        name: 'Dynamic Challenge',
+        description: 'desc',
+        category: 'misc',
+        author: 'tester',
+        files: [],
+        flags: [dynamicEntry],
+        tiebreakEligible: true,
+        points: { min: 100, max: 500 },
+      },
+    })
+
+    const minted = await getFlagsForTeam([dynamicEntry], {
+      db,
+      teamId: owner.user.id,
+      challengeId,
+    })
+    const ownerFlag = minted[0]!.flag
+
+    const submitFlag = async (userId: string) => {
+      const submitToken = await generateAuthToken(userId)
+      const res = await request(app, `/api/v1/challs/${challengeId}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${submitToken}`,
+        },
+        body: JSON.stringify({ flag: ownerFlag }),
+      })
+      await expectResponse(res, GoodFlag)
+    }
+    await submitFlag(owner.user.id)
+    await submitFlag(thief.user.id)
+
+    const token = await generateAuthToken(admin.user.id)
+    const allBody = await expectResponse(
+      await filterSubmissions(token, {}),
+      GoodAdminSubmissions
+    )
+    expect(allBody.data.total).toBe(2)
+    const rows = allBody.data.submissions as any[]
+    expect(rows.find(row => row.userId === thief.user.id)).toMatchObject({
+      result: SubmissionResult.CHEATED,
+      cheatedFromId: owner.user.id,
+      cheatedFromName: 'Flag Donors',
+    })
+    expect(rows.find(row => row.userId === owner.user.id)).toMatchObject({
+      result: SubmissionResult.CORRECT,
+      cheatedFromId: null,
+      cheatedFromName: null,
+    })
+
+    const cheatedBody = await expectResponse(
+      await filterSubmissions(token, {
+        result: { include: [SubmissionResult.CHEATED] },
+      }),
+      GoodAdminSubmissions
+    )
+    expect(cheatedBody.data.total).toBe(1)
+    expect(cheatedBody.data.submissions[0]!.userId).toBe(thief.user.id)
+
+    const cleanBody = await expectResponse(
+      await filterSubmissions(token, {
+        result: { exclude: [SubmissionResult.CHEATED] },
+      }),
+      GoodAdminSubmissions
+    )
+    expect(cleanBody.data.total).toBe(1)
+    expect(cleanBody.data.submissions[0]!.userId).toBe(owner.user.id)
+
+    await db.delete(users).where(eq(users.id, owner.user.id))
+    const orphanBody = await expectResponse(
+      await filterSubmissions(token, {
+        result: { include: [SubmissionResult.CHEATED] },
+      }),
+      GoodAdminSubmissions
+    )
+    expect(orphanBody.data.submissions[0]).toMatchObject({
+      result: SubmissionResult.CHEATED,
+      cheatedFromId: owner.user.id,
+      cheatedFromName: null,
+    })
   })
 
   test('requires team and challenge admin permissions', async () => {

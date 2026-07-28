@@ -1,4 +1,5 @@
 import type { InstancerConfig, User } from '@rctf/db'
+import type { TeamFlag } from '@rctf/types'
 import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
 import { BaseProvider } from '../base'
@@ -7,6 +8,7 @@ export { InstanceStatus }
 
 export interface CreateInstanceOptions extends InstancerConfig {
   user: User
+  flags: TeamFlag[]
 }
 
 export interface InstanceQueryOptions {

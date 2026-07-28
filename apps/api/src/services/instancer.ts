@@ -1,4 +1,4 @@
-import type { Challenge, DatabaseClient } from '@rctf/db'
+import type { Challenge, DatabaseClient, User } from '@rctf/db'
 import type {
   BadChallenge,
   BadEndpoint,
@@ -13,13 +13,16 @@ import {
   instancerEnabled,
   instancers,
 } from '../providers'
+import { getFlagsForTeam } from '../providers/flags'
 import {
+  type CreateInstanceOptions,
   type instanceDetailsOrError,
   type InstancerActionDefinition,
   type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
 import { getChallenge } from './challenges'
+import { inferChallengeIntegrationId } from '../util/instancer'
 
 export const resolveInstancerName = (
   instancerConfig?: { instancer?: string } | null,
@@ -109,6 +112,23 @@ export const getInstancerChallenge = async (
   }
 
   return { challenge, provider }
+}
+
+export const buildCreateInstanceOptions = async (
+  db: DatabaseClient,
+  challenge: Challenge,
+  user: User
+): Promise<CreateInstanceOptions> => {
+  return {
+    user,
+    ...challenge.data.instancerConfig!,
+    challengeIntegrationId: inferChallengeIntegrationId(challenge),
+    flags: await getFlagsForTeam(challenge.data.flags, {
+      db,
+      teamId: user.id,
+      challengeId: challenge.id,
+    }),
+  }
 }
 
 export const returnInstanceStatusOrError = async (

@@ -258,6 +258,16 @@ export const FlagEntrySchema = z.object({
 })
 export type FlagEntry = z.output<typeof FlagEntrySchema>
 
+export const TeamFlagSchema = z.object({
+  provider: example(z.string(), 'flags/static').check(
+    z.describe('Flag provider that produced this flag.')
+  ),
+  flag: example(z.string(), 'rctf{baby_rev}').check(
+    z.describe('Flag value minted for the team.')
+  ),
+})
+export type TeamFlag = z.output<typeof TeamFlagSchema>
+
 export const RegexRuleSchema = z.object({
   pattern: example(z.string(), '^https?://.*$').check(
     z.describe('Regular expression source the input must match.')
@@ -353,6 +363,7 @@ export enum SubmissionSortOrder {
 
 export enum SubmissionResult {
   CORRECT = 'correct',
+  CHEATED = 'cheated',
   INCORRECT = 'incorrect',
   ALREADY_SOLVED = 'already_solved',
   QUEUED = 'queued',

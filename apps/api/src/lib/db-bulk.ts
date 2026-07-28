@@ -6,10 +6,11 @@ const INSERT_CHUNK_SIZE = 1_000
 
 export const insertInChunks = async <T>(
   rows: T[],
-  insert: (chunk: T[]) => Promise<unknown>
+  insert: (chunk: T[]) => Promise<unknown>,
+  chunkSize = INSERT_CHUNK_SIZE
 ): Promise<void> => {
-  for (let index = 0; index < rows.length; index += INSERT_CHUNK_SIZE) {
-    await insert(rows.slice(index, index + INSERT_CHUNK_SIZE))
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    await insert(rows.slice(index, index + chunkSize))
   }
 }
 

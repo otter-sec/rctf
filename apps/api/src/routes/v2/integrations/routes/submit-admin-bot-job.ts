@@ -6,7 +6,7 @@ import {
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
 import { adminBotProvider } from '../../../../providers'
-import { getFlagForTeam } from '../../../../providers/flags'
+import { getFlagsForTeam } from '../../../../providers/flags'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
 import {
@@ -192,7 +192,11 @@ integrationsGroup.route(
       challengeId: params.id,
       userId: user.id,
       configRevision: adminBotConfig.revision,
-      flag: await getFlagForTeam(challenge.data.flags, user.id),
+      flags: await getFlagsForTeam(challenge.data.flags, {
+        db: ctx.var.db,
+        teamId: user.id,
+        challengeId: params.id,
+      }),
       inputs: Object.fromEntries(
         Object.keys(adminBotConfig.inputs).map(name => [
           name,

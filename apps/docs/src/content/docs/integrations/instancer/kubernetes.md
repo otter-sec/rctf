@@ -299,6 +299,27 @@ instancerConfig:
 
 `<yellow>RCTF_EXPOSED_HOSTNAMES</yellow>` is a JSON string. Hidden endpoints (`shouldDisplay: false{:yml}`) are included because they still exist for routing.
 
+## The flags inside pods
+
+At instance-creation time rCTF writes the challenge's flags onto the instance pod template as the annotation `<red>rctf.osec.io/flags</red>`, and the controller carries it through to the pod. The value is a JSON list with one entry per configured flag, each shaped as `{"provider": "flags/static", "flag": "..."}{:json}`, for the team that started the instance. Read it through the downward API the same way as the exposed hostnames:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  config:
+    pods:
+      - name: app
+        spec:
+          containers:
+            - name: app
+              image: ghcr.io/example/web-demo:latest
+              env:
+                - name: RCTF_FLAGS
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['rctf.osec.io/flags']
+```
+
+
 ## Per-pod safety checklist
 
 Kubernetes does not expose every resource limit directly in a PodSpec, and the controller does not add limits to the pod definition you provide. Set the following values on every pod under `<red>instancerConfig.config.pods[]</red>`.

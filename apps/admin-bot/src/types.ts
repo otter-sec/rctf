@@ -10,6 +10,12 @@ export interface JobMetadata {
   userId: string
   submittedAt: Date
 
+  flags: {
+    provider: string
+    flag: string
+  }[]
+
+  // @deprecated kept for backwards compatibility
   flag: string
 
   instancerInstances: {

@@ -1,3 +1,4 @@
+import type { TeamFlag } from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import {
   foreignKey,
@@ -36,7 +37,7 @@ export const adminBotJobs = pgTable(
     userId: text('user_id').notNull(),
     status: adminBotJobStatusEnum().notNull(),
     configRevision: text('config_revision').notNull(),
-    flag: text().notNull(),
+    flags: jsonb().$type<TeamFlag[]>().notNull(),
     inputs: jsonb().$type<Record<string, string>>().notNull(),
     instancerInstances: jsonb('instancer_instances')
       .$type<InstancerInstance[]>()

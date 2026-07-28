@@ -10,12 +10,19 @@ interface InstancerInstance {
   text?: string
 }
 
+export interface TeamFlag {
+  provider: string
+  flag: string
+}
+
 export interface PulledJob {
   id: string
   challengeId: string
   configRevision: string
   userId: string
   submittedAt: string
+  flags: TeamFlag[]
+  // @deprecated
   flag: string
   inputs: Record<string, string>
   instancerInstances: InstancerInstance[]

@@ -13,6 +13,36 @@ KIND_TO_PORT = {
 }
 
 
+def coerce_tcp_exposes(exposes: list[protocol.InstancerExpose]) -> None:
+    for exp in exposes:
+        if exp.kind != protocol.ExposeKind.TCP:
+            continue
+        exp.kind = protocol.ExposeKind.TCP_SSL
+
+
+def expose_host(expose: protocol.InstancerExpose, instance_id: str) -> str:
+    return f'{expose.host_prefix}-{instance_id}.{config.INSTANCES_HOST}'.replace(SEPARATOR, '')
+
+
+def build_exposed_hostnames(exposes: list[protocol.InstancerExpose], instance_id: str) -> list[dict]:
+    coerce_tcp_exposes(exposes)
+
+    result: list[dict] = []
+    for expose in exposes:
+        entry: dict = {
+            'kind': str(expose.kind),
+            'hostPrefix': expose.host_prefix,
+            'host': expose_host(expose, instance_id),
+            'port': KIND_TO_PORT[expose.kind],
+            'containerName': expose.container_name,
+            'containerPort': expose.container_port,
+        }
+        if expose.title is not None:
+            entry['title'] = expose.title
+        result.append(entry)
+    return result
+
+
 def expose_ports(
     labels: dict[str, str],
     svc_name: str,
@@ -22,12 +52,7 @@ def expose_ports(
     global_indices: list[int],
 ) -> tuple[list[str], list[protocol.RCTFInstanceDetails.Endpoint]]:
     to_expose = exposes.get(svc_name, [])
-
-    # We don't support raw tcp expose due to SNI routing
-    for exp in to_expose:
-        if exp.kind != protocol.ExposeKind.TCP:
-            continue
-        exp.kind = protocol.ExposeKind.TCP_SSL
+    coerce_tcp_exposes(to_expose)
 
     labels[ContainerLabels.EXPOSED_KINDS] = SEPARATOR.join(k.kind for k in to_expose)
     labels[ContainerLabels.EXPOSED_INDICES] = SEPARATOR.join(str(i) for i in global_indices)
@@ -43,7 +68,7 @@ def expose_ports(
 
     for i, expose in enumerate(to_expose):
         router_name = f'{config.PREFIX}-{instance_id}-{svc_name}-{i}'
-        host = f'{expose.host_prefix}-{instance_id}.{config.INSTANCES_HOST}'.replace(SEPARATOR, '')
+        host = expose_host(expose, instance_id)
 
         hosts.append(host)
         exposed.append(

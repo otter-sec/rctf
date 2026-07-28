@@ -36,6 +36,8 @@ function submissionWith(overrides: Partial<Submission>): Submission {
     userBanned: false,
     ip: '203.0.113.7',
     result: SubmissionResult.CORRECT,
+    cheatedFromId: null,
+    cheatedFromName: null,
     details: {},
     relatedId: null,
     createdAt: '2024-03-09T00:00:00.000Z',
@@ -219,6 +221,27 @@ describe('detailEntries', () => {
     )
 
     expect(entries).toEqual([{ label: 'flag', value: 'rctf{pwned}' }])
+  })
+
+  test('a cheated flag submission surfaces the original owner', () => {
+    const entries = detailEntries(
+      submissionWith({
+        kind: SubmissionKind.FLAG,
+        result: SubmissionResult.CHEATED,
+        cheatedFromId: 'team-2',
+        cheatedFromName: 'flag-donors',
+        details: { submittedFlag: 'rctf{stolen}' },
+      })
+    )
+
+    expect(entries).toEqual([
+      { label: 'flag', value: 'rctf{stolen}' },
+      {
+        label: 'owner',
+        value: 'flag-donors',
+        href: '/admin/profile/team-2',
+      },
+    ])
   })
 
   test('an admin-bot submission surfaces every present field in order', () => {

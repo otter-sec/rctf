@@ -60,12 +60,19 @@ export type Submission = {
   userBanned: boolean
   ip: string
   result: SubmissionResult
+  cheatedFromId: string | null
+  cheatedFromName: string | null
   details: Record<string, unknown>
   relatedId: string | null
   createdAt: string
 }
 
-export type DetailEntry = { label: string; value: string; wide?: boolean }
+export type DetailEntry = {
+  label: string
+  value: string
+  href?: string
+  wide?: boolean
+}
 
 export const KIND_OPTIONS = [
   SubmissionKind.FLAG,
@@ -76,6 +83,7 @@ export const RESULT_OPTIONS = [
   SubmissionResult.QUEUED,
   SubmissionResult.ALREADY_SOLVED,
   SubmissionResult.ACTIVE_JOB,
+  SubmissionResult.CHEATED,
   SubmissionResult.INCORRECT,
   SubmissionResult.INVALID_INPUT,
   SubmissionResult.BAD_INSTANCER_STATE,
@@ -184,6 +192,8 @@ export function resultLabel(result: string): string {
   switch (result) {
     case SubmissionResult.CORRECT:
       return 'Correct'
+    case SubmissionResult.CHEATED:
+      return 'Cheated'
     case SubmissionResult.INCORRECT:
       return 'Incorrect'
     case SubmissionResult.ALREADY_SOLVED:
@@ -228,6 +238,8 @@ export function resultTone(result: string): ResultTone {
     case SubmissionResult.CORRECT:
     case SubmissionResult.QUEUED:
       return 'success'
+    case SubmissionResult.CHEATED:
+      return 'danger'
     case SubmissionResult.ALREADY_SOLVED:
     case SubmissionResult.ACTIVE_JOB:
       return 'warning'
@@ -240,7 +252,20 @@ export function detailEntries(submission: Submission): DetailEntry[] {
   const details = isRecord(submission.details) ? submission.details : {}
 
   if (submission.kind === SubmissionKind.FLAG) {
-    return [{ label: 'flag', value: formatDetailValue(details.submittedFlag) }]
+    const entries: DetailEntry[] = [
+      { label: 'flag', value: formatDetailValue(details.submittedFlag) },
+    ]
+    if (submission.result === SubmissionResult.CHEATED) {
+      entries.push({
+        label: 'owner',
+        value:
+          submission.cheatedFromName ?? submission.cheatedFromId ?? 'unknown',
+        ...(submission.cheatedFromId
+          ? { href: `/admin/profile/${submission.cheatedFromId}` }
+          : {}),
+      })
+    }
+    return entries
   }
 
   const entries: DetailEntry[] = []

@@ -116,6 +116,12 @@ class InstancerExpose(BaseModel):
     container_name: str = Field(validation_alias='containerName')
     container_port: int = Field(validation_alias='containerPort')
     should_display: bool = Field(default=True, validation_alias='shouldDisplay')
+    title: str | None = None
+
+
+class TeamFlag(BaseModel):
+    provider: str
+    flag: str
 
 
 class RCTFCreateInstanceForm(BaseRCTFRequest):
@@ -124,6 +130,7 @@ class RCTFCreateInstanceForm(BaseRCTFRequest):
     challenge_integration_id: str = Field(validation_alias='challengeIntegrationId')
     config: InstancerConfig
     expose: list[InstancerExpose]
+    flags: list[TeamFlag] = Field(default_factory=list)
     timeout_milliseconds: int = Field(validation_alias='timeoutMilliseconds')
 
 
