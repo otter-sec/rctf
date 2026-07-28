@@ -40,6 +40,7 @@ aside: true
 | [List external-auth clients](/api/admin/external-auth-list/) | `<route>GET /api/v2/admin/external-auth/clients</route>` |
 | [Create external-auth client](/api/admin/external-auth-create/) | `<route>POST /api/v2/admin/external-auth/clients</route>` |
 | [Delete external-auth client](/api/admin/external-auth-delete/) | `<route>DELETE /api/v2/admin/external-auth/clients/:id</route>` |
+| [Delete all team solves](/api/admin/team-delete-all-solves/) | `<route>DELETE /api/v2/admin/users/:userId/solves</route>` |
 
 :::
 

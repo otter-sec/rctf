@@ -4,6 +4,7 @@ import {
   BadChallenge,
   BadRateLimit,
   BadUnknownSolveV2,
+  GoodAllChallengeSolvesDeleteV2,
   GoodChallengeDelete,
   GoodChallengeSolveDeleteV2,
   GoodChallengeSolves,
@@ -663,6 +664,85 @@ describe('challenges service', () => {
       )
 
       await expectResponse(res, BadUnknownSolveV2)
+    })
+  })
+
+  describe('deleteAllSolves via v2 admin route', () => {
+    test('revokes solves across two challenges', async () => {
+      const { user: admin, cleanup: adminCleanup } = await generateRealTestUser(
+        Permissions.challsSolveWrite
+      )
+      createdUserCleanups.push(adminCleanup)
+
+      const { user: solver, cleanup: solverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(solverCleanup)
+
+      const { user: otherSolver, cleanup: otherSolverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(otherSolverCleanup)
+
+      const { challenge: firstChallenge, cleanup: firstChallengeCleanup } =
+        await generateChallenge()
+      createdChallengeCleanups.push(firstChallengeCleanup)
+
+      const { challenge: secondChallenge, cleanup: secondChallengeCleanup } =
+        await generateChallenge()
+      createdChallengeCleanups.push(secondChallengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      await db.insert(solves).values([
+        {
+          id: crypto.randomUUID(),
+          challengeid: firstChallenge.id,
+          userid: solver.id,
+          createdat: new Date().toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          challengeid: secondChallenge.id,
+          userid: solver.id,
+          createdat: new Date().toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          challengeid: firstChallenge.id,
+          userid: otherSolver.id,
+          createdat: new Date().toISOString(),
+        },
+      ])
+
+      const userSolvesBefore = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, solver.id))
+      expect(userSolvesBefore).toHaveLength(2)
+
+      const authToken = await generateAuthToken(admin.id)
+      const res = await request(
+        app,
+        `/api/v2/admin/users/${solver.id}/solves`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      )
+
+      await expectResponse(res, GoodAllChallengeSolvesDeleteV2)
+
+      const deletedUserSolves = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, solver.id))
+      expect(deletedUserSolves).toHaveLength(0)
+
+      const preservedSolves = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, otherSolver.id))
+      expect(preservedSolves).toHaveLength(1)
     })
   })
 

@@ -1292,3 +1292,62 @@ export const deleteSolve = async (
     return removed
   })
 }
+
+export const deleteAllSolves = async (
+  db: DatabaseClient,
+  params: {
+    userId: string
+  }
+): Promise<Solve[]> => {
+  return await db.transaction(async tx => {
+    const challengeIds = await tx
+      .select({ id: solves.challengeid })
+      .from(solves)
+      .where(eq(solves.userid, params.userId))
+      .orderBy(asc(solves.challengeid))
+      .then(rows => rows.map(row => row.id))
+
+    if (challengeIds.length === 0) {
+      return []
+    }
+
+    for (const challengeId of challengeIds) {
+      await lockChallenge(tx, challengeId)
+    }
+
+    const targetUser = await tx
+      .select({ banned: users.banned })
+      .from(users)
+      .where(eq(users.id, params.userId))
+      .limit(1)
+      .for('share')
+      .then(takeUnique)
+
+    const removed = await tx
+      .delete(solves)
+      .where(
+        and(
+          eq(solves.userid, params.userId),
+          inArray(solves.challengeid, challengeIds)
+        )
+      )
+      .returning()
+
+    if (targetUser?.banned === false) {
+      const events = removed
+        .filter(s => (s.points ?? 0) !== 0)
+        .map(s => ({
+          id: crypto.randomUUID(),
+          challengeid: s.challengeid,
+          userid: params.userId,
+          pointsDelta: -s.points,
+          source: 'delete' as const,
+        }))
+      if (events.length > 0) {
+        await tx.insert(scoreEvents).values(events)
+      }
+    }
+
+    return removed
+  })
+}
