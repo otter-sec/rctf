@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import GithubSlugger from 'github-slugger'
 import { defineHastPlugin } from 'satteri'
+import { plainText } from './hast-text'
 
-const SUBPOST = /\/blog\/[^/]+\/(?!index\.md$)([^/]+)\.md$/
 const DOCS_PAGE = /\/src\/content\/docs\/.+\/(?!index\.md$)([^/]+)\.md$/
 
 const scrollDirs = new Map<string, boolean>()
@@ -22,9 +22,6 @@ function isScrollDir(indexPath: string): boolean {
 }
 
 function namespace(path: string): string | null {
-  const subpost = SUBPOST.exec(path)
-  if (subpost) return subpost[1]
-
   const docs = DOCS_PAGE.exec(path)
   if (!docs) return null
   const indexPath = `${path.slice(0, path.lastIndexOf('/') + 1)}index.md`
@@ -40,7 +37,7 @@ export function headingNamespace() {
       visit(node, ctx) {
         const prefix = ctx.fileURL && namespace(ctx.fileURL.pathname)
         if (!prefix) return
-        ctx.setProperty(node, 'id', `${prefix}-${slugger.slug(ctx.textContent(node))}`)
+        ctx.setProperty(node, 'id', `${prefix}-${slugger.slug(plainText(node))}`)
       },
     },
   })

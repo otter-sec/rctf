@@ -7,10 +7,6 @@ export function formatDate(date: Date): string {
   }).format(date)
 }
 
-export const isSubpost = (id: string) => id.includes('/')
-
-export const subpostSlug = (id: string) => id.split('/')[1]
-
 export const normalizePath = (pathname: string) => {
   try {
     return decodeURIComponent(pathname).replace(/\/+$/, '')

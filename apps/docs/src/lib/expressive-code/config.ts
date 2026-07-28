@@ -7,7 +7,7 @@ import { pluginCodeTones } from './tones'
 export const ecOptions: SatteriExpressiveCodeOptions = {
   themes: ['github-light', 'github-dark'],
   useDarkModeMediaQuery: true,
-  themeCssSelector: theme => `[data-theme="${theme.name === 'github-dark' ? 'dark' : 'light'}"]`,
+  themeCssSelector: theme => `[data-theme="${theme.type}"]`,
   plugins: [
     pluginCollapsibleSections(),
     pluginLineNumbers(),

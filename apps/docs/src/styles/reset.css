@@ -49,10 +49,7 @@ strong {
   font-weight: bolder;
 }
 
-code,
-kbd,
-samp,
-pre {
+:where(code, kbd, samp, pre) {
   font-size: 1em;
 }
 

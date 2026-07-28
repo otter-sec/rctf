@@ -96,8 +96,6 @@ const section = NAVIGATION.find(
       padding: 0;
       background-color: transparent;
       backdrop-filter: none;
-      border-block-end: none;
-      border-image: none;
     }
 
     @media (width < 48rem) {
@@ -166,12 +164,11 @@ const section = NAVIGATION.find(
 
     a {
       display: block;
-      color: var(--foreground);
-      opacity: 0.6;
+      color: var(--muted-foreground);
 
       &:hover,
       &[aria-current='page'] {
-        opacity: 1;
+        color: var(--foreground);
       }
     }
 
