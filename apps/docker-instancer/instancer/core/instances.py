@@ -99,6 +99,7 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
             expose_indices.setdefault(expose.container_name, []).append(index)
 
         env_context = {
+            'RCTF_FLAG': form.flags[0].flag if form.flags else '',
             'RCTF_FLAGS': orjson.dumps([flag.model_dump() for flag in form.flags]).decode(),
             'RCTF_EXPOSED_HOSTNAMES': orjson.dumps(build_exposed_hostnames(form.expose, instance_id)).decode(),
         }

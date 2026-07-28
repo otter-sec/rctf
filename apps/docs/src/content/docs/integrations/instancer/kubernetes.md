@@ -319,6 +319,15 @@ instancerConfig:
                       fieldPath: metadata.annotations['rctf.osec.io/flags']
 ```
 
+When the challenge has a single flag and you don't want to parse JSON, use the `<red>rctf.osec.io/flag</red>` annotation instead. It holds the first configured flag as a plain string, or an empty string when the challenge has no flags:
+
+```yaml title="challenge.yaml"
+              env:
+                - name: RCTF_FLAG
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['rctf.osec.io/flag']
+```
 
 ## Per-pod safety checklist
 

@@ -1,7 +1,7 @@
 from string import Template
 
 
-RCTF_PLACEHOLDERS = frozenset({'RCTF_FLAGS', 'RCTF_EXPOSED_HOSTNAMES'})
+RCTF_PLACEHOLDERS = frozenset({'RCTF_FLAG', 'RCTF_FLAGS', 'RCTF_EXPOSED_HOSTNAMES'})
 
 
 def _interpolate_value(value: str, context: dict[str, str]) -> str:

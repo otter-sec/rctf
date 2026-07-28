@@ -18,7 +18,6 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -64,6 +63,7 @@ const (
 	labelEgress                 = "rctf.osec.io/egress"
 	labelExposed                = "rctf.osec.io/exposed"
 	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
+	annotationFlag              = "rctf.osec.io/flag"
 	annotationFlags             = "rctf.osec.io/flags"
 	managedBy                   = "rctf-operator"
 	typeReady                   = "Ready"
@@ -87,16 +87,6 @@ const (
 // +kubebuilder:rbac:groups=traefik.io,resources=ingressroutes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=traefik.io,resources=ingressroutetcps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=traefik.io,resources=middlewares,verbs=get;list;watch;create;update;patch;delete
-
-type exposedHostname struct {
-	Kind          rctfv1.ExposeType `json:"kind"`
-	HostPrefix    string            `json:"hostPrefix"`
-	Host          string            `json:"host"`
-	Port          uint16            `json:"port"`
-	ContainerName string            `json:"containerName"`
-	ContainerPort uint16            `json:"containerPort"`
-	Title         *string           `json:"title,omitempty"`
-}
 
 func getNamespaceForInstance(instance *rctfv1.ChallengeInstance) string {
 	return fmt.Sprintf(
@@ -130,29 +120,6 @@ func getEndpointForExpose(instance *rctfv1.ChallengeInstance, expose rctfv1.Chal
 		Port:  exposeTypeToPort(expose.Kind),
 		Title: expose.Title,
 	}
-}
-
-func getExposedHostnamesAnnotationValue(instance *rctfv1.ChallengeInstance, instancerHost string) (string, error) {
-	exposedHostnames := make([]exposedHostname, 0, len(instance.Spec.Expose))
-	for _, expose := range instance.Spec.Expose {
-		endpoint := getEndpointForExpose(instance, expose, instancerHost)
-		exposedHostnames = append(exposedHostnames, exposedHostname{
-			Kind:          endpoint.Kind,
-			HostPrefix:    expose.HostPrefix,
-			Host:          endpoint.Host,
-			Port:          endpoint.Port,
-			ContainerName: expose.ContainerName,
-			ContainerPort: expose.ContainerPort,
-			Title:         endpoint.Title,
-		})
-	}
-
-	value, err := json.Marshal(exposedHostnames)
-	if err != nil {
-		return "", fmt.Errorf("marshalling exposed hostnames failed: %w", err)
-	}
-
-	return string(value), nil
 }
 
 func (r *ChallengeInstanceReconciler) setComponentStatus(instance *rctfv1.ChallengeInstance, statusType string, status metav1.ConditionStatus, reason string) {
@@ -527,6 +494,7 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 				"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
 
 				annotationExposedHostnames: exposedHostnames,
+				annotationFlag:             getFirstFlagAnnotationValue(flags),
 				annotationFlags:            flags,
 			}
 
