@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AdminTeamSortBy } from '@rctf/types'
+  import { AdminTeamSortBy, AdminTeamStatus } from '@rctf/types'
   import type { MultiFilter } from '$lib/filters/core'
   import FilterBar from '$lib/filters/filter-bar.svelte'
   import type { ValueFilterFamily } from '$lib/filters/ui'
@@ -189,7 +189,11 @@
       />
     </avatar-slot>
     {#if row.kind === 'registered'}
-      <a href="/profile/{row.team.id}">{name}</a>
+      {#if canManage && teamRowStatus(row) !== AdminTeamStatus.ADMIN}
+        <a href="/admin/profile/{row.team.id}">{name}</a>
+      {:else}
+        <a href="/profile/{row.team.id}">{name}</a>
+      {/if}
     {:else}
       <span>{name}</span>
     {/if}
