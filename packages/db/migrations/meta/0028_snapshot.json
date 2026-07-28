@@ -361,6 +361,15 @@
         }
       },
       "foreignKeys": {
+        "dynamic_flags_challenge_id_fkey": {
+          "name": "dynamic_flags_challenge_id_fkey",
+          "tableFrom": "dynamic_flags",
+          "tableTo": "challenges",
+          "columnsFrom": ["challenge_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        },
         "dynamic_flags_user_id_fkey": {
           "name": "dynamic_flags_user_id_fkey",
           "tableFrom": "dynamic_flags",

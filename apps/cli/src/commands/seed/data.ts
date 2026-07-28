@@ -579,11 +579,6 @@ const buildFlagScoreEvents = (
         a.createdat.localeCompare(b.createdat) || a.id.localeCompare(b.id)
     )
 
-  // Emitting every devaluation for every earlier solver on every new solve
-  // explodes the event count (~20x the solve count); emit the new solver's
-  // own event immediately and settle everyone else on a coarse interval.
-  // Deltas are tracked against what was actually emitted, so cumulative
-  // sums stay exact regardless of the interval.
   let nextFlushAt = timing.startTime + FLAG_RESCORE_INTERVAL
   for (const solve of ordered) {
     const state = states.get(solve.challengeid)!

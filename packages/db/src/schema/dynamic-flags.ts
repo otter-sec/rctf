@@ -9,6 +9,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
+import { challenges } from './challenges'
 import { users } from './users'
 
 export const dynamicFlags = pgTable(
@@ -35,6 +36,13 @@ export const dynamicFlags = pgTable(
       table.challengeId,
       table.flag
     ),
+    foreignKey({
+      columns: [table.challengeId],
+      foreignColumns: [challenges.id],
+      name: 'dynamic_flags_challenge_id_fkey',
+    })
+      .onUpdate('cascade')
+      .onDelete('cascade'),
     foreignKey({
       columns: [table.userId],
       foreignColumns: [users.id],

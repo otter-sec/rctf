@@ -9,6 +9,7 @@ CREATE TABLE "dynamic_flags" (
 	CONSTRAINT "dynamic_flags_pkey" PRIMARY KEY("challenge_id","user_id","base")
 );
 --> statement-breakpoint
+ALTER TABLE "dynamic_flags" ADD CONSTRAINT "dynamic_flags_challenge_id_fkey" FOREIGN KEY ("challenge_id") REFERENCES "public"."challenges"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "dynamic_flags" ADD CONSTRAINT "dynamic_flags_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 CREATE UNIQUE INDEX "dynamic_flags_challenge_id_flag_key" ON "dynamic_flags" USING btree ("challenge_id","flag") WHERE NOT "dynamic_flags"."allow_duplicate";--> statement-breakpoint
 CREATE INDEX "dynamic_flags_challenge_id_flag_index" ON "dynamic_flags" USING btree ("challenge_id","flag");
