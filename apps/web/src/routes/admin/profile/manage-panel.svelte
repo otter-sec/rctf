@@ -10,6 +10,8 @@
     Permissions,
     UpdateAdminUserAvatarRouteV2,
     UpdateAdminUserRouteV2,
+    DeleteAllChallengeSolvesRouteV2,
+    GoodAllChallengeSolvesDeleteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
@@ -56,7 +58,7 @@
   let { userId }: Props = $props()
 
   type DivisionRecord = Record<string, string>
-  type ActionKind = 'token' | 'url' | 'ban' | 'delete'
+  type ActionKind = 'token' | 'url' | 'ban' | 'delete' | 'revoke-solves'
 
   const queryClient = useQueryClient()
   const currentUserQuery = useCurrentUser()
@@ -64,6 +66,9 @@
 
   const canWrite = $derived(
     hasPermissions(currentUserQuery.data, Permissions.usersWrite)
+  )
+  const canRevokeSolves = $derived(
+    hasPermissions(currentUserQuery.data, Permissions.challsSolveWrite)
   )
   const adminUserQuery = useAdminUser(() => (canWrite ? userId : null))
 
@@ -241,6 +246,23 @@
     )
   }
 
+  async function deleteAllSolves() {
+    await action.run(
+      async () => {
+        const response = await apiRequest(DeleteAllChallengeSolvesRouteV2, {
+          userId: userId,
+        })
+        if (response.kind === GoodAllChallengeSolvesDeleteV2.kind) {
+          toast.success('All solves deleted.')
+          invalidateTeam()
+        } else {
+          showApiError(response)
+        }
+      },
+      { key: 'revoke-solves', errorMessage: 'Failed to revoke all solves' }
+    )
+  }
+
   function viewSubmissions() {
     goto(`/admin/submissions?team=${encodeURIComponent(userId)}`)
   }
@@ -290,6 +312,17 @@
       confirmLabel: 'Delete team',
       destructive: true,
       run: deleteTeam,
+    })
+  }
+
+  function requestRevokeAllSolves() {
+    confirmState.request({
+      title: 'Revoke all solves',
+      message:
+        'This removes all solves from the team. This cannot be undone and will affect the leaderboard.',
+      confirmLabel: 'Revoke all solves',
+      destructive: true,
+      run: deleteAllSolves,
     })
   }
 </script>
@@ -425,6 +458,21 @@
           {/if}
           Delete team
         </Button>
+
+        {#if canRevokeSolves}
+          <Button
+            variant="destructive"
+            disabled={busy}
+            onclick={requestRevokeAllSolves}
+          >
+            {#if action.key === 'revoke-solves'}
+              <Spinner />
+            {:else}
+              <IconTrash />
+            {/if}
+            Revoke all solves
+          </Button>
+        {/if}
       </manage-actions>
     </Section>
   </manage-panel>

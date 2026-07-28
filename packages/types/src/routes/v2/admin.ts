@@ -41,6 +41,7 @@ import {
   GoodAdminUserVerificationCompleteV2,
   GoodAdminUserVerificationResendV2,
   GoodAdminUserVerificationsV2,
+  GoodAllChallengeSolvesDeleteV2,
   GoodAvatarUpdated,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
@@ -505,6 +506,18 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
   params: z.object({
     challengeId: z.string().check(z.describe('Challenge ID.')),
     userId: z.string().check(z.describe('Team ID whose solve to delete.')),
+  }),
+  permissions: Permissions.challsSolveWrite,
+})
+
+export const DeleteAllChallengeSolvesRouteV2 = defineRoute({
+  path: '/v2/admin/users/:userId/solves',
+  method: 'DELETE',
+  goodResponses: [GoodAllChallengeSolvesDeleteV2],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  params: z.object({
+    userId: z.string().check(z.describe('Team ID whose solves to delete.')),
   }),
   permissions: Permissions.challsSolveWrite,
 })
