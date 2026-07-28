@@ -211,12 +211,14 @@ instancerConfig:
       app:
         image: ghcr.io/example/web-demo:latest
         environment:
+          RCTF_FLAG: ${RCTF_FLAG}
           RCTF_FLAGS: ${RCTF_FLAGS}
           RCTF_EXPOSED_HOSTNAMES: ${RCTF_EXPOSED_HOSTNAMES}
 ```
 
 | Placeholder | Value |
 | --- | --- |
+| `<yellow>RCTF_FLAG</yellow>` | The first configured flag as a plain string, or an empty string when the challenge has no flags. Same value as the `<red>rctf.osec.io/flag</red>` annotation on the [Kubernetes instancer](/integrations/instancer/kubernetes#the-flags-inside-pods). |
 | `<yellow>RCTF_FLAGS</yellow>` | JSON list with one entry per configured flag, each shaped as `{"provider": "flags/static", "flag": "..."}{:json}`, for the team that started the instance. Same shape as the `<red>rctf.osec.io/flags</red>` annotation on the [Kubernetes instancer](/integrations/instancer/kubernetes#the-flags-inside-pods). |
 | `<yellow>RCTF_EXPOSED_HOSTNAMES</yellow>` | JSON list with one entry per `<red>expose</red>` item, each shaped as `{"kind", "hostPrefix", "host", "port", "containerName", "containerPort", "title"?}{:json}`. Same shape as the `<red>rctf.osec.io/exposed-hostnames</red>` annotation on the Kubernetes instancer. Hidden endpoints (`shouldDisplay: false{:yml}`) are included, and `<green>tcp</green>` exposes appear as `<green>tcp-ssl</green>` since that is how they're routed. |
 
