@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    type ClientConfig,
-    DeleteAllChallengeSolvesRouteV2,
-    GoodAllChallengeSolvesDeleteV2,
-  } from '@rctf/types'
+  import type { ClientConfig } from '@rctf/types'
   import {
     CreateUserTokenRouteV2,
     DeleteAdminUserRouteV2,
@@ -14,6 +10,8 @@
     Permissions,
     UpdateAdminUserAvatarRouteV2,
     UpdateAdminUserRouteV2,
+    DeleteAllChallengeSolvesRouteV2,
+    GoodAllChallengeSolvesDeleteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
