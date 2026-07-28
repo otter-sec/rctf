@@ -102,5 +102,9 @@ A team's flag is created on first delivery and stays stable afterwards. Flags ar
 
 Dynamic flags are delivered to instancers and admin bots through the same flags JSON as other concrete flag values.
 
+:::warning[Dynamic flags need a delivery channel]
+A created dynamic flag exists only in the database. Challenge descriptions and files are identical for every team, so they cannot carry a per-team value. Only two integrations ever receive a specific team's flag: an [instancer](/integrations/instancer), which materializes it inside that team's instance, and the [admin bot](/integrations/admin-bot), which hands it to the bot as the value the team is meant to steal. A challenge that uses neither leaves the flag stranded in the database. Participants never see it, and the challenge cannot be solved.
+:::
+
 :::
 ::::
