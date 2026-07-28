@@ -286,15 +286,10 @@ describe('dynamic flag submission', () => {
   })
 
   test('the database rejects a cross-team duplicate outside duplicate mode', async () => {
-    const challengeId = crypto.randomUUID()
+    const challengeId = await createDynamicChallenge()
     const first = await newUser()
     const second = await newUser()
     const db = getDb()
-    challengeCleanups.push(async () => {
-      await db
-        .delete(dynamicFlags)
-        .where(eq(dynamicFlags.challengeId, challengeId))
-    })
 
     const flag = `rctf{race_${crypto.randomUUID()}}`
     await db
@@ -426,13 +421,8 @@ describe('dynamic flag exhaustion', () => {
   }
 
   const newExhaustionContext = async () => {
-    const challengeId = crypto.randomUUID()
+    const challengeId = await createDynamicChallenge()
     const user = await newUser()
-    challengeCleanups.push(async () => {
-      await getDb()
-        .delete(dynamicFlags)
-        .where(eq(dynamicFlags.challengeId, challengeId))
-    })
     return { db: getDb(), teamId: user.id, challengeId }
   }
 
