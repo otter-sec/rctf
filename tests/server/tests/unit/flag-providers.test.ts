@@ -1,6 +1,6 @@
-import { createDatabase, users, type FlagEntry } from '@rctf/db'
+import { challenges, createDatabase, users, type FlagEntry } from '@rctf/db'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
-import { inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import {
   FlagProvider,
   FlagVerifyStatus,
@@ -69,10 +69,24 @@ beforeAll(async () => {
       perms: 0,
     },
   ])
+  await db.insert(challenges).values({
+    id: ctx.challengeId,
+    data: {
+      name: 'chall-x',
+      description: '',
+      category: 'misc',
+      author: '',
+      files: [],
+      points: { min: 100, max: 500 },
+      flags: [],
+      tiebreakEligible: true,
+    },
+  })
 })
 
 afterAll(async () => {
   delete flagProviders['test-counting']
+  await db.delete(challenges).where(eq(challenges.id, ctx.challengeId))
   await db.delete(users).where(inArray(users.id, [teamA, teamB]))
 })
 
