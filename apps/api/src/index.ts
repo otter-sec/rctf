@@ -22,6 +22,11 @@ const logger = pino({
   level:
     process.env.LOG_LEVEL ??
     (Bun.env.NODE_ENV === 'production' ? 'info' : 'trace'),
+  redact: [
+    'req.headers.authorization',
+    'req.headers.cookie',
+    'req.headers["proxy-authorization"]',
+  ],
 })
 
 const createApp = () => {
