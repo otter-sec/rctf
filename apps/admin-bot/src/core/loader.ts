@@ -1,6 +1,13 @@
-import { Challenge, type ChallengeConfig } from '../types'
-import * as TypesModule from '../types'
+import { existsSync, lstatSync, readFileSync } from 'node:fs'
+import { extname } from 'node:path'
 import deepmerge from 'deepmerge'
+import yaml from 'yaml'
+import {
+  Challenge,
+  type ChallengeConfig,
+  type ChallengeDefaultsFile,
+} from '../types'
+import * as TypesModule from '../types'
 import { createLogger } from './logger'
 
 const logger = createLogger('loader')
@@ -16,13 +23,33 @@ const TYPES_MODULE_PATHS = [
 
 const cacheKey = (id: string, revision: string): string => `${id}:${revision}`
 
-const mergeChallengeConfig = (
-  defaults: Partial<ChallengeConfig>,
+export const loadChallengeDefaults = (path?: string): ChallengeDefaultsFile => {
+  if (!path) {
+    return {}
+  }
+
+  const ext = extname(path).slice(1).toLowerCase()
+  if (
+    !existsSync(path) ||
+    !lstatSync(path).isFile() ||
+    (ext !== 'yml' && ext !== 'yaml')
+  ) {
+    logger.warn('Invalid challenge default config path')
+    return {}
+  }
+
+  return yaml.parse(readFileSync(path, { encoding: 'utf8' })) ?? {}
+}
+
+const applyChallengeDefaults = (
+  defaults: ChallengeDefaultsFile,
   config: ChallengeConfig
-): ChallengeConfig =>
-  deepmerge<ChallengeConfig>(defaults, config, {
+): ChallengeConfig => {
+  const browser = config.browser ?? 'chrome'
+  return deepmerge<ChallengeConfig>(defaults[browser] ?? {}, config, {
     arrayMerge: (_defaults, configValues) => configValues,
   })
+}
 
 export class ChallengeLoader {
   // key is "id:revision"
@@ -30,12 +57,12 @@ export class ChallengeLoader {
   private currentRevisions = new Map<string, string>()
   private typesModule: typeof TypesModule
 
-  constructor(defaults: Partial<ChallengeConfig> = {}) {
+  constructor(defaults: ChallengeDefaultsFile = {}) {
     this.typesModule = {
       ...TypesModule,
       Challenge: class extends Challenge {
         constructor(config: ChallengeConfig) {
-          super(mergeChallengeConfig(defaults, config))
+          super(applyChallengeDefaults(defaults, config))
         }
       },
     }

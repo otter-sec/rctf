@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'bun:test'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
 import {
   Challenge,
-  type ChallengeConfig,
+  type ChallengeDefaultsFile,
 } from '../../../../apps/admin-bot/src/types'
 
 const validChallengeSource = `
@@ -73,10 +73,14 @@ describe('ChallengeLoader.loadChallenge', () => {
   })
 
   test('merges defaults with challenge config', async () => {
-    const defaultConfig: Partial<ChallengeConfig> = {
-      maxLogLines: 100,
-      browser: 'firefox',
-      browserArguments: ['--default-argument'],
+    const defaultConfig: ChallengeDefaultsFile = {
+      chrome: {
+        maxLogLines: 100,
+        browserArguments: ['--default-argument'],
+      },
+      firefox: {
+        maxLogLines: 200,
+      },
     }
     const loaderWithDefaults = new ChallengeLoader(defaultConfig)
     const result = await loaderWithDefaults.loadChallenge(validChallengeSource)

@@ -56,6 +56,11 @@ export interface ChallengeConfig {
   requireInstancerInstancesRunning?: boolean
 }
 
+export interface ChallengeDefaultsFile {
+  chrome?: Partial<ChallengeConfig>
+  firefox?: Partial<ChallengeConfig>
+}
+
 export type ResolvedChallengeConfig = Omit<ChallengeConfig, 'hooksConfig'> & {
   hooksConfig: HooksConfig
 }

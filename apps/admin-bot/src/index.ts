@@ -1,24 +1,17 @@
-import { readFileSync } from 'node:fs'
 import { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
-import yaml from 'yaml'
 import { BrowserManager } from './browser/manager'
-import { ChallengeLoader } from './core/loader'
+import { ChallengeLoader, loadChallengeDefaults } from './core/loader'
 import { createLogger } from './core/logger'
 import { PlatformClient } from './core/platform'
 import { startPoller } from './core/poller'
-import type { ChallengeConfig } from './types'
 
 export const app = new Hono()
 export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
-
-const challengeDefaults: Partial<ChallengeConfig> = process.env
-  .CHALLENGE_DEFAULT_CONFIG_PATH
-  ? yaml.parse(readFileSync(process.env.CHALLENGE_DEFAULT_CONFIG_PATH, 'utf8'))
-  : {}
-
-export const challenges = new ChallengeLoader(challengeDefaults)
+export const challenges = new ChallengeLoader(
+  loadChallengeDefaults(process.env.CHALLENGE_DEFAULT_CONFIG_PATH)
+)
 const logger = createLogger('index')
 
 const RCTF_BASE_URL = process.env.RCTF_BASE_URL
