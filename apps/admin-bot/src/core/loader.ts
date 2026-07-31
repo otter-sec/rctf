@@ -45,10 +45,13 @@ const applyChallengeDefaults = (
   defaults: ChallengeDefaultsFile,
   config: ChallengeConfig
 ): ChallengeConfig => {
-  const browser = config.browser ?? 'chrome'
-  return deepmerge<ChallengeConfig>(defaults[browser] ?? {}, config, {
-    arrayMerge: (_defaults, configValues) => configValues,
-  })
+  const browser = config.browser ?? defaults.common?.browser ?? 'chrome'
+  return deepmerge.all<ChallengeConfig>(
+    [defaults.common ?? {}, defaults[browser] ?? {}, config],
+    {
+      arrayMerge: (_defaults, configValues) => configValues,
+    }
+  )
 }
 
 export class ChallengeLoader {

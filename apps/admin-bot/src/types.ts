@@ -57,6 +57,7 @@ export interface ChallengeConfig {
 }
 
 export interface ChallengeDefaultsFile {
+  common?: Partial<ChallengeConfig>
   chrome?: Partial<ChallengeConfig>
   firefox?: Partial<ChallengeConfig>
 }

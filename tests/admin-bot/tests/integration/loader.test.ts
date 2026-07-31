@@ -74,6 +74,9 @@ describe('ChallengeLoader.loadChallenge', () => {
 
   test('merges defaults with challenge config', async () => {
     const defaultConfig: ChallengeDefaultsFile = {
+      common: {
+        maxLogValueChars: 123,
+      },
       chrome: {
         maxLogLines: 100,
         browserArguments: ['--default-argument'],
@@ -91,6 +94,9 @@ describe('ChallengeLoader.loadChallenge', () => {
       expect(result.config.maxLogLines).toBe(100)
       expect(result.config.browser).toBe('chrome')
       expect(result.config.browserArguments).toEqual(['--no-sandbox'])
+      expect(result.config.maxLogValueChars).toBe(
+        defaultConfig.common?.maxLogValueChars
+      )
     }
   })
 })
