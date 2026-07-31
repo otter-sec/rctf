@@ -1,5 +1,3 @@
-import { existsSync, lstatSync, readFileSync } from 'node:fs'
-import { extname } from 'node:path'
 import deepmerge from 'deepmerge'
 import yaml from 'yaml'
 import {
@@ -9,6 +7,7 @@ import {
 } from '../types'
 import * as TypesModule from '../types'
 import { createLogger } from './logger'
+import { defaultBrowser } from './const'
 
 const logger = createLogger('loader')
 
@@ -23,29 +22,21 @@ const TYPES_MODULE_PATHS = [
 
 const cacheKey = (id: string, revision: string): string => `${id}:${revision}`
 
-export const loadChallengeDefaults = (path?: string): ChallengeDefaultsFile => {
+export const loadChallengeDefaults = async (
+  path?: string
+): Promise<ChallengeDefaultsFile> => {
   if (!path) {
     return {}
   }
 
-  const ext = extname(path).slice(1).toLowerCase()
-  if (
-    !existsSync(path) ||
-    !lstatSync(path).isFile() ||
-    (ext !== 'yml' && ext !== 'yaml')
-  ) {
-    logger.warn('Invalid challenge default config path')
-    return {}
-  }
-
-  return yaml.parse(readFileSync(path, { encoding: 'utf8' })) ?? {}
+  return yaml.parse(await Bun.file(path).text()) ?? {}
 }
 
 const applyChallengeDefaults = (
   defaults: ChallengeDefaultsFile,
   config: ChallengeConfig
 ): ChallengeConfig => {
-  const browser = config.browser ?? defaults.common?.browser ?? 'chrome'
+  const browser = config.browser ?? defaults.common?.browser ?? defaultBrowser
   return deepmerge.all<ChallengeConfig>(
     [defaults.common ?? {}, defaults[browser] ?? {}, config],
     {

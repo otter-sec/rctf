@@ -10,7 +10,7 @@ import { startPoller } from './core/poller'
 export const app = new Hono()
 export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
 export const challenges = new ChallengeLoader(
-  loadChallengeDefaults(process.env.CHALLENGE_DEFAULT_CONFIG_PATH)
+  await loadChallengeDefaults(process.env.CHALLENGE_DEFAULT_CONFIG_PATH)
 )
 const logger = createLogger('index')
 

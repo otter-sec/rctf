@@ -91,7 +91,7 @@ describe('ChallengeLoader.loadChallenge', () => {
     expect(result).toBeInstanceOf(Challenge)
 
     if (result instanceof Challenge) {
-      expect(result.config.maxLogLines).toBe(100)
+      expect(result.config.maxLogLines).toBe(defaultConfig.chrome?.maxLogLines)
       expect(result.config.browser).toBe('chrome')
       expect(result.config.browserArguments).toEqual(['--no-sandbox'])
       expect(result.config.maxLogValueChars).toBe(
