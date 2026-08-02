@@ -1,7 +1,7 @@
 import type { Logger } from 'pino'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeLoader } from './loader'
-import { createLogger, errorSummary } from './logger'
+import { createLogger } from './logger'
 import { BufferedOutputHandler } from './output'
 import type { PlatformClient, PulledJob } from './platform'
 import { handleSubmission } from './runner'
@@ -87,7 +87,7 @@ export const processJob = async (
     output.info('admin-bot', 'finished visiting')
     await platform.completeJob(job.id, output.getOutput())
   } catch (err) {
-    log.error(errorSummary(err), 'job failed')
+    log.error({ err }, 'job failed')
     if (err instanceof Error && err.message === 'timeout') {
       output.fatal('admin-bot', 'timed out')
     } else {

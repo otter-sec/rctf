@@ -50,11 +50,13 @@ const sanitizedStack = (error: Error): string | undefined => {
     ?.split('\n')
     .filter(line => /^\s+at\s/.test(line))
     .join('\n')
-  return frames ? `${error.name}: Database query failed\n${frames}` : undefined
+  return frames
+    ? `DrizzleQueryError: Failed query (parameters redacted)\n${frames}`
+    : undefined
 }
 
-// Query errors embed bound parameters (flags, inputs) in message/query/params,
-// so replace them with a sanitized summary. Everything else passes through.
+// Query errors embed bound parameters (flags, inputs) in message and params.
+// Keep the parameterized query for diagnostics without logging those values.
 const serializeError = (error: unknown) => {
   if (!(error instanceof Error)) {
     return pino.stdSerializers.err(error as Error)
@@ -65,7 +67,7 @@ const serializeError = (error: unknown) => {
   }
   return {
     type: 'DrizzleQueryError',
-    message: 'Database query failed',
+    message: `Failed query: ${queryError.query}`,
     stack: sanitizedStack(error),
     code: stringProperty(queryError.cause?.code),
     constraint: stringProperty(

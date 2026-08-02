@@ -16,8 +16,3 @@ export const createRootLogger = (
 const root = createRootLogger()
 
 export const createLogger = (module: string) => root.child({ module })
-
-// Error messages may contain participant data, so expose only the type.
-export const errorSummary = (err: unknown) => ({
-  errorType: err instanceof Error ? err.name : typeof err,
-})

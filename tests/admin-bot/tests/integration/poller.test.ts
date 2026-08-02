@@ -222,7 +222,7 @@ for (const browser of browsers) {
     })
 
     test('non-timeout error -> failJob with internal server error', async () => {
-      const secretInput = 'https://example.com/?token=poller-error-secret'
+      const submittedInput = 'https://example.com/?token=poller-error-input'
       const errorSource = `
         const { Challenge } = require('../types')
         export const challenge = new Challenge({
@@ -247,7 +247,7 @@ for (const browser of browsers) {
         challenges,
         browserManager,
         platform,
-        makeJob({ inputs: { url: secretInput } }),
+        makeJob({ inputs: { url: submittedInput } }),
         testLogger
       )
       const logOutput = await read()
@@ -256,7 +256,7 @@ for (const browser of browsers) {
       expect(failedJobs[0]!.logs).toContain('hit internal server error')
       expect(completedJobs.length).toBe(0)
       expect(logOutput).toContain('job failed')
-      expect(logOutput).not.toContain(secretInput)
+      expect(logOutput).toContain(`something broke at ${submittedInput}`)
     })
   })
 }

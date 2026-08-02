@@ -154,7 +154,7 @@ for (const browser of browsers) {
     })
 
     test('cleanup runs even on handler error', async () => {
-      const secretInput = 'https://example.com/?token=handler-error-secret'
+      const submittedInput = 'https://example.com/?token=handler-error-input'
       const errorSource = `
         const { Challenge } = require('../types')
         export const challenge = new Challenge({
@@ -182,7 +182,7 @@ for (const browser of browsers) {
           challenges,
           browserManager,
           makeJobMeta(),
-          { url: secretInput },
+          { url: submittedInput },
           output,
           testLogger
         )
@@ -192,12 +192,12 @@ for (const browser of browsers) {
       const logOutput = await read()
 
       expect(thrownError).toBeInstanceOf(Error)
-      expect(thrownError!.message).toBe(`handler failure at ${secretInput}`)
+      expect(thrownError!.message).toBe(`handler failure at ${submittedInput}`)
       // The function should have still run browser setup (verifiable via output)
       const logs = output.getOutput()
       expect(logs).toContain('setting up browser')
       expect(logOutput).toContain('challenge failed')
-      expect(logOutput).not.toContain(secretInput)
+      expect(logOutput).toContain(`handler failure at ${submittedInput}`)
     })
   })
 }

@@ -35,10 +35,9 @@ test('redacts query parameters and sensitive fields from serialized logs', async
   )
   const output = await read()
 
-  expect(output).toContain('Database query failed')
+  expect(output).toContain('Failed query: insert into submissions')
   expect(output).toContain('DrizzleQueryError')
   expect(output).toContain('23505')
   expect(output).toContain('submissions_pkey')
-  expect(output).not.toContain('insert into submissions')
   expect(output).not.toContain(secret)
 })
