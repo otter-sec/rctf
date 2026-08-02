@@ -26,6 +26,16 @@ const logger = pino({
     'req.headers.authorization',
     'req.headers.cookie',
     'req.headers["proxy-authorization"]',
+    'flag',
+    'flags[*].flag',
+    'input.*',
+    'inputs.*',
+    'job.flag',
+    'job.flags[*].flag',
+    'job.inputs.*',
+    'req.body.flag',
+    'req.body.flags[*].flag',
+    'req.body.inputs.*',
   ],
 })
 

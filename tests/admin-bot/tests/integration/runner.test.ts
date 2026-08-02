@@ -34,6 +34,43 @@ const makeJobMeta = (): JobMetadata => ({
   instancerInstances: [],
 })
 
+test('does not bind participant inputs or flags to runner logs', async () => {
+  const bindings: unknown[] = []
+  const testLogger = {
+    child(value: unknown) {
+      bindings.push(value)
+      return this
+    },
+    error() {},
+  } as unknown as Parameters<typeof handleSubmission>[5]
+  const secretFlag = 'flag{runner-log-secret}'
+  const secretInput = 'https://example.com/?token=participant-secret'
+  const job = {
+    ...makeJobMeta(),
+    flag: secretFlag,
+    flags: [{ provider: 'flags/static', flag: secretFlag }],
+  }
+
+  await handleSubmission(
+    new ChallengeLoader(),
+    new BrowserManager(),
+    job,
+    { url: secretInput },
+    new BufferedOutputHandler(64),
+    testLogger
+  )
+
+  expect(bindings).toEqual([
+    {
+      challengeId: job.challengeId,
+      configRevision: job.configRevision,
+      userId: job.userId,
+    },
+  ])
+  expect(JSON.stringify(bindings)).not.toContain(secretFlag)
+  expect(JSON.stringify(bindings)).not.toContain(secretInput)
+})
+
 for (const browser of browsers) {
   describe(`handleSubmission [${browser}]`, () => {
     let challenges: ChallengeLoader

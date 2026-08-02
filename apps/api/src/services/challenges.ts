@@ -1203,7 +1203,6 @@ export const submitFlag = async (
       {
         user: params.userId,
         chall: challenge.id,
-        flag: params.flag,
         cheatedFrom,
       },
       'valid flag for another team; possible flag sharing'
@@ -1214,10 +1213,9 @@ export const submitFlag = async (
     {
       user: params.userId,
       chall: challenge.id,
-      flag: params.flag,
       matchedFlagIndex: matched.index,
     },
-    'successfull flag submission'
+    'successful flag submission'
   )
 
   let bloodNumber: number | null
