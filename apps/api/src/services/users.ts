@@ -44,7 +44,7 @@ import { setFilter } from '../lib/db-filters'
 import { preparedPerDb } from '../lib/prepared'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
-import { isDecayKind } from './challenges'
+import { isDecayKind } from './challenge-queries'
 import { getCompetitionTiming } from './settings'
 import {
   emitBanScoreEvents,

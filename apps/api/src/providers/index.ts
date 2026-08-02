@@ -1,7 +1,4 @@
 import { config } from '@rctf/config'
-import type { ProviderConfig } from '@rctf/config'
-import { scoreProviders } from '@rctf/scoring'
-import type { ScoreProvider } from '@rctf/scoring'
 import { adminBotProviders } from './admin-bot'
 import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
@@ -12,26 +9,9 @@ import { resolveInstancerConfigs } from './instancer/resolve'
 import { messagesProviders } from './messages'
 import { moderationProviders } from './moderation'
 import { uploadProviders } from './uploads'
+import { loadProvider } from './load'
 
-const loadProvider = <Base>(
-  providers: Record<string, (options: any) => Base>,
-  providerConfig: ProviderConfig | undefined
-): Base | undefined => {
-  if (!providerConfig) {
-    return undefined
-  }
-
-  const provider = providers[providerConfig.name]
-  if (!provider) {
-    throw new Error(
-      `Unsupported provider: ${
-        providerConfig.name
-      }. Available: ${Object.keys(providers).join(', ')}`
-    )
-  }
-
-  return provider(providerConfig.options)
-}
+export { scoreProvider } from './score'
 
 export const emailProvider = loadProvider(
   emailProviders,
@@ -41,11 +21,6 @@ export const emailProvider = loadProvider(
 export const uploadProvider = loadProvider(
   uploadProviders,
   config.uploadProvider
-)!
-
-export const scoreProvider = loadProvider<ScoreProvider>(
-  scoreProviders,
-  config.scoreProvider
 )!
 
 const resolvedInstancers = resolveInstancerConfigs(config)
