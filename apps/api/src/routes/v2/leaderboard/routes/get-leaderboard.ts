@@ -3,7 +3,7 @@ import { GetLeaderboardRouteV2 } from '@rctf/types'
 import {
   getLeaderboardWithTotal,
   searchLeaderboard,
-} from '../../../../services/leaderboard'
+} from '../../../../services/leaderboard-queries'
 import { rateLimitSearch } from '../../../../services/rate-limit'
 import leaderboardGroup from '../group'
 

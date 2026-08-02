@@ -13,13 +13,13 @@ import type { TypedRedis } from '../cache/scripts'
 import { inJsonbArray, insertInChunks } from '../lib/db-bulk'
 import { scoreProvider } from '../providers/score'
 import { requestChallengeRecompute } from '../workers'
+import { userIsNotBanned } from './challenge-queries'
 import {
   getDecayChallenge,
   getDecayChallenges,
   getMaxSolveCount,
   getPrivateChallenge,
   lockChallenge,
-  userIsNotBanned,
   type DecayChallenge,
 } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'

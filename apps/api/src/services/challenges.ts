@@ -51,14 +51,6 @@ import { getCompetitionTiming } from './settings'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
-export {
-  challengeIsPublicSql,
-  isDecayKind,
-  nonBannedUserJoin,
-  scoringKindOf,
-  userIsNotBanned,
-} from './challenge-queries'
-
 const MAX_GRAPH_POINTS_PER_USER = 500
 
 type SubmitResponseHelpers = ResponseHelpers<

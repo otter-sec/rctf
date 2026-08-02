@@ -5,7 +5,7 @@ import { preparedPerDb } from '../../../../lib/prepared'
 import {
   challengeIsPublicSql,
   scoringKindOf,
-} from '../../../../services/challenges'
+} from '../../../../services/challenge-queries'
 import leaderboardGroup from '../group'
 
 const preparedLeaderboardChallenges = preparedPerDb(db =>
