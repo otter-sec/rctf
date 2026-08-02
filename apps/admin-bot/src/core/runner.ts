@@ -78,7 +78,10 @@ export const handleSubmission = async (
     if (err instanceof Error && err.message === 'timeout') {
       log.warn('challenge timed out')
     } else {
-      log.error({ err }, 'challenge failed')
+      log.error(
+        { errorType: err instanceof Error ? err.name : typeof err },
+        'challenge failed'
+      )
     }
   } finally {
     try {

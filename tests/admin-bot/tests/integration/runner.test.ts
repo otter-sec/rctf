@@ -161,6 +161,7 @@ for (const browser of browsers) {
     })
 
     test('cleanup runs even on handler error', async () => {
+      const secretInput = 'https://example.com/?token=handler-error-secret'
       const errorSource = `
         const { Challenge } = require('../types')
         export const challenge = new Challenge({
@@ -168,7 +169,7 @@ for (const browser of browsers) {
           inputs: { url: { pattern: '^https?://.*' } },
           browser: '${browser}',
           handler: async (ctx) => {
-            throw new Error('handler failure')
+            throw new Error('handler failure at ' + ctx.input.url)
           },
           hooksConfig: {
             showConsoleLogs: false,
@@ -179,6 +180,25 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
+      const logEntries: unknown[] = []
+      const testLogger = {
+        child(value: unknown) {
+          logEntries.push(value)
+          return this
+        },
+        debug(...args: unknown[]) {
+          logEntries.push(args)
+        },
+        error(...args: unknown[]) {
+          logEntries.push(args)
+        },
+        info(...args: unknown[]) {
+          logEntries.push(args)
+        },
+        warn(...args: unknown[]) {
+          logEntries.push(args)
+        },
+      } as unknown as Parameters<typeof handleSubmission>[5]
 
       let thrownError: Error | undefined
       try {
@@ -186,18 +206,20 @@ for (const browser of browsers) {
           challenges,
           browserManager,
           makeJobMeta(),
-          { url: 'http://example.com' },
-          output
+          { url: secretInput },
+          output,
+          testLogger
         )
       } catch (err) {
         thrownError = err as Error
       }
 
       expect(thrownError).toBeInstanceOf(Error)
-      expect(thrownError!.message).toBe('handler failure')
+      expect(thrownError!.message).toBe(`handler failure at ${secretInput}`)
       // The function should have still run browser setup (verifiable via output)
       const logs = output.getOutput()
       expect(logs).toContain('setting up browser')
+      expect(JSON.stringify(logEntries)).not.toContain(secretInput)
     })
   })
 }

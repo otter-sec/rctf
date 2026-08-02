@@ -1,3 +1,4 @@
+import type { Logger } from 'pino'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeLoader } from './loader'
 import { createLogger } from './logger'
@@ -36,9 +37,10 @@ export const processJob = async (
   challenges: ChallengeLoader,
   browserManager: BrowserManager,
   platform: PlatformClient,
-  job: PulledJob
+  job: PulledJob,
+  baseLogger: Logger = logger
 ): Promise<void> => {
-  const log = logger.child({
+  const log = baseLogger.child({
     jobId: job.id,
     challengeId: job.challengeId,
     userId: job.userId,
@@ -85,7 +87,10 @@ export const processJob = async (
     output.info('admin-bot', 'finished visiting')
     await platform.completeJob(job.id, output.getOutput())
   } catch (err) {
-    log.error({ err }, 'job failed')
+    log.error(
+      { errorType: err instanceof Error ? err.name : typeof err },
+      'job failed'
+    )
     if (err instanceof Error && err.message === 'timeout') {
       output.fatal('admin-bot', 'timed out')
     } else {

@@ -17,6 +17,7 @@ test('redacts participant inputs and flags from serialized logs', async () => {
     topLevelFlag: 'flag{top-level-secret}',
     topLevelInput: 'top-level-input-secret',
     nestedJobFlag: 'flag{nested-job-secret}',
+    submittedFlag: 'flag{submitted-secret}',
   }
 
   logger
@@ -31,8 +32,11 @@ test('redacts participant inputs and flags from serialized logs', async () => {
       {
         marker: 'safe-log-marker',
         flag: secrets.topLevelFlag,
+        submittedFlag: secrets.submittedFlag,
+        details: { submittedFlag: secrets.submittedFlag },
         flags: [{ provider: 'flags/static', flag: secrets.topLevelFlag }],
-        inputs: { url: secrets.topLevelInput },
+        input: secrets.topLevelInput,
+        inputs: secrets.topLevelInput,
         job: {
           flag: secrets.nestedJobFlag,
           flags: [{ provider: 'flags/static', flag: secrets.nestedJobFlag }],

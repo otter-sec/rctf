@@ -4,12 +4,14 @@ const options = (level: string) => ({
   level,
   redact: [
     'flag',
+    'submittedFlag',
+    'details.submittedFlag',
     'flags[*].flag',
-    'input.*',
-    'inputs.*',
+    'input',
+    'inputs',
     'job.flag',
     'job.flags[*].flag',
-    'job.inputs.*',
+    'job.inputs',
   ],
 })
 
