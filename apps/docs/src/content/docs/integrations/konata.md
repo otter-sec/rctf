@@ -412,6 +412,7 @@ deployment:
       buildArgs:
         ENV: prod
       noCache: false
+      target: challenge # optional, if you want to use a specific stage of a Dockerfile
       exports:
         - stage: out
           src: /out
@@ -427,6 +428,7 @@ deployment:
 | `<red>platform</red>` | Optional target platform. `linux/amd64` is the common choice for CTF builds. |
 | `<red>buildArgs</red>` / `<red>build_args</red>` | Build-time `<dim>--build-arg</dim>` values. |
 | `<red>noCache</red>` / `<red>no_cache</red>` | Forces a clean build when `true{:ts}`. |
+| `<red>target</red>` | Equivalent to the `docker build --target` flag. It stops the build at a specific stage within a multi-stage Dockerfile and uses that stage as a final image. |
 | `<red>exports</red>` | Multi-stage build exports. Copies the contents of `<red>src</red>` in a named stage out to `<red>dst</red>` on the host. Used for shipping handouts that fall out of the build. |
 
 Image references inside Kubernetes manifests can interpolate `{{ images[challenge.name] }}` to pull in the fully-resolved `registry/name:tag` for the current challenge.
