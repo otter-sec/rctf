@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardWithGraphRoute } from '@rctf/types'
 import { getGraphForEntries } from '../../../../cache/leaderboard'
-import { getLeaderboardWithFilters } from '../../../../services/leaderboard'
+import { getLeaderboardWithFilters } from '../../../../services/leaderboard-queries'
 import { rateLimitSearch } from '../../../../services/rate-limit'
 import leaderboardGroup from '../group'
 

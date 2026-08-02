@@ -18,7 +18,7 @@ import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { cacheLeaderboardAndGraph } from '../../../../apps/api/src/cache/leaderboard'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
-import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard'
+import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard-calculation'
 import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {

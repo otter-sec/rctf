@@ -14,10 +14,10 @@ import {
 } from '../../../../apps/api/src/cache/leaderboard'
 import { getFullUser } from '../../../../apps/api/src/services/full-user'
 import {
-  calculateLeaderboard,
   getLeaderboardWithTotal,
   searchLeaderboard,
-} from '../../../../apps/api/src/services/leaderboard'
+} from '../../../../apps/api/src/services/leaderboard-queries'
+import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard-calculation'
 import { createRedis } from '../../../../apps/api/src/util/redis'
 import { clearDatabase } from '../../util'
 

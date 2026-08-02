@@ -18,11 +18,11 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../../../../apps/api/src/cache/scripts'
-import { scoreProvider } from '../../../../apps/api/src/providers'
+import { scoreProvider } from '../../../../apps/api/src/providers/score'
 import {
   calculateLeaderboard,
   createCachedLeaderboardCalculator,
-} from '../../../../apps/api/src/services/leaderboard'
+} from '../../../../apps/api/src/services/leaderboard-calculation'
 import {
   applyChallengeConfigChange,
   applyDecayPointsForAllChallenges,

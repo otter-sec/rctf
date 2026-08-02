@@ -20,7 +20,7 @@ import {
   getMaxSolveCount,
   upsertChallenge,
 } from '../../../../apps/api/src/services/challenges'
-import { getChallengeLeaderboardWithTotal } from '../../../../apps/api/src/services/leaderboard'
+import { getChallengeLeaderboardWithTotal } from '../../../../apps/api/src/services/leaderboard-queries'
 import {
   applyDecayPointsForChallenge,
   upsertDynamicSolves as rawUpsertDynamicSolves,

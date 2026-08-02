@@ -11,8 +11,6 @@ import { moderationProviders } from './moderation'
 import { uploadProviders } from './uploads'
 import { loadProvider } from './load'
 
-export { scoreProvider } from './score'
-
 export const emailProvider = loadProvider(
   emailProviders,
   config.email?.provider

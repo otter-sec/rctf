@@ -15,7 +15,7 @@ import {
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
-import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard'
+import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard-calculation'
 import { getApp, request } from '../../app'
 import {
   expectResponse,

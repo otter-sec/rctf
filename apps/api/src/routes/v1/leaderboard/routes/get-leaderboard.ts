@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardRoute } from '@rctf/types'
-import { getLeaderboardWithTotal } from '../../../../services/leaderboard'
+import { getLeaderboardWithTotal } from '../../../../services/leaderboard-queries'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
