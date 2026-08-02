@@ -3,7 +3,7 @@ import { ADVISORY_LOCK_KEYS, createDatabase } from '@rctf/db'
 import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
 import { getMaxSolveCount } from '../services/challenges'
-import { createCachedLeaderboardCalculator } from '../services/leaderboard'
+import { createCachedLeaderboardCalculator } from '../services/leaderboard-calculation'
 import {
   applyDecayPointsForAllChallenges,
   applyDecayPointsForChallenge,

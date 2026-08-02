@@ -3,7 +3,7 @@ import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
 import { inJsonbArray } from '../lib/db-bulk'
-import { challengeIsPublicSql } from '../services/challenges'
+import { challengeIsPublicSql } from '../services/challenge-queries'
 import { getCompetitionTiming } from '../services/settings'
 import type { TypedRedis } from './scripts'
 

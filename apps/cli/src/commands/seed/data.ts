@@ -1,4 +1,4 @@
-import { scoreProvider } from '@rctf/api/src/providers'
+import { scoreProvider } from '@rctf/api/src/providers/score'
 import {
   DynamicFlagMode,
   mintDynamicFlag,
