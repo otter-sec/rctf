@@ -1,6 +1,8 @@
+import { Writable } from 'node:stream'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
+import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
 import { BufferedOutputHandler } from '../../../../apps/admin-bot/src/core/output'
 import { handleSubmission } from '../../../../apps/admin-bot/src/core/runner'
 import type { JobMetadata } from '../../../../apps/admin-bot/src/types'
@@ -180,25 +182,14 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
-      const logEntries: unknown[] = []
-      const testLogger = {
-        child(value: unknown) {
-          logEntries.push(value)
-          return this
+      let logOutput = ''
+      const destination = new Writable({
+        write(chunk, _encoding, callback) {
+          logOutput += chunk.toString()
+          callback()
         },
-        debug(...args: unknown[]) {
-          logEntries.push(args)
-        },
-        error(...args: unknown[]) {
-          logEntries.push(args)
-        },
-        info(...args: unknown[]) {
-          logEntries.push(args)
-        },
-        warn(...args: unknown[]) {
-          logEntries.push(args)
-        },
-      } as unknown as Parameters<typeof handleSubmission>[5]
+      })
+      const testLogger = createRootLogger(destination, 'info')
 
       let thrownError: Error | undefined
       try {
@@ -213,13 +204,15 @@ for (const browser of browsers) {
       } catch (err) {
         thrownError = err as Error
       }
+      await new Promise<void>(resolve => destination.end(resolve))
 
       expect(thrownError).toBeInstanceOf(Error)
       expect(thrownError!.message).toBe(`handler failure at ${secretInput}`)
       // The function should have still run browser setup (verifiable via output)
       const logs = output.getOutput()
       expect(logs).toContain('setting up browser')
-      expect(JSON.stringify(logEntries)).not.toContain(secretInput)
+      expect(logOutput).toContain('challenge failed')
+      expect(logOutput).not.toContain(secretInput)
     })
   })
 }

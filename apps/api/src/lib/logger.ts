@@ -41,6 +41,19 @@ const isQueryError = (error: unknown): error is QueryError =>
     typeof (error as Partial<QueryError>).query === 'string' &&
     Array.isArray((error as Partial<QueryError>).params))
 
+const findQueryError = (error: unknown): QueryError | undefined => {
+  const seen = new Set<Error>()
+  let current = error
+  while (current instanceof Error && !seen.has(current)) {
+    if (isQueryError(current)) {
+      return current
+    }
+    seen.add(current)
+    current = (current as Error & { cause?: unknown }).cause
+  }
+  return undefined
+}
+
 const stringProperty = (value: unknown): string | undefined =>
   typeof value === 'string' ? value : undefined
 
@@ -53,18 +66,19 @@ const sanitizedStack = (error: Error): string | undefined => {
 }
 
 const serializeError = (error: unknown) => {
-  if (!isQueryError(error)) {
+  const queryError = findQueryError(error)
+  if (!queryError) {
     return pino.stdSerializers.err(error as Error)
   }
 
-  const code = stringProperty(error.cause?.code)
+  const code = stringProperty(queryError.cause?.code)
   const constraint = stringProperty(
-    error.cause?.constraint_name ?? error.cause?.constraint
+    queryError.cause?.constraint_name ?? queryError.cause?.constraint
   )
   return {
     type: 'DrizzleQueryError',
     message: 'Database query failed',
-    stack: sanitizedStack(error),
+    stack: sanitizedStack(error instanceof Error ? error : queryError),
     ...(code ? { code } : {}),
     ...(constraint ? { constraint } : {}),
   }

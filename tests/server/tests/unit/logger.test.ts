@@ -24,6 +24,12 @@ test('redacts query parameters and sensitive fields from serialized logs', async
   )
 
   logger.error({ err: error }, 'query failed')
+  logger.error(
+    {
+      error: new Error(`wrapped query failure ${secret}`, { cause: error }),
+    },
+    'wrapped query failed'
+  )
   logger.info(
     {
       input: secret,

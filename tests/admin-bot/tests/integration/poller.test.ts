@@ -1,6 +1,8 @@
+import { Writable } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
+import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
 import { PlatformClient } from '../../../../apps/admin-bot/src/core/platform'
 import type { PulledJob } from '../../../../apps/admin-bot/src/core/platform'
 import {
@@ -239,19 +241,14 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
-      const logEntries: unknown[] = []
-      const testLogger = {
-        child(value: unknown) {
-          logEntries.push(value)
-          return this
+      let logOutput = ''
+      const destination = new Writable({
+        write(chunk, _encoding, callback) {
+          logOutput += chunk.toString()
+          callback()
         },
-        error(...args: unknown[]) {
-          logEntries.push(args)
-        },
-        info(...args: unknown[]) {
-          logEntries.push(args)
-        },
-      } as unknown as Parameters<typeof processJob>[4]
+      })
+      const testLogger = createRootLogger(destination, 'info')
       await processJob(
         challenges,
         browserManager,
@@ -259,11 +256,13 @@ for (const browser of browsers) {
         makeJob({ inputs: { url: secretInput } }),
         testLogger
       )
+      await new Promise<void>(resolve => destination.end(resolve))
 
       expect(failedJobs.length).toBe(1)
       expect(failedJobs[0]!.logs).toContain('hit internal server error')
       expect(completedJobs.length).toBe(0)
-      expect(JSON.stringify(logEntries)).not.toContain(secretInput)
+      expect(logOutput).toContain('job failed')
+      expect(logOutput).not.toContain(secretInput)
     })
   })
 }
