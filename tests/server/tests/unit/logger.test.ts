@@ -1,16 +1,10 @@
-import { Writable } from 'node:stream'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { expect, test } from 'bun:test'
 import { createApiLogger } from '../../../../apps/api/src/lib/logger'
+import { collectStream } from '../../../util'
 
 test('redacts query parameters and sensitive fields from serialized logs', async () => {
-  let output = ''
-  const destination = new Writable({
-    write(chunk, _encoding, callback) {
-      output += chunk.toString()
-      callback()
-    },
-  })
+  const { destination, read } = collectStream()
   const logger = createApiLogger(destination, 'info')
   const secret = 'flag{database-error-secret}'
   const cause = Object.assign(new Error(`duplicate value ${secret}`), {
@@ -39,7 +33,7 @@ test('redacts query parameters and sensitive fields from serialized logs', async
     },
     'sensitive fields'
   )
-  await new Promise<void>(resolve => destination.end(resolve))
+  const output = await read()
 
   expect(output).toContain('Database query failed')
   expect(output).toContain('DrizzleQueryError')

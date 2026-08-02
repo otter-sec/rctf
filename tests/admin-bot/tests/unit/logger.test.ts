@@ -1,15 +1,9 @@
-import { Writable } from 'node:stream'
 import { expect, test } from 'bun:test'
 import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
+import { collectStream } from '../../../util'
 
 test('redacts participant inputs and flags from serialized logs', async () => {
-  let output = ''
-  const destination = new Writable({
-    write(chunk, _encoding, callback) {
-      output += chunk.toString()
-      callback()
-    },
-  })
+  const { destination, read } = collectStream()
   const logger = createRootLogger(destination, 'info')
   const secrets = {
     childInput: 'child-input-secret',
@@ -46,7 +40,7 @@ test('redacts participant inputs and flags from serialized logs', async () => {
       'sensitive logging test'
     )
 
-  await new Promise<void>(resolve => destination.end(resolve))
+  const output = await read()
 
   expect(output).toContain('safe-log-marker')
   for (const secret of Object.values(secrets)) {

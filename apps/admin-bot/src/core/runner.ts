@@ -8,7 +8,7 @@ import { applyHooks } from '../browser/hooks'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeContext, JobMetadata } from '../types'
 import type { ChallengeLoader } from './loader'
-import { createLogger } from './logger'
+import { createLogger, errorSummary } from './logger'
 import { OutputHandler } from './output'
 
 const logger = createLogger('runner')
@@ -78,10 +78,7 @@ export const handleSubmission = async (
     if (err instanceof Error && err.message === 'timeout') {
       log.warn('challenge timed out')
     } else {
-      log.error(
-        { errorType: err instanceof Error ? err.name : typeof err },
-        'challenge failed'
-      )
+      log.error(errorSummary(err), 'challenge failed')
     }
   } finally {
     try {

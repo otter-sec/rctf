@@ -1,4 +1,3 @@
-import { Writable } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
@@ -9,6 +8,7 @@ import {
   ensureChallengeLoaded,
   processJob,
 } from '../../../../apps/admin-bot/src/core/poller'
+import { collectStream } from '../../../util'
 
 const browsers = ['chrome', 'firefox'] as const
 const validChallengeSource = (browser: 'chrome' | 'firefox') => `
@@ -241,13 +241,7 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
-      let logOutput = ''
-      const destination = new Writable({
-        write(chunk, _encoding, callback) {
-          logOutput += chunk.toString()
-          callback()
-        },
-      })
+      const { destination, read } = collectStream()
       const testLogger = createRootLogger(destination, 'info')
       await processJob(
         challenges,
@@ -256,7 +250,7 @@ for (const browser of browsers) {
         makeJob({ inputs: { url: secretInput } }),
         testLogger
       )
-      await new Promise<void>(resolve => destination.end(resolve))
+      const logOutput = await read()
 
       expect(failedJobs.length).toBe(1)
       expect(failedJobs[0]!.logs).toContain('hit internal server error')

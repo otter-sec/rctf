@@ -1,4 +1,3 @@
-import { Writable } from 'node:stream'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
@@ -6,6 +5,7 @@ import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
 import { BufferedOutputHandler } from '../../../../apps/admin-bot/src/core/output'
 import { handleSubmission } from '../../../../apps/admin-bot/src/core/runner'
 import type { JobMetadata } from '../../../../apps/admin-bot/src/types'
+import { collectStream } from '../../../util'
 
 const browsers = ['chrome', 'firefox'] as const
 const validChallengeSource = (browser: 'chrome' | 'firefox') => `
@@ -36,15 +36,9 @@ const makeJobMeta = (): JobMetadata => ({
   instancerInstances: [],
 })
 
-test('does not bind participant inputs or flags to runner logs', async () => {
-  const bindings: unknown[] = []
-  const testLogger = {
-    child(value: unknown) {
-      bindings.push(value)
-      return this
-    },
-    error() {},
-  } as unknown as Parameters<typeof handleSubmission>[5]
+test('logs job identifiers but not participant inputs or flags', async () => {
+  const { destination, read } = collectStream()
+  const testLogger = createRootLogger(destination, 'info')
   const secretFlag = 'flag{runner-log-secret}'
   const secretInput = 'https://example.com/?token=participant-secret'
   const job = {
@@ -62,15 +56,12 @@ test('does not bind participant inputs or flags to runner logs', async () => {
     testLogger
   )
 
-  expect(bindings).toEqual([
-    {
-      challengeId: job.challengeId,
-      configRevision: job.configRevision,
-      userId: job.userId,
-    },
-  ])
-  expect(JSON.stringify(bindings)).not.toContain(secretFlag)
-  expect(JSON.stringify(bindings)).not.toContain(secretInput)
+  const logOutput = await read()
+  expect(logOutput).toContain(job.challengeId)
+  expect(logOutput).toContain(job.configRevision)
+  expect(logOutput).toContain(job.userId)
+  expect(logOutput).not.toContain(secretFlag)
+  expect(logOutput).not.toContain(secretInput)
 })
 
 for (const browser of browsers) {
@@ -182,13 +173,7 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
-      let logOutput = ''
-      const destination = new Writable({
-        write(chunk, _encoding, callback) {
-          logOutput += chunk.toString()
-          callback()
-        },
-      })
+      const { destination, read } = collectStream()
       const testLogger = createRootLogger(destination, 'info')
 
       let thrownError: Error | undefined
@@ -204,7 +189,7 @@ for (const browser of browsers) {
       } catch (err) {
         thrownError = err as Error
       }
-      await new Promise<void>(resolve => destination.end(resolve))
+      const logOutput = await read()
 
       expect(thrownError).toBeInstanceOf(Error)
       expect(thrownError!.message).toBe(`handler failure at ${secretInput}`)

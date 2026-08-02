@@ -1,3 +1,4 @@
+import { sensitiveLogPaths } from '@rctf/util'
 import { DrizzleQueryError } from 'drizzle-orm'
 import pino, { type DestinationStream } from 'pino'
 
@@ -5,20 +6,8 @@ const redact = [
   'req.headers.authorization',
   'req.headers.cookie',
   'req.headers["proxy-authorization"]',
-  'flag',
-  'submittedFlag',
-  'details.submittedFlag',
-  'flags[*].flag',
-  'input',
-  'inputs',
-  'job.flag',
-  'job.flags[*].flag',
-  'job.inputs',
-  'req.body.flag',
-  'req.body.submittedFlag',
-  'req.body.flags[*].flag',
-  'req.body.input',
-  'req.body.inputs',
+  ...sensitiveLogPaths,
+  // backstop for non-Error values logged under err/error, which skip the serializer
   'err.query',
   'err.params',
   'error.query',
@@ -35,21 +24,20 @@ type QueryError = Error & {
   }
 }
 
-const isQueryError = (error: unknown): error is QueryError =>
+const isQueryError = (error: Error): error is QueryError =>
   error instanceof DrizzleQueryError ||
-  (error instanceof Error &&
-    typeof (error as Partial<QueryError>).query === 'string' &&
+  (typeof (error as Partial<QueryError>).query === 'string' &&
     Array.isArray((error as Partial<QueryError>).params))
 
-const findQueryError = (error: unknown): QueryError | undefined => {
+const findQueryError = (error: Error): QueryError | undefined => {
   const seen = new Set<Error>()
-  let current = error
+  let current: unknown = error
   while (current instanceof Error && !seen.has(current)) {
     if (isQueryError(current)) {
       return current
     }
     seen.add(current)
-    current = (current as Error & { cause?: unknown }).cause
+    current = current.cause
   }
   return undefined
 }
@@ -65,33 +53,37 @@ const sanitizedStack = (error: Error): string | undefined => {
   return frames ? `${error.name}: Database query failed\n${frames}` : undefined
 }
 
+// Query errors embed bound parameters (flags, inputs) in message/query/params,
+// so replace them with a sanitized summary. Everything else passes through.
 const serializeError = (error: unknown) => {
-  const queryError = findQueryError(error)
-  if (!queryError) {
+  if (!(error instanceof Error)) {
     return pino.stdSerializers.err(error as Error)
   }
-
-  const code = stringProperty(queryError.cause?.code)
-  const constraint = stringProperty(
-    queryError.cause?.constraint_name ?? queryError.cause?.constraint
-  )
+  const queryError = findQueryError(error)
+  if (!queryError) {
+    return pino.stdSerializers.err(error)
+  }
   return {
     type: 'DrizzleQueryError',
     message: 'Database query failed',
-    stack: sanitizedStack(error instanceof Error ? error : queryError),
-    ...(code ? { code } : {}),
-    ...(constraint ? { constraint } : {}),
+    stack: sanitizedStack(error),
+    code: stringProperty(queryError.cause?.code),
+    constraint: stringProperty(
+      queryError.cause?.constraint_name ?? queryError.cause?.constraint
+    ),
   }
 }
-
-const options = (level: string) => ({
-  level,
-  redact,
-  serializers: { err: serializeError, error: serializeError },
-})
 
 export const createApiLogger = (
   destination?: DestinationStream,
   level = process.env.LOG_LEVEL ??
     (Bun.env.NODE_ENV === 'production' ? 'info' : 'trace')
-) => (destination ? pino(options(level), destination) : pino(options(level)))
+) =>
+  pino(
+    {
+      level,
+      redact,
+      serializers: { err: serializeError, error: serializeError },
+    },
+    destination
+  )

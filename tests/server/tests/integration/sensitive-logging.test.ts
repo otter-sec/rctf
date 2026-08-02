@@ -44,6 +44,7 @@ test('does not include submitted flags in successful or cheated logs', async () 
     warn: capture('warn'),
     error: capture('error'),
   } as unknown as PinoLogger
+  // Return the selected response helper name as its response kind.
   const responses = new Proxy(Object.create(null), {
     get: (_target, property) => (data?: unknown) => ({
       status: 200,
