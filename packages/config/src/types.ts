@@ -33,6 +33,7 @@ export const CustomPageSchema = z.object({
   content: z.string(),
   icon: z._default(CustomPageIconSchema, 'file'),
   showInNavigation: z._default(z.boolean(), true),
+  hideTitle: z._default(z.boolean(), false),
 })
 
 // Division access control: matches field `match` against `value`, applies to listed divisions

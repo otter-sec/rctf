@@ -386,6 +386,7 @@ customPages:
 
       Do not attack the competition infrastructure.
     showInNavigation: true
+    hideTitle: false
 sponsors:
   - name: Sponsor Name
     iconLight: https://example.com/sponsor-light.png
@@ -404,7 +405,7 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>homeContent</red>` | `string{:ts}` | `"Home content. Markdown supported."{:ts}` | Home page content (Markdown) |
-| `<red>customPages</red>` | `array{:ts}` | `[]{:json}` | Public Markdown pages (`<red>slug</red>`, `<red>title</red>`, `<red>content</red>`, `<red>icon</red>`, `<red>showInNavigation</red>`) served at `<green>/pages/&lt;slug&gt;</green>`. Icons: `<green>file</green>`, `<green>info</green>`, `<green>question</green>`, `<green>warning</green>`, `<green>gavel</green>`, `<green>globe</green>`, `<green>flag</green>`, `<green>trophy</green>`, `<green>users</green>`, `<green>clock</green>`, `<green>key</green>`, or `<green>puzzle</green>`. |
+| `<red>customPages</red>` | `array{:ts}` | `[]{:json}` | Public Markdown pages (`<red>slug</red>`, `<red>title</red>`, `<red>content</red>`, `<red>icon</red>`, `<red>showInNavigation</red>`, `<red>hideTitle</red>`) served at `<green>/pages/&lt;slug&gt;</green>`. Set `<red>hideTitle</red>` to `<green>true</green>` to omit the visible title while retaining it for navigation and the browser tab. Icons: `<green>file</green>`, `<green>info</green>`, `<green>question</green>`, `<green>warning</green>`, `<green>gavel</green>`, `<green>globe</green>`, `<green>flag</green>`, `<green>trophy</green>`, `<green>users</green>`, `<green>clock</green>`, `<green>key</green>`, or `<green>puzzle</green>`. |
 | `<red>sponsors</red>` | `array{:ts}` | `[]{:json}` | List of sponsors (`<red>name</red>`, `<red>iconLight</red>`, `<red>iconDark</red>`, `<red>description</red>`, `<red>url</red>`). When only one mode's icon is set, the home page renders it color-inverted in the other mode; legacy `<red>icon</red>` is accepted as the light-mode icon |
 | `<red>meta.description</red>` | `string{:ts}` | `"rCTF event description"{:ts}` | HTML meta description |
 | `<red>meta.imageUrl</red>` | `string{:ts}` | `""{:ts}` | HTML meta image URL |

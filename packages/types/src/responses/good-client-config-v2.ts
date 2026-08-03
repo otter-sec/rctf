@@ -37,6 +37,9 @@ export const GoodClientConfigV2 = response('goodClientConfigV2', {
           showInNavigation: example(z.boolean(), true).check(
             z.describe('Whether to link the page from the main navigation.')
           ),
+          hideTitle: example(z.boolean(), false).check(
+            z.describe('Whether to hide the page title above the content.')
+          ),
         })
       )
       .check(z.describe('Custom public Markdown pages.')),
