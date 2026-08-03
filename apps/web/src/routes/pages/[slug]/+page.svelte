@@ -11,7 +11,7 @@
 </svelte:head>
 
 <custom-page>
-  <Card title={data.customPage.title}>
+  <Card title={data.customPage.hideTitle ? undefined : data.customPage.title}>
     <Markdown content={data.customPage.content} />
   </Card>
 </custom-page>
