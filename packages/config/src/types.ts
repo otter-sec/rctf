@@ -1,4 +1,5 @@
 import {
+  CustomPageIconSchema,
   normalizeSponsorIcons,
   NumericString,
   ProtectedAction,
@@ -23,6 +24,16 @@ export const SponsorSchema = z.pipe(
   }),
   z.transform(normalizeSponsorIcons)
 )
+
+export const CustomPageSchema = z.object({
+  slug: z
+    .string()
+    .check(z.regex(/^[a-z0-9-]+$/), z.minLength(1), z.maxLength(64)),
+  title: z.string().check(z.minLength(1)),
+  content: z.string(),
+  icon: z._default(CustomPageIconSchema, 'file'),
+  showInNavigation: z._default(z.boolean(), true),
+})
 
 // Division access control: matches field `match` against `value`, applies to listed divisions
 export const ACLSchema = z.object({
@@ -138,6 +149,7 @@ export const ServerConfigSchema = z.object({
 
   // UI
   homeContent: z._default(z.string(), 'Home content. Markdown supported.'),
+  customPages: z._default(z.array(CustomPageSchema), []),
   sponsors: z._default(z.array(SponsorSchema), []),
   meta: z.prefault(
     z.object({
@@ -236,5 +248,6 @@ export const ServerConfigSchema = z.object({
 })
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>
 export type Sponsor = z.infer<typeof SponsorSchema>
+export type CustomPage = z.infer<typeof CustomPageSchema>
 export type ACL = z.infer<typeof ACLSchema>
 export type ServerConfig = z.infer<typeof ServerConfigSchema>

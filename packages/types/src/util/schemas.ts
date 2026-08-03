@@ -1,6 +1,21 @@
 import { z } from 'zod/mini'
 import { example } from './example'
 
+export const CustomPageIconSchema = z.enum([
+  'file',
+  'info',
+  'question',
+  'warning',
+  'gavel',
+  'globe',
+  'flag',
+  'trophy',
+  'users',
+  'clock',
+  'key',
+  'puzzle',
+])
+
 export enum ExposeKind {
   TCP = 'tcp',
   TCP_SSL = 'tcp-ssl',

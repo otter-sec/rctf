@@ -27,6 +27,7 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
+  import { getCustomPageIcon } from '$lib/utils/custom-page-icons'
   import {
     ADMIN_PANEL_PERMISSIONS,
     hasAnyPermission,
@@ -165,6 +166,21 @@
           />
         {/snippet}
       </Tooltip>
+      {#each clientConfig?.customPages.filter(page => page.showInNavigation) ?? [] as customPage (customPage.slug)}
+        {@const Icon = getCustomPageIcon(customPage.icon)}
+        <Tooltip label={customPage.title}>
+          {#snippet children({ props })}
+            <NavigationButton
+              {...props}
+              data-roving
+              href="/pages/{customPage.slug}"
+              activePath="/pages/{customPage.slug}"
+              label={customPage.title}
+              icon={Icon}
+            />
+          {/snippet}
+        </Tooltip>
+      {/each}
       {#if isAdmin}
         <Tooltip label="Admin">
           {#snippet children({ props: tooltipProps })}

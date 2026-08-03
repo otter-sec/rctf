@@ -29,6 +29,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
   const resolved = await getResolvedSettings(ctx.var.db, ctx.var.redis)
   return res.goodClientConfigV2({
     ...resolved,
+    customPages: config.customPages,
     flagFormatPlaceholder: config.flagFormatPlaceholder,
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,

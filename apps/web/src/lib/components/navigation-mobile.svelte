@@ -25,6 +25,7 @@
   import Dialog from '$lib/ui/dialog.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
   import { copyLoginUrl, logout } from '$lib/utils/auth'
+  import { getCustomPageIcon } from '$lib/utils/custom-page-icons'
   import {
     ADMIN_PANEL_PERMISSIONS,
     hasAnyPermission,
@@ -79,6 +80,13 @@
         icon: IconGlobeHemisphereWest,
         show: true,
       },
+      ...(clientConfig?.customPages ?? []).map(customPage => ({
+        href: `/pages/${customPage.slug}`,
+        activePath: `/pages/${customPage.slug}`,
+        label: customPage.title,
+        icon: getCustomPageIcon(customPage.icon),
+        show: customPage.showInNavigation,
+      })),
       {
         href: '/profile',
         activePath: '/profile',
