@@ -482,6 +482,12 @@ func (r *ChallengeInstanceReconciler) deployResources(ctx context.Context, insta
 			if podSpec.EnableServiceLinks == nil {
 				podSpec.EnableServiceLinks = ptr.To(false)
 			}
+			podSpec.DNSPolicy = corev1.DNSNone
+			if podSpec.DNSConfig == nil {
+				podSpec.DNSConfig = &corev1.PodDNSConfig{
+					Nameservers: []string{"1.1.1.1", "1.0.0.1"},
+				}
+			}
 			podSpec.HostAliases = serviceHostAliases
 			flags := instance.Spec.Flags
 			if flags == "" {
