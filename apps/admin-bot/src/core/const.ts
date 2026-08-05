@@ -27,4 +27,5 @@ export const defaultFirefoxPreferences: Record<string, unknown> = {
   'javascript.options.ion': false,
   'javascript.options.baselinejit': false,
   'javascript.options.wasm_baselinejit': false,
+  'browser.startup.windowsLaunchOnLogin.defaultEnabled': false,
 }
