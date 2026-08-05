@@ -82,7 +82,7 @@
       <Avatar src={submission.userAvatarUrl} name={submission.userName} />
     </avatar-slot>
     <a
-      href="/profile/{submission.userId}"
+      href="/admin/profile/{submission.userId}"
       onclick={event => event.stopPropagation()}
     >
       {submission.userName}
