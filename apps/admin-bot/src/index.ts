@@ -2,14 +2,16 @@ import { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
 import { BrowserManager } from './browser/manager'
-import { ChallengeLoader } from './core/loader'
+import { ChallengeLoader, loadChallengeDefaults } from './core/loader'
 import { createLogger } from './core/logger'
 import { PlatformClient } from './core/platform'
 import { startPoller } from './core/poller'
 
 export const app = new Hono()
 export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
-export const challenges = new ChallengeLoader()
+export const challenges = new ChallengeLoader(
+  await loadChallengeDefaults(process.env.CHALLENGE_DEFAULT_CONFIG_PATH)
+)
 const logger = createLogger('index')
 
 const RCTF_BASE_URL = process.env.RCTF_BASE_URL

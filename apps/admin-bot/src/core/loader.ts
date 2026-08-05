@@ -1,29 +1,66 @@
-import { Challenge } from '../types'
+import deepmerge from 'deepmerge'
+import yaml from 'yaml'
+import {
+  Challenge,
+  type ChallengeConfig,
+  type ChallengeDefaultsFile,
+} from '../types'
 import * as TypesModule from '../types'
 import { createLogger } from './logger'
+import { defaultBrowser } from './const'
 
 const logger = createLogger('loader')
 
-const MODULES_MAPPING: Map<string[], any> = new Map([
-  [
-    [
-      '../src/types',
-      '../types',
-      './types',
-      './src/types',
-      'src/types',
-      'types',
-    ],
-    TypesModule,
-  ],
-])
+const TYPES_MODULE_PATHS = [
+  '../src/types',
+  '../types',
+  './types',
+  './src/types',
+  'src/types',
+  'types',
+]
 
 const cacheKey = (id: string, revision: string): string => `${id}:${revision}`
+
+export const loadChallengeDefaults = async (
+  path?: string
+): Promise<ChallengeDefaultsFile> => {
+  if (!path) {
+    return {}
+  }
+
+  return yaml.parse(await Bun.file(path).text()) ?? {}
+}
+
+const applyChallengeDefaults = (
+  defaults: ChallengeDefaultsFile,
+  config: ChallengeConfig
+): ChallengeConfig => {
+  const browser = config.browser ?? defaults.common?.browser ?? defaultBrowser
+  return deepmerge.all<ChallengeConfig>(
+    [defaults.common ?? {}, defaults[browser] ?? {}, config],
+    {
+      arrayMerge: (_defaults, configValues) => configValues,
+    }
+  )
+}
 
 export class ChallengeLoader {
   // key is "id:revision"
   private challenges = new Map<string, Challenge>()
   private currentRevisions = new Map<string, string>()
+  private typesModule: typeof TypesModule
+
+  constructor(defaults: ChallengeDefaultsFile = {}) {
+    this.typesModule = {
+      ...TypesModule,
+      Challenge: class extends Challenge {
+        constructor(config: ChallengeConfig) {
+          super(applyChallengeDefaults(defaults, config))
+        }
+      },
+    }
+  }
 
   async loadChallenge(source: string): Promise<Challenge | string> {
     try {
@@ -31,7 +68,7 @@ export class ChallengeLoader {
         entrypoints: ['<challenge>'],
         format: 'cjs',
         target: 'bun',
-        external: MODULES_MAPPING.keys().toArray().flat(),
+        external: TYPES_MODULE_PATHS,
         plugins: [
           {
             name: 'challenge-loader',
@@ -59,13 +96,11 @@ export class ChallengeLoader {
       const moduleExports: any = {}
       const module = { exports: moduleExports }
       const customRequire = (name: string) => {
-        for (const [k, v] of MODULES_MAPPING.entries()) {
-          if (k.includes(name)) {
-            return v
-          }
+        if (TYPES_MODULE_PATHS.includes(name)) {
+          return this.typesModule
         }
         throw new Error(
-          `Module '${name}' is not allowed. Allowed modules: ${MODULES_MAPPING.keys().toArray().flat().join(', ')}`
+          `Module '${name}' is not allowed. Allowed modules: ${TYPES_MODULE_PATHS.join(', ')}`
         )
       }
 

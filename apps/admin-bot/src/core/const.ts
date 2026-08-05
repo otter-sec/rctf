@@ -1,3 +1,4 @@
+export const defaultBrowser = 'chrome'
 export const defaultMaxLogLines = 64
 export const defaultMaxLogParamChars = 2048
 
