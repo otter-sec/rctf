@@ -1,7 +1,7 @@
 import { cacheLeaderboardAndGraph } from '@rctf/api/src/cache/leaderboard'
 import { insertInChunks } from '@rctf/api/src/lib/db-bulk'
 import { createToken, TokenKind } from '@rctf/api/src/lib/tokens'
-import { calculateLeaderboard } from '@rctf/api/src/services/leaderboard'
+import { calculateLeaderboard } from '@rctf/api/src/services/leaderboard-calculation'
 import { config } from '@rctf/config'
 import {
   challenges,

@@ -20,7 +20,7 @@ import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { cacheLeaderboardAndGraph } from '../../../../apps/api/src/cache/leaderboard'
 import { resendPendingTeamVerification } from '../../../../apps/api/src/services/admin-verifications'
-import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard'
+import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard-calculation'
 import {
   createPendingRegistrationVerification,
   getPendingRegistrationVerification,

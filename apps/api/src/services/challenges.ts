@@ -32,7 +32,6 @@ import {
   SubmissionResult,
 } from '@rctf/types'
 import { and, asc, count, desc, eq, inArray, max, sql, sum } from 'drizzle-orm'
-import type { PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { inJsonbArrayPlaceholder } from '../lib/db-bulk'
@@ -40,6 +39,13 @@ import { preparedPerDb } from '../lib/prepared'
 import { type MatchedFlagEntry, verifyFlagEntries } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
+import {
+  challengeIsPublicSql,
+  isDecayKind,
+  nonBannedUserJoin,
+  scoringKindOf,
+  userIsNotBanned,
+} from './challenge-queries'
 import { rateLimitFlag } from './rate-limit'
 import { getCompetitionTiming } from './settings'
 import { createSubmission } from './submissions'
@@ -111,10 +117,6 @@ type ChallengeSolvesWithPosition = {
   solvePosition: number | null
 }
 
-export const userIsNotBanned = eq(users.banned, false)
-export const nonBannedUserJoin = (ownerId: PgColumn) =>
-  and(eq(users.id, ownerId), userIsNotBanned)
-
 const createRankedSolvesForChallenges = (
   db: DatabaseClient,
   challengeIds: string[]
@@ -179,11 +181,6 @@ export const isChallengePublic = (challenge: Challenge): boolean => {
   }
   return +new Date() >= (challenge.data.releaseTime ?? 0)
 }
-
-export const challengeIsPublicSql = and(
-  sql`COALESCE((${challenges.data} ->> 'hidden')::boolean, false) = false`,
-  sql`COALESCE((${challenges.data} ->> 'releaseTime')::bigint, 0) <= ${sql.raw('extract(epoch from now())::bigint * 1000')}`
-)!
 
 const challengeDefaultOrder = [
   sql`((${challenges.data} ->> 'sortWeight')::int) NULLS LAST`,
@@ -268,12 +265,7 @@ export const lockChallenge = (tx: DatabaseTx, challengeId: string) =>
     sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
   )
 
-export const scoringKindOf = (data: {
-  scoring?: { kind: ChallengeScoringKind } | null
-}): ChallengeScoringKind => data.scoring?.kind ?? ChallengeScoringKind.DECAY
-
 export type DecayChallenge = Pick<Challenge, 'id' | 'data'>
-export const isDecayKind = sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${ChallengeScoringKind.DECAY}`
 
 export const getDecayChallenge = (
   tx: DatabaseTx,

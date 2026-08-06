@@ -1,7 +1,7 @@
 import type { DatabaseClient } from '@rctf/db'
 import type { CalculatedLeaderboard } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
-import type { CachedLeaderboardComputation } from '../services/leaderboard'
+import type { CachedLeaderboardComputation } from '../services/leaderboard-calculation'
 
 type Calculator = (db: DatabaseClient) => Promise<CachedLeaderboardComputation>
 
