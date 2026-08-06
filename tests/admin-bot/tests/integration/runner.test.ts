@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
+import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
 import { BufferedOutputHandler } from '../../../../apps/admin-bot/src/core/output'
 import { handleSubmission } from '../../../../apps/admin-bot/src/core/runner'
 import type { JobMetadata } from '../../../../apps/admin-bot/src/types'
+import { collectStream } from '../../../util'
 
 const browsers = ['chrome', 'firefox'] as const
 const validChallengeSource = (browser: 'chrome' | 'firefox') => `
@@ -32,6 +34,34 @@ const makeJobMeta = (): JobMetadata => ({
   flags: [{ provider: 'flags/static', flag: 'flag{test}' }],
   flag: 'flag{test}',
   instancerInstances: [],
+})
+
+test('logs job identifiers but not participant inputs or flags', async () => {
+  const { destination, read } = collectStream()
+  const testLogger = createRootLogger(destination, 'info')
+  const secretFlag = 'flag{runner-log-secret}'
+  const secretInput = 'https://example.com/?token=participant-secret'
+  const job = {
+    ...makeJobMeta(),
+    flag: secretFlag,
+    flags: [{ provider: 'flags/static', flag: secretFlag }],
+  }
+
+  await handleSubmission(
+    new ChallengeLoader(),
+    new BrowserManager(),
+    job,
+    { url: secretInput },
+    new BufferedOutputHandler(64),
+    testLogger
+  )
+
+  const logOutput = await read()
+  expect(logOutput).toContain(job.challengeId)
+  expect(logOutput).toContain(job.configRevision)
+  expect(logOutput).toContain(job.userId)
+  expect(logOutput).not.toContain(secretFlag)
+  expect(logOutput).not.toContain(secretInput)
 })
 
 for (const browser of browsers) {
@@ -124,6 +154,7 @@ for (const browser of browsers) {
     })
 
     test('cleanup runs even on handler error', async () => {
+      const submittedInput = 'https://example.com/?token=handler-error-input'
       const errorSource = `
         const { Challenge } = require('../types')
         export const challenge = new Challenge({
@@ -131,7 +162,7 @@ for (const browser of browsers) {
           inputs: { url: { pattern: '^https?://.*' } },
           browser: '${browser}',
           handler: async (ctx) => {
-            throw new Error('handler failure')
+            throw new Error('handler failure at ' + ctx.input.url)
           },
           hooksConfig: {
             showConsoleLogs: false,
@@ -142,6 +173,8 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
+      const { destination, read } = collectStream()
+      const testLogger = createRootLogger(destination, 'info')
 
       let thrownError: Error | undefined
       try {
@@ -149,18 +182,22 @@ for (const browser of browsers) {
           challenges,
           browserManager,
           makeJobMeta(),
-          { url: 'http://example.com' },
-          output
+          { url: submittedInput },
+          output,
+          testLogger
         )
       } catch (err) {
         thrownError = err as Error
       }
+      const logOutput = await read()
 
       expect(thrownError).toBeInstanceOf(Error)
-      expect(thrownError!.message).toBe('handler failure')
+      expect(thrownError!.message).toBe(`handler failure at ${submittedInput}`)
       // The function should have still run browser setup (verifiable via output)
       const logs = output.getOutput()
       expect(logs).toContain('setting up browser')
+      expect(logOutput).toContain('challenge failed')
+      expect(logOutput).toContain(`handler failure at ${submittedInput}`)
     })
   })
 }

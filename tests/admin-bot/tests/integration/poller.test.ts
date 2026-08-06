@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
+import { createRootLogger } from '../../../../apps/admin-bot/src/core/logger'
 import { PlatformClient } from '../../../../apps/admin-bot/src/core/platform'
 import type { PulledJob } from '../../../../apps/admin-bot/src/core/platform'
 import {
   ensureChallengeLoaded,
   processJob,
 } from '../../../../apps/admin-bot/src/core/poller'
+import { collectStream } from '../../../util'
 
 const browsers = ['chrome', 'firefox'] as const
 const validChallengeSource = (browser: 'chrome' | 'firefox') => `
@@ -220,6 +222,7 @@ for (const browser of browsers) {
     })
 
     test('non-timeout error -> failJob with internal server error', async () => {
+      const submittedInput = 'https://example.com/?token=poller-error-input'
       const errorSource = `
         const { Challenge } = require('../types')
         export const challenge = new Challenge({
@@ -227,7 +230,7 @@ for (const browser of browsers) {
           inputs: { url: { pattern: '^https?://.*' } },
           browser: '${browser}',
           handler: async (ctx) => {
-            throw new Error('something broke')
+            throw new Error('something broke at ' + ctx.input.url)
           },
           hooksConfig: {
             showConsoleLogs: false,
@@ -238,11 +241,22 @@ for (const browser of browsers) {
         })
       `
       await challenges.loadFromSource('chal-1', 'rev-1', errorSource)
-      await processJob(challenges, browserManager, platform, makeJob())
+      const { destination, read } = collectStream()
+      const testLogger = createRootLogger(destination, 'info')
+      await processJob(
+        challenges,
+        browserManager,
+        platform,
+        makeJob({ inputs: { url: submittedInput } }),
+        testLogger
+      )
+      const logOutput = await read()
 
       expect(failedJobs.length).toBe(1)
       expect(failedJobs[0]!.logs).toContain('hit internal server error')
       expect(completedJobs.length).toBe(0)
+      expect(logOutput).toContain('job failed')
+      expect(logOutput).toContain(`something broke at ${submittedInput}`)
     })
   })
 }

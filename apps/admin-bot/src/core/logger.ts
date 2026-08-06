@@ -1,5 +1,18 @@
-import { pino } from 'pino'
+import { sensitiveLogPaths } from '@rctf/util'
+import { pino, type DestinationStream } from 'pino'
 
-const root = pino({ level: process.env.LOG_LEVEL ?? 'info' })
+const redact = [
+  ...sensitiveLogPaths,
+  'job.flag',
+  'job.flags[*].flag',
+  'job.inputs',
+]
+
+export const createRootLogger = (
+  destination?: DestinationStream,
+  level = process.env.LOG_LEVEL ?? 'info'
+) => pino({ level, redact }, destination)
+
+const root = createRootLogger()
 
 export const createLogger = (module: string) => root.child({ module })

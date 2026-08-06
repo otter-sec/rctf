@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { withTimeout } from '@rctf/util'
+import type { Logger } from 'pino'
 import { applyHooks } from '../browser/hooks'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeContext, JobMetadata } from '../types'
@@ -16,9 +17,14 @@ export const handleSubmission = async (
   browserManager: BrowserManager,
   job: JobMetadata,
   input: Record<string, string>,
-  output: OutputHandler
+  output: OutputHandler,
+  baseLogger: Logger = logger
 ): Promise<void> => {
-  const log = logger.child({ input, job })
+  const log = baseLogger.child({
+    challengeId: job.challengeId,
+    configRevision: job.configRevision,
+    userId: job.userId,
+  })
   const challenge = challenges.get(job.challengeId, job.configRevision)
   if (!challenge) {
     log.error('challenge not found')

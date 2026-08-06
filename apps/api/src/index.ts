@@ -4,8 +4,8 @@ import { withTimeout } from '@rctf/util'
 import { Hono, type MiddlewareHandler } from 'hono'
 import { pinoLogger } from 'hono-pino'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
+import { createApiLogger } from './lib/logger'
 import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
 import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
@@ -18,16 +18,7 @@ import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
 import { startLeaderboardWorker, stopWorkers } from './workers'
 
-const logger = pino({
-  level:
-    process.env.LOG_LEVEL ??
-    (Bun.env.NODE_ENV === 'production' ? 'info' : 'trace'),
-  redact: [
-    'req.headers.authorization',
-    'req.headers.cookie',
-    'req.headers["proxy-authorization"]',
-  ],
-})
+const logger = createApiLogger()
 
 const createApp = () => {
   const app = new Hono<AppEnv>()
