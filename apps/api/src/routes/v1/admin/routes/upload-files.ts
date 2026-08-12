@@ -1,6 +1,6 @@
 import { UploadFilesRoute } from '@rctf/types'
 import { dataUriToBuffer } from 'data-uri-to-buffer'
-import { uploadProvider } from '../../../../providers'
+import { uploadProvider } from '../../../../providers/instances/uploads'
 import adminGroup from '../group'
 
 adminGroup.route(UploadFilesRoute, async ({ res, body }) => {

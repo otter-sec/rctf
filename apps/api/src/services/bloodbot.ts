@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import type { ChallengeData, User } from '@rctf/db'
 import mustache from 'mustache'
-import { bloodBotProviders } from '../providers'
+import { bloodBotProviders } from '../providers/instances/messages'
 import { buildBloodMessageView } from './bloodbot-view'
 
 export const shouldNotifyBloodbot = (bloodNumber: number) => {

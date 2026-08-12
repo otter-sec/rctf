@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { scoreProvider } from '../../../../apps/api/src/providers/score'
+import { scoreProvider } from '../../../../apps/api/src/providers/instances/score'
 import { createRecomputeQueue } from '../../../../apps/api/src/workers/leaderboard-recompute'
 
 const setRequiredFields = (fields: ReadonlyArray<string>) => {

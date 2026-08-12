@@ -5,7 +5,7 @@ import {
   SubmissionResult,
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
-import { adminBotProvider } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers/instances/admin-bot'
 import { getFlagsForTeam } from '../../../../providers/flags'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'

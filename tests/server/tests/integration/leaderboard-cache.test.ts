@@ -18,7 +18,7 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../../../../apps/api/src/cache/scripts'
-import { scoreProvider } from '../../../../apps/api/src/providers/score'
+import { scoreProvider } from '../../../../apps/api/src/providers/instances/score'
 import {
   calculateLeaderboard,
   createCachedLeaderboardCalculator,

@@ -10,7 +10,8 @@ import type {
 import type { PinoLogger } from 'hono-pino'
 import sharp from 'sharp'
 import type { TypedRedis } from '../cache/scripts'
-import { avatarModerationProvider, uploadProvider } from '../providers'
+import { avatarModerationProvider } from '../providers/instances/moderation'
+import { uploadProvider } from '../providers/instances/uploads'
 import { updateUserAvatar } from './users'
 
 export type SetUserAvatarError =

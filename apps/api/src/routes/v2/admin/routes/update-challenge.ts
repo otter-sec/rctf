@@ -1,6 +1,7 @@
 import type { AdminBotConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
-import { adminBotProvider, instancerEnabled } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers/instances/admin-bot'
+import { instancerEnabled } from '../../../../providers/instances/instancer'
 import { createDefaultFlag, getFlagProvider } from '../../../../providers/flags'
 import {
   ChallengeKindChangeBlockedError,

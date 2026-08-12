@@ -9,11 +9,9 @@ import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
 import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
-import {
-  adminBotProvider,
-  analyticsProvider,
-  uploadProvider,
-} from './providers'
+import { adminBotProvider } from './providers/instances/admin-bot'
+import { analyticsProvider } from './providers/instances/analytics'
+import { uploadProvider } from './providers/instances/uploads'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
 import { startLeaderboardWorker, stopWorkers } from './workers'

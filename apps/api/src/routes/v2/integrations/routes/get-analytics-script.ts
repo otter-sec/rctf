@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { AppEnv } from '../../../../lib/app-env'
-import { analyticsProvider } from '../../../../providers'
+import { analyticsProvider } from '../../../../providers/instances/analytics'
 
 let cachedScript: { content: string; fetchedAt: number } | null = null
 const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour

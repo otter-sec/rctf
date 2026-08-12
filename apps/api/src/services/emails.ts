@@ -3,7 +3,7 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import mustache from 'mustache'
 import type { TypedRedis } from '../cache/scripts'
-import { emailProvider } from '../providers'
+import { emailProvider } from '../providers/instances/emails'
 import { getResolvedSettings } from './settings'
 
 export type EmailKind = 'register' | 'recover' | 'update'

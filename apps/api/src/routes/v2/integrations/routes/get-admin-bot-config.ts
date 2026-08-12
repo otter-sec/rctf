@@ -1,5 +1,5 @@
 import { GetAdminBotConfigRouteV2 } from '@rctf/types'
-import { adminBotProvider } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers/instances/admin-bot'
 import { getChallenge } from '../../../../services/challenges'
 import integrationsGroup from '../group'
 

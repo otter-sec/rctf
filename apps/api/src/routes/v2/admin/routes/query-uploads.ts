@@ -1,5 +1,5 @@
 import { QueryUploadsRouteV2 } from '@rctf/types'
-import { uploadProvider } from '../../../../providers'
+import { uploadProvider } from '../../../../providers/instances/uploads'
 import adminGroup from '../group'
 
 adminGroup.route(QueryUploadsRouteV2, async ({ body, res }) => {

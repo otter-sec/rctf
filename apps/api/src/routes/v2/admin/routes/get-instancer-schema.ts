@@ -4,7 +4,7 @@ import {
   defaultInstancerName,
   instancerEnabled,
   instancers,
-} from '../../../../providers'
+} from '../../../../providers/instances/instancer'
 import adminGroup from '../group'
 
 adminGroup.route(GetInstancerSchemaRouteV2, async ({ res }) => {

@@ -1,5 +1,6 @@
 import { ChallengeScoringKind, GetChallengesRouteV2 } from '@rctf/types'
-import { adminBotEnabled, instancerEnabled } from '../../../../providers'
+import { adminBotEnabled } from '../../../../providers/instances/admin-bot'
+import { instancerEnabled } from '../../../../providers/instances/instancer'
 import { getChallenges } from '../../../../services/challenges'
 import {
   resolveInstancerActions,

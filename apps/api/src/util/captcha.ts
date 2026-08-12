@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import type { ProtectedAction } from '@rctf/types'
-import { captchaProvider } from '../providers'
+import { captchaProvider } from '../providers/instances/captcha'
 
 export const isActionProtected = (action: ProtectedAction): boolean => {
   return config.captcha?.protectedEndpoints?.includes(action) ?? false

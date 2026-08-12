@@ -13,7 +13,7 @@ import type {
 } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { cursorAfter, type RowCursor } from '../lib/db-filters'
-import { scoreProvider } from '../providers/score'
+import { scoreProvider } from '../providers/instances/score'
 import {
   challengeIsPublicSql,
   nonBannedUserJoin,

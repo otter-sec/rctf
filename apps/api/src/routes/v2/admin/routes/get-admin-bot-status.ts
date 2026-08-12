@@ -1,5 +1,5 @@
 import { GetAdminBotStatusRouteV2 } from '@rctf/types'
-import { adminBotProvider } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers/instances/admin-bot'
 import adminGroup from '../group'
 
 adminGroup.route(GetAdminBotStatusRouteV2, async ({ res }) => {

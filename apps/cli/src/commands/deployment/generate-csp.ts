@@ -1,4 +1,4 @@
-import '@rctf/api/src/providers'
+import '@rctf/api/src/providers/instances'
 import { registeredProviders, type Csp } from '@rctf/api/src/providers/base'
 import { config } from '@rctf/config'
 import { join } from 'path'

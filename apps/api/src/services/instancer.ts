@@ -12,7 +12,7 @@ import {
   defaultInstancerName,
   instancerEnabled,
   instancers,
-} from '../providers'
+} from '../providers/instances/instancer'
 import { getFlagsForTeam } from '../providers/flags'
 import {
   type CreateInstanceOptions,

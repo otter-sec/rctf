@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
-import { captchaProvider, instancerEnabled } from '../../../../providers'
+import { captchaProvider } from '../../../../providers/instances/captcha'
+import { instancerEnabled } from '../../../../providers/instances/instancer'
 import { getResolvedSettings } from '../../../../services/settings'
 import integrationsGroup from '../group'
 
