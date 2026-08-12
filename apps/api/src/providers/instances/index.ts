@@ -1,8 +1,0 @@
-import './emails'
-import './uploads'
-import './instancer'
-import './captcha'
-import './messages'
-import './moderation'
-import './admin-bot'
-import './analytics'
