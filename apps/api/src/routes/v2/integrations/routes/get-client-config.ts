@@ -16,13 +16,6 @@ const getAnalyticsConfig = () => {
     }
   }
 
-  if (config.globalSiteTag) {
-    return {
-      provider: 'analytics/google',
-      publicOptions: { siteTag: config.globalSiteTag },
-    }
-  }
-
   return null
 }
 
