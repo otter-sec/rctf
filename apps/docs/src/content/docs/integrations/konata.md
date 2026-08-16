@@ -51,7 +51,7 @@ A typical layout (taken from the SekaiCTF 2026 challenge repository):
 
 ## Global config
 
-The root config contains credentials and any shared clusters, registries, domains, or templates. Only the `<red>rctf</red>` block is required for an rCTF-only setup.
+The root config contains credentials and any shared clusters, registries, kv entries, or templates. Only the `<red>rctf</red>` block is required for an rCTF-only setup.
 
 ```yaml title="kona.yaml"
 secrets:
@@ -82,7 +82,7 @@ registries:
   challenges: europe-west1-docker.pkg.dev/sekaictf-500215/sekaictf
   instancer-challenges: europe-west1-docker.pkg.dev/sekaictf-500215/challenge-registry
 
-domains:
+kv:
   static: chals.sekai.team
   instancer: instancer.sekai.team
 
@@ -147,9 +147,11 @@ Named Kubernetes clusters that challenge `<red>kubernetesManifests</red>` / `<re
 
 The `<red>registries</red>` map names container registry prefixes. An image selects one with `<red>registryName</red>` / `<red>registry_name</red>`, and Konata prepends the mapped prefix to the image name. Separate entries are useful when shared and instanced challenges publish to different registries.
 
-### `<red>domains</red>`
+### `<red>kv</red>`
 
-The `<red>domains</red>` map makes hostnames available to Jinja templates, for example `{{ config.domains['static'] }}`. Changing a deployment domain then requires one root edit instead of changes to every challenge.
+The `<red>kv</red>` map holds arbitrary key-value strings for Jinja templates, most commonly hostnames. `{{ kv['key-value-here'] }}` resolves in every template Konata renders, and the same map is reachable through the global config as `{{ config.kv['key-value-here'] }}`.
+
+Before 0.0.33 this map was named `<red>domains</red>`. The old key to access this object is still supported.
 
 ### `<red>templates</red>`
 
@@ -193,6 +195,18 @@ Choose `<green>tar_gz</green>` (the default), `<green>zip</green>`, or `<green>7
 
 When `true{:ts}`, the default, generated archives place their files under a directory named after the archive or challenge. Set it to `false{:ts}` to put files at the archive root.
 
+### `<red>challenge_id_format</red>`
+
+Controls how Konata derives a challenge ID when `<red>override_id</red>` is not set:
+
+| Format | Resulting ID |
+| --- | --- |
+| `<green>path-sha256</green>` (default) | First 16 hex digits of the SHA-256 of the challenge directory path, relative to the repo root. |
+| `<green>path</green>` | The relative directory path with `/` replaced by `_`, such as `<green>web_migurimental</green>`. |
+| `<green>name</green>` | `<red><category>_<name></red>`, the format Konata used before 0.0.33. |
+
+When one file declares several challenges, the path seed gets a `/<index>` suffix so each challenge receives a distinct ID.
+
 ## Per-challenge config
 
 A challenge file declares one or more challenges and may include a `<red>deployment</red>` block. A static challenge needs only its category, name, author, description, and flag:
@@ -224,11 +238,11 @@ challenges:
 
 | Field | Purpose |
 | --- | --- |
-| `<red>category</red>` | Challenge category. Combined with `<red>name</red>` to form the default challenge ID. |
-| `<red>name</red>` | Challenge name. Becomes the slug under which Konata syncs it. |
+| `<red>category</red>` | Challenge category. |
+| `<red>name</red>` | Challenge name. |
 | `<red>author</red>` | Rendered into the default description template. |
 | `<red>description</red>` | Markdown description. Trimmed of leading/trailing whitespace before rendering. |
-| `<red>override_id</red>` | Replaces the default `<red><category>_<name></red>` challenge ID. Useful when renaming a challenge without breaking already-recorded solves. |
+| `<red>override_id</red>` | Pins the challenge ID instead of deriving it from the configured format. See [challenge_id_format](#challenge_id_format). |
 | `<red>tags</red>` | Free-form label list synced to both rCTF and CTFd. |
 | `<red>attachments</red>` | File list or full `<red>AttachmentConfig</red>`. See below. |
 | `<red>scoring</red>` | Initial / minimum point values plus per-platform overrides (`<red>scoring.rctf.eligibleForTiebreaks</red>`, `<red>scoring.ctfd.decay</red>`, ...). |
@@ -326,7 +340,7 @@ attachments:
 | `<red>exclude</red>` | Globs filtered out of the resolved file list before archiving. |
 | `<red>additional</red>` | Synthetic files injected into the archive. Each entry specifies `<red>path</red>` plus exactly one of `<red>strContent</red>` / `<red>str</red>` or `<red>base64Content</red>` / `<red>base64</red>`. A typical use is shipping a dummy flag file so the build still works. |
 | `<red>preCompressed</red>` / `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
-| `<red>archiveName</red>` / `<red>archive_name</red>` | Base name for the generated archive (and the wrap directory when `<red>attachmentWrapDir</red>` / `<red>attachment_wrap_dir</red>` is on). Defaults to the challenge ID. Characters illegal in filenames are replaced with `_`. |
+| `<red>archiveName</red>` / `<red>archive_name</red>` | Base name for the generated archive (and the wrap directory when `<red>attachmentWrapDir</red>` / `<red>attachment_wrap_dir</red>` is on). Defaults to `<red><category>_<name></red>`, lowercased with whitespace collapsed to `-`. Characters illegal in filenames are replaced with `_`. |
 | `<red>stripComponents</red>` / `<red>strip_components</red>` | Number of leading path components to drop from each entry's archive path, like `$ <red>tar</red> <dim>--strip-components</dim>`. Defaults to `0{:ts}`. Use it to flatten a nested `dist/` or `handout/` prefix out of the downloaded archive. |
 | `<red>password</red>` | Encrypts the generated archive with AES-256 behind this password. Setting a password forces the `<green>7z</green>` format regardless of `<red>attachmentFormat</red>` / `<red>attachment_format</red>`. Does not apply to `<red>preCompressed</red>` archives, which are uploaded as-is. |
 
@@ -390,7 +404,7 @@ Use `<red>endpoints</red>` to add connection information to a static challenge's
 ```yaml
 endpoints:
   - type: nc
-    endpoint: "{{ challenge.name | lower }}.{{ config.domains['static'] }}"
+    endpoint: "{{ challenge.name | lower }}.{{ kv['static'] }}"
     port: 1337
 ```
 
@@ -494,7 +508,8 @@ deployment:
 | `<red>clusterName</red>` / `<red>cluster_name</red>` | Cluster from the root `<red>clusters</red>` map (or an `<red>aliasTo</red>` / `<red>alias_to</red>`) to apply against. |
 | `<red>paths</red>` / `<red>documents</red>` | YAML files on disk or inline objects. Both render as Jinja templates with `<red>challenge</red>`, `<red>challenges</red>`, `<red>images</red>`, and `<red>config</red>` available. |
 | `<red>rolloutRestart.image</red>` / `<red>rollout_restart.image</red>` | When `true{:ts}` (the default), triggers a rollout restart of the matching Deployment whenever the resolved image digest changes. |
-| `<red>rolloutRestart.annotationPath</red>` / `<red>rollout_restart.annotation_path</red>` | Optional JSON-path-style hook for restarting on annotation changes. |
+| `<red>rolloutRestart.annotationPath</red>` / `<red>rollout_restart.annotation_path</red>` | Optional JSON-path-style hook for restarting on annotation changes. The annotation is skipped when the sync built images and none of them changed. |
+| `<red>rolloutRestart.always</red>` / `<red>rollout_restart.always</red>` | When `true{:ts}`, injects the annotation on every sync. |
 
 ### Instanced challenges
 
@@ -595,7 +610,7 @@ challenges:
       code: |
         import { Challenge } from '../src/types'
 
-        const APP_HOST = '{{"ltw." + config.domains['static']}}'
+        const APP_HOST = '{{"ltw." + kv['static']}}'
         const APP_URL = `https://${APP_HOST}`
 
         export const challenge = new Challenge({
@@ -608,7 +623,7 @@ challenges:
           browser: 'chrome',
           restrictDomains: {
             host: {
-              allowRegex: [{ pattern: '^{{("ltw." + config.domains['static']) | re_escape}}$' }],
+              allowRegex: [{ pattern: '^{{("ltw." + kv['static']) | re_escape}}$' }],
               disallowRegex: [{ pattern: '.*' }],
             },
           },
@@ -639,13 +654,14 @@ Konata's Jinja2 environment exposes a `<red>re_escape</red>` filter (`{{ value |
 
 ```ansi
 $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
+$ <red>kona</red> sync web/migurimental
 ```
 
 | Flag | Behavior |
 | --- | --- |
 | `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Defaults to the current directory (`.`). |
 | `<dim>--only</dim> <cyan><name></cyan>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
-| `<dim>--challenge-path</dim> <cyan><path></cyan>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
+| `<dim>--challenge-path</dim> <cyan><path></cyan>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. Positional arguments work the same way, as in the second example above. The CI integration uses this to scope each matrix shard to one challenge. |
 
 ### `<red>kona</red> compress`
 
