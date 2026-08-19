@@ -24,6 +24,17 @@ The CLI reads the same `rctf.d/{:dir}` configuration as the API, or the director
 
 ## Commands
 
+### `<red>rctf</red> config get`
+
+Prints the resolved value at a dot-separated [configuration](/configuration) path.
+
+```ansi
+$ <red><dim>bun</dim> rctf</red> config get database.migrate
+before
+$ <red><dim>bun</dim> rctf</red> config get leaderboard.maxLimit
+100
+```
+
 ### `<red>rctf</red> user promote`
 
 Grants permissions to the user with the given email. Without `<dim>--perms</dim>`, the command grants full admin access.

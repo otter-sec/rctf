@@ -142,7 +142,7 @@ const main = async () => {
   if (config.database?.migrate !== 'never') {
     await runMigrationsOnStartup(logger)
     if (config.database?.migrate === 'only') {
-      return
+      process.exit(0)
     }
   }
 
