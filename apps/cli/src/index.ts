@@ -7,6 +7,7 @@ const main = defineCommand({
     description: 'rCTF CLI',
   },
   subCommands: {
+    config: () => import('./commands/config').then(m => m.default),
     deployment: () => import('./commands/deployment').then(m => m.default),
     user: () => import('./commands/user').then(m => m.default),
     seed: () => import('./commands/seed').then(m => m.default),
