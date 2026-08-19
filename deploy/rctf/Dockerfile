@@ -36,21 +36,6 @@ RUN bun install \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
 
-FROM runtime-base AS prod-deps
-
-COPY --from=package-configs /app/ ./
-RUN bun install \
-    --production \
-    --frozen-lockfile \
-    --linker=hoisted \
-    --backend=copyfile \
-    --no-cache \
-    --filter '!@rctf/admin-bot' \
-    --filter '!@rctf/docs' \
-    --filter '!server-tests' \
-    --filter '!admin-bot-tests' \
-    --filter '!admin-bot-e2e-tests'
-
 FROM build-base AS build-src
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -70,6 +55,15 @@ RUN bun run --filter '@rctf/web' build
 
 FROM build-src AS build-cli
 RUN bun run --filter '@rctf/cli' build
+
+FROM runtime-base AS prod-deps
+
+COPY --from=build-api /app/apps/api/dist/runtime-package.json ./package.json
+RUN bun install \
+    --production \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache
 
 FROM runtime-base AS production
 

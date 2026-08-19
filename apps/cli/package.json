@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "bun src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap=linked && cp -R ../api/src/cache/scripts dist/",
+    "build": "bun run ./build.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
