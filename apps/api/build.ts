@@ -8,7 +8,7 @@ const outdir = path.join(root, 'dist')
 
 await rm(outdir, { recursive: true, force: true })
 
-await Bun.build({
+const result = await Bun.build({
   entrypoints: [
     path.join(root, 'src/index.ts'),
     path.join(root, 'src/workers/leaderboard.ts'),
@@ -20,6 +20,10 @@ await Bun.build({
   splitting: true,
   naming: { entry: '[name].[ext]' },
 })
+if (!result.success) {
+  console.error(...result.logs)
+  process.exit(1)
+}
 
 await cp(path.join(root, 'src/cache/scripts'), path.join(outdir, 'scripts'), {
   recursive: true,

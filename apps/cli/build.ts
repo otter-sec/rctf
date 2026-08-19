@@ -6,7 +6,7 @@ const outdir = path.join(root, 'dist')
 
 await rm(outdir, { recursive: true, force: true })
 
-await Bun.build({
+const result = await Bun.build({
   entrypoints: [path.join(root, 'src/index.ts')],
   outdir,
   target: 'bun',
@@ -14,6 +14,10 @@ await Bun.build({
   sourcemap: 'linked',
   splitting: true,
 })
+if (!result.success) {
+  console.error(...result.logs)
+  process.exit(1)
+}
 
 await cp(
   path.join(root, '../api/src/cache/scripts'),
