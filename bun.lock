@@ -24,6 +24,7 @@
         "puppeteer-core": "25.3.0",
       },
       "devDependencies": {
+        "@rctf/build": "workspace:*",
         "@types/bun": "1.3.14",
         "typescript": "7.0.2",
       },

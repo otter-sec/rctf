@@ -32,7 +32,6 @@ RUN bun install \
     --backend=copyfile \
     --no-cache \
     --filter '!@rctf/api' \
-    --filter '!@rctf/build' \
     --filter '!@rctf/cli' \
     --filter '!@rctf/config' \
     --filter '!@rctf/db' \
@@ -50,8 +49,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=package-configs /app/package.json /app/bun.lock ./
 
 COPY tsconfig.json ./
-COPY apps/admin-bot/package.json apps/admin-bot/tsconfig.json ./apps/admin-bot/
+COPY apps/admin-bot/package.json apps/admin-bot/tsconfig.json apps/admin-bot/build.ts ./apps/admin-bot/
 COPY apps/admin-bot/src/ ./apps/admin-bot/src/
+COPY packages/build/package.json ./packages/build/
+COPY packages/build/src/ ./packages/build/src/
 COPY packages/util/package.json ./packages/util/
 COPY packages/util/src/ ./packages/util/src/
 
@@ -59,25 +60,12 @@ RUN bun run --filter '@rctf/admin-bot' build
 
 FROM runtime-base AS prod-deps
 
-COPY --from=package-configs /app/ ./
+COPY --from=build /app/apps/admin-bot/dist/runtime-package.json ./package.json
 RUN bun install \
     --production \
-    --frozen-lockfile \
     --linker=hoisted \
     --backend=copyfile \
-    --no-cache \
-    --filter '!@rctf/api' \
-    --filter '!@rctf/build' \
-    --filter '!@rctf/cli' \
-    --filter '!@rctf/config' \
-    --filter '!@rctf/db' \
-    --filter '!@rctf/docs' \
-    --filter '!@rctf/scoring' \
-    --filter '!@rctf/types' \
-    --filter '!@rctf/web' \
-    --filter '!server-tests' \
-    --filter '!admin-bot-tests' \
-    --filter '!admin-bot-e2e-tests'
+    --no-cache
 
 FROM runtime-base AS production
 
@@ -137,10 +125,6 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --chmod=755 deploy/admin-bot/prewarm.sh ./prewarm.sh
 RUN ./prewarm.sh && chown -R adminbot:adminbot /data
 
-COPY --from=build /app/packages/util/package.json ./packages/util/package.json
-COPY --from=build /app/packages/util/src ./packages/util/src
-
-COPY --from=build /app/package.json ./
 COPY --from=build /app/apps/admin-bot/dist ./dist/
 
 USER adminbot

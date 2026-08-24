@@ -24,6 +24,8 @@ export interface BuildAppOptions {
   /** source relative to root -> destination relative to dist */
   copy?: Record<string, string>
   runtimePackage?: boolean
+  /** non-native deps to keep installed anyway */
+  extraRuntimeDeps?: string[]
 }
 
 // native packages declare os/cpu constraints or a node-gyp build
@@ -45,11 +47,16 @@ const isNative = (name: string, from: string): boolean => {
 }
 
 // only deps with native binaries can't be bundled and must stay installed
-const writeRuntimePackage = async (root: string, outdir: string) => {
+const writeRuntimePackage = async (
+  root: string,
+  outdir: string,
+  extra: string[]
+) => {
   const pkg = await Bun.file(path.join(root, 'package.json')).json()
   const runtimeDependencies = Object.fromEntries(
-    Object.entries(pkg.dependencies).filter(([name]) =>
-      isNative(name, path.join(root, 'package.json'))
+    Object.entries(pkg.dependencies).filter(
+      ([name]) =>
+        extra.includes(name) || isNative(name, path.join(root, 'package.json'))
     )
   )
   console.log('runtime deps:', Object.keys(runtimeDependencies).join(', '))
@@ -65,6 +72,7 @@ export const buildApp = async ({
   entrypoints,
   copy = {},
   runtimePackage = false,
+  extraRuntimeDeps = [],
 }: BuildAppOptions): Promise<void> => {
   const outdir = path.join(root, 'dist')
   await rm(outdir, { recursive: true, force: true })
@@ -89,6 +97,6 @@ export const buildApp = async ({
   }
 
   if (runtimePackage) {
-    await writeRuntimePackage(root, outdir)
+    await writeRuntimePackage(root, outdir, extraRuntimeDeps)
   }
 }
