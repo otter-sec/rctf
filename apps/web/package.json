@@ -8,8 +8,8 @@
     "build": "bunx --bun vite build",
     "preview": "bunx --bun vite preview",
     "prepare": "bunx --bun svelte-kit sync || echo ''",
-    "check": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsconfig ./tsconfig.json --watch",
+    "check": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsgo --tsconfig ./tsconfig.json",
+    "check:watch": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsgo --tsconfig ./tsconfig.json --watch",
     "typecheck": "bun run check",
     "test": "bun test tests"
   },
@@ -50,9 +50,10 @@
     "@sveltejs/kit": "2.70.2",
     "@sveltejs/vite-plugin-svelte": "7.3.0",
     "@types/bun": "catalog:",
+    "@typescript/native": "npm:typescript@7.0.2",
     "svelte": "5.56.9",
     "svelte-check": "4.7.6",
-    "typescript": "catalog:",
+    "typescript": "6.0.3",
     "vite": "8.2.1"
   }
 }

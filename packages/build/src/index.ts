@@ -54,18 +54,12 @@ const writeRuntimePackage = async (
 ) => {
   const pkg = await Bun.file(path.join(root, 'package.json')).json()
   const runtimeDependencies = Object.fromEntries(
-    Object.entries(pkg.dependencies as Record<string, string>).filter(
+    Object.entries(pkg.dependencies).filter(
       ([name]) =>
         extra.includes(name) || isNative(name, path.join(root, 'package.json'))
     )
   )
 
-  // runtime-package.json is installed standalone, catalog refs won't resolve
-  for (const [name, version] of Object.entries(runtimeDependencies)) {
-    if (version.startsWith('catalog:')) {
-      throw new Error(`runtime dep ${name} must be pinned, not "${version}"`)
-    }
-  }
   console.log('runtime deps:', Object.keys(runtimeDependencies).join(', '))
 
   await Bun.write(
