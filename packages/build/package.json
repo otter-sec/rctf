@@ -1,0 +1,14 @@
+{
+  "name": "@rctf/build",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "typescript": "7.0.2"
+  }
+}

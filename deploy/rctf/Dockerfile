@@ -8,6 +8,7 @@ WORKDIR /app
 FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
+COPY packages/build/package.json ./packages/build/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/scoring/package.json ./packages/scoring/
@@ -26,21 +27,6 @@ FROM build-base AS deps
 
 COPY --from=package-configs /app/ ./
 RUN bun install \
-    --frozen-lockfile \
-    --linker=hoisted \
-    --backend=copyfile \
-    --no-cache \
-    --filter '!@rctf/admin-bot' \
-    --filter '!@rctf/docs' \
-    --filter '!server-tests' \
-    --filter '!admin-bot-tests' \
-    --filter '!admin-bot-e2e-tests'
-
-FROM runtime-base AS prod-deps
-
-COPY --from=package-configs /app/ ./
-RUN bun install \
-    --production \
     --frozen-lockfile \
     --linker=hoisted \
     --backend=copyfile \
@@ -70,6 +56,15 @@ RUN bun run --filter '@rctf/web' build
 
 FROM build-src AS build-cli
 RUN bun run --filter '@rctf/cli' build
+
+FROM runtime-base AS prod-deps
+
+COPY --from=build-api /app/apps/api/dist/runtime-package.json ./package.json
+RUN bun install \
+    --production \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache
 
 FROM runtime-base AS production
 
