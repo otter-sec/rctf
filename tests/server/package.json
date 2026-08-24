@@ -12,7 +12,7 @@
     "@rctf/scoring": "workspace:*",
     "@rctf/types": "workspace:*",
     "@rctf/util": "workspace:*",
-    "@types/ioredis-mock": "8.2.7",
+    "@types/ioredis-mock": "8.2.8",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "ioredis-mock": "8.13.1",

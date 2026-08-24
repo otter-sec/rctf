@@ -9,11 +9,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@puppeteer/browsers": "3.0.6",
+    "@puppeteer/browsers": "3.2.1",
     "@rctf/util": "workspace:*",
     "hono": "catalog:",
     "pino": "catalog:",
-    "puppeteer-core": "25.3.0"
+    "puppeteer-core": "25.8.0"
   },
   "devDependencies": {
     "@rctf/build": "workspace:*",
