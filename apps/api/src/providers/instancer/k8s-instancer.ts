@@ -524,6 +524,7 @@ export default class K8sInstancerProvider extends InstancerProvider {
           {
             text: () => response.text(),
             binary: async () => Buffer.from(await response.arrayBuffer()),
+            stream: () => response.body,
           }
         )
       },
