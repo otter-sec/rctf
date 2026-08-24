@@ -41,3 +41,5 @@ uploads/
 __pycache__/
 
 export-output/
+
+!packages/build/

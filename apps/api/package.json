@@ -33,6 +33,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@rctf/build": "workspace:*",
     "@types/bun": "1.3.14",
     "@types/mustache": "4.2.6",
     "@types/nodemailer": "8.0.1"

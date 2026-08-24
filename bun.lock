@@ -56,6 +56,7 @@
         "zod": "4.4.3",
       },
       "devDependencies": {
+        "@rctf/build": "workspace:*",
         "@types/bun": "1.3.14",
         "@types/mustache": "4.2.6",
         "@types/nodemailer": "8.0.1",
@@ -79,6 +80,7 @@
         "citty": "0.2.2",
       },
       "devDependencies": {
+        "@rctf/build": "workspace:*",
         "@types/bun": "1.3.14",
       },
       "peerDependencies": {
@@ -159,6 +161,13 @@
         "svelte-check": "4.7.1",
         "typescript": "6.0.3",
         "vite": "8.1.3",
+      },
+    },
+    "packages/build": {
+      "name": "@rctf/build",
+      "version": "0.0.0",
+      "peerDependencies": {
+        "typescript": "7.0.2",
       },
     },
     "packages/config": {
@@ -716,6 +725,8 @@
     "@rctf/admin-bot": ["@rctf/admin-bot@workspace:apps/admin-bot"],
 
     "@rctf/api": ["@rctf/api@workspace:apps/api"],
+
+    "@rctf/build": ["@rctf/build@workspace:packages/build"],
 
     "@rctf/cli": ["@rctf/cli@workspace:apps/cli"],
 

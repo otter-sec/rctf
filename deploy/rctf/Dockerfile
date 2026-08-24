@@ -8,6 +8,7 @@ WORKDIR /app
 FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
+COPY packages/build/package.json ./packages/build/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/scoring/package.json ./packages/scoring/
