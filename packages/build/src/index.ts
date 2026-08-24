@@ -2,6 +2,21 @@ import { readFileSync } from 'node:fs'
 import { cp, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import type { BunPlugin } from 'bun'
+
+// bun can't tree-shake zod's `export * as locales` :shrug:
+const stripZodLocales: BunPlugin = {
+  name: 'strip-zod-locales',
+  setup: build => {
+    build.onLoad(
+      { filter: /[\\/]zod[\\/]v4[\\/]locales[\\/]index\.js$/ },
+      () => ({
+        contents: 'export { default as en } from "./en.js"',
+        loader: 'js',
+      })
+    )
+  },
+}
 
 export interface BuildAppOptions {
   root: string
@@ -62,6 +77,7 @@ export const buildApp = async ({
     sourcemap: 'linked',
     splitting: true,
     naming: { entry: '[name].[ext]' },
+    plugins: [stripZodLocales],
   })
   if (!result.success) {
     console.error(...result.logs)
