@@ -49,17 +49,17 @@ prose-content {
     }
 
     > :is(
-      blockquote,
-      figure,
-      details,
-      table,
-      pre,
-      math-display,
-      .expressive-code,
-      file-tree,
-      tab-group,
-      step-list
-    ):not(file-tree *) {
+        blockquote,
+        figure,
+        details,
+        table,
+        pre,
+        math-display,
+        .expressive-code,
+        file-tree,
+        tab-group,
+        step-list
+      ):not(file-tree *) {
       margin-block: 1em;
     }
 
