@@ -11,13 +11,13 @@
   "dependencies": {
     "@puppeteer/browsers": "3.0.6",
     "@rctf/util": "workspace:*",
-    "hono": "4.12.28",
-    "pino": "10.3.1",
+    "hono": "catalog:",
+    "pino": "catalog:",
     "puppeteer-core": "25.3.0"
   },
   "devDependencies": {
     "@rctf/build": "workspace:*",
-    "@types/bun": "1.3.14",
-    "typescript": "7.0.2"
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
   }
 }

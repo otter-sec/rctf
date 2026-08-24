@@ -32,7 +32,7 @@
     "sharp": "0.35.3",
     "temml": "0.13.3",
     "typescript": "6.0.3",
-    "zod": "4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/hast": "3.0.4",
