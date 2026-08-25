@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { RegexRule } from '../../../../apps/admin-bot/src/core/pac'
+import type { RegexRule } from '../../../../apps/admin-bot/src/core/egress-policy'
 import { Challenge } from '../../../../apps/admin-bot/src/types'
 
 const r = (pattern: string, flags?: string): RegexRule => ({ pattern, flags })

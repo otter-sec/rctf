@@ -2,13 +2,29 @@ import { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
 import { BrowserManager } from './browser/manager'
+import { EgressProxy } from './browser/egress-proxy'
 import { ChallengeLoader } from './core/loader'
 import { createLogger } from './core/logger'
 import { PlatformClient } from './core/platform'
 import { startPoller } from './core/poller'
 
 export const app = new Hono()
-export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
+export const parseCidrEnvironment = (value: string | undefined): string[] =>
+  value
+    ?.split(',')
+    .map(cidr => cidr.trim())
+    .filter(Boolean) ?? []
+
+export const egressProxy = new EgressProxy({
+  allowPrivateCidrs: parseCidrEnvironment(
+    process.env.RCTF_EGRESS_ALLOW_PRIVATE_CIDRS
+  ),
+  denyCidrs: parseCidrEnvironment(process.env.RCTF_EGRESS_DENY_CIDRS),
+})
+export const browserManager = new BrowserManager(
+  process.env.BROWSER_CACHE_DIR,
+  egressProxy
+)
 export const challenges = new ChallengeLoader()
 const logger = createLogger('index')
 
@@ -89,6 +105,7 @@ const main = async () => {
     logger.info({ signal }, 'shutting down once the in-flight job finishes')
     await poller.shutdown()
     await server.stop()
+    await egressProxy.closeAllSessions()
     process.exit(0)
   }
   process.on('SIGTERM', () => void shutdown('SIGTERM'))

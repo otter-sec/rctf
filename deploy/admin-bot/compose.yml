@@ -26,12 +26,12 @@ services:
     cap_drop:
       - ALL
     networks:
-      - rctf_network
+      - rctf_admin_bot_network
 
 volumes:
   browser-cache:
 
 networks:
-  rctf_network:
-    name: rctf_network
+  rctf_admin_bot_network:
+    name: rctf_admin_bot_network
     external: true

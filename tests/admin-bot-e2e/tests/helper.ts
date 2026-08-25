@@ -1,16 +1,36 @@
+import { lookup } from 'node:dns/promises'
 import { resolve } from 'path'
+import {
+  EgressProxy,
+  type LookupAddress,
+} from '../../../apps/admin-bot/src/browser/egress-proxy'
 import { BrowserManager } from '../../../apps/admin-bot/src/browser/manager'
 import { ChallengeLoader } from '../../../apps/admin-bot/src/core/loader'
 import { BufferedOutputHandler } from '../../../apps/admin-bot/src/core/output'
 import type {
   RegexRule,
   RestrictedDomainsConfig,
-} from '../../../apps/admin-bot/src/core/pac'
+} from '../../../apps/admin-bot/src/core/egress-policy'
 import { handleSubmission } from '../../../apps/admin-bot/src/core/runner'
 import type { JobMetadata } from '../../../apps/admin-bot/src/types'
 
-const BROWSER_CACHE_DIR = resolve(import.meta.dir, '..', '.browser-cache')
-export const browserManager = new BrowserManager(BROWSER_CACHE_DIR)
+export const BROWSER_CACHE_DIR = resolve(
+  import.meta.dir,
+  '..',
+  '.browser-cache'
+)
+export const browserManager = new BrowserManager(
+  BROWSER_CACHE_DIR,
+  new EgressProxy({
+    allowPrivateCidrs: ['127.0.0.0/8'],
+    lookup: async (hostname, options) => {
+      if (hostname === 'localhost') {
+        return [{ address: '127.0.0.1', family: 4 }]
+      }
+      return (await lookup(hostname, options)) as LookupAddress[]
+    },
+  })
+)
 
 export const browsers = ['chrome', 'firefox'] as const
 export type BrowserType = (typeof browsers)[number]
@@ -47,6 +67,7 @@ export const challengeSource = (opts: {
   }
   browser?: 'chrome' | 'firefox'
   browserArguments?: string[]
+  puppeteerLaunchOptionsExtra?: Record<string, unknown>
   extraPrefsFirefox?: Record<string, unknown>
   restrictDomains?: RestrictedDomainsConfig
   maxLogLines?: number
@@ -59,6 +80,7 @@ export const challengeSource = (opts: {
     hooksConfig = {},
     browser = 'chrome',
     browserArguments,
+    puppeteerLaunchOptionsExtra,
     extraPrefsFirefox,
     restrictDomains,
     maxLogLines,
@@ -84,7 +106,7 @@ export const challenge = new Challenge({
   handler: async (ctx) => {
 ${handler}
   },
-  hooksConfig: ${JSON.stringify(hooks)},${browserArguments ? `\n  browserArguments: ${JSON.stringify(browserArguments)},` : ''}${extraPrefsFirefox ? `\n  extraPrefsFirefox: ${JSON.stringify(extraPrefsFirefox)},` : ''}${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
+  hooksConfig: ${JSON.stringify(hooks)},${browserArguments ? `\n  browserArguments: ${JSON.stringify(browserArguments)},` : ''}${puppeteerLaunchOptionsExtra ? `\n  puppeteerLaunchOptionsExtra: ${JSON.stringify(puppeteerLaunchOptionsExtra)},` : ''}${extraPrefsFirefox ? `\n  extraPrefsFirefox: ${JSON.stringify(extraPrefsFirefox)},` : ''}${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
 })`
 }
 
@@ -92,6 +114,7 @@ let testCounter = 0
 export const runChallenge = async (opts: {
   source: string
   inputs?: Record<string, string>
+  browserManager?: BrowserManager
 }): Promise<RunResult> => {
   const id = `e2e-${++testCounter}`
   const loader = new ChallengeLoader()
@@ -120,7 +143,7 @@ export const runChallenge = async (opts: {
   try {
     await handleSubmission(
       loader,
-      browserManager,
+      opts.browserManager ?? browserManager,
       job,
       opts.inputs ?? {},
       output

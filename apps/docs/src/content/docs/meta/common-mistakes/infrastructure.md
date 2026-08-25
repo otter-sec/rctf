@@ -122,6 +122,14 @@ Docker `json-file` logs have no rotation unless `max-size` and `max-file` are se
 
 ## Network
 
+### Sharing admin-bot and challenge control-plane networks
+
+Putting a browser worker on the same Docker or Kubernetes network as databases, instancers, container APIs, or monitoring services turns every internal name and address into a potential SSRF target. Application authentication does not make those listeners safe from participant-controlled browser content, and broad shared networks also give trusted challenge handlers more reach than they need.
+
+Use a dedicated control-plane network shared only by rCTF and the admin-bot worker. Keep challenge and instancer services on separate networks, and expose challenge instances through their intended public hostnames. The bundled Compose files implement this pattern with `rctf_admin_bot_network{:yaml}`. Start the root stack before the admin-bot stack so Docker creates the external network first.
+
+Keep the admin bot's default address filter enabled and add only narrow CIDR exceptions. In Kubernetes, pair the same topology with a `NetworkPolicy` that denies metadata and private control-plane ranges; treat it as defense in depth rather than a replacement for destination validation and DNS pinning in the browser proxy.
+
 ### Client-IP extraction not tested end-to-end
 
 Cloudflare, load balancers, nginx, and Traefik can all replace the source address as they forward a request. If their trust settings disagree, rCTF may record a proxy address instead of the participant's IP. Rate limits can then group unrelated participants together, and bans may block an entire proxy. Challenges have the opposite risk when they trust `X-Forwarded-For` from any client, since participants can supply that header themselves.

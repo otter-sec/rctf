@@ -90,6 +90,8 @@ The worker service uses these environment variables:
 | `<yellow>BROWSER_CACHE_DIR</yellow>` | Browser download cache directory. The Docker image defaults to `/data/browser-cache/{:dir}`. |
 | `<yellow>POLL_INTERVAL_MS</yellow>` | Queue polling interval. The default is `5000{:ts}`. |
 | `<yellow>PORT</yellow>` | Worker HTTP port. The default is `21337{:ts}`. |
+| `<yellow>RCTF_EGRESS_ALLOW_PRIVATE_CIDRS</yellow>` | Optional comma-separated CIDRs that browser sessions may reach even though they are not public unicast. |
+| `<yellow>RCTF_EGRESS_DENY_CIDRS</yellow>` | Optional comma-separated CIDRs to deny. These take precedence over allow-private entries. |
 
 A minimal worker environment looks like this:
 
@@ -100,13 +102,19 @@ POLL_INTERVAL_MS=5000
 PORT=21337
 ```
 
-Run the bundled Compose service from the repository root:
+Start or update the root stack first. It creates the dedicated control-plane network used by the API and worker:
+
+```ansi
+$ <red>docker</red> compose up <dim>-d</dim>
+```
+
+Then run the bundled admin bot Compose service from the repository root:
 
 ```ansi
 $ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-d</dim>
 ```
 
-The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, caps container resources, and joins the external `rctf_network`.
+The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, caps container resources, and joins the external `rctf_admin_bot_network`. The root stack attaches only the `rctf` service to that network; the worker does not join the general `rctf_network` used by supporting services such as instancers.
 
 :::warning[Network exposure]
 Keep the worker on a private network. Although `/v1/test` requires the shared bearer token, it builds and evaluates trusted challenge code and should not be exposed to the internet.
@@ -198,15 +206,11 @@ export const challenge = new Challenge({
 
   restrictDomains: {
     // note on case sensitivity:
-    // - `host` is always lowercased by the browser
+    // - DNS `host` is lowercased and has one trailing root dot removed
     // - `url` param preserves the original casing of the path/query
     //
-    // note on dns rebinding bypasses:
-    // pac rules match on host/url strings only, and do not resolve DNS.
-    // a blocklist-only config (disallowRegex without a catch-all) can be
-    // bypassed by aliases that resolve to internal IPs (e.g. 127.0.0.1.nip.io).
-    // to prevent this, pair allowRegex with a catch-all disallowRegex
-    // so that only explicitly allowed hosts can be reached.
+    // DNS is resolved and all answers are checked by the worker's proxy.
+    // Domain rules cannot permit an address denied by the IP policy.
 
     // allow example.com, but not any other example.com subdomain
     host: {
@@ -245,13 +249,13 @@ The `Challenge{:ts}` constructor accepts these fields:
 | `browserVersion{:ts}` | No | Browser build passed to `@puppeteer/browsers`. The default is `stable{:ts}`. |
 | `browserArguments{:ts}` | No | Launch arguments. When set, this replaces the default Chrome arguments. |
 | `puppeteerLaunchOptionsExtra{:ts}` | No | Extra Puppeteer launch options merged into the worker's launch call. |
-| `extraPrefsFirefox{:ts}` | No | Firefox preference overrides. When set, this replaces the default Firefox preferences. |
+| `extraPrefsFirefox{:ts}` | No | Firefox preference overrides merged between worker defaults and mandatory proxy/protocol controls. |
 | `maxLogLines{:ts}` | No | Number of log lines buffered for this job. The default is `64{:ts}`. |
 | `maxLogValueChars{:ts}` | No | Maximum string length in each log field. The default is `2048{:ts}`. |
-| `restrictDomains{:ts}` | No | PAC-based host and URL allow or deny rules. |
+| `restrictDomains{:ts}` | No | Host and URL allow or deny rules applied by the filtering proxy before DNS and address validation. |
 | `requireInstancerInstancesRunning{:ts}` | No | Requires a running instancer instance before queuing the job and passes displayed endpoints into `ctx.job.instancerInstances{:ts}`. |
 
-By default, Chrome starts with `<dim>--no-sandbox</dim>`, `<dim>--disable-jit</dim>`, `<dim>--disable-wasm</dim>`, and `<dim>--disable-dev-shm-usage</dim>`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
+By default, Chrome starts with `<dim>--no-sandbox</dim>`, `<dim>--disable-jit</dim>`, `<dim>--disable-wasm</dim>`, and `<dim>--disable-dev-shm-usage</dim>`. Setting `browserArguments{:ts}` replaces those defaults, but it cannot replace the worker's enforced proxy, WebRTC, or QUIC switches. Firefox keeps its worker defaults and mandatory egress preferences when challenge preferences are merged.
 
 ## Challenge context
 
@@ -288,9 +292,15 @@ Stored logs are newline-delimited JSON. The API accepts up to `1048576{:ts}` cha
 
 Chrome supports extension page logging and service worker console logging. Firefox doesn't support those two hook surfaces in the current worker.
 
-## Domain restrictions
+## Browser egress filtering
 
-`restrictDomains{:ts}` builds a browser PAC file from regex rules. Host rules run before URL rules, and allow rules run before deny rules within each scope.
+Every browser launch gets a separate loopback filtering-proxy session, even when `restrictDomains{:ts}` is omitted. The proxy denies non-global destinations by default, including loopback, private, link-local, metadata, carrier-grade NAT, reserved and multicast space. It also blocks IPv4-compatible IPv6, IPv4-mapped private addresses, RFC 6052 NAT64, 6to4, and Teredo destinations.
+
+The worker resolves hostnames itself and checks every returned address. If any answer is denied, the request is denied. It then connects only to the first vetted numeric address with the returned address family, closing the DNS-rebinding gap between checking a name and opening its socket. Domain rules cannot override an IP denial.
+
+Plain HTTP must use an absolute `http:{:ts}` proxy URL. HTTPS and other TLS traffic use `CONNECT{:ts}`; the proxy evaluates its URL rules against only `https://host:port/{:ts}` because it cannot see encrypted paths or query strings. Browser WebSocket traffic over TLS uses the same CONNECT tunnel.
+
+`restrictDomains{:ts}` adds regex rules on top of the address policy. Rules keep their existing first-match order: host allow, host deny, URL allow, then URL deny. The default domain decision is allow, after which address filtering still applies.
 
 Use an allowlist plus a catch-all deny rule for challenges where the bot should only contact the challenge origin:
 
@@ -303,7 +313,17 @@ restrictDomains: {
 }
 ```
 
-PAC rules match browser host and URL strings. They don't resolve DNS, so a denylist-only rule can miss aliases that resolve to internal IP addresses.
+Hostnames are canonicalized before matching: DNS names are lowercased, one terminal root dot is removed, IPv6 brackets are removed, and zone identifiers are rejected. HTTP URLs are rebuilt with that canonical authority before URL rules run, so a trailing DNS root dot cannot select a different rule result.
+
+Chrome is forced to use the session proxy without its implicit loopback bypass. Non-proxied WebRTC UDP and QUIC are disabled. Firefox uses manual HTTP and TLS proxy preferences with direct failover and bypasses disabled; WebRTC, HTTP/3, and WebTransport are also disabled. Challenge-supplied Puppeteer options, browser switches, and Firefox preferences cannot replace these controls.
+
+Operators can add narrow exceptions with `<yellow>RCTF_EGRESS_ALLOW_PRIVATE_CIDRS</yellow>` or explicit denials with `<yellow>RCTF_EGRESS_DENY_CIDRS</yellow>`. Entries are trimmed comma-separated CIDRs and invalid values stop worker startup. Precedence is explicit deny, operator allow-private, then built-in special-address filtering. Keep exceptions limited to the exact service ranges that a challenge requires.
+
+The boundary protects traffic initiated by participant-controlled browser content. Trusted challenge TypeScript and worker traffic to rCTF run outside the browser proxy, as do browser downloads.
+
+:::note[Kubernetes defense in depth]
+In Kubernetes, put the worker and rCTF API on a dedicated control-plane path and apply a `NetworkPolicy` that blocks metadata, node, pod, service, and other private ranges while allowing DNS, the rCTF API, and required public egress. The in-process proxy remains the primary browser boundary; network policy is recommended defense in depth for unusual runtime or CNI behavior.
+:::
 
 ## Instancer integration
 

@@ -48,5 +48,10 @@ const createMockBrowser = () => ({
 })
 
 mock.module('puppeteer-core', () => ({
-  launch: async () => createMockBrowser(),
+  launch: async (options: unknown) => {
+    const override = (globalThis as Record<string, unknown>)[
+      '__rctfAdminBotLaunchOverride'
+    ] as ((options: unknown) => Promise<unknown>) | undefined
+    return override ? override(options) : createMockBrowser()
+  },
 }))

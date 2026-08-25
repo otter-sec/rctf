@@ -14,6 +14,7 @@ services:
     networks:
       - rctf
       - db
+      - rctf_admin_bot_network
     env_file:
       - .env
     volumes:
@@ -60,3 +61,5 @@ networks:
   db:
   rctf:
     name: rctf_network
+  rctf_admin_bot_network:
+    name: rctf_admin_bot_network

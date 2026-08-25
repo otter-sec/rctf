@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { withTimeout } from '@rctf/util'
 import { applyHooks } from '../browser/hooks'
-import { BrowserManager } from '../browser/manager'
+import { BrowserManager, type ManagedBrowser } from '../browser/manager'
 import type { ChallengeContext, JobMetadata } from '../types'
 import type { ChallengeLoader } from './loader'
 import { createLogger } from './logger'
@@ -32,70 +32,91 @@ export const handleSubmission = async (
   const userDataDir = await mkdtemp(join(tmpdir(), `adminbot-${randomUUID()}-`))
   log.debug({ userDataDir }, 'created temp directory')
 
-  const browser = await browserManager.launchBrowser({
-    version: {
-      browser: challenge.config.browser,
-      version: challenge.config.browserVersion,
-    },
-    arguments: challenge.config.browserArguments,
-    restrictedDomains: challenge.config.restrictDomains,
-    extraPrefsFirefox: challenge.config.extraPrefsFirefox,
-    puppeteerLaunchOptionsExtra: {
-      userDataDir,
-    },
-  })
-
-  const visitCtx: ChallengeContext = {
-    logger: log.child({ module: 'challenge-handler' }),
-    browserContext: await browser.createBrowserContext(),
-    input: input,
-    output: output,
-    job: job,
-  }
-
-  await applyHooks(visitCtx.output, browser, challenge.config.hooksConfig)
-
-  log.info('running challenge handler')
-  output.info('admin-bot', 'running challenge handler')
-
-  let handlerError: unknown = undefined
+  let managed: ManagedBrowser | undefined
+  let visitCtx: ChallengeContext | undefined
+  let handlerFailure: { error: unknown } | undefined
   try {
-    await withTimeout(
-      challenge.config.handler(visitCtx),
-      challenge.config.timeoutMilliseconds,
-      () => {
-        throw new Error('timeout')
-      }
+    managed = await browserManager.launchBrowser({
+      version: {
+        browser: challenge.config.browser,
+        version: challenge.config.browserVersion,
+      },
+      timeoutMilliseconds: challenge.config.timeoutMilliseconds,
+      arguments: challenge.config.browserArguments,
+      restrictedDomains: challenge.config.restrictDomains,
+      extraPrefsFirefox: challenge.config.extraPrefsFirefox,
+      puppeteerLaunchOptionsExtra: {
+        ...challenge.config.puppeteerLaunchOptionsExtra,
+        userDataDir,
+      },
+    })
+
+    visitCtx = {
+      logger: log.child({ module: 'challenge-handler' }),
+      browserContext: await managed.browser.createBrowserContext(),
+      input,
+      output,
+      job,
+    }
+
+    await applyHooks(
+      visitCtx.output,
+      managed.browser,
+      challenge.config.hooksConfig
     )
-  } catch (err) {
-    handlerError = err
-    if (err instanceof Error && err.message === 'timeout') {
-      log.warn('challenge timed out')
-    } else {
-      log.error({ err }, 'challenge failed')
+
+    log.info('running challenge handler')
+    output.info('admin-bot', 'running challenge handler')
+
+    try {
+      await withTimeout(
+        challenge.config.handler(visitCtx),
+        challenge.config.timeoutMilliseconds,
+        () => {
+          throw new Error('timeout')
+        }
+      )
+    } catch (err) {
+      handlerFailure = { error: err }
+      if (err instanceof Error && err.message === 'timeout') {
+        log.warn('challenge timed out')
+      } else {
+        log.error({ err }, 'challenge failed')
+      }
     }
   } finally {
-    try {
-      await visitCtx.browserContext.close()
-    } catch (err) {
-      log.warn({ err }, 'failed to close browser context')
+    const cleanup = async (
+      action: (() => Promise<unknown>) | undefined,
+      message: string,
+      extra = {}
+    ) => {
+      if (!action) return
+      try {
+        await action()
+      } catch (err) {
+        log.warn({ err, ...extra }, message)
+      }
     }
 
-    try {
-      await browser.close()
-    } catch (err) {
-      log.warn({ err }, 'failed to close browser')
-    }
-
-    try {
-      await rm(userDataDir, { recursive: true, force: true })
-    } catch (err) {
-      log.warn({ err, userDataDir }, 'failed to clean up temp directory')
-    }
+    // Start proxy shutdown before awaiting browser-controlled cleanup.
+    const managedBrowser = managed
+    const browserContext = visitCtx?.browserContext
+    const browserClose = cleanup(
+      managedBrowser && (() => managedBrowser.close()),
+      'failed to close browser'
+    )
+    await cleanup(
+      browserContext && (() => browserContext.close()),
+      'failed to close browser context'
+    )
+    await browserClose
+    await cleanup(
+      () => rm(userDataDir, { recursive: true, force: true }),
+      'failed to clean up temp directory',
+      { userDataDir }
+    )
   }
   log.info('visited')
 
-  if (handlerError) {
-    throw handlerError
-  }
+  if (handlerFailure) throw handlerFailure.error
 }

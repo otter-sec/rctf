@@ -219,7 +219,7 @@ for (const browser of browsers) {
       expect(errorLogs[0]?.level).toBe('error')
     }, 30_000)
 
-    test('captures failed network requests', async () => {
+    test('surfaces failed network requests or proxy upstream failures', async () => {
       const resetServer = createServer(socket => {
         socket.destroy()
       })
@@ -251,6 +251,15 @@ for (const browser of browsers) {
             handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
+    const outcome = await page.evaluate(async () => {
+      try {
+        const response = await fetch('${failingUrl}')
+        return 'upstream-status:' + response.status
+      } catch {
+        return 'upstream-error'
+      }
+    })
+    ctx.output.info('challenge', outcome)
     await new Promise(r => setTimeout(r, 2000))`,
             browser,
           }),
@@ -258,11 +267,15 @@ for (const browser of browsers) {
 
         expect(result.success).toBe(true)
         const networkErrors = result.parsed.filter(l => l.prefix === 'network')
-        expect(
-          networkErrors.some(
-            l => l.line.includes(failingUrl) && l.line.includes('failed')
-          )
-        ).toBe(true)
+        const hookReportedFailure = networkErrors.some(
+          l => l.line.includes(failingUrl) && l.line.includes('failed')
+        )
+        const proxyReportedFailure = result.parsed.some(
+          l =>
+            l.prefix === 'challenge' &&
+            (l.line === 'upstream-status:502' || l.line === 'upstream-error')
+        )
+        expect(hookReportedFailure || proxyReportedFailure).toBe(true)
       } finally {
         await new Promise<void>(resolve => {
           resetServer.close(() => resolve())

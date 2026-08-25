@@ -164,3 +164,55 @@ for (const browser of browsers) {
     })
   })
 }
+
+describe('handleSubmission cleanup boundaries', () => {
+  const failAt = async (stage: 'context' | 'hooks') => {
+    const challenges = new ChallengeLoader()
+    const output = new BufferedOutputHandler(64)
+    await challenges.loadFromSource(
+      'chal-1',
+      'rev-1',
+      validChallengeSource('chrome')
+    )
+    let contextCloseCalls = 0
+    let managedCloseCalls = 0
+    const manager = {
+      launchBrowser: async () => ({
+        browser: {
+          createBrowserContext: async () => {
+            if (stage === 'context') throw new Error('context failure')
+            return { close: async () => contextCloseCalls++ }
+          },
+          on: () => {
+            throw new Error('hook failure')
+          },
+        },
+        close: async () => managedCloseCalls++,
+      }),
+    } as unknown as BrowserManager
+
+    await expect(
+      handleSubmission(
+        challenges,
+        manager,
+        makeJobMeta(),
+        { url: 'http://example.com' },
+        output
+      )
+    ).rejects.toThrow(`${stage === 'context' ? 'context' : 'hook'} failure`)
+    return { contextCloseCalls, managedCloseCalls }
+  }
+
+  test.each([
+    ['context', 0],
+    ['hooks', 1],
+  ] as const)(
+    'closes resources after %s failure',
+    async (stage, contextCloses) => {
+      expect(await failAt(stage)).toEqual({
+        contextCloseCalls: contextCloses,
+        managedCloseCalls: 1,
+      })
+    }
+  )
+})

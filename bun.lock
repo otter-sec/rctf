@@ -20,6 +20,7 @@
         "@puppeteer/browsers": "3.0.6",
         "@rctf/util": "workspace:*",
         "hono": "4.12.28",
+        "ipaddr.js": "2.4.0",
         "pino": "10.3.1",
         "puppeteer-core": "25.3.0",
       },
