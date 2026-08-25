@@ -20,11 +20,14 @@ captcha:
   protectedEndpoints:
     - register
     - recover
+    - setEmail
+    - instancerStart
+    - instancerExtend
+    - avatarUpload
+    - adminBotSubmit
 ```
 
-## Protected endpoints
-
-The `<red>protectedEndpoints</red>` array controls which actions require captcha verification:
+The supported actions are:
 
 | Action                           | Description                             |
 | -------------------------------- | --------------------------------------- |
@@ -36,7 +39,7 @@ The `<red>protectedEndpoints</red>` array controls which actions require captcha
 | `<green>avatarUpload</green>`    | Uploading a team avatar                 |
 | `<green>adminBotSubmit</green>`  | Submitting a job to the admin bot       |
 
-Actions not listed in `<red>protectedEndpoints</red>` do not require captcha.
+When `<red>protectedEndpoints</red>` is set, actions not listed do not require captcha. When it is omitted, all supported actions are protected.
 
 :::note
 Registration and recovery remain [rate limited](/api#rate-limits) by client IP and destination email, even when captcha is enabled.

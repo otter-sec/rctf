@@ -295,12 +295,17 @@ captcha:
   protectedEndpoints:
     - register
     - recover
+    - setEmail
+    - instancerStart
+    - instancerExtend
+    - avatarUpload
+    - adminBotSubmit
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>captcha.provider</red>` | `object{:ts}` | - | Captcha provider config (`<red>name</red>` + `<red>options</red>`) |
-| `<red>captcha.protectedEndpoints</red>` | `array{:ts}` | - | List of actions requiring captcha |
+| `<red>captcha.protectedEndpoints</red>` | `array{:ts}` | all actions | List of actions requiring captcha |
 
 Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
 
@@ -564,9 +569,6 @@ captcha:
     options:
       siteKey: 0x4AAAAAAA...
       secretKey: 0x4AAAAAAA...
-  protectedEndpoints:
-    - register
-    - recover
 
 email:
   provider:
