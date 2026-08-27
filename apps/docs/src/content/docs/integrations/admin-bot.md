@@ -88,6 +88,7 @@ The worker service uses these environment variables:
 | `<yellow>RCTF_SECRET_KEY</yellow>` | Shared bearer token. This must match the provider secret in rCTF config. |
 | `<yellow>RCTF_EXTRA_HEADERS</yellow>` | JSON object of extra headers added to worker-to-API requests. |
 | `<yellow>BROWSER_CACHE_DIR</yellow>` | Browser download cache directory. The Docker image defaults to `/data/browser-cache/{:dir}`. |
+| `<yellow>CHALLENGE_DEFAULT_CONFIG_PATH</yellow>` | Path to the YAML file that contains the default challenge configuration. |
 | `<yellow>POLL_INTERVAL_MS</yellow>` | Queue polling interval. The default is `5000{:ts}`. |
 | `<yellow>PORT</yellow>` | Worker HTTP port. The default is `21337{:ts}`. |
 
@@ -252,6 +253,40 @@ The `Challenge{:ts}` constructor accepts these fields:
 | `requireInstancerInstancesRunning{:ts}` | No | Requires a running instancer instance before queuing the job and passes displayed endpoints into `ctx.job.instancerInstances{:ts}`. |
 
 By default, Chrome starts with `<dim>--no-sandbox</dim>`, `<dim>--disable-jit</dim>`, `<dim>--disable-wasm</dim>`, and `<dim>--disable-dev-shm-usage</dim>`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
+
+## Default challenge configuration
+
+You can define common and browser-specific defaults in a YAML file. The worker merges these values, prioritizing values from the challenge configuration.
+
+This example matches the built-in worker defaults:
+
+```yaml title="default-config.yaml"
+common:
+  browser: chrome
+  maxLogLines: 64
+  maxLogValueChars: 2048
+
+chrome:
+  browserArguments:
+    - --no-sandbox
+    - --disable-jit
+    - --disable-wasm
+    - --disable-dev-shm-usage
+
+firefox:
+  browserArguments: []
+  extraPrefsFirefox:
+    javascript.options.wasm: false
+    javascript.options.ion: false
+    javascript.options.baselinejit: false
+    javascript.options.wasm_baselinejit: false
+```
+
+In `deploy/admin-bot/.env{:file}`, set this variable to the path of the YAML default configuration file:
+
+```sh
+ADMIN_BOT_CHALLENGE_DEFAULT_CONFIG_PATH=./default-config.yaml
+```
 
 ## Challenge context
 

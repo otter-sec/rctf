@@ -11,6 +11,7 @@ import {
 import { withTimeout } from '@rctf/util'
 import { launch, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import {
+  defaultBrowser,
   defaultChromeArguments,
   defaultFirefoxArguments,
   defaultFirefoxPreferences,
@@ -37,7 +38,7 @@ export interface BrowserLaunchOptions {
 
 const getVersion = (config: BrowserVersion): Required<BrowserVersion> => {
   return {
-    browser: config.browser ?? 'chrome',
+    browser: config.browser ?? defaultBrowser,
     version: config.version ?? 'stable',
   }
 }

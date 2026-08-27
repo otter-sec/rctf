@@ -8,8 +8,11 @@ services:
       - "127.0.0.1:21337:21337"
     env_file:
       - .env
+    environment:
+      CHALLENGE_DEFAULT_CONFIG_PATH: /app/admin-bot-defaults.yml
     volumes:
       - browser-cache:/data/browser-cache
+      - "${ADMIN_BOT_CHALLENGE_DEFAULT_CONFIG_PATH:-/dev/null}:/app/admin-bot-defaults.yml:ro"
     tmpfs:
       - /tmp:size=512M,mode=1777
       - /var/cache/fontconfig:size=64M,mode=1777
