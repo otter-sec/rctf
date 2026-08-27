@@ -55,6 +55,7 @@ The following environment variables are supported. They override values from con
 | `<yellow>RCTF_REDIS_PORT</yellow>` | `integer{:ts}` | Redis port |
 | `<yellow>RCTF_REDIS_PASSWORD</yellow>` | `string{:ts}` | Redis password |
 | `<yellow>RCTF_REDIS_DATABASE</yellow>` | `integer{:ts}` | Redis database number |
+| `<yellow>RCTF_REDIS_SOCKET_TIMEOUT</yellow>` | `integer{:ts}` | Milliseconds to wait for a reply before the socket is considered dead (default `<green>6000</green>`) |
 
 ### Timing and auth
 

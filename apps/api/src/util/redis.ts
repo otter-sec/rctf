@@ -1,4 +1,4 @@
-import { config } from '@rctf/config'
+import { config, DEFAULT_REDIS_SOCKET_TIMEOUT } from '@rctf/config'
 import { Redis } from 'ioredis'
 import { pino } from 'pino'
 import { loadLuaCommands, type TypedRedis } from '../cache/scripts'
@@ -15,12 +15,15 @@ export async function createRedis(
 ): Promise<Redis | TypedRedis> {
   const redis =
     typeof config.database.redis === 'string'
-      ? new Redis(config.database.redis)
+      ? new Redis(config.database.redis, {
+          socketTimeout: DEFAULT_REDIS_SOCKET_TIMEOUT,
+        })
       : new Redis({
           host: config.database.redis.host,
           port: config.database.redis.port,
           password: config.database.redis.password,
           db: config.database.redis.database,
+          socketTimeout: config.database.redis.socketTimeout,
         })
   redis.on('error', err => logger.error({ err }, 'redis client error'))
   return opts.lua ? await loadLuaCommands(redis) : redis

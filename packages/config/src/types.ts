@@ -45,6 +45,8 @@ export const SqlDatabaseSchema = z.union([
   }),
 ])
 
+export const DEFAULT_REDIS_SOCKET_TIMEOUT = 6_000
+
 export const RedisDatabaseSchema = z.union([
   z.string(), // connection string
   z.object({
@@ -52,6 +54,7 @@ export const RedisDatabaseSchema = z.union([
     port: z.optional(z.number()),
     password: z.optional(z.string()),
     database: z.optional(z.number()),
+    socketTimeout: z._default(z.int(), DEFAULT_REDIS_SOCKET_TIMEOUT),
   }),
 ])
 
