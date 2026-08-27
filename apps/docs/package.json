@@ -21,7 +21,7 @@
     "@expressive-code/plugin-collapsible-sections": "0.42.0",
     "@expressive-code/plugin-line-numbers": "0.42.0",
     "@rctf/types": "workspace:*",
-    "astro": "7.2.2",
+    "astro": "7.2.4",
     "github-slugger": "2.0.0",
     "hast-util-select": "6.0.4",
     "hast-util-to-html": "9.0.5",
