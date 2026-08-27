@@ -103,7 +103,10 @@ export const ServerConfigSchema = z.object({
   captcha: z.optional(
     z.object({
       provider: z.optional(ProviderConfigSchema),
-      protectedEndpoints: z.optional(z.array(z.enum(ProtectedAction))),
+      protectedEndpoints: z._default(
+        z.array(z.enum(ProtectedAction)),
+        Object.values(ProtectedAction)
+      ),
     })
   ),
 

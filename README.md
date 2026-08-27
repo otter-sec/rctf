@@ -99,14 +99,6 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    #     options:
    #       siteKey: 'key'
    #       secretKey: 'secret'
-   #   protectedEndpoints:
-   #     - register
-   #     - recover
-   #     - setEmail
-   #     - instancerStart
-   #     - instancerExtend
-   #     - avatarUpload
-   #     - adminBotSubmit
 
    # bloodBot:
    #   bloodsCount: 1
