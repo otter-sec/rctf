@@ -82,6 +82,7 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['port', getEnvInteger('RCTF_REDIS_PORT')],
     ['password', getEnvString('RCTF_REDIS_PASSWORD')],
     ['database', getEnvInteger('RCTF_REDIS_DATABASE')],
+    ['socketTimeout', getEnvInteger('RCTF_REDIS_SOCKET_TIMEOUT')],
   ])
 
   const ctftime = optionalObjectFrom([
