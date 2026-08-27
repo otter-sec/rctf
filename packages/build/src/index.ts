@@ -59,6 +59,7 @@ const writeRuntimePackage = async (
         extra.includes(name) || isNative(name, path.join(root, 'package.json'))
     )
   )
+
   console.log('runtime deps:', Object.keys(runtimeDependencies).join(', '))
 
   await Bun.write(

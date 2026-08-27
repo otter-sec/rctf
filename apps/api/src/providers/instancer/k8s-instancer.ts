@@ -1,8 +1,12 @@
 import {
+  bufferFromFileOrString,
+  createConfiguration,
   CustomObjectsApi,
   KubeConfig,
   ResponseContext,
+  ServerConfiguration,
   wrapHttpLibrary,
+  type HttpLibrary,
 } from '@kubernetes/client-node'
 import { getEnvBoolean } from '@rctf/config'
 import * as z from 'zod/mini'
@@ -25,6 +29,43 @@ interface K8sInstancerProviderOptions {
   apiUrl?: string
   caCertificate?: string
   inCluster?: boolean
+}
+
+// Bun's fetch ignores the undici dispatcher that @kubernetes/client-node attaches to
+// every request, so the cluster CA / client certificate never make it into the TLS
+// handshake
+// @see https://github.com/oven-sh/bun/issues/38840
+const createBunHttpLibrary = (config: KubeConfig): HttpLibrary => {
+  const cluster = config.getCurrentCluster()
+  const user = config.getCurrentUser()
+  const tls = {
+    ca: bufferFromFileOrString(cluster?.caFile, cluster?.caData) ?? undefined,
+    cert: bufferFromFileOrString(user?.certFile, user?.certData) ?? undefined,
+    key: bufferFromFileOrString(user?.keyFile, user?.keyData) ?? undefined,
+    rejectUnauthorized: true,
+  }
+
+  return wrapHttpLibrary({
+    async send(request) {
+      const response = await fetch(request.getUrl(), {
+        method: request.getHttpMethod(),
+        headers: request.getHeaders(),
+        body: request.getBody(),
+        signal: request.getSignal(),
+        tls,
+      })
+
+      return new ResponseContext(
+        response.status,
+        Object.fromEntries(response.headers),
+        {
+          text: () => response.text(),
+          binary: async () => Buffer.from(await response.arrayBuffer()),
+          stream: () => response.body,
+        }
+      )
+    },
+  })
 }
 
 const defaultPod = {
@@ -494,40 +535,20 @@ export default class K8sInstancerProvider extends InstancerProvider {
       })
     }
 
-    this.client = config.makeApiClient(CustomObjectsApi)
+    const cluster = config.getCurrentCluster()
+    if (!cluster) {
+      throw new Error(
+        'No active cluster in the K8sInstancerProvider kubeconfig.'
+      )
+    }
 
-    // Bun and @kubernetes/client-node do not work very well together, and Bun causes
-    // all mTLS options to be ignored. Therefore, we'll have to patch stuff around so
-    // that it actually passes mTLS information in Bun's expected format.
-    // @see https://github.com/oven-sh/bun/issues/7332#issuecomment-3706232322
-    const api = (this.client as any).api
-    api.configuration.httpApi = wrapHttpLibrary({
-      async send(request) {
-        const k8sAgent = (request as any).agent
-        const url = request.getUrl()
-        const response = await fetch(url, {
-          method: request.getHttpMethod(),
-          headers: request.getHeaders(),
-          body: request.getBody(),
-          signal: (request as any).signal,
-          tls: {
-            ca: k8sAgent.options.ca,
-            cert: k8sAgent.options.cert,
-            key: k8sAgent.options.key,
-            rejectUnauthorized: true,
-          },
-        } as any)
-
-        return new ResponseContext(
-          response.status,
-          Object.fromEntries((response.headers as any).entries()),
-          {
-            text: () => response.text(),
-            binary: async () => Buffer.from(await response.arrayBuffer()),
-          }
-        )
-      },
-    })
+    this.client = new CustomObjectsApi(
+      createConfiguration({
+        baseServer: new ServerConfiguration(cluster.server, {}),
+        authMethods: { default: config },
+        httpApi: createBunHttpLibrary(config),
+      })
+    )
   }
 
   private getResourceName(

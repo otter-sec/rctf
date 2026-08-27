@@ -1,7 +1,8 @@
 {
   "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
+    "rootDir": ".",
     "sourceMap": true,
-    "types": ["node", "bun"]
+    "types": ["bun"]
   }
 }

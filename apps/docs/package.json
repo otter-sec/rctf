@@ -15,27 +15,27 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "0.9.9",
-    "@astrojs/markdown-satteri": "0.3.3",
+    "@astrojs/check": "0.9.10",
+    "@astrojs/markdown-satteri": "0.3.5",
     "@astrojs/sitemap": "3.7.3",
     "@expressive-code/plugin-collapsible-sections": "0.42.0",
     "@expressive-code/plugin-line-numbers": "0.42.0",
     "@rctf/types": "workspace:*",
-    "astro": "7.0.6",
+    "astro": "7.2.4",
     "github-slugger": "2.0.0",
     "hast-util-select": "6.0.4",
     "hast-util-to-html": "9.0.5",
     "hastscript": "9.0.1",
-    "satori": "0.26.0",
-    "satteri": "0.9.4",
-    "satteri-expressive-code": "0.1.17",
+    "satori": "0.29.0",
+    "satteri": "0.9.5",
+    "satteri-expressive-code": "0.1.18",
     "sharp": "0.35.3",
-    "temml": "0.13.3",
+    "temml": "0.13.4",
     "typescript": "6.0.3",
-    "zod": "4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/hast": "3.0.4",
+    "@types/hast": "3.0.5",
     "@types/mdast": "4.0.4",
     "mdast-util-to-hast": "13.2.1",
     "pagefind": "1.5.2"

@@ -9,10 +9,10 @@
     "@rctf/types": "workspace:*",
     "deepmerge": "4.3.1",
     "type-fest": "5.8.0",
-    "yaml": "2.9.0",
-    "zod": "4.4.3"
+    "yaml": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
-    "typescript": "7.0.2"
+    "typescript": "catalog:"
   }
 }
