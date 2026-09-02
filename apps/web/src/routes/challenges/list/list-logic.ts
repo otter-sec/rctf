@@ -113,6 +113,10 @@ function sortWithinCategory(challenges: Challenge[]): Challenge[] {
     if (bySolves !== 0) {
       return bySolves
     }
+    const byWeight = (b.sortWeight ?? 0) - (a.sortWeight ?? 0)
+    if (byWeight !== 0) {
+      return byWeight
+    }
     return a.name.localeCompare(b.name)
   })
 }

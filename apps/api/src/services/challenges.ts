@@ -183,7 +183,7 @@ export const isChallengePublic = (challenge: Challenge): boolean => {
 }
 
 const challengeDefaultOrder = [
-  sql`((${challenges.data} ->> 'sortWeight')::int) NULLS LAST`,
+  desc(sql`COALESCE((${challenges.data} ->> 'sortWeight')::int, 0)`),
   desc(challenges.id),
 ] as const
 

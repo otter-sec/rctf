@@ -22,7 +22,11 @@ export function groupChallenges(challenges: AdminChallenge[]): CategoryGroup[] {
 
   const result = [...groups.entries()].map(([category, list]) => ({
     category,
-    challenges: [...list].sort((a, b) => a.name.localeCompare(b.name)),
+    challenges: [...list].sort(
+      (a, b) =>
+        (b.sortWeight ?? 0) - (a.sortWeight ?? 0) ||
+        a.name.localeCompare(b.name)
+    ),
   }))
   result.sort((a, b) => compareCategories(a.category, b.category))
   return result
