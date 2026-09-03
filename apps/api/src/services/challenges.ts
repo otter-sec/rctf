@@ -603,17 +603,22 @@ export const getChallengeSolvesWithPosition = async (
     .offset(offset)
 
   if (rows.length === 0) {
-    const totalRow = await db
+    const summary = await db
       .with(ranked)
-      .select({ value: count() })
+      .select({
+        total: count(),
+        userSolvePosition: sql<number | null>`(
+          SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
+        )`.as('user_solve_position'),
+      })
       .from(ranked)
       .where(eq(ranked.challengeId, challengeId))
       .then(takeUnique)
     return {
       challengeExists: true,
-      solvePosition: null,
+      solvePosition: summary?.userSolvePosition ?? null,
       solves: [],
-      total: totalRow?.value ?? 0,
+      total: summary?.total ?? 0,
     }
   }
 
