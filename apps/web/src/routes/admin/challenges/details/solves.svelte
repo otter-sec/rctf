@@ -29,18 +29,14 @@
 
   interface Props {
     challengeId: string | null
-    totalSolves: number
   }
 
-  let { challengeId, totalSolves }: Props = $props()
+  let { challengeId }: Props = $props()
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const solvesQuery = useAdminChallengeSolvesInfinite(
-    () => challengeId,
-    () => totalSolves
-  )
+  const solvesQuery = useAdminChallengeSolvesInfinite(() => challengeId)
 
   const revealAfterLoading = solvesQuery.isPending
 
@@ -56,6 +52,7 @@
   const allSolves = $derived(
     solvesQuery.data?.pages.flatMap(page => page.solves) ?? []
   )
+  const totalSolves = $derived(solvesQuery.data?.pages[0]?.total ?? null)
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
   let scrollRoot = $state<HTMLElement | null>(null)
@@ -108,6 +105,9 @@
           })
           queryClient.invalidateQueries({
             queryKey: queryKeys.challengeSolvesInfinite(id),
+          })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.adminChallenge(id),
           })
           queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
           queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })

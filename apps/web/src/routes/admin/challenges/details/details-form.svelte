@@ -701,7 +701,7 @@
             onChange={onAdminBotChange}
           />
         {:else if value === 'solves'}
-          <AdminChallengesDetailsSolves {challengeId} {totalSolves} />
+          <AdminChallengesDetailsSolves {challengeId} />
         {/if}
       {/snippet}
     </Tabs>

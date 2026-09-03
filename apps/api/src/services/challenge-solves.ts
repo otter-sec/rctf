@@ -44,7 +44,7 @@ export const getChallengeSolvesResponse = async ({
     })
   }
 
-  const { challengeExists, solves, solvePosition } =
+  const { challengeExists, solves, solvePosition, total } =
     await getChallengeSolvesWithPosition(
       db,
       challengeId,
@@ -64,5 +64,6 @@ export const getChallengeSolvesResponse = async ({
       createdAt: new Date(solve.createdAt).getTime(),
     })),
     mySolvePosition: solvePosition,
+    total,
   })
 }

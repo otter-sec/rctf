@@ -129,7 +129,6 @@ export function useChallengeSolvesSelf(id: () => string | null) {
 
 export function useChallengeSolvesInfinite(
   id: () => string | null,
-  total: () => number,
   admin: () => boolean = () => false
 ) {
   return createInfiniteQuery(() => {
@@ -156,7 +155,7 @@ export function useChallengeSolvesInfinite(
       enabled: !!challengeId,
       initialPageParam: 0,
       getNextPageParam: lastPage =>
-        getNextOffset(lastPage.offset, lastPage.solves.length, total()),
+        getNextOffset(lastPage.offset, lastPage.solves.length, lastPage.total),
     }
   })
 }

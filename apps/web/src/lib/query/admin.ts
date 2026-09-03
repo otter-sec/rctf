@@ -90,11 +90,8 @@ export function useAdminChallenge(id: () => string | null) {
   return createQuery(() => adminChallengeQueryOptions(id()))
 }
 
-export function useAdminChallengeSolvesInfinite(
-  id: () => string | null,
-  total: () => number
-) {
-  return useChallengeSolvesInfinite(id, total, () => true)
+export function useAdminChallengeSolvesInfinite(id: () => string | null) {
+  return useChallengeSolvesInfinite(id, () => true)
 }
 
 export function adminUserQueryOptions(id: string | null) {

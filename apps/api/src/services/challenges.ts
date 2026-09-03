@@ -115,6 +115,7 @@ type ChallengeSolvesWithPosition = {
     bloodIndex: number | null
   }[]
   solvePosition: number | null
+  total: number
 }
 
 const createRankedSolvesForChallenges = (
@@ -570,6 +571,7 @@ export const getChallengeSolvesWithPosition = async (
       challengeExists: false,
       solvePosition: null,
       solves: [],
+      total: 0,
     }
   }
 
@@ -591,6 +593,7 @@ export const getChallengeSolvesWithPosition = async (
       userSolvePosition: sql<number | null>`(
         SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
       )`.as('user_solve_position'),
+      total: sql<number>`count(*) over ()::int`.as('total'),
     })
     .from(ranked)
     .innerJoin(users, eq(users.id, ranked.userId))
@@ -600,16 +603,24 @@ export const getChallengeSolvesWithPosition = async (
     .offset(offset)
 
   if (rows.length === 0) {
+    const totalRow = await db
+      .with(ranked)
+      .select({ value: count() })
+      .from(ranked)
+      .where(eq(ranked.challengeId, challengeId))
+      .then(takeUnique)
     return {
       challengeExists: true,
       solvePosition: null,
       solves: [],
+      total: totalRow?.value ?? 0,
     }
   }
 
   return {
     challengeExists: true,
     solvePosition: rows[0]!.userSolvePosition,
+    total: rows[0]!.total,
     solves: rows.map(r => ({
       id: r.solveId,
       createdAt: r.createdAt,
