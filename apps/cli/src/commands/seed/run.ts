@@ -16,7 +16,12 @@ import {
   type DatabaseClient,
 } from '@rctf/db'
 import { withDbAndRedis } from '../../lib/context'
-import { buildSeedData, AUTH_CLIENT_SECRET, type SeedData } from './data'
+import {
+  buildSeedData,
+  EXTERNAL_APP_CLIENT_SECRET,
+  EXTERNAL_APP_WEBHOOK_SECRET,
+  type SeedData,
+} from './data'
 
 const step = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
   const startedAt = performance.now()
@@ -108,7 +113,7 @@ export const runSeed = async () => {
 
     const client = data.externalAuthClient
     console.log(
-      `${client.name} secret: ${AUTH_CLIENT_SECRET} / auth: ${externalAuthUrl(config.origin, client.id, client.redirectUri)}`
+      `${client.name} secret: ${EXTERNAL_APP_CLIENT_SECRET} / auth: ${externalAuthUrl(config.origin, client.id, client.redirectUri)} / webhook secret: ${EXTERNAL_APP_WEBHOOK_SECRET}`
     )
   })
 }
