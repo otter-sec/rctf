@@ -6,6 +6,7 @@ import { config } from '@rctf/config'
 import {
   challenges,
   dynamicFlags,
+  externalAuthClients,
   scoreEvents,
   settings,
   solves,
@@ -15,7 +16,7 @@ import {
   type DatabaseClient,
 } from '@rctf/db'
 import { withDbAndRedis } from '../../lib/context'
-import { buildSeedData, type SeedData } from './data'
+import { buildSeedData, AUTH_CLIENT_SECRET, type SeedData } from './data'
 
 const step = async <T>(label: string, fn: () => Promise<T>): Promise<T> => {
   const startedAt = performance.now()
@@ -29,7 +30,8 @@ const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
     await tx.execute(
       `TRUNCATE TABLE
         "admin_bot_jobs", "score_events", "submission_logs", "solves",
-        "dynamic_flags", "user_members", "challenges", "users", "settings"
+        "dynamic_flags", "user_members", "challenges", "external_auth_clients",
+        "users", "settings"
       CASCADE`
     )
 
@@ -43,6 +45,7 @@ const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
       chunk => tx.insert(userMembers).values(chunk),
       10_000
     )
+    await tx.insert(externalAuthClients).values(data.externalAuthClient)
     await tx.insert(challenges).values(data.challenges)
     await insertInChunks(
       data.dynamicFlags,
@@ -68,6 +71,17 @@ const resetAndSeedDatabase = async (db: DatabaseClient, data: SeedData) => {
   })
 }
 
+const externalAuthUrl = (
+  origin: string,
+  clientId: string,
+  redirectUri: string
+) => {
+  const url = new URL('/external-auth/authorize', origin)
+  url.searchParams.set('client_id', clientId)
+  url.searchParams.set('redirect_uri', redirectUri)
+  return url.toString()
+}
+
 const loginUrl = (origin: string, token: string) => {
   const url = new URL('/login', origin)
   url.searchParams.set('token', token)
@@ -91,5 +105,10 @@ export const runSeed = async () => {
 
     console.log(`Admin login: ${loginUrl(config.origin, adminToken)}`)
     console.log(`Sample team login: ${loginUrl(config.origin, teamToken)}`)
+
+    const client = data.externalAuthClient
+    console.log(
+      `${client.name} secret: ${AUTH_CLIENT_SECRET} / auth: ${externalAuthUrl(config.origin, client.id, client.redirectUri)}`
+    )
   })
 }

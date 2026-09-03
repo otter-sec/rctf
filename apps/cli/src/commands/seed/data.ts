@@ -7,6 +7,7 @@ import type { ServerConfig } from '@rctf/config'
 import type {
   Challenge,
   DynamicFlag,
+  ExternalAuthClient,
   ScoreEvent,
   Settings,
   Solve,
@@ -32,6 +33,7 @@ export type SeedData = {
   scoreEvents: ScoreEvent[]
   submissions: Submission[]
   dynamicFlags: DynamicFlag[]
+  externalAuthClient: ExternalAuthClient
   settings: Settings
 }
 
@@ -104,6 +106,7 @@ const KOTH_TICK_INTERVAL = 15 * 60_000
 const KOTH_MAX_POINTS = 880
 const KOTH_PAYOUT_EXPONENT = 1.1
 const KOTH_SCORING_DEPTH = 0.55
+export const AUTH_CLIENT_SECRET = 'rjw8TxDq9lzG2YJxsQIANLhwMDOa7RgV2rVfUnT_kO8'
 
 const FAILED_FLAG_RESULTS = [
   SubmissionResult.INCORRECT,
@@ -192,6 +195,17 @@ function buildAdmin(): User {
     countryCode: 'EU',
     statusText: 'admin status text',
     banned: false,
+  }
+}
+
+function buildExternalAuthClient(admin: User): ExternalAuthClient {
+  return {
+    id: 'seed-external-app',
+    name: 'Seed External App',
+    redirectUri: 'http://localhost:13337/v1/ext/rctf/callback',
+    secretHash: Bun.password.hashSync(AUTH_CLIENT_SECRET),
+    createdAt: admin.createdAt,
+    createdBy: admin.id,
   }
 }
 
@@ -866,6 +880,7 @@ export const buildSeedData = (config: ServerConfig): SeedData => {
     scoreEvents,
     submissions,
     dynamicFlags: dynamicFlagData.dynamicFlags,
+    externalAuthClient: buildExternalAuthClient(admin),
     settings: buildSettings(config, timing),
   }
 }
