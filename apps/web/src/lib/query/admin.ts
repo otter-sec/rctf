@@ -30,7 +30,10 @@ import {
   type QueryClient,
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
-import { getNextOffset } from '$lib/query/challenges'
+import {
+  getNextOffset,
+  useChallengeSolvesInfinite,
+} from '$lib/query/challenges'
 import { unwrapData } from '$lib/query/core'
 import {
   queryKeys,
@@ -85,6 +88,10 @@ export function adminChallengeQueryOptions(id: string | null) {
 
 export function useAdminChallenge(id: () => string | null) {
   return createQuery(() => adminChallengeQueryOptions(id()))
+}
+
+export function useAdminChallengeSolvesInfinite(id: () => string | null) {
+  return useChallengeSolvesInfinite(id, () => true)
 }
 
 export function adminUserQueryOptions(id: string | null) {

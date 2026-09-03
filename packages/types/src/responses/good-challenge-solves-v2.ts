@@ -43,6 +43,11 @@ export const GoodChallengeSolvesV2 = response('goodChallengeSolvesV2', {
           ),
       })
     ),
+    total: example(z.int(), 42).check(
+      z.describe(
+        'Number of solves across all pages, using the same filters as `solves`.'
+      )
+    ),
     mySolvePosition: z
       .nullable(example(z.int(), 12))
       .check(

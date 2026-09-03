@@ -1,7 +1,7 @@
 ---
 title: "`<route>POST</route>` Create team token"
 description: "`<route>POST /api/v2/admin/users/:id/token</route>`"
-order: 13
+order: 14
 ---
 
 :::aside

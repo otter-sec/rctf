@@ -193,11 +193,12 @@
         <Section title="Instance management">
           <ChallengesDetailsOverviewInstancer
             {challengeId}
+            admin
             instancerLifetime={config.timeoutMilliseconds}
             instancerExtendable={(config.extendable ?? true) &&
               (active?.canExtend ?? true)}
             instancerStoppable={active?.canStop ?? true}
-            instancerActions={[]}
+            instancerActions={active?.actions ?? []}
             onSolve={() => {}}
           />
         </Section>

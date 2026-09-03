@@ -1,7 +1,7 @@
 ---
 title: "`<route>POST</route>` Complete verification"
 description: "`<route>POST /api/v2/admin/user-verifications/:id/complete</route>`"
-order: 15
+order: 16
 ---
 
 :::aside

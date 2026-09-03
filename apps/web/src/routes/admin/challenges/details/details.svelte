@@ -13,7 +13,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
   import { IconFlagBannerFold, IconTrash } from '$lib/icons'
-  import { useChallenges } from '$lib/query/challenges'
+  import { useAdminChallenge } from '$lib/query/admin'
   import { queryKeys } from '$lib/query/keys'
   import { useCurrentUser } from '$lib/query/user'
   import { toast } from '$lib/toast'
@@ -68,10 +68,8 @@
     hasPermissions(userQuery.data, Permissions.challsWrite)
   )
 
-  const challengesQuery = useChallenges()
-  const totalSolves = $derived(
-    challengesQuery.data?.find(c => c.id === editor.challenge?.id)?.solves ?? 0
-  )
+  const detailQuery = useAdminChallenge(() => editor.challenge?.id ?? null)
+  const totalSolves = $derived(detailQuery.data?.solveCount ?? 0)
 
   const isEditMode = $derived(
     editor.mode === 'editing' || editor.mode === 'creating'

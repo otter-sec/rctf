@@ -24,6 +24,7 @@ function schemaData(): InstancerSchemaData {
         defaults: { image: 'nginx', replicas: 1 },
         canStop: true,
         canExtend: true,
+        actions: [],
       },
       {
         name: 'nomad',
@@ -31,6 +32,7 @@ function schemaData(): InstancerSchemaData {
         defaults: { job: 'web' },
         canStop: false,
         canExtend: false,
+        actions: [],
       },
     ],
   }

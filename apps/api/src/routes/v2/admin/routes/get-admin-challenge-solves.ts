@@ -1,16 +1,17 @@
-import { GetChallengeSolvesRouteV2 } from '@rctf/types'
+import { GetAdminChallengeSolvesRouteV2 } from '@rctf/types'
 import { getChallengeSolvesResponse } from '../../../../services/challenge-solves'
-import challsGroup from '../group'
+import adminGroup from '../group'
 
-challsGroup.route(
-  GetChallengeSolvesRouteV2,
+adminGroup.route(
+  GetAdminChallengeSolvesRouteV2,
   ({ res, ctx, params, query, user }) =>
     getChallengeSolvesResponse({
       res,
       db: ctx.var.db,
       challengeId: params.id,
-      userId: user?.id ?? null,
+      userId: user.id,
       limit: query.limit,
       offset: query.offset,
+      includeHidden: true,
     })
 )

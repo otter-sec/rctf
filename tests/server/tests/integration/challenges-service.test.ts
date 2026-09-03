@@ -419,6 +419,7 @@ describe('challenges service', () => {
       const body = await expectResponse(res, GoodChallengeSolvesV2)
       expect(Array.isArray(body.data.solves)).toBe(true)
       expect(body.data.solves.length).toBe(2)
+      expect(body.data.total).toBe(2)
       expect(body.data.mySolvePosition).toBe(2)
     })
 
@@ -493,7 +494,63 @@ describe('challenges service', () => {
 
       const body = await expectResponse(res, GoodChallengeSolvesV2)
       expect(body.data.solves).toEqual([])
+      expect(body.data.total).toBe(0)
       expect(body.data.mySolvePosition).toBeNull()
+    })
+
+    test('keeps total and solve position on an empty page past the end', async () => {
+      const { user: solver, cleanup: solverCleanup } =
+        await generateRealTestUser()
+      const { user: other, cleanup: otherCleanup } =
+        await generateRealTestUser()
+      const { user: nonSolver, cleanup: nonSolverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(solverCleanup, otherCleanup, nonSolverCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      await db.insert(solves).values([
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: other.id,
+          createdat: new Date(Date.now() - 10000).toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: solver.id,
+          createdat: new Date().toISOString(),
+        },
+      ])
+
+      const fetchPastEnd = async (userId: string | null) => {
+        const headers: Record<string, string> = {}
+        if (userId) {
+          headers.Authorization = `Bearer ${await generateAuthToken(userId)}`
+        }
+        const res = await request(
+          app,
+          `/api/v2/challs/${challenge.id}/solves?limit=10&offset=10`,
+          { method: 'GET', headers }
+        )
+        return (await expectResponse(res, GoodChallengeSolvesV2)).data
+      }
+
+      const asSolver = await fetchPastEnd(solver.id)
+      expect(asSolver.solves).toEqual([])
+      expect(asSolver.total).toBe(2)
+      expect(asSolver.mySolvePosition).toBe(2)
+
+      const asNonSolver = await fetchPastEnd(nonSolver.id)
+      expect(asNonSolver.total).toBe(2)
+      expect(asNonSolver.mySolvePosition).toBeNull()
+
+      const anonymous = await fetchPastEnd(null)
+      expect(anonymous.total).toBe(2)
+      expect(anonymous.mySolvePosition).toBeNull()
     })
 
     test('returns badChallenge for non-existent challenge', async () => {

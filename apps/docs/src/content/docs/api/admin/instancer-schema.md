@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` Instancer schema"
 description: "`<route>GET /api/v2/admin/instancer/schema</route>`"
-order: 21
+order: 22
 ---
 
 :::aside

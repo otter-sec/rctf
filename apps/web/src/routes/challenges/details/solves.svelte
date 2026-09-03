@@ -31,10 +31,7 @@
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const solvesQuery = useChallengeSolvesInfinite(
-    () => challenge.id,
-    () => challenge.solves
-  )
+  const solvesQuery = useChallengeSolvesInfinite(() => challenge.id)
   const selfQuery = useChallengeSolvesSelf(() => challenge.id)
 
   const revealAfterLoading = solvesQuery.isPending

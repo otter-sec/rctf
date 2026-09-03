@@ -135,7 +135,7 @@ export function generateInterceptorScript(): string {
       return jsonResponse({
         kind: 'goodChallengeSolvesV2',
         message: 'The challenges solves have been retrieved.',
-        data: { solves: sliced, mySolvePosition: null }
+        data: { solves: sliced, mySolvePosition: null, total: dump.solves.length }
       });
     });
   }

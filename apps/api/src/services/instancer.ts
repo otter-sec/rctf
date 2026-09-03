@@ -21,7 +21,7 @@ import {
   type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
-import { getChallenge } from './challenges'
+import { getChallenge, getPrivateChallenge } from './challenges'
 import { inferChallengeIntegrationId } from '../util/instancer'
 
 export const resolveInstancerName = (
@@ -53,7 +53,7 @@ export const resolveInstancerActions = (
 ): InstancerActionDefinition[] =>
   getInstancerProvider(resolveInstancerName(instancerConfig))?.actions ?? []
 
-type InstancerResponseHelpers = ResponseHelpers<
+export type InstancerResponseHelpers = ResponseHelpers<
   [
     typeof GoodInstanceStatus,
     typeof BadInstancerError,
@@ -66,11 +66,7 @@ type InstancerChallengeErrors = ResponseHelpers<
   [typeof BadInstancerError, typeof BadEndpoint, typeof BadChallenge]
 >
 
-export const getInstancerChallenge = async (
-  res: InstancerChallengeErrors,
-  db: DatabaseClient,
-  challengeId: string
-): Promise<
+type InstancerChallengeResult =
   | {
       challenge: Challenge
       provider: InstancerProvider
@@ -83,12 +79,15 @@ export const getInstancerChallenge = async (
         InstancerChallengeErrors[keyof InstancerChallengeErrors]
       >
     }
-> => {
+
+const resolveInstancerChallenge = (
+  res: InstancerChallengeErrors,
+  challenge: Challenge | undefined
+): InstancerChallengeResult => {
   if (!instancerEnabled) {
     return { error: res.badEndpoint() }
   }
 
-  const challenge = await getChallenge(db, challengeId)
   if (!challenge) {
     return { error: res.badChallenge() }
   }
@@ -113,6 +112,19 @@ export const getInstancerChallenge = async (
 
   return { challenge, provider }
 }
+
+export const getInstancerChallenge = async (
+  res: InstancerChallengeErrors,
+  db: DatabaseClient,
+  challengeId: string,
+  { includeHidden = false }: { includeHidden?: boolean } = {}
+): Promise<InstancerChallengeResult> =>
+  resolveInstancerChallenge(
+    res,
+    includeHidden
+      ? await getPrivateChallenge(db, challengeId)
+      : await getChallenge(db, challengeId)
+  )
 
 export const buildCreateInstanceOptions = async (
   db: DatabaseClient,

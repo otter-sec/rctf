@@ -1,7 +1,7 @@
 ---
 title: "`<route>DELETE</route>` Delete team"
 description: "`<route>DELETE /api/v2/admin/users/:id</route>`"
-order: 12
+order: 13
 ---
 
 :::aside

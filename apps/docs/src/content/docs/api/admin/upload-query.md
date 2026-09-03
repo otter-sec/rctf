@@ -1,7 +1,7 @@
 ---
 title: "`<route>POST</route>` Query uploads"
 description: "`<route>POST /api/[v2,v1]/admin/upload/query</route>`"
-order: 7
+order: 8
 ---
 
 :::aside

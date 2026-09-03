@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` Flag providers"
 description: "`<route>GET /api/v2/admin/flags/providers</route>`"
-order: 22
+order: 27
 ---
 
 :::aside

@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` Pending verifications"
 description: "`<route>GET /api/v2/admin/user-verifications</route>`"
-order: 14
+order: 15
 ---
 
 :::aside
