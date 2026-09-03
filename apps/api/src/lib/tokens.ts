@@ -74,14 +74,15 @@ const encryptToken = async <Kind extends TokenKind>(
     plainText
   )
 
-  return Buffer.concat([iv, new Uint8Array(cipherText)]).toString('base64')
+  return Buffer.concat([iv, new Uint8Array(cipherText)]).toString('base64url')
 }
 
 const decryptToken = async <Kind extends TokenKind>(
   token: Token
 ): Promise<InternalTokenData<Kind> | null> => {
   try {
-    const buf = Buffer.from(token, 'base64')
+    // base64url decoding also accepts legacy tokens in the standard alphabet
+    const buf = Buffer.from(token, 'base64url')
     const iv = buf.subarray(0, 12)
     const cipherText = buf.subarray(12, buf.length)
 
