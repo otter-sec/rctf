@@ -1,31 +1,7 @@
 import { CreateInstanceRouteV2 } from '@rctf/types'
-import {
-  buildCreateInstanceOptions,
-  filterInstanceEndpoints,
-  getInstancerChallenge,
-  returnInstanceStatusOrError,
-} from '../../../../services/instancer'
+import { createInstance } from '../../../../services/instance-lifecycle'
 import integrationsGroup from '../group'
 
-integrationsGroup.route(
-  CreateInstanceRouteV2,
-  async ({ ctx, res, params, user }) => {
-    const { challenge, provider, error } = await getInstancerChallenge(
-      res,
-      ctx.var.db,
-      params.id
-    )
-    if (error) {
-      return error
-    }
-
-    const instanceStatus = await provider.createInstance(
-      await buildCreateInstanceOptions(ctx.var.db, challenge, user)
-    )
-
-    return await returnInstanceStatusOrError(
-      res,
-      filterInstanceEndpoints(instanceStatus, challenge)
-    )
-  }
+integrationsGroup.route(CreateInstanceRouteV2, ({ ctx, res, params, user }) =>
+  createInstance({ res, db: ctx.var.db, user, challengeId: params.id })
 )

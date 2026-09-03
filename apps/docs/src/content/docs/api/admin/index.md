@@ -12,6 +12,7 @@ aside: true
 | --- | --- |
 | [Admin challenge list](/api/admin/challenge-list/) | `<route>GET /api/[v2,v1]/admin/challs</route>` |
 | [Admin challenge detail](/api/admin/challenge-detail/) | `<route>GET /api/[v2,v1]/admin/challs/:id</route>` |
+| [Admin challenge solves](/api/admin/challenge-solves/) | `<route>GET /api/v2/admin/challs/:id/solves</route>` |
 | [Create or update challenge](/api/admin/challenge-update/) | `<route>PUT /api/[v2,v1]/admin/challs/:id</route>` |
 | [Delete a solve](/api/admin/challenge-delete-solve/) | `<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>` |
 | [Delete a challenge](/api/admin/challenge-delete/) | `<route>DELETE /api/v1/admin/challs/:id</route>` |
@@ -31,6 +32,10 @@ aside: true
 | [Read settings](/api/admin/settings/) | `<route>GET /api/v2/admin/settings</route>` |
 | [Update settings](/api/admin/settings-update/) | `<route>PUT /api/v2/admin/settings</route>` |
 | [Instancer schema](/api/admin/instancer-schema/) | `<route>GET /api/v2/admin/instancer/schema</route>` |
+| [Admin instance status](/api/admin/instance-status/) | `<route>GET /api/v2/admin/challs/:id/instance</route>` |
+| [Admin start an instance](/api/admin/instance-start/) | `<route>PUT /api/v2/admin/challs/:id/instance</route>` |
+| [Admin extend an instance](/api/admin/instance-extend/) | `<route>PATCH /api/v2/admin/challs/:id/instance</route>` |
+| [Admin stop an instance](/api/admin/instance-stop/) | `<route>DELETE /api/v2/admin/challs/:id/instance</route>` |
 | [Admin bot status](/api/admin/admin-bot-status/) | `<route>GET /api/v2/admin/admin-bot/status</route>` |
 | [Pull admin bot job](/api/admin/admin-bot-pull/) | `<route>POST /api/v2/admin/admin-bot/jobs/pull</route>` |
 | [Admin bot source](/api/admin/admin-bot-source/) | `<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>` |
@@ -44,7 +49,7 @@ aside: true
 
 :::
 
-These admin API pages cover challenges, uploads, teams, email verification, submission logs, runtime settings, admin bot work, and external auth clients. Most user-facing routes require a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token. See [External auth](/api/external-auth/) for the user-facing half of the external auth flow.
+These admin API pages cover challenges, uploads, teams, email verification, submission logs, runtime settings, admin bot work, and external auth clients. The admin challenge solves and instance routes are copies of the player-facing routes that skip challenge visibility, CTF start, captcha, and ban checks, so the admin panel can work with hidden or unreleased challenges. Most user-facing routes require a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token. See [External auth](/api/external-auth/) for the user-facing half of the external auth flow.
 
 Permissions, captcha actions, and rate limit conventions are documented in the [API overview](/api/).
 
@@ -52,7 +57,7 @@ Permissions, captcha actions, and rate limit conventions are documented in the [
 
 | Permission | Used by |
 | --- | --- |
-| `challsRead{:ts}` | Reading admin challenge data, upload state, instancer schemas, admin bot status, and admin user solve history. |
+| `challsRead{:ts}` | Reading admin challenge data, challenge solves, upload state, instancer schemas, admin bot status, admin user solve history, and managing the admin's own instances. |
 | `challsWrite{:ts}` | Updating challenges and uploading files. |
 | `challsSolveWrite{:ts}` | Removing solves. |
 | `usersWrite{:ts}` | Listing and editing teams, creating team tokens, managing pending verifications, and reading submission audit rows. |

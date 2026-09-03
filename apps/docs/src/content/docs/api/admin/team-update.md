@@ -1,7 +1,7 @@
 ---
 title: "`<route>PUT</route>` Update team"
 description: "`<route>PUT /api/v2/admin/users/:id</route>`"
-order: 11
+order: 12
 ---
 
 :::aside

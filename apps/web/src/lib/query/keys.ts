@@ -25,6 +25,10 @@ export const queryKeys = {
   challenges: ['challenges'] as const,
   adminChallenges: ['admin', 'challenges'] as const,
   adminChallenge: (id: string) => ['admin', 'challenges', id] as const,
+  adminChallengeSolvesInfinite: (id: string) =>
+    ['admin', 'challenges', id, 'solves', 'infinite'] as const,
+  adminChallengeInstance: (id: string) =>
+    ['admin', 'challenges', id, 'instance'] as const,
   adminUsers: (params: AdminUsersQueryParams) =>
     ['admin', 'users', 'list', params] as const,
   adminUser: (id: string) => ['admin', 'users', id] as const,

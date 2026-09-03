@@ -559,9 +559,12 @@ export const getChallengeSolvesWithPosition = async (
   challengeId: string,
   userId: string | null,
   limit: number,
-  offset: number
+  offset: number,
+  { includeHidden = false }: { includeHidden?: boolean } = {}
 ): Promise<ChallengeSolvesWithPosition> => {
-  const challenge = await getChallenge(db, challengeId)
+  const challenge = includeHidden
+    ? await getPrivateChallenge(db, challengeId)
+    : await getChallenge(db, challengeId)
   if (!challenge) {
     return {
       challengeExists: false,

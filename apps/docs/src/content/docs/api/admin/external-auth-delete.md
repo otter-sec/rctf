@@ -1,7 +1,7 @@
 ---
 title: "`<route>DELETE</route>` Delete external-auth client"
 description: "`<route>DELETE /api/v2/admin/external-auth/clients/:id</route>`"
-order: 31
+order: 36
 ---
 
 :::aside

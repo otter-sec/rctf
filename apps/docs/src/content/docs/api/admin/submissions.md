@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` List submissions"
 description: "`<route>GET /api/v2/admin/submissions</route>`"
-order: 17
+order: 18
 ---
 
 :::aside

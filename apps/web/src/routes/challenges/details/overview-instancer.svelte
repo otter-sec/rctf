@@ -2,8 +2,11 @@
   import {
     BadAlreadySolvedChallenge,
     BadInstancerError,
+    CreateAdminInstanceRouteV2,
     CreateInstanceRouteV2,
+    DeleteAdminInstanceRouteV2,
     DeleteInstanceRouteV2,
+    ExtendAdminInstanceRouteV2,
     ExtendInstanceRouteV2,
     GoodFlag,
     GoodInstancerActionResult,
@@ -37,6 +40,7 @@
     instancerStoppable: boolean
     instancerActions: { id: string; label: string }[]
     onSolve: (challengeId: string) => void
+    admin?: boolean
   }
 
   let {
@@ -46,6 +50,7 @@
     instancerStoppable,
     instancerActions,
     onSolve,
+    admin = false,
   }: Props = $props()
 
   const configQuery = useClientConfig()
@@ -59,7 +64,8 @@
   const instanceEnabled = $derived(isAuthenticated && !isArchived)
   const instanceQuery = useChallengeInstance(
     () => challengeId,
-    () => instanceEnabled
+    () => instanceEnabled,
+    () => admin
   )
 
   const status = $derived(instanceQuery.data?.status ?? InstanceStatus.STOPPED)
@@ -96,7 +102,11 @@
     instanceAction.pending || status === InstanceStatus.STOPPING
   )
 
-  const instanceKey = $derived(queryKeys.challengeInstance(challengeId))
+  const instanceKey = $derived(
+    admin
+      ? queryKeys.adminChallengeInstance(challengeId)
+      : queryKeys.challengeInstance(challengeId)
+  )
 
   let timeLeft = $derived(instanceQuery.data?.timeLeftMilliseconds ?? null)
   $effect(() => {
@@ -117,7 +127,9 @@
   async function start() {
     await instanceAction.run(
       async () => {
-        const res = await apiRequest(CreateInstanceRouteV2, { id: challengeId })
+        const res = admin
+          ? await apiRequest(CreateAdminInstanceRouteV2, { id: challengeId })
+          : await apiRequest(CreateInstanceRouteV2, { id: challengeId })
         if (res.kind === GoodInstanceStatus.kind) {
           queryClient.setQueryData(instanceKey, res.data)
           void queryClient.invalidateQueries({ queryKey: instanceKey })
@@ -133,7 +145,9 @@
   async function stop() {
     await instanceAction.run(
       async () => {
-        const res = await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
+        const res = admin
+          ? await apiRequest(DeleteAdminInstanceRouteV2, { id: challengeId })
+          : await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
         if (res.kind === GoodInstanceStatus.kind) {
           queryClient.setQueryData(instanceKey, res.data)
           void queryClient.invalidateQueries({ queryKey: instanceKey })
@@ -149,7 +163,9 @@
   async function extend() {
     await instanceAction.run(
       async () => {
-        const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
+        const res = admin
+          ? await apiRequest(ExtendAdminInstanceRouteV2, { id: challengeId })
+          : await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
         if (res.kind === GoodInstanceStatus.kind) {
           queryClient.setQueryData(instanceKey, res.data)
           void queryClient.invalidateQueries({ queryKey: instanceKey })

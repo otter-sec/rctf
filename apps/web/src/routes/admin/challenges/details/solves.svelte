@@ -9,7 +9,7 @@
   import { captureElement } from '$lib/attachments/capture-element'
   import EdgeFades from '$lib/components/edge-fades.svelte'
   import { IconTrash, IconTrophy } from '$lib/icons'
-  import { useChallengeSolvesInfinite } from '$lib/query/challenges'
+  import { useAdminChallengeSolvesInfinite } from '$lib/query/admin'
   import { useClientConfig } from '$lib/query/config'
   import { queryKeys } from '$lib/query/keys'
   import { useCurrentUser } from '$lib/query/user'
@@ -37,7 +37,7 @@
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const solvesQuery = useChallengeSolvesInfinite(
+  const solvesQuery = useAdminChallengeSolvesInfinite(
     () => challengeId,
     () => totalSolves
   )
@@ -103,6 +103,9 @@
         })
         if (response.kind === GoodChallengeSolveDeleteV2.kind) {
           toast.success(`Revoked ${target.userName}'s solve.`)
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.adminChallengeSolvesInfinite(id),
+          })
           queryClient.invalidateQueries({
             queryKey: queryKeys.challengeSolvesInfinite(id),
           })

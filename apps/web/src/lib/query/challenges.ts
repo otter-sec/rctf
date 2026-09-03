@@ -3,6 +3,8 @@ import {
   BadInstancerError,
   GetAdminBotJobHistoryRouteV2,
   GetAdminBotJobStatusRouteV2,
+  GetAdminChallengeSolvesRouteV2,
+  GetAdminInstanceStatusRouteV2,
   GetChallengeScoresRouteV2,
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
@@ -127,18 +129,25 @@ export function useChallengeSolvesSelf(id: () => string | null) {
 
 export function useChallengeSolvesInfinite(
   id: () => string | null,
-  total: () => number
+  total: () => number,
+  admin: () => boolean = () => false
 ) {
   return createInfiniteQuery(() => {
     const challengeId = id()
+    const isAdmin = admin()
     return {
-      queryKey: queryKeys.challengeSolvesInfinite(challengeId ?? ''),
+      queryKey: isAdmin
+        ? queryKeys.adminChallengeSolvesInfinite(challengeId ?? '')
+        : queryKeys.challengeSolvesInfinite(challengeId ?? ''),
       queryFn: async ({ pageParam }) => {
-        const response = await apiRequest(GetChallengeSolvesRouteV2, {
+        const args = {
           id: challengeId!,
           limit: INFINITE_PAGE_SIZE,
           offset: pageParam,
-        })
+        }
+        const response = isAdmin
+          ? await apiRequest(GetAdminChallengeSolvesRouteV2, args)
+          : await apiRequest(GetChallengeSolvesRouteV2, args)
         return {
           ...unwrapData(response, GoodChallengeSolvesV2),
           offset: pageParam,
@@ -180,12 +189,17 @@ export function useChallengeScoresInfinite(id: () => string | null) {
 
 export function challengeInstanceQueryOptions(
   id: string | null,
-  enabled: boolean
+  enabled: boolean,
+  admin = false
 ) {
   return queryOptions({
-    queryKey: queryKeys.challengeInstance(id ?? ''),
+    queryKey: admin
+      ? queryKeys.adminChallengeInstance(id ?? '')
+      : queryKeys.challengeInstance(id ?? ''),
     queryFn: async () => {
-      const response = await apiRequest(GetInstanceStatusRouteV2, { id: id! })
+      const response = admin
+        ? await apiRequest(GetAdminInstanceStatusRouteV2, { id: id! })
+        : await apiRequest(GetInstanceStatusRouteV2, { id: id! })
       if (response.kind === GoodInstanceStatus.kind) {
         return response.data
       }
@@ -202,9 +216,12 @@ export function challengeInstanceQueryOptions(
 
 export function useChallengeInstance(
   id: () => string | null,
-  enabled: () => boolean
+  enabled: () => boolean,
+  admin: () => boolean = () => false
 ) {
-  return createQuery(() => challengeInstanceQueryOptions(id(), enabled()))
+  return createQuery(() =>
+    challengeInstanceQueryOptions(id(), enabled(), admin())
+  )
 }
 
 type AdminBotJobSnapshot = {

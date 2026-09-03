@@ -1,7 +1,7 @@
 ---
 title: "`<route>POST</route>` Complete admin bot job"
 description: "`<route>POST /api/v2/admin/admin-bot/jobs/:id/complete</route>`"
-order: 26
+order: 31
 ---
 
 :::aside

@@ -7,10 +7,12 @@ import {
 } from '@rctf/db'
 import {
   BadChallenge,
+  BadPerms,
   GoodChallengeSolves,
   GoodChallengeSolvesV2,
   GoodUserData,
   GoodUserSelfData,
+  Permissions,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -244,6 +246,71 @@ describe('challenge visibility filtering', () => {
       )
 
       await expectResponse(res, GoodChallengeSolvesV2)
+    })
+  })
+
+  describe('admin challenge routes accept non-public challenges', () => {
+    const adminSolves = async (challengeId: string, userId: string) => {
+      const authToken = await generateAuthToken(userId)
+      return request(
+        app,
+        `/api/v2/admin/challs/${encodeURIComponent(challengeId)}/solves?limit=10&offset=0`,
+        { method: 'GET', headers: { Authorization: `Bearer ${authToken}` } }
+      )
+    }
+
+    test('hidden challenge succeeds on /api/v2/admin/challs/:id/solves', async () => {
+      const { user, cleanup } = await generateRealTestUser(
+        Permissions.challsRead
+      )
+      cleanups.push(cleanup)
+
+      const hidden = await insertChallenge({ hidden: true })
+      await insertSolve(hidden.id, user.id)
+
+      const body = await expectResponse(
+        await adminSolves(hidden.id, user.id),
+        GoodChallengeSolvesV2
+      )
+      expect(body.data.solves.map((s: any) => s.userId)).toEqual([user.id])
+      expect(body.data.mySolvePosition).toBe(1)
+    })
+
+    test('unreleased challenge succeeds on /api/v2/admin/challs/:id/solves', async () => {
+      const { user, cleanup } = await generateRealTestUser(
+        Permissions.challsRead
+      )
+      cleanups.push(cleanup)
+
+      const unreleased = await insertChallenge({
+        releaseTime: Date.now() + 60 * 60 * 1000,
+      })
+
+      await expectResponse(
+        await adminSolves(unreleased.id, user.id),
+        GoodChallengeSolvesV2
+      )
+    })
+
+    test('unknown challenge returns badChallenge on /api/v2/admin/challs/:id/solves', async () => {
+      const { user, cleanup } = await generateRealTestUser(
+        Permissions.challsRead
+      )
+      cleanups.push(cleanup)
+
+      await expectResponse(
+        await adminSolves(crypto.randomUUID(), user.id),
+        BadChallenge
+      )
+    })
+
+    test('missing challsRead returns badPerms on /api/v2/admin/challs/:id/solves', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      cleanups.push(cleanup)
+
+      const hidden = await insertChallenge({ hidden: true })
+
+      await expectResponse(await adminSolves(hidden.id, user.id), BadPerms)
     })
   })
 
