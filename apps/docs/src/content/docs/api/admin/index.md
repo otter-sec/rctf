@@ -36,6 +36,7 @@ aside: true
 | [Admin start an instance](/api/admin/instance-start/) | `<route>PUT /api/v2/admin/challs/:id/instance</route>` |
 | [Admin extend an instance](/api/admin/instance-extend/) | `<route>PATCH /api/v2/admin/challs/:id/instance</route>` |
 | [Admin stop an instance](/api/admin/instance-stop/) | `<route>DELETE /api/v2/admin/challs/:id/instance</route>` |
+| [Admin run an instance action](/api/admin/instance-action/) | `<route>POST /api/v2/admin/challs/:id/instance/actions/:action</route>` |
 | [Admin bot status](/api/admin/admin-bot-status/) | `<route>GET /api/v2/admin/admin-bot/status</route>` |
 | [Pull admin bot job](/api/admin/admin-bot-pull/) | `<route>POST /api/v2/admin/admin-bot/jobs/pull</route>` |
 | [Admin bot source](/api/admin/admin-bot-source/) | `<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>` |

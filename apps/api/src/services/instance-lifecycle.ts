@@ -1,5 +1,14 @@
 import type { Challenge, DatabaseClient, User } from '@rctf/db'
 import type {
+  BadChallenge,
+  BadEndpoint,
+  BadInstancerError,
+  BadRateLimit,
+  GoodInstancerActionResult,
+  ResponseHelpers,
+} from '@rctf/types'
+import type { TypedRedis } from '../cache/scripts'
+import type {
   InstanceQueryOptions,
   instanceDetailsOrError,
   InstancerProvider,
@@ -12,6 +21,7 @@ import {
   returnInstanceStatusOrError,
   type InstancerResponseHelpers,
 } from './instancer'
+import { rateLimitInstancerAction } from './rate-limit'
 
 export interface InstanceRequest {
   res: InstancerResponseHelpers
@@ -23,6 +33,30 @@ export interface InstanceRequest {
 
 type InstanceResponse = ReturnType<
   InstancerResponseHelpers[keyof InstancerResponseHelpers]
+>
+
+type InstanceActionResponseHelpers = ResponseHelpers<
+  [
+    typeof GoodInstancerActionResult,
+    typeof BadInstancerError,
+    typeof BadEndpoint,
+    typeof BadChallenge,
+    typeof BadRateLimit,
+  ]
+>
+
+export interface InstanceActionRequest {
+  res: InstanceActionResponseHelpers
+  db: DatabaseClient
+  redis: TypedRedis
+  user: User
+  challengeId: string
+  actionId: string
+  includeHidden?: boolean
+}
+
+type InstanceActionResponse = ReturnType<
+  InstanceActionResponseHelpers[keyof InstanceActionResponseHelpers]
 >
 
 const instancerError = (message: string): instanceDetailsOrError => ({
@@ -110,3 +144,55 @@ export const extendInstance = (
       timeoutMilliseconds: instancerConfig.timeoutMilliseconds,
     })
   })
+
+export const runInstanceAction = async ({
+  res,
+  db,
+  redis,
+  user,
+  challengeId,
+  actionId,
+  includeHidden,
+}: InstanceActionRequest): Promise<InstanceActionResponse> => {
+  const { challenge, provider, error } = await getInstancerChallenge(
+    res,
+    db,
+    challengeId,
+    { includeHidden }
+  )
+  if (error) {
+    return error
+  }
+
+  const action = provider.actions?.find(a => a.id === actionId)
+  if (!action || !provider.runAction) {
+    return res.badInstancerError({ message: 'Unknown instancer action' })
+  }
+
+  if (action.rateLimit) {
+    const timeLeft = await rateLimitInstancerAction(
+      redis,
+      user.id,
+      challengeId,
+      action.id,
+      action.rateLimit.burst,
+      action.rateLimit.intervalMilliseconds
+    )
+    if (timeLeft !== undefined) {
+      return res.badRateLimit({ timeLeft })
+    }
+  }
+
+  const outcome = await provider.runAction(
+    action.id,
+    instanceQueryOptions(user, challenge)
+  )
+  if (outcome.kind === 'instancerError') {
+    return res.badInstancerError(outcome)
+  }
+
+  return res.goodInstancerActionResult({
+    message: outcome.message ?? null,
+    submitFlag: outcome.submitFlag ?? null,
+  })
+}

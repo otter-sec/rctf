@@ -20,6 +20,7 @@ adminGroup.route(GetInstancerSchemaRouteV2, async ({ res }) => {
       defaults: provider.getDefaults(),
       canStop: provider.capabilities.canStop,
       canExtend: provider.capabilities.canExtend,
+      actions: (provider.actions ?? []).map(({ id, label }) => ({ id, label })),
     })),
   })
 })

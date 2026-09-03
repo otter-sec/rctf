@@ -198,7 +198,7 @@
             instancerExtendable={(config.extendable ?? true) &&
               (active?.canExtend ?? true)}
             instancerStoppable={active?.canStop ?? true}
-            instancerActions={[]}
+            instancerActions={active?.actions ?? []}
             onSolve={() => {}}
           />
         </Section>

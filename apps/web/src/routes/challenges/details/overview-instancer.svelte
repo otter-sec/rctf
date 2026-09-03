@@ -13,6 +13,7 @@
     GoodInstanceStatus,
     InstanceStatus,
     ProtectedAction,
+    RunAdminInstanceActionRouteV2,
     RunInstanceActionRouteV2,
     SubmitFlagRoute,
   } from '@rctf/types'
@@ -180,6 +181,11 @@
 
   async function submitResolvedFlag(flag: string) {
     toast.info(flag, { duration: 15_000 })
+    if (admin) {
+      // NOTE: Admins only test the instancer, so the flag is shown but not submitted
+      return
+    }
+
     const res = await apiRequest(SubmitFlagRoute, { id: challengeId, flag })
     if (res.kind === GoodFlag.kind) {
       toast.success('Flag correct!')
@@ -195,10 +201,13 @@
   async function runAction(actionId: string) {
     await instanceAction.run(
       async () => {
-        const res = await apiRequest(RunInstanceActionRouteV2, {
-          id: challengeId,
-          action: actionId,
-        })
+        const res = await apiRequest(
+          admin ? RunAdminInstanceActionRouteV2 : RunInstanceActionRouteV2,
+          {
+            id: challengeId,
+            action: actionId,
+          }
+        )
         if (res.kind === GoodInstancerActionResult.kind) {
           if (res.data.message) {
             toast.success(res.data.message)

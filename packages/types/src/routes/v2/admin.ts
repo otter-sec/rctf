@@ -17,6 +17,7 @@ import {
   BadModerationNotPassed,
   BadName,
   BadPerms,
+  BadRateLimit,
   BadToken,
   BadUnknownSolveV2,
   BadUnknownUser,
@@ -51,6 +52,7 @@ import {
   GoodFlagProviders,
   GoodCreateUserTokenV2,
   GoodFilesUploadV2,
+  GoodInstancerActionResult,
   GoodInstancerSchema,
   GoodInstanceStatus,
   GoodUploadsQueryV2,
@@ -472,6 +474,26 @@ export const ExtendAdminInstanceRouteV2 = defineRoute({
   ],
   authRequired: true,
   params: AdminChallengeParams,
+  permissions: Permissions.challsRead,
+})
+
+export const RunAdminInstanceActionRouteV2 = defineRoute({
+  path: '/v2/admin/challs/:id/instance/actions/:action',
+  method: 'POST',
+  goodResponses: [GoodInstancerActionResult],
+  badResponses: [
+    BadInstancerError,
+    BadEndpoint,
+    BadChallenge,
+    BadRateLimit,
+    BadPerms,
+    BadToken,
+  ],
+  authRequired: true,
+  params: z.object({
+    id: z.string().check(z.describe('Challenge ID.')),
+    action: z.string().check(z.describe('Instancer action name.')),
+  }),
   permissions: Permissions.challsRead,
 })
 

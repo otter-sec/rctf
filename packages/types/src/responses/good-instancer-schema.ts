@@ -27,6 +27,20 @@ export const GoodInstancerSchema = response('goodInstancerSchema', {
         canExtend: example(z.boolean(), true).check(
           z.describe('Whether instance lifetimes can be extended.')
         ),
+        actions: z
+          .array(
+            z.object({
+              id: example(z.string(), 'restart').check(
+                z.describe(
+                  'Stable action identifier sent back to the instancer.'
+                )
+              ),
+              label: example(z.string(), 'Restart').check(
+                z.describe('Button label shown for the action.')
+              ),
+            })
+          )
+          .check(z.describe('Provider-defined instancer actions.')),
       })
     ),
   }),
