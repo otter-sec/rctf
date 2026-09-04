@@ -59,6 +59,30 @@ describe('groupChallenges', () => {
     expect(groups[0]?.challenges.map(c => c.id)).toEqual(['a', 'b'])
   })
 
+  test('sorts by sortWeight descending, treating unset weight as 0', () => {
+    const challenges = [
+      makeChallenge({ id: '1', category: 'web', name: 'middle' }),
+      makeChallenge({
+        id: '2',
+        category: 'web',
+        name: 'first',
+        sortWeight: 10,
+      }),
+      makeChallenge({
+        id: '3',
+        category: 'web',
+        name: 'last',
+        sortWeight: -1,
+      }),
+    ]
+    const groups = groupChallenges(challenges)
+    expect(groups[0]?.challenges.map(c => c.name)).toEqual([
+      'first',
+      'middle',
+      'last',
+    ])
+  })
+
   test('sorts challenges within a category by name', () => {
     const challenges = [
       makeChallenge({ id: '1', category: 'web', name: 'charlie' }),

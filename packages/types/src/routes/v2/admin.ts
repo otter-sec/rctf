@@ -533,7 +533,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
           z.describe('Whether solves count toward tiebreak ordering.')
         ),
         files: z.optional(z.array(ChallengeFileSchemaV2)),
-        sortWeight: example(z.optional(z.number()), 0).check(
+        sortWeight: example(z.optional(z.int32()), 0).check(
           z.describe('Manual ordering weight.')
         ),
         tags: example(z.optional(z.array(z.string())), ['beginner']).check(

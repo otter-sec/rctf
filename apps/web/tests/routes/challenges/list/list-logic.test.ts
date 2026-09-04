@@ -107,6 +107,66 @@ describe('groupChallenges', () => {
     ])
   })
 
+  test('breaks points/solves ties by sortWeight desc, unset weight as 0', () => {
+    const challenges = [
+      makeChallenge({ id: '1', category: 'web', name: 'middle' }),
+      makeChallenge({
+        id: '2',
+        category: 'web',
+        name: 'first',
+        sortWeight: 10,
+      }),
+      makeChallenge({
+        id: '3',
+        category: 'web',
+        name: 'last',
+        sortWeight: -1,
+      }),
+    ]
+    const groups = groupChallenges(challenges)
+    expect(groups[0]?.challenges.map(challenge => challenge.name)).toEqual([
+      'first',
+      'middle',
+      'last',
+    ])
+  })
+
+  test('sortWeight does not outrank solves', () => {
+    const challenges = [
+      makeChallenge({
+        id: '1',
+        category: 'web',
+        name: 'heavy',
+        solves: 1,
+        sortWeight: 100,
+      }),
+      makeChallenge({ id: '2', category: 'web', name: 'solved', solves: 9 }),
+    ]
+    const groups = groupChallenges(challenges)
+    expect(groups[0]?.challenges.map(challenge => challenge.name)).toEqual([
+      'solved',
+      'heavy',
+    ])
+  })
+
+  test('does not order by points, which is 0 for dynamic challenges', () => {
+    const challenges = [
+      makeChallenge({ id: '1', category: 'web', name: 'dynamic', points: 0 }),
+      makeChallenge({
+        id: '2',
+        category: 'web',
+        name: 'decay',
+        points: 500,
+        solves: 3,
+      }),
+    ]
+    const groups = groupChallenges(challenges)
+    expect(groups[0]?.challenges.map(challenge => challenge.name)).toEqual([
+      'decay',
+      'dynamic',
+    ])
+  })
+
   test('returns an empty array for no challenges', () => {
     expect(groupChallenges([])).toEqual([])
   })

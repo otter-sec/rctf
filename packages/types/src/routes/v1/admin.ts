@@ -88,7 +88,7 @@ export const UpdateChallengeRoute = defineRoute({
             })
           )
         ),
-        sortWeight: example(z.optional(z.number()), 0).check(
+        sortWeight: example(z.optional(z.int32()), 0).check(
           z.describe('Manual ordering weight.')
         ),
       })
