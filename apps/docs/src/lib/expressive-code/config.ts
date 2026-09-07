@@ -1,6 +1,8 @@
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { createRenderer, type SatteriExpressiveCodeOptions } from 'satteri-expressive-code'
+import { pluginCompactGutter } from './gutter'
+import { pluginIndentGuides } from './indent-guides'
 import { pluginOutputSeparators, pluginShellPrompts } from './terminal'
 import { pluginCodeTones } from './tones'
 
@@ -11,9 +13,11 @@ export const ecOptions: SatteriExpressiveCodeOptions = {
   plugins: [
     pluginCollapsibleSections(),
     pluginLineNumbers(),
+    pluginCompactGutter(),
     pluginShellPrompts(),
     pluginCodeTones(),
     pluginOutputSeparators(),
+    pluginIndentGuides(),
   ],
   defaultProps: {
     wrap: true,
@@ -33,6 +37,7 @@ export const ecOptions: SatteriExpressiveCodeOptions = {
     borderColor: 'transparent',
     borderWidth: '0',
     borderRadius: 'var(--radius-lg)',
+    gutterBorderWidth: '0px',
     uiFontFamily: 'var(--font-sans)',
     lineNumbers: {
       foreground: 'var(--muted-foreground)',
