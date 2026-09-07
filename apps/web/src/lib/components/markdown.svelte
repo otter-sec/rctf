@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MarkdownActionButton from '$lib/components/markdown-action-button.svelte'
   import MarkdownAlert from '$lib/components/markdown-alert.svelte'
   import MarkdownTimer from '$lib/components/markdown-timer.svelte'
   import {
@@ -41,6 +42,15 @@
       }),
       ...[...container.querySelectorAll('[data-timer]')].map(el =>
         mount(MarkdownTimer, { target: el })
+      ),
+      ...[...container.querySelectorAll('[data-action-button]')].map(el =>
+        mount(MarkdownActionButton, {
+          target: el,
+          props: {
+            href: el.getAttribute('data-href') ?? '',
+            label: el.getAttribute('data-content') ?? '',
+          },
+        })
       ),
     ]
     return () => instances.forEach(instance => unmount(instance))
