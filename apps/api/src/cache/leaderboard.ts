@@ -155,7 +155,19 @@ type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
 const lastPointScore = (points: readonly string[]): number =>
   Number.parseInt(points[points.length - 1] ?? '0') || 0
 
+const lastPointTime = (points: readonly string[]): number =>
+  Number.parseInt(points[points.length - 2] ?? '0') || 0
+
 const graphNow = (endTime: number): number => Math.min(Date.now(), endTime)
+
+const sampleWindowOf = (
+  time: number,
+  sampleTime: number,
+  endTime: number
+): number => {
+  const aligned = Math.ceil(time / sampleTime) * sampleTime
+  return time <= endTime ? Math.min(aligned, endTime) : aligned
+}
 
 const emptyFold = (endTime: number): GraphFold => ({
   lastSample: graphNow(endTime),
@@ -177,8 +189,6 @@ const foldScoreEvents = (
       continue
     }
     lastSample = Math.max(lastSample, eventAt)
-    const aligned = Math.ceil(eventAt / sampleTime) * sampleTime
-    const bucket = eventAt <= endTime ? Math.min(aligned, endTime) : aligned
 
     let points = userPoints.get(row.userid)
     if (!points) {
@@ -187,10 +197,20 @@ const foldScoreEvents = (
     }
 
     const score = lastPointScore(points) + row.pointsDelta
-    if (points[points.length - 2] === bucket.toString()) {
+    const lastTime = lastPointTime(points)
+
+    const sameInstant = points.length > 0 && lastTime === eventAt
+    const sameWindow =
+      points.length >= 4 &&
+      sampleWindowOf(lastTime, sampleTime, endTime) ===
+        sampleWindowOf(eventAt, sampleTime, endTime)
+    const stalePoint = points.length > 0 && lastTime > eventAt
+
+    if (sameInstant || sameWindow || stalePoint) {
+      points[points.length - 2] = eventAt.toString()
       points[points.length - 1] = score.toString()
     } else {
-      points.push(bucket.toString(), score.toString())
+      points.push(eventAt.toString(), score.toString())
     }
   }
 

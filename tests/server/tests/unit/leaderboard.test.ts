@@ -301,8 +301,8 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        // both events land in the same 5min sample bucket
-        ['user1', '1700100000,100']
+        // the first event is kept as the series start
+        ['user1', '1699990000,50,1699995000,100']
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -460,7 +460,7 @@ describe('leaderboard cache', () => {
           ids: ['evt1'],
         }),
         'events',
-        ['user1', '1700100000,75']
+        ['user1', '1699995000,75']
       )
     })
 
@@ -552,11 +552,16 @@ describe('leaderboard cache', () => {
           ids: ['evt3', 'evt4'],
         }),
         'events',
-        ['user1', '1700100000,70', 'user2', '1700100000,50']
+        [
+          'user1',
+          '1699990000,30,1699995000,70',
+          'user2',
+          '1699990000,20,1699995000,50',
+        ]
       )
     })
 
-    test('buckets dense score events to the graph sample grid', async () => {
+    test('collapses dense score events to one point per sample window', async () => {
       const redis = createMockRedis()
       const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
       const base = 900 * sampleTime
@@ -590,7 +595,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        `${base + sampleTime},100,${base + 2 * sampleTime},200`
+        `${base + 1},5,${base + 1 + 19 * eventGap},100,${base + 1 + 39 * eventGap},200`
       )
     })
 
@@ -634,7 +639,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
       expect(redis.rctfReplaceGraph).toHaveBeenCalledTimes(1)
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1700100000,50'
+        '1699990000,50'
       )
 
       await cacheLeaderboardAndGraph(db, redis, data)
@@ -657,16 +662,68 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        // the incremental event replaces the seed point in the same bucket
-        ['user1', '1700100000,75']
+        ['user1', '1699990000,50,1699995000,75']
       )
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1700100000,75'
+        '1699990000,50,1699995000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: new Date(1699995000).toISOString(),
         ids: ['evt2'],
       })
+    })
+
+    test('replaces a cached bucket-end point that sits later than the next event', async () => {
+      const redis = createMockRedis()
+      const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
+      const bucketEnd = Math.ceil(1699990000 / sampleTime) * sampleTime
+      const db = createMockDb([
+        [
+          {
+            id: 'evt1',
+            userid: 'user1',
+            pointsDelta: 50,
+            eventAt: new Date(1699990000).toISOString(),
+          },
+        ],
+        [
+          {
+            id: 'evt2',
+            userid: 'user1',
+            pointsDelta: 25,
+            eventAt: new Date(1699995000).toISOString(),
+          },
+        ],
+      ])
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 75,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+      // older versions stored the point at the end of its sample bucket
+      redis.hashStore.get('graph-data')!.set('user1', `${bucketEnd},50`)
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      // the stale point is replaced instead of kept as the series start,
+      // otherwise the line would dip back to 50 at the old bucket end
+      expect(redis.rctfMergeGraph).toHaveBeenCalledTimes(1)
+      expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+        '1699995000,75'
+      )
     })
 
     test('dedupes replayed cursor-timestamp events while accepting new lower-id events', async () => {
@@ -717,7 +774,7 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-        '1700100000,75'
+        '1699990000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
         time: eventTime,
@@ -781,7 +838,7 @@ describe('leaderboard cache', () => {
       }
     })
 
-    test('late deliveries land on the grid after the end and idle ticks never regress them', async () => {
+    test('late deliveries stay distinct points after the end and idle ticks never regress them', async () => {
       const originalEndTime = config.endTime
       const endTime = 1700000000
       config.endTime = endTime
@@ -807,13 +864,11 @@ describe('leaderboard cache', () => {
         ])
         const data = userData(75, endTime + 5000)
 
-        // in-time bucket clamps to endTime; the late event stays a distinct
-        // point on the next grid line
-        const sampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
-        const lateBucket = Math.ceil((endTime + 5000) / sampleTime) * sampleTime
+        // the in-time and late events never share a sample window, so the
+        // late event stays a distinct point at its own time
         await cacheLeaderboardAndGraph(db, redis, data)
         expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
-          `${endTime},50,${lateBucket},75`
+          `${endTime - 10000},50,${endTime + 5000},75`
         )
         expect(Number(redis.store.get('graph-update'))).toBe(endTime + 5000)
 
@@ -823,7 +878,7 @@ describe('leaderboard cache', () => {
         const [entry] = await getGraphForEntries(db, redis, [
           { id: 'user1', name: 'User One', score: 75 },
         ])
-        expect(entry!.points[0]).toEqual({ time: lateBucket, score: 75 })
+        expect(entry!.points[0]).toEqual({ time: endTime + 5000, score: 75 })
       } finally {
         config.endTime = originalEndTime
       }
