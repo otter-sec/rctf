@@ -84,7 +84,7 @@ async def create_container(  # noqa: PLR0913
                     'DnsSearch': container.dns_search,
                     'ExtraHosts': container.extra_hosts,
                     'Tmpfs': container.tmpfs,
-                    'ShmSize': container.shm_size,
+                    'ShmSize': parse_memory_bytes(container.shm_size) if container.shm_size else None,
                     'ReadonlyRootfs': container.read_only,
                     'Privileged': container.privileged,
                     'SecurityOpt': container.security_opt,
