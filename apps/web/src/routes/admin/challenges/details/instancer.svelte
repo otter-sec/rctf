@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ChallengeIntegrationIdSchema } from '@rctf/types'
   import type { InstancerConfig } from '@rctf/types'
   import { IconCloud } from '$lib/icons'
   import { useInstancerSchema } from '$lib/query/admin'
@@ -36,6 +37,12 @@
   const instancers = $derived(schema?.instancers ?? [])
   const hasMultiple = $derived(instancers.length > 1)
   const active = $derived(resolveInstancer(schema, config?.instancer))
+  const integrationIdError = $derived(
+    config
+      ? ChallengeIntegrationIdSchema.safeParse(config.challengeIntegrationId)
+          .error?.issues[0]?.message
+      : undefined
+  )
 
   const enableItems = $derived<MenuItem[]>([
     {
@@ -142,10 +149,14 @@
                     data-mono
                     placeholder="challenge-id"
                     value={config.challengeIntegrationId}
+                    aria-invalid={Boolean(integrationIdError)}
                     {disabled}
                     oninput={e =>
                       patch({ challengeIntegrationId: e.currentTarget.value })}
                   />
+                  {#if integrationIdError}<field-error
+                      >{integrationIdError}</field-error
+                    >{/if}
                 </form-field>
                 <form-field>
                   <field-label
