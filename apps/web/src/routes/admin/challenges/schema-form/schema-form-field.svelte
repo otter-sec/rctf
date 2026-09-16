@@ -71,6 +71,7 @@
     {disabled}
     {required}
     {isNullable}
+    isOptional={!required}
     nested
     label={fieldLabel(effectiveSchema, path)}
   />

@@ -361,7 +361,7 @@ const volumeSchema = z.catchall(
       .optional(
         z.catchall(
           z.object({
-            path: z.string().check(z.describe('Path')),
+            path: z.string().check(z.minLength(1), z.describe('Path')),
             // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L900-L922
             type: z
               .optional(
@@ -390,7 +390,7 @@ const volumeSchema = z.catchall(
           z.object({
             // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L1227-L1235
             medium: z
-              .prefault(z.enum(['', 'Memory', 'HugePages', 'HugePages-']), '')
+              .optional(z.enum(['', 'Memory', 'HugePages', 'HugePages-']))
               .check(z.describe('Medium')),
             sizeLimit: z.optional(z.string()).check(z.describe('Size limit')),
           }),
