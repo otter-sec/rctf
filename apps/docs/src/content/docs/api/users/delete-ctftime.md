@@ -1,7 +1,7 @@
 ---
 title: "`<route>DELETE</route>` Remove CTFtime auth"
 description: "`<route>DELETE /api/v1/users/me/auth/ctftime</route>`"
-order: 8
+order: 10
 ---
 
 :::aside
@@ -14,7 +14,7 @@ order: 8
 
 This route removes CTFtime auth from the authenticated team. It is available in V1.
 
-If removing CTFtime auth would leave the team without either email auth or CTFtime auth, the route returns `<response>409 badZeroAuth</response>`.
+If removing CTFtime auth would leave the team without an email address, a CTFtime link, and a password, the route returns `<response>409 badZeroAuth</response>`.
 
 #### Response
 

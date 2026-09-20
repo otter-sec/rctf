@@ -295,6 +295,7 @@ captcha:
       secretKey: your-secret-key
   protectedEndpoints:
     - register
+    - login
     - recover
     - setEmail
     - instancerStart
@@ -308,7 +309,13 @@ captcha:
 | `<red>captcha.provider</red>` | `object{:ts}` | - | Captcha provider config (`<red>name</red>` + `<red>options</red>`) |
 | `<red>captcha.protectedEndpoints</red>` | `array{:ts}` | all actions | List of actions requiring captcha |
 
-Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
+Available captcha actions: `<green>register</green>`, `<green>login</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
+
+:::warning
+`<green>login</green>` is new. `<red>captcha.protectedEndpoints</red>` defaults to every action, so a deployment that already configures a captcha provider and leaves the list unset will start requiring a captcha on `<route>POST /api/v2/auth/login</route>` after upgrading. Clients that log in without solving one will get `<response>403 badCaptcha</response>`. To leave login without a captcha, list `<red>protectedEndpoints</red>` explicitly and omit `<green>login</green>`.
+:::
+
+Captcha is opt-in as a whole: with no `<red>captcha.provider</red>` configured, no action is protected regardless of this list. On such a deployment the controls on password login are the per-IP and per-team-name rate limits plus a cap on concurrent password verifications. See [log in](/api/auth/login/).
 
 See [Captcha Providers](/providers/captcha) for provider-specific options.
 
@@ -482,6 +489,8 @@ proxy:
 | `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `2{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts exactly that many proxy hops in front of the API, a string or array specifies trusted CIDR ranges or the named subnets `loopback{:ts}`, `linklocal{:ts}`, `uniquelocal{:ts}` |
 
 The bundled nginx inside the container counts as the first hop, so the default of `2{:ts}` matches the [standard deployment](/meta/running-a-successful-ctf/setup): the bundled nginx plus one reverse proxy on the host. With it, logs and rate limits use the participant's IP as reported by the host proxy.
+
+Password login raises the stakes on getting this right. When no captcha provider is configured, the per-IP bucket is the main control on guessing a team's password, and it is only as good as the client IP this setting produces. See [log in](/api/auth/login/).
 
 :::warning
 A hop count must match your topology exactly. Setting it too high lets participants spoof `X-Forwarded-For{:http}` to evade per-IP rate limits, while setting it too low attributes all traffic to one of your proxies. Increase it if you add another layer (such as a load balancer), set it to `1{:ts}` if the container is exposed directly, and behind Cloudflare set `<red>proxy.cloudflare</red>` to `true{:ts}` instead.

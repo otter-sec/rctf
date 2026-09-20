@@ -16,6 +16,8 @@ aside: true
 | [Update avatar](/api/users/avatar/) | `<route>PATCH /api/v2/users/me/avatar</route>` |
 | [Set email auth](/api/users/email/) | `<route>PUT /api/[v2,v1]/users/me/auth/email</route>` |
 | [Remove email auth](/api/users/delete-email/) | `<route>DELETE /api/v1/users/me/auth/email</route>` |
+| [Set password auth](/api/users/set-password/) | `<route>PUT /api/v2/users/me/auth/password</route>` |
+| [Remove password auth](/api/users/delete-password/) | `<route>DELETE /api/v2/users/me/auth/password</route>` |
 | [Set CTFtime auth](/api/users/ctftime/) | `<route>PUT /api/v1/users/me/auth/ctftime</route>` |
 | [Remove CTFtime auth](/api/users/delete-ctftime/) | `<route>DELETE /api/v1/users/me/auth/ctftime</route>` |
 | [List team members](/api/users/members/) | `<route>GET /api/v1/users/me/members</route>` |
@@ -34,10 +36,14 @@ When both V1 and V2 exist for the same action, V2 is usually the best fit for ne
 
 Public profiles include the team name, division, score, rank fields, CTFtime ID when linked, and visible solves. V2 also includes avatar URL, country or region code, status text, and `bloodIndex` on solve rows.
 
-The own profile routes include private account fields as well, such as the team ID, email address, team token, allowed divisions, and admin permission bitmask when present.
+The own profile routes include private account fields as well, such as the team ID, email address, team token, allowed divisions, and admin permission bitmask when present. V2 also reports `hasPassword`, which clients use to decide whether a password change needs the current password.
 
 ## Account updates
 
 Profile updates can change the team name and division. V2 can also update country or region code and status text. Every profile update consumes from a per user rate limit bucket, regardless of which fields are present.
 
 Email auth may involve a verification email, depending on provider configuration. CTFtime auth and team member management are available through V1 routes.
+
+Password auth is V2 only. Setting or removing a password revokes every token the account had, so both routes return a replacement `authToken`. See [token revocation](/api/auth#token-revocation).
+
+An account must keep at least one of an email address, a CTFtime link, or a password. Any removal that would leave none of them returns `<response>409 badZeroAuth</response>`.

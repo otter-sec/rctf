@@ -61,3 +61,5 @@ When email delivery is configured and the request passes validation, the route r
 ::::
 
 Recovery requires an email provider. rCTF validates the request, captcha, and rate limits before queuing the message.
+
+The team token in the recovery email does not expire and is not single use. Whoever can read the mailbox can take the account over, and setting a password does not change that. A deployment that wants to close this path has to leave `<red>email</red>` unconfigured, which disables this route entirely and leaves [`<red>rctf</red>` `user set-password`](/admin/cli#rctf-user-set-password) as the only reset path.

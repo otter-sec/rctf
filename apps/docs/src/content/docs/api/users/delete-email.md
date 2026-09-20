@@ -14,7 +14,7 @@ order: 6
 
 This route removes email auth from the authenticated team. It is available in V1.
 
-If removing email auth would leave the team without either email auth or CTFtime auth, the route returns `<response>409 badZeroAuth</response>`.
+If removing email auth would leave the team without an email address, a CTFtime link, and a password, the route returns `<response>409 badZeroAuth</response>`.
 
 #### Response
 

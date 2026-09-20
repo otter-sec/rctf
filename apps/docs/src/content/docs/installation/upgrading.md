@@ -37,16 +37,18 @@ $ <red>bun</red> run db:migrate
 
 ### New columns on `users`
 
-| Column                   | Type      | Description                          |
-| ------------------------ | --------- | ------------------------------------ |
-| `avatar_url`             | text      | URL to user's avatar image           |
-| `country_code`           | text      | ISO 3166-1 alpha-2 country code      |
-| `status_text`            | text      | User status message (max 60 chars)   |
-| `score`                  | integer   | Cached current score                 |
-| `global_rank`            | integer   | Cached global leaderboard rank       |
-| `division_rank`          | integer   | Cached division-specific rank        |
-| `last_solve_at`          | timestamp | Time of last solve (for tiebreaking) |
-| `last_tiebreak_solve_at` | timestamp | Time of last tiebreak-eligible solve |
+| Column                   | Type      | Description                                              |
+| ------------------------ | --------- | -------------------------------------------------------- |
+| `avatar_url`             | text      | URL to user's avatar image                               |
+| `country_code`           | text      | ISO 3166-1 alpha-2 country code                          |
+| `status_text`            | text      | User status message (max 60 chars)                       |
+| `score`                  | integer   | Cached current score                                     |
+| `global_rank`            | integer   | Cached global leaderboard rank                           |
+| `division_rank`          | integer   | Cached division-specific rank                            |
+| `last_solve_at`          | timestamp | Time of last solve (for tiebreaking)                     |
+| `last_tiebreak_solve_at` | timestamp | Time of last tiebreak-eligible solve                     |
+| `password_hash`          | text      | argon2id hash, null when unset                           |
+| `token_epoch`            | integer   | Unix seconds; tokens minted at or before it are rejected |
 
 ### New columns on `challenges`
 
@@ -72,6 +74,9 @@ The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) takes 
 | Endpoint | Description |
 | --- | --- |
 | `<route>GET /v2/auth/verify-info</route>` | Returns info about a verification token |
+| `<route>POST /v2/auth/login</route>` | Log in with a team name and password |
+| `<route>PUT /v2/users/me/auth/password</route>` | Set or replace the account password |
+| `<route>DELETE /v2/users/me/auth/password</route>` | Remove the account password |
 | `<route>GET /v2/leaderboard/challs</route>` | Challenge metadata with first 3 solvers per challenge |
 | `<route>GET /v2/leaderboard/with-graph</route>` | Combined leaderboard and graph in one request |
 | `<route>PATCH /v2/users/me/avatar</route>` | Upload and moderate avatar images |

@@ -1,7 +1,7 @@
 ---
 title: "`<route>PUT</route>` Set CTFtime auth"
 description: "`<route>PUT /api/v1/users/me/auth/ctftime</route>`"
-order: 7
+order: 9
 ---
 
 :::aside

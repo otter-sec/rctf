@@ -60,6 +60,23 @@ $ <red><dim>bun</dim> rctf</red> user demote author@example.com
 
 Lists every user holding any permissions.
 
+### `<red>rctf</red> user set-password`
+
+Sets or resets a team's password. The argument is the team name, not the email address that `<dim>promote</dim>` and `<dim>demote</dim>` take.
+
+```ansi
+$ <red><dim>bun</dim> rctf</red> user set-password otter-sec
+New password:
+Confirm password:
+Password set for 'otter-sec'. All previously issued tokens are now rejected.
+```
+
+The password is read from stdin and asked for twice. It is never taken from an argument, which would put it in shell history and in the process list. On a terminal the input is not echoed; when stdin is a pipe or a file the password is read as a plain line instead. It must be 8 to 128 characters; the command exits non-zero without touching the account if the two entries differ, if the length is out of range, or if no team has that name.
+
+Setting a password raises the account's token epoch, so every auth and team token the team held stops working and its browser sessions are logged out.
+
+This is the only account reset path on a deployment with no `<red>email</red>` provider configured. Without email, `<route>POST /api/v2/auth/recover</route>` returns `<response>404 badEndpoint</response>`, so a team that forgets its password has no way back in on its own.
+
 ### `<red>rctf</red> seed`
 
 Wipes the database and fills it with demo data.

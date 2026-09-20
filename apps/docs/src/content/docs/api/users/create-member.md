@@ -1,7 +1,7 @@
 ---
 title: "`<route>POST</route>` Add a team member"
 description: "`<route>POST /api/v1/users/me/members</route>`"
-order: 10
+order: 12
 ---
 
 :::aside

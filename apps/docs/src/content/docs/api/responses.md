@@ -56,12 +56,14 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | --- | --- | --- |
 | `<response>400 badEmail</response>` | No data | The email did not pass validation. |
 | `<response>400 badName</response>` | No data | The team name did not pass validation. |
+| `<response>400 badPassword</response>` | No data | The password is not 8 to 128 characters. |
+| `<response>401 badCredentials</response>` | No data | The name or password is incorrect. Login returns this for an unknown name, a wrong password, and an account with no password set, so the endpoint cannot be used to probe which teams exist. Password changes return it for a wrong `currentPassword`. |
 | `<response>409 badKnownEmail</response>` | No data | Another account already uses this email. |
 | `<response>409 badKnownName</response>` | No data | Another account already uses this team name. |
 | `<response>409 badKnownCtftimeId</response>` | No data | Another account already uses this CTFtime ID. |
 | `<response>404 badUnknownEmail</response>` | No data | No account is associated with this email. |
 | `<response>404 badUnknownUser</response>` | No data | No user exists for that ID. |
-| `<response>401 badTokenVerification</response>` | No data | The verify, team, or CTFtime auth token could not be verified. |
+| `<response>401 badTokenVerification</response>` | No data | The verify, team, or CTFtime auth token could not be verified, or it was minted at or before the account's token epoch. |
 | `<response>401 badCtftimeToken</response>` | No data | The CTFtime auth token could not be used. |
 | `<response>401 badCtftimeCode</response>` | No data | The CTFtime OAuth code could not be used. |
 | `<response>404 badCtftimeNoExists</response>` | No data | The current user does not have a linked CTFtime team. |
@@ -116,6 +118,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>200 goodVerifySent</response>` | No data. |
 | `<response>200 goodEmailSet</response>` | No data. |
 | `<response>200 goodEmailRemoved</response>` | No data. |
+| `<response>200 goodPasswordSet</response>` | `{ authToken: string }{:ts}` |
+| `<response>200 goodPasswordRemoved</response>` | `{ authToken: string }{:ts}` |
 | `<response>200 goodCtftimeAuthSet</response>` | No data. |
 | `<response>200 goodCtftimeRemoved</response>` | No data. |
 | `<response>200 goodCtftimeToken</response>` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }{:ts}` |
@@ -271,6 +275,6 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `SubmissionSortBy{:ts}` | `createdAt`, `challenge`, `team`, `ip`, `kind`, `result` |
 | `SubmissionResult{:ts}` | `correct`, `incorrect`, `already_solved`, `queued`, `active_job`, `invalid_input`, `bad_instancer_state` |
 | `SubmissionTeamStatus{:ts}` | `banned`, `not_banned` |
-| `ProtectedAction{:ts}` | `register`, `recover`, `setEmail`, `instancerStart`, `instancerExtend`, `avatarUpload`, `adminBotSubmit` |
+| `ProtectedAction{:ts}` | `register`, `login`, `recover`, `setEmail`, `instancerStart`, `instancerExtend`, `avatarUpload`, `adminBotSubmit` |
 
 :::

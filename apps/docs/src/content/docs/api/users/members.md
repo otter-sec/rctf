@@ -1,7 +1,7 @@
 ---
 title: "`<route>GET</route>` List team members"
 description: "`<route>GET /api/v1/users/me/members</route>`"
-order: 9
+order: 11
 ---
 
 :::aside
