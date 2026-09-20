@@ -16,6 +16,7 @@
   import Spinner from '$lib/ui/spinner.svelte'
   import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import ButtonCtftime from '../../(auth)/button-ctftime.svelte'
+  import { canDeleteCredential } from './settings-logic'
 
   type Props = {
     user: UserProfile
@@ -29,7 +30,9 @@
   const linkAction = createAsyncAction()
   const unlinkAction = createAsyncAction()
 
-  const canDeleteCtftime = $derived(!!user.ctftimeId && !!user.email)
+  const canDeleteCtftime = $derived(
+    canDeleteCredential(true, user.ctftimeId, [user.email, user.hasPassword])
+  )
 
   function invalidateUser() {
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })

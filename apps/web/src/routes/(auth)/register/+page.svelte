@@ -4,6 +4,8 @@
     GoodRegisterV2,
     GoodVerifySent,
     LoginRoute,
+    MAX_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH,
     ProtectedAction,
     RegisterRouteV2,
   } from '@rctf/types'
@@ -48,6 +50,7 @@
   })
 
   const isPending = $derived(form.submitting || ctftimeLoginAction.pending)
+  const passwordSupplied = $derived((form.data.password ?? '') !== '')
 
   function handleRegisterSuccess(authToken: string, teamToken: string) {
     setToken(authToken)
@@ -62,6 +65,7 @@
     if (ctftimeToken) {
       form.setData({ ctftimeToken })
     }
+    form.setData({ password: form.data.password || undefined })
     form.submit()
   }
 
@@ -230,7 +234,13 @@
               />
             {/snippet}
           </Field>
-          <Field label="Email" error={form.errors.email}>
+          <Field
+            label="Email"
+            description={passwordSupplied
+              ? 'Optional when you set a password. Without one you cannot recover the account.'
+              : undefined}
+            error={form.errors.email}
+          >
             {#snippet children({ id, describedBy })}
               <Input
                 {id}
@@ -238,11 +248,31 @@
                 type="email"
                 placeholder="Enter your email"
                 autocomplete="email"
-                required
+                required={!passwordSupplied}
                 aria-describedby={describedBy}
                 aria-invalid={!!form.errors.email || undefined}
                 bind:value={form.data.email}
                 oninput={() => form.validateField('email')}
+              />
+            {/snippet}
+          </Field>
+          <Field
+            label="Password"
+            description="Optional."
+            error={form.errors.password}
+          >
+            {#snippet children({ id, describedBy })}
+              <Input
+                {id}
+                name="password"
+                type="password"
+                placeholder="Enter a password"
+                autocomplete="new-password"
+                minlength={MIN_PASSWORD_LENGTH}
+                maxlength={MAX_PASSWORD_LENGTH}
+                aria-describedby={describedBy}
+                aria-invalid={!!form.errors.password || undefined}
+                bind:value={form.data.password}
               />
             {/snippet}
           </Field>

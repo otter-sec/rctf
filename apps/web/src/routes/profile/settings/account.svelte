@@ -2,15 +2,20 @@
   import type { ClientConfig, UserProfile } from '@rctf/types'
   import {
     DeleteEmailRoute,
+    DeletePasswordRouteV2,
     GoodEmailRemoved,
     GoodEmailSet,
+    GoodPasswordRemoved,
     GoodVerifySent,
+    MAX_PASSWORD_LENGTH,
+    MIN_PASSWORD_LENGTH,
     ProtectedAction,
     SetEmailRouteV2,
+    SetPasswordRouteV2,
     UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { apiRequest, showApiError } from '$lib/api'
+  import { apiRequest, setToken, showApiError } from '$lib/api'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import DivisionMenu from '$lib/components/division-menu.svelte'
   import FlagPicker from '$lib/components/flag-picker.svelte'
@@ -26,12 +31,14 @@
   import { createAsyncAction } from '$lib/utils/async-action.svelte'
   import {
     allowedDivisionOptions,
-    canDeleteEmail as computeCanDeleteEmail,
+    canDeleteCredential,
+    canSubmitPassword,
     decideEmailBranch,
     emailButtonLabel,
     isEmailDirty,
     isEmailValid,
     isProfileDirty,
+    passwordMismatchError,
   } from './settings-logic'
 
   type Props = {
@@ -68,8 +75,20 @@
     onError: response => showApiError(response),
   })
 
+  const passwordForm = useApiForm(SetPasswordRouteV2, {
+    onSuccess: response => {
+      setToken(response.data.authToken)
+      toast.success(user.hasPassword ? 'Password updated!' : 'Password set!')
+      resetPasswordFields()
+      invalidateUser()
+    },
+    onError: response => showApiError(response),
+  })
+
   let initialized = $state(false)
+  let confirmPassword = $state('')
   const deleteEmailAction = createAsyncAction()
+  const deletePasswordAction = createAsyncAction()
 
   $effect(() => {
     if (initialized) return
@@ -100,10 +119,34 @@
   )
 
   const canDeleteEmail = $derived(
-    computeCanDeleteEmail(clientConfig.emailEnabled, user.email, user.ctftimeId)
+    canDeleteCredential(clientConfig.emailEnabled, user.email, [
+      user.ctftimeId,
+      user.hasPassword,
+    ])
   )
   const emailValid = $derived(isEmailValid(emailForm.data.email))
   const emailNonEmpty = $derived((emailForm.data.email ?? '') !== '')
+
+  const canDeletePassword = $derived(
+    canDeleteCredential(user.hasPassword, user.hasPassword, [
+      user.email,
+      user.ctftimeId,
+    ])
+  )
+  const passwordMismatch = $derived(
+    passwordMismatchError(passwordForm.data.password, confirmPassword)
+  )
+  const passwordSubmittable = $derived(
+    canSubmitPassword(
+      passwordForm.data.password,
+      confirmPassword,
+      passwordForm.data.currentPassword,
+      user.hasPassword
+    )
+  )
+  const currentPasswordFilled = $derived(
+    (passwordForm.data.currentPassword ?? '') !== ''
+  )
 
   const profileHasChanges = $derived(
     isProfileDirty(
@@ -126,7 +169,11 @@
   )
 
   const loading = $derived(
-    profileForm.submitting || emailForm.submitting || deleteEmailAction.pending
+    profileForm.submitting ||
+      emailForm.submitting ||
+      deleteEmailAction.pending ||
+      passwordForm.submitting ||
+      deletePasswordAction.pending
   )
 
   const emailFieldError = $derived(
@@ -163,6 +210,36 @@
     } else if (branch === 'put') {
       emailForm.submit()
     }
+  }
+
+  function resetPasswordFields() {
+    passwordForm.reset()
+    confirmPassword = ''
+  }
+
+  async function deletePassword() {
+    await deletePasswordAction.run(
+      async () => {
+        const response = await apiRequest(DeletePasswordRouteV2, {
+          currentPassword: passwordForm.data.currentPassword ?? '',
+        })
+        if (response.kind === GoodPasswordRemoved.kind) {
+          setToken(response.data.authToken)
+          toast.success('Password removed!')
+          resetPasswordFields()
+          invalidateUser()
+        } else {
+          showApiError(response)
+        }
+      },
+      { errorMessage: 'Failed to remove password' }
+    )
+  }
+
+  function submitPassword(event: SubmitEvent) {
+    event.preventDefault()
+    if (!passwordSubmittable) return
+    passwordForm.submit()
   }
 </script>
 
@@ -286,6 +363,107 @@
   </form>
 </Section>
 
+<Section title="Password">
+  <form onsubmit={submitPassword}>
+    {#if user.hasPassword}
+      <Field
+        label="Current password"
+        error={passwordForm.errors.currentPassword}
+      >
+        {#snippet children({ id, describedBy })}
+          <Input
+            {id}
+            name="currentPassword"
+            type="password"
+            placeholder="Enter your current password"
+            autocomplete="current-password"
+            required
+            aria-describedby={describedBy}
+            aria-invalid={!!passwordForm.errors.currentPassword || undefined}
+            bind:value={passwordForm.data.currentPassword}
+            disabled={loading}
+          />
+        {/snippet}
+      </Field>
+    {/if}
+
+    <Field
+      label="New password"
+      description="{MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters."
+      error={passwordForm.errors.password}
+    >
+      {#snippet children({ id, describedBy })}
+        <Input
+          {id}
+          name="password"
+          type="password"
+          placeholder="Enter a new password"
+          autocomplete="new-password"
+          minlength={MIN_PASSWORD_LENGTH}
+          maxlength={MAX_PASSWORD_LENGTH}
+          required
+          aria-describedby={describedBy}
+          aria-invalid={!!passwordForm.errors.password || undefined}
+          bind:value={passwordForm.data.password}
+          disabled={loading}
+        />
+      {/snippet}
+    </Field>
+
+    <Field label="Confirm new password" error={passwordMismatch}>
+      {#snippet children({ id, describedBy })}
+        <Input
+          {id}
+          name="confirmPassword"
+          type="password"
+          placeholder="Repeat your new password"
+          autocomplete="new-password"
+          minlength={MIN_PASSWORD_LENGTH}
+          maxlength={MAX_PASSWORD_LENGTH}
+          required
+          aria-describedby={describedBy}
+          aria-invalid={!!passwordMismatch || undefined}
+          bind:value={confirmPassword}
+          disabled={loading}
+        />
+      {/snippet}
+    </Field>
+
+    {#if passwordForm.errors._form}
+      <p role="alert">{passwordForm.errors._form}</p>
+    {/if}
+
+    <password-actions>
+      <Button type="submit" disabled={loading || !passwordSubmittable}>
+        {#if passwordForm.submitting}
+          <Spinner />
+        {/if}
+        {user.hasPassword ? 'Change password' : 'Set password'}
+      </Button>
+
+      {#if user.hasPassword}
+        {#if canDeletePassword}
+          <Button
+            type="button"
+            variant="outline"
+            onclick={deletePassword}
+            disabled={loading || !currentPasswordFilled}
+          >
+            {#if deletePasswordAction.pending}
+              <Spinner />
+            {/if}
+            Remove password
+          </Button>
+        {:else}
+          <password-hint>
+            Add an email address or link CTFtime before removing your password.
+          </password-hint>
+        {/if}
+      {/if}
+    </password-actions>
+  </form>
+</Section>
+
 <style>
   form {
     display: flex;
@@ -295,6 +473,22 @@
     :global(button[type='submit']) {
       inline-size: 100%;
     }
+  }
+
+  password-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+
+    :global(button) {
+      inline-size: 100%;
+    }
+  }
+
+  password-hint {
+    display: block;
+    color: var(--foreground-l4);
+    font-size: var(--step--1);
   }
 
   p[role='alert'] {

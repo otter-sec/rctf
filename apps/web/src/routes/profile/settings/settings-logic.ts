@@ -51,20 +51,16 @@ export function decideEmailBranch(
   return isEmailValid(email) ? 'put' : 'invalid'
 }
 
-export function canDeleteEmail(
-  emailEnabled: boolean,
-  email: string | null | undefined,
-  ctftimeId: string | null | undefined
+// A credential can be removed only while another one remains: the users table
+// requires at least one of email, CTFtime, or password. One predicate for all
+// three, because three copies is how the email and CTFtime versions came to
+// miss the password that was added later.
+export function canDeleteCredential(
+  enabled: boolean,
+  own: unknown,
+  others: unknown[]
 ): boolean {
-  return Boolean(emailEnabled && email && ctftimeId)
-}
-
-export function canDeleteCtftime(
-  ctftimeConfigured: boolean,
-  ctftimeId: string | null | undefined,
-  email: string | null | undefined
-): boolean {
-  return Boolean(ctftimeConfigured && ctftimeId && email)
+  return Boolean(enabled && own && others.some(Boolean))
 }
 
 export function emailButtonLabel(
@@ -74,6 +70,28 @@ export function emailButtonLabel(
   return (email ?? '').trim() === '' && canDelete
     ? 'Remove email'
     : 'Update email'
+}
+
+export function passwordMismatchError(
+  password: string | undefined,
+  confirmPassword: string
+): string | null {
+  if (confirmPassword === '' || password === confirmPassword) {
+    return null
+  }
+  return 'Passwords do not match'
+}
+
+export function canSubmitPassword(
+  password: string | undefined,
+  confirmPassword: string,
+  currentPassword: string | undefined,
+  hasPassword: boolean
+): boolean {
+  if ((password ?? '') === '' || password !== confirmPassword) {
+    return false
+  }
+  return !hasPassword || (currentPassword ?? '') !== ''
 }
 
 export interface DivisionOption {

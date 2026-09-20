@@ -1,12 +1,13 @@
 import {
   allowedDivisionOptions,
-  canDeleteCtftime,
-  canDeleteEmail,
+  canDeleteCredential,
+  canSubmitPassword,
   decideEmailBranch,
   emailButtonLabel,
   isEmailDirty,
   isEmailValid,
   isProfileDirty,
+  passwordMismatchError,
   type ProfileCurrentUser,
 } from '$routes/profile/settings/settings-logic'
 import { describe, expect, it } from 'bun:test'
@@ -141,28 +142,23 @@ describe('decideEmailBranch', () => {
   })
 })
 
-describe('canDeleteEmail', () => {
-  it('is true only with email enabled, an email set, and CTFtime linked', () => {
-    expect(canDeleteEmail(true, 'team@osec.io', '123')).toBe(true)
+describe('canDeleteCredential', () => {
+  it('is false when the credential type is not enabled', () => {
+    expect(canDeleteCredential(false, 'team@osec.io', ['123'])).toBe(false)
   })
 
-  it('is false when email is the only auth method (no CTFtime)', () => {
-    expect(canDeleteEmail(true, 'team@osec.io', null)).toBe(false)
+  it('is false when the account does not have the credential', () => {
+    expect(canDeleteCredential(true, null, ['123'])).toBe(false)
   })
 
-  it('is false when email is disabled or unset', () => {
-    expect(canDeleteEmail(false, 'team@osec.io', '123')).toBe(false)
-    expect(canDeleteEmail(true, null, '123')).toBe(false)
-  })
-})
-
-describe('canDeleteCtftime', () => {
-  it('is true only with CTFtime configured, linked, and an email set', () => {
-    expect(canDeleteCtftime(true, '123', 'team@osec.io')).toBe(true)
+  it('is false when nothing else would remain', () => {
+    expect(canDeleteCredential(true, 'team@osec.io', [null, false])).toBe(false)
+    expect(canDeleteCredential(true, 'team@osec.io', [])).toBe(false)
   })
 
-  it('is false when CTFtime is the only auth method (no email)', () => {
-    expect(canDeleteCtftime(true, '123', null)).toBe(false)
+  it('is true when any one of the others remains', () => {
+    expect(canDeleteCredential(true, 'team@osec.io', ['123', false])).toBe(true)
+    expect(canDeleteCredential(true, 'team@osec.io', [null, true])).toBe(true)
   })
 })
 
@@ -191,5 +187,49 @@ describe('allowedDivisionOptions', () => {
     expect(
       allowedDivisionOptions({ open: 'Open', pro: 'Pro' }, ['open'])
     ).toEqual([{ value: 'open', label: 'Open' }])
+  })
+})
+
+describe('passwordMismatchError', () => {
+  it('stays quiet until the confirmation is typed', () => {
+    expect(passwordMismatchError('hunter2hunter2', '')).toBeNull()
+  })
+
+  it('is null when the two match', () => {
+    expect(passwordMismatchError('hunter2hunter2', 'hunter2hunter2')).toBeNull()
+  })
+
+  it('reports a mismatch', () => {
+    expect(passwordMismatchError('hunter2hunter2', 'hunter2hunter3')).toBe(
+      'Passwords do not match'
+    )
+  })
+})
+
+describe('canSubmitPassword', () => {
+  it('is false on an empty new password', () => {
+    expect(canSubmitPassword('', '', undefined, false)).toBe(false)
+    expect(canSubmitPassword(undefined, '', undefined, false)).toBe(false)
+  })
+
+  it('is false while the confirmation does not match', () => {
+    expect(
+      canSubmitPassword('hunter2hunter2', 'hunter2', undefined, false)
+    ).toBe(false)
+  })
+
+  it('is true for a first-time set with a matching confirmation', () => {
+    expect(
+      canSubmitPassword('hunter2hunter2', 'hunter2hunter2', undefined, false)
+    ).toBe(true)
+  })
+
+  it('requires the current password when one is already set', () => {
+    expect(
+      canSubmitPassword('hunter2hunter2', 'hunter2hunter2', '', true)
+    ).toBe(false)
+    expect(
+      canSubmitPassword('hunter2hunter2', 'hunter2hunter2', 'old-one', true)
+    ).toBe(true)
   })
 })
