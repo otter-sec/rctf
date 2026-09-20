@@ -59,6 +59,7 @@ describe('auth-cache', () => {
       email: 'test@example.com',
       division: 'open',
       createdAt: createdAt.toISOString(),
+      tokenEpoch: 0,
     }
     redis.store.set('user:user-123', JSON.stringify(user))
 
@@ -79,6 +80,17 @@ describe('auth-cache', () => {
 
     expect(result).toBeNull()
     expect(redis.del).toHaveBeenCalledWith('user:user-123')
+    expect(redis.store.has('user:user-123')).toBe(false)
+  })
+
+  test('discards an entry written before tokenEpoch existed', async () => {
+    const redis = createMockRedis()
+    redis.store.set(
+      'user:user-123',
+      JSON.stringify({ id: 'user-123', name: 'Test User', division: 'open' })
+    )
+
+    expect(await getCachedUser(redis, 'user-123')).toBeNull()
     expect(redis.store.has('user:user-123')).toBe(false)
   })
 

@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { getTableColumns, sql } from 'drizzle-orm'
 import {
   boolean,
   check,
@@ -39,6 +39,9 @@ export const users = pgTable(
       withTimezone: true,
       mode: 'string',
     }),
+    passwordHash: text('password_hash'),
+    // Unix seconds; tokens minted at or before this instant are rejected
+    tokenEpoch: integer('token_epoch').notNull().default(0),
   },
   table => [
     index('users_created_at_index').using(
@@ -61,7 +64,7 @@ export const users = pgTable(
     index('users_name_trgm_idx').using('gin', sql`${table.name} gin_trgm_ops`),
     check(
       'require_email_or_ctftime_id',
-      sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL)`
+      sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL) OR (password_hash IS NOT NULL)`
     ),
     index('users_global_leaderboard_idx')
       .using('btree', sql`global_rank ASC`)
@@ -71,6 +74,17 @@ export const users = pgTable(
       .where(sql`global_rank IS NOT NULL`),
   ]
 )
+
+const { passwordHash: _passwordHash, ...userSafeColumns } =
+  getTableColumns(users)
+
+// Every users column except the password hash, with a boolean in its place.
+// Reads that produce a User must project through this so the hash never
+// reaches the Redis user cache.
+export const userColumns = {
+  ...userSafeColumns,
+  hasPassword: sql<boolean>`(${users.passwordHash} IS NOT NULL)`,
+}
 
 export const userMembers = pgTable(
   'user_members',

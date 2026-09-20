@@ -12,7 +12,7 @@ import type {
   Settings,
   Solve,
   Submission,
-  User,
+  UserInsert,
   UserMember,
 } from '@rctf/db'
 import {
@@ -24,9 +24,9 @@ import {
   SubmissionResult,
 } from '@rctf/types'
 export type SeedData = {
-  admin: User
-  teams: User[]
-  users: User[]
+  admin: UserInsert
+  teams: UserInsert[]
+  users: UserInsert[]
   members: UserMember[]
   challenges: Challenge[]
   solves: Solve[]
@@ -188,7 +188,7 @@ function buildTiming(): SeedTiming {
   return { startTime: solveLatest - DAY, endTime: solveLatest + DAY }
 }
 
-function buildAdmin(): User {
+function buildAdmin(): UserInsert {
   return {
     id: 'seed-admin',
     name: 'Admin',
@@ -204,7 +204,7 @@ function buildAdmin(): User {
   }
 }
 
-function buildExternalAuthClient(admin: User): ExternalAuthClient {
+function buildExternalAuthClient(admin: UserInsert): ExternalAuthClient {
   return {
     id: EXTERNAL_APP_ID,
     name: 'Seed External App',
@@ -215,7 +215,7 @@ function buildExternalAuthClient(admin: User): ExternalAuthClient {
   }
 }
 
-function buildTeams(config: ServerConfig): User[] {
+function buildTeams(config: ServerConfig): UserInsert[] {
   const divisions = Object.keys(config.divisions)
   if (divisions.length === 0) {
     divisions.push('open')
@@ -240,7 +240,7 @@ function buildTeams(config: ServerConfig): User[] {
   })
 }
 
-function buildMembers(config: ServerConfig, teams: User[]): UserMember[] {
+function buildMembers(config: ServerConfig, teams: UserInsert[]): UserMember[] {
   if (!config.userMembers) {
     return []
   }
@@ -474,7 +474,7 @@ const pickChallengeIndices = (weights: readonly number[], count: number) =>
 
 const buildFlagSolves = (
   timing: SeedTiming,
-  teams: User[],
+  teams: UserInsert[],
   challenges: Challenge[]
 ): Solve[] => {
   const solves: Solve[] = []
@@ -533,7 +533,7 @@ const FLAG_RESCORE_INTERVAL = 3 * 60 * 60 * 1000
 
 const buildFlagScoreEvents = (
   timing: SeedTiming,
-  teams: User[],
+  teams: UserInsert[],
   challenges: Challenge[],
   solves: Solve[]
 ): ScoreEvent[] => {
@@ -635,7 +635,7 @@ const buildFlagScoreEvents = (
 
 const buildKothScores = (
   timing: SeedTiming,
-  teams: User[],
+  teams: UserInsert[],
   challengeId: string,
   penalties: boolean
 ): { solves: Solve[]; scoreEvents: ScoreEvent[] } => {
@@ -715,7 +715,7 @@ const buildKothScores = (
 
 const buildSubmissions = (
   timing: SeedTiming,
-  teams: User[],
+  teams: UserInsert[],
   challenges: Challenge[],
   solves: Solve[]
 ): Submission[] => {
@@ -778,7 +778,7 @@ const buildSubmissions = (
 
 const buildDynamicFlagData = (
   timing: SeedTiming,
-  teams: User[]
+  teams: UserInsert[]
 ): { dynamicFlags: DynamicFlag[]; submissions: Submission[] } => {
   const dynamicFlags: DynamicFlag[] = []
   const submissions: Submission[] = []

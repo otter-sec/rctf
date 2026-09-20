@@ -6,6 +6,7 @@ import {
   pendingUserVerifications,
   solves,
   submissions,
+  userColumns,
   users,
   type ChallengeData,
   type User,
@@ -60,7 +61,7 @@ export const generateRealTestUser = async (perms = 0) => {
       ...userData,
       perms,
     })
-    .returning()
+    .returning(userColumns)
 
   return {
     user: user!,
@@ -142,7 +143,7 @@ export const getUserByEmail = async (
 ): Promise<User | undefined> => {
   const db = getDb()
   return await db
-    .select()
+    .select(userColumns)
     .from(users)
     .where(eq(users.email, email))
     .limit(1)

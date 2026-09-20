@@ -27,6 +27,13 @@ export const getCachedUser = async (
 
   try {
     const result = JSON.parse(cached)
+    // Entries written by an older build can be missing fields this one relies
+    // on; tokenEpoch in particular would read as undefined and turn every
+    // revocation check into a no-op. Treat any unexpected shape as a miss.
+    if (typeof result?.tokenEpoch !== 'number') {
+      await redis.del(userCacheKey(userId))
+      return null
+    }
     return {
       ...result,
       createdAt: result.createdAt ? new Date(result.createdAt) : undefined,
@@ -41,9 +48,15 @@ export const setCachedUser = async (
   redis: TypedRedis,
   user: User
 ): Promise<void> => {
+  // userColumns is what keeps the hash out of a User; this is a backstop for
+  // a query that forgot to project.
+  const { passwordHash: _passwordHash, ...safe } = user as User & {
+    passwordHash?: unknown
+  }
+
   await redis.set(
     userCacheKey(user.id),
-    JSON.stringify(user),
+    JSON.stringify(safe),
     'PX',
     USER_CACHE_TTL
   )

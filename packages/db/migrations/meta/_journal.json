@@ -204,6 +204,13 @@
       "when": 1785168511601,
       "tag": "0028_dynamic_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1789882079019,
+      "tag": "0029_add_password_auth",
+      "breakpoints": true
     }
   ]
 }

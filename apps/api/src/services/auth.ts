@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import type { DatabaseClient, User } from '@rctf/db'
+import type { DatabaseClient, UserInsert } from '@rctf/db'
 import type {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
@@ -85,7 +85,10 @@ type RegisterUserBody = {
   ctftimeToken?: string
 }
 
-type UserToCreate = Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
+type UserToCreate = Pick<
+  UserInsert,
+  'division' | 'email' | 'name' | 'ctftimeId'
+>
 type RegisterResult = ReturnType<
   RegisterResponseHelpers[keyof RegisterResponseHelpers]
 >

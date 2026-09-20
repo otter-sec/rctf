@@ -18,7 +18,14 @@ export type { InferSelectModel, InferInsertModel }
 // Common types
 export type Challenge = InferInsertModel<typeof schema.challenges>
 export type Solve = InferInsertModel<typeof schema.solves>
-export type User = InferInsertModel<typeof schema.users>
+// Read shape, produced by schema.userColumns. Select model, not insert: the
+// insert model types a notNull column with a default as `number | undefined`,
+// which would quietly break the tokenEpoch revocation comparison.
+export type User = Omit<
+  InferSelectModel<typeof schema.users>,
+  'passwordHash'
+> & { hasPassword: boolean }
+export type UserInsert = InferInsertModel<typeof schema.users>
 export type UserMember = InferInsertModel<typeof schema.userMembers>
 export type AdminBotJob = InferInsertModel<typeof schema.adminBotJobs>
 export type Settings = InferInsertModel<typeof schema.settings>
