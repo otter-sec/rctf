@@ -9,5 +9,6 @@ export default defineCommand({
     promote: () => import('./promote').then(m => m.default),
     demote: () => import('./demote').then(m => m.default),
     'list-admins': () => import('./list-admins').then(m => m.default),
+    'set-password': () => import('./set-password').then(m => m.default),
   },
 })
