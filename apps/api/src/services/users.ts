@@ -42,7 +42,7 @@ import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { preparedPerDb } from '../lib/prepared'
-import { createToken, TokenKind } from '../lib/tokens'
+import { createToken, isTokenRevoked, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { isDecayKind } from './challenge-queries'
 import { getCompetitionTiming } from './settings'
@@ -418,6 +418,28 @@ export const getUser = async (
   id: string
 ): Promise<User | undefined> => {
   return await preparedGetUser(db).execute({ id }).then(takeUnique)
+}
+
+export type TeamTokenRedemption =
+  | { ok: true; user: User }
+  | { ok: false; reason: 'unknown' | 'revoked' }
+
+// v1 login, v1 verify and v2 verify all exchange a team token for a fresh auth
+// token. The epoch check belongs with that exchange, not copied into each of
+// them, where the next redemption route would forget it.
+export const redeemTeamToken = async (
+  db: DatabaseClient,
+  teamId: string,
+  createdAt: number
+): Promise<TeamTokenRedemption> => {
+  const user = await getUser(db, teamId)
+  if (!user) {
+    return { ok: false, reason: 'unknown' }
+  }
+  if (isTokenRevoked(createdAt, user.tokenEpoch)) {
+    return { ok: false, reason: 'revoked' }
+  }
+  return { ok: true, user }
 }
 
 export const getUserByNameOrEmail = async (

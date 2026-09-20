@@ -9,6 +9,7 @@ import { claimPendingRegistrationVerificationByToken } from '../../../../service
 import {
   createUserInternal,
   getUser,
+  redeemTeamToken,
   updateUserEmail,
 } from '../../../../services/users'
 import { divisionAllowed } from '../../../../util/acl'
@@ -52,14 +53,16 @@ authGroup.route(VerifyRouteV2, async ({ ctx, body, res }) => {
     return res.goodRegisterV2({ authToken, teamToken })
   }
 
-  const [kind, data] = result
+  const [kind, data, createdAt] = result
 
   if (kind === TokenKind.Team) {
-    const user = await getUser(ctx.var.db, data)
-    if (!user) {
-      return res.badUnknownUser()
+    const redeemed = await redeemTeamToken(ctx.var.db, data, createdAt)
+    if (!redeemed.ok) {
+      return redeemed.reason === 'unknown'
+        ? res.badUnknownUser()
+        : res.badTokenVerification()
     }
-    const authToken = await createToken(TokenKind.Auth, user.id)
+    const authToken = await createToken(TokenKind.Auth, redeemed.user.id)
     return res.goodVerify({ authToken })
   }
 

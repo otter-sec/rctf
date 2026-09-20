@@ -1,7 +1,12 @@
 import type { User } from '@rctf/db'
 import { LoginRoute } from '@rctf/types'
-import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
-import { getUser, getUserByCtftimeId } from '../../../../services/users'
+import {
+  createToken,
+  parseToken,
+  parseTokenWithMultipleKinds,
+  TokenKind,
+} from '../../../../lib/tokens'
+import { getUserByCtftimeId, redeemTeamToken } from '../../../../services/users'
 import authGroup from '../group'
 
 authGroup.route(LoginRoute, async ({ ctx, res, body }) => {
@@ -19,11 +24,21 @@ authGroup.route(LoginRoute, async ({ ctx, res, body }) => {
     user = await getUserByCtftimeId(ctx.var.db, ctfTimeToken.ctftimeId)
   } else {
     // Login with team token:
-    const teamId = await parseToken(TokenKind.Team, body.teamToken ?? '')
-    if (!teamId) {
+    const parsed = await parseTokenWithMultipleKinds(
+      [TokenKind.Team],
+      body.teamToken ?? ''
+    )
+    if (!parsed) {
       return res.badTokenVerification()
     }
-    user = await getUser(ctx.var.db, teamId)
+    const [, teamId, createdAt] = parsed
+    const redeemed = await redeemTeamToken(ctx.var.db, teamId, createdAt)
+    if (!redeemed.ok) {
+      return redeemed.reason === 'unknown'
+        ? res.badUnknownUser()
+        : res.badTokenVerification()
+    }
+    user = redeemed.user
   }
 
   if (!user) {

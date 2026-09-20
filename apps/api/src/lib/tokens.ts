@@ -60,7 +60,7 @@ export const tokenExpiries: Record<TokenKind, number> = {
   [TokenKind.CtftimeAuth]: Math.floor(config.loginTimeout / 1000),
 }
 
-const timeNow = () => Math.floor(Date.now() / 1000)
+export const timeNow = () => Math.floor(Date.now() / 1000)
 
 const encryptToken = async <Kind extends TokenKind>(
   content: InternalTokenData<Kind>
@@ -105,7 +105,7 @@ export const parseTokenWithMultipleKinds = async <Kinds extends TokenKind[]>(
   token: Token
 ): Promise<
   | {
-      [K in Kinds[number]]: [K, TokenDataTypes[K]]
+      [K in Kinds[number]]: [K, TokenDataTypes[K], number]
     }[Kinds[number]]
   | null
 > => {
@@ -121,7 +121,7 @@ export const parseTokenWithMultipleKinds = async <Kinds extends TokenKind[]>(
     return null
   }
 
-  return [kind, data]
+  return [kind, data, createdAt]
 }
 
 export const parseToken = async <Kind extends TokenKind>(
@@ -131,6 +131,14 @@ export const parseToken = async <Kind extends TokenKind>(
   const result = await parseTokenWithMultipleKinds([expectedTokenKind], token)
   return result?.[1] ?? null
 }
+
+// `<=`, not `<`: the epoch has one-second resolution, so a token stamped with
+// the same second would otherwise survive and go on minting fresh tokens
+// forever.
+export const isTokenRevoked = (
+  createdAt: number,
+  tokenEpoch: number
+): boolean => createdAt <= tokenEpoch
 
 export const createToken = async <Kind extends TokenKind>(
   tokenKind: Kind,
@@ -142,3 +150,11 @@ export const createToken = async <Kind extends TokenKind>(
     d: data,
   })
 }
+
+// Only Auth, whose expiry is Infinity. A general mint-time argument would let
+// any caller postdate a Verify or CtftimeAuth token past config.loginTimeout.
+export const createAuthTokenAt = async (
+  userId: AuthTokenData,
+  createdAt: number
+): Promise<Token> =>
+  await encryptToken({ k: TokenKind.Auth, t: createdAt, d: userId })

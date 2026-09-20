@@ -36,7 +36,11 @@ import {
 import { getUser } from '../services/users'
 import { validateCaptcha } from '../util/captcha'
 import type { ApiContext, AppEnv } from './app-env'
-import { parseToken, TokenKind } from './tokens'
+import {
+  isTokenRevoked,
+  parseTokenWithMultipleKinds,
+  TokenKind,
+} from './tokens'
 
 const AUTH_PREFIX = 'Bearer '
 type JsonResponse = [Record<string, unknown>, ContentfulStatusCode]
@@ -144,17 +148,18 @@ const getAuthenticatedUser = async (
     return undefined
   }
 
-  const userId = await parseToken(
-    TokenKind.Auth,
+  const parsed = await parseTokenWithMultipleKinds(
+    [TokenKind.Auth],
     authHeader.slice(AUTH_PREFIX.length)
   )
-  if (!userId) {
+  if (!parsed) {
     return undefined
   }
+  const [, userId, createdAt] = parsed
 
   const cached = await getCachedUser(context.var.redis, userId)
   if (cached) {
-    return cached
+    return isTokenRevoked(createdAt, cached.tokenEpoch) ? undefined : cached
   }
 
   const user = await getUser(context.var.db, userId)
@@ -163,6 +168,10 @@ const getAuthenticatedUser = async (
     setCachedUser(context.var.redis, user).catch(() => {
       context.var.logger.error({ userId }, 'failed to set cached user')
     })
+
+    if (isTokenRevoked(createdAt, user.tokenEpoch)) {
+      return undefined
+    }
   }
 
   return user
