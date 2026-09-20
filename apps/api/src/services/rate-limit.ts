@@ -79,6 +79,24 @@ export const rateLimitRecoverByEmail = (redis: TypedRedis, email: string) =>
 export const rateLimitRegisterByIp = (redis: TypedRedis, ip: string) =>
   rateLimit(redis, `rl:REGISTER_IP:${ip}`, 20, 600_000)
 
+// burst 10, 1 per 10s per IP
+export const rateLimitLoginByIp = (redis: TypedRedis, ip: string) =>
+  rateLimit(redis, `rl:LOGIN_IP:${ip}`, 10, 100_000)
+
+// burst 5, 1 per 30s per identifier; the identifier arrives lowercased
+export const rateLimitLoginByIdentifier = (
+  redis: TypedRedis,
+  identifier: string
+) => rateLimit(redis, `rl:LOGIN_IDENTIFIER:${identifier}`, 5, 150_000)
+
+// burst 3, 1 per 1min per user
+export const rateLimitSetPassword = (redis: TypedRedis, userId: string) =>
+  rateLimit(redis, `rl:SET_PASSWORD:${userId}`, 3, 180_000)
+
 // burst 2, 1 per 30min per email
 export const rateLimitRegisterByEmail = (redis: TypedRedis, email: string) =>
   rateLimit(redis, `rl:REGISTER_EMAIL:${email}`, 2, 3_600_000)
+
+// burst 2, 1 per 30min per name; the password path has no email to key on
+export const rateLimitRegisterByName = (redis: TypedRedis, name: string) =>
+  rateLimit(redis, `rl:REGISTER_NAME:${name.toLowerCase()}`, 2, 3_600_000)

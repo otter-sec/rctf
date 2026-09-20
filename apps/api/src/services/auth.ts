@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import type { DatabaseClient, UserInsert } from '@rctf/db'
+import type { DatabaseClient } from '@rctf/db'
 import type {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
@@ -8,7 +8,9 @@ import type {
   BadKnownEmail,
   BadKnownName,
   BadRateLimit,
+  BadCredentials,
   BadRegistrationsDisabled,
+  GoodLogin,
   GoodRegister,
   GoodRegisterV2,
   GoodVerifySent,
@@ -19,10 +21,18 @@ import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
 import { sendVerificationEmail } from './emails'
 import {
+  checkPassword,
+  getUserCredentialsByIdentifier,
+  hashPassword,
+} from './passwords'
+import {
+  rateLimitLoginByIdentifier,
+  rateLimitLoginByIp,
   rateLimitRecoverByEmail,
   rateLimitRecoverByIp,
   rateLimitRegisterByEmail,
   rateLimitRegisterByIp,
+  rateLimitRegisterByName,
 } from './rate-limit'
 import { createPendingRegistrationVerification } from './registration-verifications'
 import {
@@ -30,6 +40,7 @@ import {
   createUserV2,
   getUserByEmail,
   getUserByNameOrEmail,
+  type UserToCreate,
 } from './users'
 
 type RegisterResponseHelpers = ResponseHelpers<
@@ -79,16 +90,16 @@ type RecoverResponseHelpers = ResponseHelpers<
   [typeof BadEndpoint, typeof BadRateLimit, typeof GoodVerifySent]
 >
 
+type LoginPasswordResponseHelpers = ResponseHelpers<
+  [typeof BadCredentials, typeof BadRateLimit, typeof GoodLogin]
+>
+
 type RegisterUserBody = {
   email?: string
   name: string
   ctftimeToken?: string
+  password?: string
 }
-
-type UserToCreate = Pick<
-  UserInsert,
-  'division' | 'email' | 'name' | 'ctftimeId'
->
 type RegisterResult = ReturnType<
   RegisterResponseHelpers[keyof RegisterResponseHelpers]
 >
@@ -118,38 +129,40 @@ const prepareRegistration = async (
     return { hasResult: true, response: res.badEndpoint() }
   }
 
-  // Will return the first division if email is not provided,
-  //  we are assuming ctftime auth is always disabled with email ACLs.
   const division = allowedDivisions({
-    email: body.email,
+    // A password registration creates the row immediately, so its email is
+    // unverified. Hiding it here keeps divisionACLs from handing out a
+    // restricted division for free; allowedDivisions answers defaultDivision
+    // when there is no email.
+    email: body.password ? null : body.email,
     defaultOnly: true,
   })[0]
   if (!division) {
     return { hasResult: true, response: res.badCompetitionNotAllowed() }
   }
 
-  // Registration with email:
-  if (config.email && body.email) {
-    // Prior to sending the verification email we need to make sure there are no conflicts
-    const conflict = await getUserByNameOrEmail(db, {
-      name: body.name,
-      email: body.email,
-    })
-    if (conflict) {
-      if (conflict.name === body.name) {
-        return { hasResult: true, response: res.badKnownName() }
-      }
-      return { hasResult: true, response: res.badKnownEmail() }
+  const ipTimeLeft = await rateLimitRegisterByIp(redis, ip)
+  if (ipTimeLeft) {
+    return {
+      hasResult: true,
+      response: res.badRateLimit({ timeLeft: ipTimeLeft }),
     }
+  }
 
-    const ipTimeLeft = await rateLimitRegisterByIp(redis, ip)
-    if (ipTimeLeft) {
-      return {
-        hasResult: true,
-        response: res.badRateLimit({ timeLeft: ipTimeLeft }),
-      }
+  // Before hashing, so a rejected request never pays for an argon2.
+  const conflict = await getUserByNameOrEmail(db, {
+    name: body.name,
+    email: body.email,
+  })
+  if (conflict) {
+    if (conflict.name === body.name) {
+      return { hasResult: true, response: res.badKnownName() }
     }
+    return { hasResult: true, response: res.badKnownEmail() }
+  }
 
+  // Registration with email, and no password to skip the round-trip with:
+  if (config.email && body.email && !body.password) {
     const emailTimeLeft = await rateLimitRegisterByEmail(redis, body.email)
     if (emailTimeLeft) {
       return {
@@ -194,6 +207,18 @@ const prepareRegistration = async (
     userToCreate.ctftimeId = ctftimeToken.ctftimeId
   }
 
+  if (body.password) {
+    const nameTimeLeft = await rateLimitRegisterByName(redis, body.name)
+    if (nameTimeLeft) {
+      return {
+        hasResult: true,
+        response: res.badRateLimit({ timeLeft: nameTimeLeft }),
+      }
+    }
+
+    userToCreate.passwordHash = await hashPassword(body.password)
+  }
+
   // Registration without any verification, or if ctftime token was successfully resolved:
   return { hasResult: false, userToCreate }
 }
@@ -226,6 +251,40 @@ export const registerUserV2 = async (
   }
 
   return await createUserV2(res, db, prepared.userToCreate)
+}
+
+export const loginWithPassword = async (
+  res: LoginPasswordResponseHelpers,
+  db: DatabaseClient,
+  redis: TypedRedis,
+  body: { identifier: string; password: string },
+  ip: string
+): Promise<
+  ReturnType<LoginPasswordResponseHelpers[keyof LoginPasswordResponseHelpers]>
+> => {
+  // Captcha, when the deployment configures one, has already run in the
+  // router. Both buckets are consumed before any argon2.
+  const ipTimeLeft = await rateLimitLoginByIp(redis, ip)
+  if (ipTimeLeft) {
+    return res.badRateLimit({ timeLeft: ipTimeLeft })
+  }
+
+  const identifierTimeLeft = await rateLimitLoginByIdentifier(
+    redis,
+    body.identifier
+  )
+  if (identifierTimeLeft) {
+    return res.badRateLimit({ timeLeft: identifierTimeLeft })
+  }
+
+  const credentials = await getUserCredentialsByIdentifier(db, body.identifier)
+  const ok = await checkPassword(body.password, credentials?.passwordHash)
+  if (!ok || !credentials) {
+    return res.badCredentials()
+  }
+
+  const authToken = await createToken(TokenKind.Auth, credentials.id)
+  return res.goodLogin({ authToken })
 }
 
 export const recoverUser = async (

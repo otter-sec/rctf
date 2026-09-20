@@ -1,3 +1,4 @@
+import './routes/login'
 import './routes/register'
 import './routes/recover'
 import './routes/verify'
