@@ -1,5 +1,6 @@
 export enum ProtectedAction {
   Register = 'register',
+  Login = 'login',
   Recover = 'recover',
   SetEmail = 'setEmail',
   InstancerStart = 'instancerStart',

@@ -83,5 +83,8 @@ export const GoodUserSelfDataV2 = response('goodUserSelfDataV2', {
     statusText: example(z.nullable(z.string()), 'Qualified').check(
       z.describe('Free-form team status badge, or `null` when unset.')
     ),
+    hasPassword: example(z.boolean(), false).check(
+      z.describe('Whether the account has a password set.')
+    ),
   }),
 })

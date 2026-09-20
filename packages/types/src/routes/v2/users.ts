@@ -6,6 +6,7 @@ import {
   BadAvatarFile,
   BadAvatarFileSize,
   BadCaptcha,
+  BadCredentials,
   BadDivisionChangeEnded,
   BadDivisionNotAllowed,
   BadEmail,
@@ -15,17 +16,21 @@ import {
   BadModerationNotPassed,
   BadName,
   BadNotStarted,
+  BadPassword,
   BadRateLimit,
   BadToken,
   BadUnknownUser,
+  BadZeroAuth,
   GoodAvatarUpdated,
   GoodEmailSet,
+  GoodPasswordRemoved,
+  GoodPasswordSet,
   GoodUserDataV2,
   GoodUserSelfDataV2,
   GoodUserUpdateV2,
   GoodVerifySent,
 } from '../../responses'
-import { FileFieldSchema, UserEmail, UserName } from '../../util'
+import { FileFieldSchema, UserEmail, UserName, UserPassword } from '../../util'
 
 export const GetUserRouteV2 = defineRoute({
   path: '/v2/users/:id',
@@ -122,6 +127,47 @@ export const SetEmailRouteV2 = defineRoute({
     BadEmailChangeDivision,
     BadUnknownUser,
     BadCaptcha,
+    BadRateLimit,
+    BadToken,
+  ],
+  authRequired: true,
+})
+
+export const SetPasswordRouteV2 = defineRoute({
+  path: '/v2/users/me/auth/password',
+  method: 'PUT',
+  body: z.object({
+    password: UserPassword,
+    currentPassword: z
+      .optional(z.string())
+      .check(
+        z.describe('Required when the account already has a password set.')
+      ),
+  }),
+  goodResponses: [GoodPasswordSet],
+  badResponses: [
+    BadPassword,
+    BadCredentials,
+    BadUnknownUser,
+    BadRateLimit,
+    BadToken,
+  ],
+  authRequired: true,
+})
+
+export const DeletePasswordRouteV2 = defineRoute({
+  path: '/v2/users/me/auth/password',
+  method: 'DELETE',
+  body: z.object({
+    currentPassword: z
+      .string()
+      .check(z.describe('The password being removed.')),
+  }),
+  goodResponses: [GoodPasswordRemoved],
+  badResponses: [
+    BadCredentials,
+    BadZeroAuth,
+    BadUnknownUser,
     BadRateLimit,
     BadToken,
   ],

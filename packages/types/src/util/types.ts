@@ -1,5 +1,11 @@
 import { z } from 'zod/mini'
-import { BadEmail, BadName } from '../responses'
+// Imported from their modules, not the barrel: `../responses/index.ts`
+// re-enters `../util` on its second line, so a barrel import resolves to a
+// partially initialized module and these come back undefined at module scope.
+import { BadCredentials } from '../responses/bad-credentials'
+import { BadEmail } from '../responses/bad-email'
+import { BadName } from '../responses/bad-name'
+import { BadPassword } from '../responses/bad-password'
 import { normalizeEmail, normalizeName, validateEmail } from '../v1-validators'
 import { example } from './example'
 
@@ -37,6 +43,56 @@ export const UserName = z
     })
   )
   .check(z.describe('2-64 printable ASCII characters.'))
+
+// Longest address RFC 5321 allows, and the widest thing this can hold: a team
+// name is capped well below it.
+export const MAX_IDENTIFIER_LENGTH = 254
+export const MIN_IDENTIFIER_LENGTH = 2
+
+// A login identifier is matched against both `name` and `email`, so it cannot
+// carry the team-name character rules. Both columns compare case-insensitively
+// (name is citext, email is stored normalized), so one lowercased value serves
+// both. A malformed identifier answers `badCredentials` like every other login
+// failure rather than describing itself.
+export const UserIdentifier = z
+  .pipe(
+    z.string(),
+    z.transform((value: string) => value.trim().toLowerCase())
+  )
+  .check(
+    z.refine(
+      (value: string) =>
+        value.length >= MIN_IDENTIFIER_LENGTH &&
+        value.length <= MAX_IDENTIFIER_LENGTH,
+      {
+        message: 'Enter a team name or email address',
+        params: { response: BadCredentials },
+      }
+    )
+  )
+  .check(z.describe('Team name or email address. Trimmed and lowercased.'))
+
+export const MIN_PASSWORD_LENGTH = 8
+export const MAX_PASSWORD_LENGTH = 128
+
+export const UserPassword = z
+  .string()
+  .check(
+    z.refine(
+      (password: string) =>
+        password.length >= MIN_PASSWORD_LENGTH &&
+        password.length <= MAX_PASSWORD_LENGTH,
+      {
+        message: `Password must be ${MIN_PASSWORD_LENGTH}-${MAX_PASSWORD_LENGTH} characters`,
+        params: { response: BadPassword },
+      }
+    )
+  )
+  .check(
+    z.describe(
+      `${MIN_PASSWORD_LENGTH}-${MAX_PASSWORD_LENGTH} characters. Not trimmed or normalized.`
+    )
+  )
 
 export const NumericString = z.pipe(
   z.transform((item: unknown) => {

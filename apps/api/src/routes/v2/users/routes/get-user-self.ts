@@ -23,5 +23,6 @@ usersGroup.route(GetUserSelfRouteV2, async ({ ctx, user, res }) => {
     avatarUrl: fullUser.avatarUrl ?? null,
     countryCode: fullUser.countryCode ?? null,
     statusText: fullUser.statusText ?? null,
+    hasPassword: user.hasPassword,
   })
 })

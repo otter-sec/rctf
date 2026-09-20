@@ -4,6 +4,7 @@ import { defineRoute } from '../../internal'
 import {
   BadCaptcha,
   BadCompetitionNotAllowed,
+  BadCredentials,
   BadCtftimeToken,
   BadEmail,
   BadEmailChangeDivision,
@@ -12,18 +13,20 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadPassword,
   BadRateLimit,
   BadRegistrationsDisabled,
   BadTokenVerification,
   BadUnknownEmail,
   BadUnknownUser,
   GoodEmailSet,
+  GoodLogin,
   GoodRegisterV2,
   GoodVerify,
   GoodVerifyInfo,
   GoodVerifySent,
 } from '../../responses'
-import { UserEmail, UserName } from '../../util'
+import { UserEmail, UserIdentifier, UserName, UserPassword } from '../../util'
 
 export const RegisterRouteV2 = defineRoute({
   path: '/v2/auth/register',
@@ -42,6 +45,13 @@ export const RegisterRouteV2 = defineRoute({
             'Required when `email` is omitted. Only usable when CTFtime auth is configured.'
           )
         ),
+      password: z
+        .optional(UserPassword)
+        .check(
+          z.describe(
+            'Creates the account immediately with no email verification. The account always starts in the default division.'
+          )
+        ),
       captchaCode: z
         .optional(z.string())
         .check(
@@ -50,10 +60,11 @@ export const RegisterRouteV2 = defineRoute({
     })
     .check(
       z.superRefine((data, ctx) => {
-        if (!data.email && !data.ctftimeToken) {
+        if (!data.email && !data.ctftimeToken && !data.password) {
           ctx.addIssue({
             code: 'custom',
-            message: 'Either email or ctftimeToken must be provided.',
+            message:
+              'Either email, ctftimeToken, or password must be provided.',
             path: ['email'],
           })
         }
@@ -66,6 +77,7 @@ export const RegisterRouteV2 = defineRoute({
     BadEmail,
     BadKnownCtftimeId,
     BadName,
+    BadPassword,
     BadKnownName,
     BadKnownEmail,
     BadRegistrationsDisabled,
@@ -73,6 +85,22 @@ export const RegisterRouteV2 = defineRoute({
     BadEndpoint,
     BadRateLimit,
   ],
+  authRequired: false,
+})
+
+export const LoginRouteV2 = defineRoute({
+  path: '/v2/auth/login',
+  method: 'POST',
+  captchaAction: ProtectedAction.Login,
+  body: z.object({
+    identifier: UserIdentifier,
+    password: UserPassword,
+    captchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects `login{:ts}`.')),
+  }),
+  goodResponses: [GoodLogin],
+  badResponses: [BadCredentials, BadPassword, BadCaptcha, BadRateLimit],
   authRequired: false,
 })
 
