@@ -57,10 +57,7 @@
       </box-header>
       <code>{loginUrl}</code>
     </token-box>
-    <p>
-      Store your team token somewhere safe. It is the easiest way back into this
-      account.
-    </p>
+    <p>Store your team token somewhere safe.</p>
     <Button href="/" variant="secondary">
       <IconSignIn />
       Continue
