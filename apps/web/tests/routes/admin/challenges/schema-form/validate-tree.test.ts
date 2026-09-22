@@ -190,6 +190,17 @@ describe('validateTree: required-field presence', () => {
     expect(list[0]?.fieldPath).toEqual(['services', 'fresh', 'image'])
   })
 
+  it('accepts an empty required array when minItems allows it', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        values: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['values'],
+    }
+    expect(validateTree(schema, { values: [] }).size).toBe(0)
+  })
+
   it('accepts null for a required nullable key', () => {
     const schema: JsonSchema = {
       type: 'object',
