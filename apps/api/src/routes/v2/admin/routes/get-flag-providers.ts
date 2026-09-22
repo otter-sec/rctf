@@ -11,7 +11,7 @@ adminGroup.route(GetFlagProvidersRouteV2, async ({ res }) => {
     defaultProvider: DEFAULT_FLAG_PROVIDER,
     providers: Object.entries(flagProviders).map(([name, provider]) => ({
       name,
-      schema: z.toJSONSchema(provider.configSchema),
+      schema: z.toJSONSchema(provider.configSchema, { io: 'input' }),
     })),
   })
 })
