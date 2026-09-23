@@ -4,9 +4,7 @@ description: Markdown extensions available in challenge descriptions, home page 
 order: 6
 ---
 
-rCTF supports Markdown in challenge descriptions, homepage content, and sponsor descriptions. [`marked`](https://marked.js.org/) parses it, rCTF adds alerts and a countdown timer, and [DOMPurify](https://github.com/cure53/DOMPurify) sanitizes the resulting HTML.
-
-The parser is in `apps/web/src/lib/utils/markdown.ts{:file}`, and `apps/web/src/lib/components/markdown.svelte{:file}` handles the interactive parts.
+rCTF supports Markdown in challenge descriptions, homepage content, and sponsor descriptions. [`marked`](https://marked.js.org/) parses it, rCTF adds its own elements on top (alerts, a countdown timer, an action button), and [DOMPurify](https://github.com/cure53/DOMPurify) sanitizes the resulting HTML.
 
 ## Alerts
 
@@ -75,9 +73,15 @@ The element takes **no attributes**. It always targets the global CTF schedule (
 
 The timer updates once per second on the client.
 
-:::note[No per-element target]
-rCTF doesn't support `<timer to="...">{:html}` or `<timer until="...">{:html}`. The countdown target is always the global competition schedule. If you need per-challenge deadlines, spell them out in plain text inside the description.
-:::
+## Action button
+
+The `<action-button>{:html}` element renders a centered button, generally used as a link to `/register`. Like the timer, it must stand alone on its own line.
+
+```md title="Home content"
+Registration is open!
+
+<action-button href="/register">Register Now</action-button>
+```
 
 ## Standard Markdown
 
@@ -103,6 +107,6 @@ DOMPurify sanitizes the parsed HTML before it reaches the page. This has the fol
 
 - `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
 - Most HTML tags from DOMPurify's default profile are allowed (e.g., `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
-- The alert and timer extensions use `data-alert`, `data-type`, `data-content`, and `data-timer` to mark elements that need client-side behavior. Each element they create also receives a temporary, secret `data-nonce`. A DOMPurify hook keeps the hydration attributes only when that nonce matches, then removes the nonce before returning the HTML. Markers written by hand have no effect because they do not carry the nonce and are stripped during sanitization.
+- The alert, timer, and action button extensions use `data-alert`, `data-type`, `data-content`, `data-timer`, `data-action-button`, and `data-href` to mark elements that need client-side behavior. Each element they create also receives a temporary, secret `data-nonce`. A DOMPurify hook keeps the hydration attributes only when that nonce matches, then removes the nonce before returning the HTML. Markers written by hand have no effect because they do not carry the nonce and are stripped during sanitization.
 
 If you need richer interactivity than these extensions cover, add it in the frontend code, not through embedded HTML in a description.
