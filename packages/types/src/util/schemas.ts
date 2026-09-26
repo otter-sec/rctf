@@ -207,6 +207,15 @@ export const ExposeSchema = z.object({
   ),
 })
 
+// `inst-<id>-<team uuid>` must fit in a 63-char k8s namespace name
+export const ChallengeIntegrationIdSchema = z
+  .string()
+  .check(
+    z.regex(/^[a-z0-9-]*$/, 'Only lowercase letters, digits, and hyphens'),
+    z.maxLength(21, 'At most 21 characters')
+  )
+  .check(z.describe('Challenge integration ID this config belongs to.'))
+
 // NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
   challengeIntegrationId: example(z.string(), 'baby-rev').check(
@@ -228,8 +237,9 @@ export const InstancerConfigSchema = z.object({
 })
 
 export const PartialInstancerConfigSchema = z.object({
-  challengeIntegrationId: example(z.optional(z.string()), 'baby-rev').check(
-    z.describe('Challenge integration ID this config belongs to.')
+  challengeIntegrationId: example(
+    z.optional(ChallengeIntegrationIdSchema),
+    'baby-rev'
   ),
   instancer: example(z.optional(z.string()), 'kubernetes').check(
     z.describe('Instancer to use, or the default when omitted.')

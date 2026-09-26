@@ -24,6 +24,16 @@ const group = 'rctf.osec.io'
 const version = 'v1'
 const plural = 'challengeinstances'
 
+// `inst-<challengeId>-<teamId>` must fit in a 63-char namespace name
+const k8sChallengeIdPattern = /^[a-z0-9]([a-z0-9-]{0,19}[a-z0-9])?$/
+const toK8sChallengeId = (id: string): string => {
+  if (k8sChallengeIdPattern.test(id)) {
+    return id
+  }
+
+  return new Bun.CryptoHasher('sha256').update(id).digest('hex').slice(0, 21)
+}
+
 interface K8sInstancerProviderOptions {
   authToken?: string
   apiUrl?: string
@@ -555,7 +565,7 @@ export default class K8sInstancerProvider extends InstancerProvider {
     teamId: string,
     challengeIntegrationId: string
   ): string {
-    return `${challengeIntegrationId}-${teamId}`
+    return `${toK8sChallengeId(challengeIntegrationId)}-${teamId}`
   }
 
   getDefaults = (): ProviderConfig => this.configSchema.parse({})
@@ -563,6 +573,7 @@ export default class K8sInstancerProvider extends InstancerProvider {
   createInstance = async (
     options: CreateInstanceOptions
   ): Promise<instanceDetailsOrError> => {
+    const challengeId = toK8sChallengeId(options.challengeIntegrationId)
     try {
       await this.client.createClusterCustomObject({
         group,
@@ -581,7 +592,7 @@ export default class K8sInstancerProvider extends InstancerProvider {
             ...options.config,
             expose: options.expose,
             teamId: options.user.id,
-            challengeId: options.challengeIntegrationId,
+            challengeId,
             flags: JSON.stringify(options.flags),
             expiresAt: new Date(
               Date.now() + options.timeoutMilliseconds
