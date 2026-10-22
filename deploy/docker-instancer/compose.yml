@@ -20,7 +20,7 @@ services:
       - ./conf/middlewares.yml:/etc/traefik/dynamic/middlewares.yml:ro
       - ./certs/:/certs/:ro
   cache:
-    image: redis:8.2.2
+    image: redis:8.2.6
     restart: unless-stopped
     networks:
       - tiny-network

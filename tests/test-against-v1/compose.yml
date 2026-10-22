@@ -22,7 +22,7 @@ services:
       postgres-new:
         condition: service_healthy
   redis-new:
-    image: redis:8.2.2
+    image: redis:8.2.6
     restart: always
     networks:
       rctf-new:
