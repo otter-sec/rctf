@@ -39,7 +39,7 @@
     "@zag-js/toast": "1.43.1",
     "@zag-js/tooltip": "1.43.1",
     "@zag-js/tree-view": "1.43.1",
-    "dompurify": "3.4.13",
+    "dompurify": "3.4.17",
     "marked": "18.0.9",
     "modern-screenshot": "4.7.0",
     "yaml": "catalog:",
@@ -54,6 +54,6 @@
     "svelte": "5.56.9",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
-    "vite": "8.2.1"
+    "vite": "8.3.4"
   }
 }

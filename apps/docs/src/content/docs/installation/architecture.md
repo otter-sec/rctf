@@ -53,12 +53,12 @@ The container's ephemeral runtime state lives under `/tmp/{:dir}`. Local uploads
 
 ## Build stages
 
-The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-alpine` as both the build and runtime base. The stages:
+The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.4.4-alpine` as both the build and runtime base. The stages:
 
 | Stage | Base | Role |
 | --- | --- | --- |
-| `build-base` | `oven/bun:1.3.14-alpine` (BUILDPLATFORM) | Base for build steps that run on the build platform. |
-| `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Base for production dependencies and the final image. |
+| `build-base` | `oven/bun:1.4.4-alpine` (BUILDPLATFORM) | Base for build steps that run on the build platform. |
+| `runtime-base` | `oven/bun:1.4.4-alpine` (target platform) | Base for production dependencies and the final image. |
 | `package-configs` | `build-base` | Copies workspace manifests and `bun.lock{:file}` so source changes do not invalidate the dependency layer. |
 | `deps` | `build-base` | Full install (including devDependencies) for the API, web, and CLI workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, and the test workspaces. |
 | `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
@@ -67,7 +67,7 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 | `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`; creates the unprivileged `rctf` user and upload directory; then copies the API dist, prod node_modules, migrations, email templates, the [rctf CLI](/admin/cli), and the SvelteKit static output into `/app/{:dir}`. |
 
 ```dockerfile title="deploy/rctf/Dockerfile"
-FROM oven/bun:1.3.14-alpine AS runtime-base
+FROM oven/bun:1.4.4-alpine AS runtime-base
 WORKDIR /app
 # ...
 FROM runtime-base AS production
@@ -220,7 +220,7 @@ The container only contains the rCTF application, nginx, and supervisor. Everyth
 | Service | Version pinned in `compose.yml{:file}` | Required by |
 | --- | --- | --- |
 | PostgreSQL | `<green>postgres:18.0</green>` (any 15+) | Core data store. The `pg_trgm` extension is installed by migration `0015_add_trigram_search.sql{:file}` for team-name fuzzy search. |
-| Redis | `<green>redis:8.2.2</green>` (any 7+) | Cache for leaderboard snapshots, rate limiting, and provider locks. |
+| Redis | `<green>redis:8.2.6</green>` (any 7+) | Cache for leaderboard snapshots, rate limiting, and provider locks. |
 
 Optional dependencies that the deployer must supply when the matching provider is enabled:
 
