@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { ProtectedAction } from '../enums'
 import { response } from '../internal'
-import { NumericString, SponsorSchemaV2 } from '../util'
+import { CustomPageIconSchema, NumericString, SponsorSchemaV2 } from '../util'
 import { example } from '../util/example'
 
 export const GoodClientConfigV2 = response('goodClientConfigV2', {
@@ -19,6 +19,30 @@ export const GoodClientConfigV2 = response('goodClientConfigV2', {
     homeContent: example(z.string(), '# Welcome').check(
       z.describe('Markdown content shown on the home page.')
     ),
+    customPages: z
+      .array(
+        z.object({
+          slug: example(z.string(), 'rules').check(
+            z.describe('URL-safe page identifier.')
+          ),
+          title: example(z.string(), 'Rules').check(
+            z.describe('Page and navigation title.')
+          ),
+          content: example(z.string(), '# Competition rules').check(
+            z.describe('Markdown content shown on the page.')
+          ),
+          icon: example(CustomPageIconSchema, 'file').check(
+            z.describe('Icon displayed in the main navigation.')
+          ),
+          showInNavigation: example(z.boolean(), true).check(
+            z.describe('Whether to link the page from the main navigation.')
+          ),
+          hideTitle: example(z.boolean(), false).check(
+            z.describe('Whether to hide the page title above the content.')
+          ),
+        })
+      )
+      .check(z.describe('Custom public Markdown pages.')),
     sponsors: z.array(SponsorSchemaV2),
     flagFormatPlaceholder: example(z.string(), 'rctf{...}').check(
       z.describe('Placeholder shown in the flag submission box.')
