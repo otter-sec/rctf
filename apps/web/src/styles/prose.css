@@ -10,7 +10,7 @@ prose-content {
     margin-block: 0 1em;
   }
 
-  :where(div[data-timer]) {
+  :where(div[data-timer], div[data-action-button]) {
     margin-block: 2em;
   }
 
