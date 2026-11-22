@@ -9,6 +9,7 @@ FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
 COPY packages/build/package.json ./packages/build/
+COPY packages/admin-bot-cli/package.json ./packages/admin-bot-cli/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/scoring/package.json ./packages/scoring/
@@ -31,11 +32,9 @@ RUN bun install \
     --linker=hoisted \
     --backend=copyfile \
     --no-cache \
-    --filter '!@rctf/admin-bot' \
-    --filter '!@rctf/docs' \
-    --filter '!server-tests' \
-    --filter '!admin-bot-tests' \
-    --filter '!admin-bot-e2e-tests'
+    --filter '@rctf/api' \
+    --filter '@rctf/cli' \
+    --filter '@rctf/web'
 
 FROM build-base AS build-src
 

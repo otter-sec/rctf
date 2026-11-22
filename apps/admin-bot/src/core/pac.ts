@@ -14,11 +14,28 @@ export interface RestrictedDomainsConfig {
 }
 
 export const buildPac = (
-  restrictedDomains: RestrictedDomainsConfig
+  restrictedDomains: RestrictedDomainsConfig,
+  directOrigins: string[] = []
 ): string => {
   let regexCounter = 0
   let preamble = ''
   let body = ''
+
+  const normalizedDirectOrigins = new Set<string>()
+  for (const value of directOrigins) {
+    const url = new URL(value)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new Error('Direct PAC origins must use HTTP or HTTPS')
+    }
+    normalizedDirectOrigins.add(url.origin)
+
+    url.protocol = url.protocol === 'http:' ? 'ws:' : 'wss:'
+    normalizedDirectOrigins.add(url.origin)
+  }
+
+  for (const origin of normalizedDirectOrigins) {
+    body += `\n  if (url === ${JSON.stringify(origin)} || url.indexOf(${JSON.stringify(`${origin}/`)}) === 0 || url.indexOf(${JSON.stringify(`${origin}?`)}) === 0 || url.indexOf(${JSON.stringify(`${origin}#`)}) === 0) return "DIRECT";`
+  }
 
   const makeRegex = (rule: RegexRule): string => {
     const flags = rule.flags ? `, ${JSON.stringify(rule.flags)}` : ''
@@ -39,7 +56,7 @@ export const buildPac = (
     }
   }
 
-  // Evaluation order: host.allow -> host.disallow -> url.allow -> url.disallow -> DIRECT.
+  // Evaluation order: direct origins -> host.allow -> host.disallow -> url.allow -> url.disallow -> DIRECT.
   // Within a scope, allow wins over disallow. Across scopes, host takes priority over url.
   processRules('host', restrictedDomains.host)
   processRules('url', restrictedDomains.url)

@@ -55,6 +55,10 @@ describe('ChallengeLoader.loadChallenge', () => {
     const source = `export const challenge = <<<invalid>>>`
     const result = await loader.loadChallenge(source)
     expect(typeof result).toBe('string')
+    expect(result as string).toContain(source)
+    expect(result as string).toContain('^')
+    expect(result as string).toContain('error: Unexpected <<')
+    expect(result as string).toContain('at <challenge>:1:26')
   })
 
   test('returns error string for disallowed imports', async () => {
@@ -123,6 +127,15 @@ describe('ChallengeLoader cache management', () => {
 
   test('get returns undefined for non-existent', () => {
     expect(loader.get('nope', 'nope')).toBeUndefined()
+  })
+
+  test('register caches an already loaded challenge', async () => {
+    const challenge = await loader.loadChallenge(validChallengeSource)
+    expect(challenge).toBeInstanceOf(Challenge)
+    if (!(challenge instanceof Challenge)) return
+
+    expect(loader.register('chal-1', 'rev-1', challenge)).toBe(challenge)
+    expect(loader.get('chal-1', 'rev-1')).toBe(challenge)
   })
 
   test('getAll returns all loaded challenges', async () => {

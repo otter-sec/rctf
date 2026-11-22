@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { withTimeout } from '@rctf/util'
+import type { Browser, BrowserContext } from 'puppeteer-core'
 import { applyHooks } from '../browser/hooks'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeContext, JobMetadata } from '../types'
@@ -11,12 +12,22 @@ import { createLogger } from './logger'
 import { OutputHandler } from './output'
 
 const logger = createLogger('runner')
+
+export interface SubmissionOverrides {
+  headless?: boolean
+  showAllHooks?: boolean
+  timeoutMilliseconds?: number
+  disableTimeout?: boolean
+  bypassDomainRestrictionOrigins?: string[]
+}
+
 export const handleSubmission = async (
   challenges: ChallengeLoader,
   browserManager: BrowserManager,
   job: JobMetadata,
   input: Record<string, string>,
-  output: OutputHandler
+  output: OutputHandler,
+  overrides: SubmissionOverrides = {}
 ): Promise<void> => {
   const log = logger.child({ input, job })
   const challenge = challenges.get(job.challengeId, job.configRevision)
@@ -32,59 +43,88 @@ export const handleSubmission = async (
   const userDataDir = await mkdtemp(join(tmpdir(), `adminbot-${randomUUID()}-`))
   log.debug({ userDataDir }, 'created temp directory')
 
-  const browser = await browserManager.launchBrowser({
-    version: {
-      browser: challenge.config.browser,
-      version: challenge.config.browserVersion,
-    },
-    arguments: challenge.config.browserArguments,
-    restrictedDomains: challenge.config.restrictDomains,
-    extraPrefsFirefox: challenge.config.extraPrefsFirefox,
-    puppeteerLaunchOptionsExtra: {
-      userDataDir,
-    },
-  })
-
-  const visitCtx: ChallengeContext = {
-    logger: log.child({ module: 'challenge-handler' }),
-    browserContext: await browser.createBrowserContext(),
-    input: input,
-    output: output,
-    job: job,
-  }
-
-  await applyHooks(visitCtx.output, browser, challenge.config.hooksConfig)
-
-  log.info('running challenge handler')
-  output.info('admin-bot', 'running challenge handler')
-
-  let handlerError: unknown = undefined
+  let browser: Browser | undefined
+  let browserContext: BrowserContext | undefined
+  let handlerFailure: { error: unknown } | undefined
   try {
-    await withTimeout(
-      challenge.config.handler(visitCtx),
-      challenge.config.timeoutMilliseconds,
-      () => {
-        throw new Error('timeout')
-      }
+    browser = await browserManager.launchBrowser({
+      version: {
+        browser: challenge.config.browser,
+        version: challenge.config.browserVersion,
+      },
+      arguments: challenge.config.browserArguments,
+      headless: overrides.headless,
+      restrictedDomains: challenge.config.restrictDomains,
+      bypassDomainRestrictionOrigins: overrides.bypassDomainRestrictionOrigins,
+      extraPrefsFirefox: challenge.config.extraPrefsFirefox,
+      puppeteerLaunchOptionsExtra: {
+        ...challenge.config.puppeteerLaunchOptionsExtra,
+        userDataDir,
+      },
+    })
+
+    browserContext = await browser.createBrowserContext()
+    const visitCtx: ChallengeContext = {
+      logger: log.child({ module: 'challenge-handler' }),
+      browserContext,
+      input: input,
+      output: output,
+      job: job,
+    }
+
+    await applyHooks(
+      visitCtx.output,
+      browser,
+      overrides.showAllHooks
+        ? {
+            ...challenge.config.hooksConfig,
+            showConsoleLogs: true,
+            showBrowserErrors: true,
+            showNavigation: true,
+            showDialogs: true,
+          }
+        : challenge.config.hooksConfig
     )
-  } catch (err) {
-    handlerError = err
-    if (err instanceof Error && err.message === 'timeout') {
-      log.warn('challenge timed out')
-    } else {
-      log.error({ err }, 'challenge failed')
+
+    log.info('running challenge handler')
+    output.info('admin-bot', 'running challenge handler')
+
+    try {
+      const handler = challenge.config.handler(visitCtx)
+      if (overrides.disableTimeout) {
+        await handler
+      } else {
+        await withTimeout(
+          handler,
+          overrides.timeoutMilliseconds ?? challenge.config.timeoutMilliseconds,
+          () => {
+            throw new Error('timeout')
+          }
+        )
+      }
+    } catch (err) {
+      handlerFailure = { error: err }
+      if (err instanceof Error && err.message === 'timeout') {
+        log.warn('challenge timed out')
+      } else {
+        log.error({ err }, 'challenge failed')
+      }
     }
   } finally {
-    try {
-      await visitCtx.browserContext.close()
-    } catch (err) {
-      log.warn({ err }, 'failed to close browser context')
+    if (browserContext) {
+      try {
+        await browserContext.close()
+      } catch (err) {
+        log.warn({ err }, 'failed to close browser context')
+      }
     }
 
-    try {
-      await browser.close()
-    } catch (err) {
-      log.warn({ err }, 'failed to close browser')
+    if (browser) {
+      try {
+        await browser.close()
+      } catch (err) {
+        log.warn({ err }, 'failed to close browser')
+      }
     }
 
     try {
@@ -95,7 +135,7 @@ export const handleSubmission = async (
   }
   log.info('visited')
 
-  if (handlerError) {
-    throw handlerError
+  if (handlerFailure) {
+    throw handlerFailure.error
   }
 }

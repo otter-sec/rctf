@@ -30,7 +30,9 @@ export interface BrowserVersion {
 export interface BrowserLaunchOptions {
   version: BrowserVersion
   arguments?: Array<string>
+  headless?: boolean
   restrictedDomains?: RestrictedDomainsConfig
+  bypassDomainRestrictionOrigins?: string[]
   puppeteerLaunchOptionsExtra?: Record<string, unknown>
   extraPrefsFirefox?: Record<string, unknown>
 }
@@ -206,7 +208,10 @@ export class BrowserManager {
     }
 
     if (options.restrictedDomains) {
-      const pac = buildPac(options.restrictedDomains)
+      const pac = buildPac(
+        options.restrictedDomains,
+        options.bypassDomainRestrictionOrigins
+      )
       const pacDataUrl = `data:application/x-ns-proxy-autoconfig;base64,${Buffer.from(pac).toString('base64')}`
 
       if (version.browser === 'chrome') {
@@ -224,12 +229,12 @@ export class BrowserManager {
 
     return await withTimeout(
       launch({
-        headless: true,
+        ...options.puppeteerLaunchOptionsExtra,
+        headless: options.headless ?? true,
         browser: version.browser,
         args,
         executablePath,
         extraPrefsFirefox,
-        ...options.puppeteerLaunchOptionsExtra,
       }),
       LAUNCH_TIMEOUT_MS,
       () => {

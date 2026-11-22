@@ -9,6 +9,7 @@ FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
 COPY packages/build/package.json ./packages/build/
+COPY packages/admin-bot-cli/package.json ./packages/admin-bot-cli/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/scoring/package.json ./packages/scoring/
@@ -31,17 +32,7 @@ RUN bun install \
     --linker=hoisted \
     --backend=copyfile \
     --no-cache \
-    --filter '!@rctf/api' \
-    --filter '!@rctf/cli' \
-    --filter '!@rctf/config' \
-    --filter '!@rctf/db' \
-    --filter '!@rctf/docs' \
-    --filter '!@rctf/scoring' \
-    --filter '!@rctf/types' \
-    --filter '!@rctf/web' \
-    --filter '!server-tests' \
-    --filter '!admin-bot-tests' \
-    --filter '!admin-bot-e2e-tests'
+    --filter '@rctf/admin-bot'
 
 FROM build-base AS build
 
@@ -106,6 +97,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxt6 \
     libxtst6 \
     unzip \
+    x11-utils \
     xz-utils \
     && rm -rf /var/lib/apt/lists/*
 

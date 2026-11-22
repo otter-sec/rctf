@@ -3,9 +3,10 @@ import { buildPac } from '../../../../apps/admin-bot/src/core/pac'
 import type { RestrictedDomainsConfig } from '../../../../apps/admin-bot/src/core/pac'
 
 const evalPac = (
-  config: RestrictedDomainsConfig
+  config: RestrictedDomainsConfig,
+  directOrigins?: string[]
 ): ((url: string, host: string) => string) => {
-  const code = buildPac(config)
+  const code = buildPac(config, directOrigins)
   return new Function(`${code}\nreturn FindProxyForURL;`)() as (
     url: string,
     host: string
@@ -115,5 +116,36 @@ describe('buildPac', () => {
     expect(fn('http://example.com', 'example.com')).toBe('PROXY 127.0.0.1:1')
     expect(fn('http://EXAMPLE.COM', 'EXAMPLE.COM')).toBe('PROXY 127.0.0.1:1')
     expect(fn('http://other.com', 'other.com')).toBe('DIRECT')
+  })
+
+  test('allows exact local origins before configured restrictions', () => {
+    const fn = evalPac({ host: { disallowRegex: [r('.*')] } }, [
+      'http://localhost:8092/path',
+    ])
+
+    expect(fn('http://localhost:8092/', 'localhost')).toBe('DIRECT')
+    expect(fn('http://localhost:8092/review?id=1', 'localhost')).toBe('DIRECT')
+    expect(fn('ws://localhost:8092/socket', 'localhost')).toBe('DIRECT')
+    expect(fn('http://localhost:8093/review', 'localhost')).toBe(
+      'PROXY 127.0.0.1:1'
+    )
+    expect(fn('ws://localhost:8093/socket', 'localhost')).toBe(
+      'PROXY 127.0.0.1:1'
+    )
+    expect(fn('http://localhost:8092.evil/review', 'localhost')).toBe(
+      'PROXY 127.0.0.1:1'
+    )
+  })
+
+  test('allows secure WebSockets for direct HTTPS origins', () => {
+    const fn = evalPac({ host: { disallowRegex: [r('.*')] } }, [
+      'https://localhost:8443/',
+    ])
+
+    expect(fn('https://localhost:8443/', 'localhost')).toBe('DIRECT')
+    expect(fn('wss://localhost:8443/socket', 'localhost')).toBe('DIRECT')
+    expect(fn('ws://localhost:8443/socket', 'localhost')).toBe(
+      'PROXY 127.0.0.1:1'
+    )
   })
 })

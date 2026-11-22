@@ -88,7 +88,7 @@ export class ChallengeLoader {
 
       return challenge
     } catch (err) {
-      return `unable to load challenge, ${err}`
+      return `unable to load challenge:\n${Bun.inspect(err).trimEnd()}`
     }
   }
 
@@ -105,6 +105,20 @@ export class ChallengeLoader {
       return undefined
     }
 
+    const registered = this.register(id, revision, challenge)
+    if (registered) {
+      log.info('loaded challenge from source')
+    }
+    return registered
+  }
+
+  register(
+    id: string,
+    revision: string,
+    challenge: Challenge
+  ): Challenge | undefined {
+    const log = logger.child({ id, revision })
+
     const key = cacheKey(id, revision)
     if (this.challenges.has(key)) {
       log.warn('duplicate challenge')
@@ -119,7 +133,6 @@ export class ChallengeLoader {
 
     this.challenges.set(key, challenge)
     this.currentRevisions.set(id, key)
-    log.info('loaded challenge from source')
     return challenge
   }
 
