@@ -21,6 +21,7 @@
     IconClock,
     IconDownload,
     IconPaperPlaneTilt,
+    IconRobot,
     IconSignIn,
     IconWarningCircle,
   } from '$lib/icons'
@@ -380,10 +381,21 @@
           {#if submitting}<Spinner />{:else}<IconPaperPlaneTilt />{/if}
           Submit
         </Button>
-        <Button type="button" variant="secondary" onclick={downloadConfig}>
-          <IconDownload />
-          Download config
-        </Button>
+        <config-actions>
+          <Button type="button" variant="secondary" onclick={downloadConfig}>
+            <IconDownload />
+            Download config
+          </Button>
+          <Button
+            href="https://www.npmjs.com/package/@rctf-v2/admin-bot-cli"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="secondary"
+          >
+            <IconRobot />
+            Run locally
+          </Button>
+        </config-actions>
         <CaptchaNotice
           config={clientConfig}
           action={ProtectedAction.AdminBotSubmit}
@@ -619,6 +631,16 @@
     margin-block-start: auto;
 
     :global(button[data-variant]) {
+      inline-size: 100%;
+    }
+  }
+
+  config-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2xs);
+
+    :global(a[data-variant]) {
       inline-size: 100%;
     }
   }

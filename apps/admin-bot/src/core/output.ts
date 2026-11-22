@@ -121,7 +121,11 @@ export class BufferedOutputHandler extends OutputHandler {
   private head: number = 0
   private count: number = 0
 
-  constructor(maxLines?: number | null, maxValueChars?: number | null) {
+  constructor(
+    maxLines?: number | null,
+    maxValueChars?: number | null,
+    private readonly onLine?: (line: string) => void
+  ) {
     super(maxValueChars)
 
     // null = disable limit (do not do that)
@@ -144,6 +148,7 @@ export class BufferedOutputHandler extends OutputHandler {
     } else {
       this.buffer.push(line)
     }
+    this.onLine?.(line)
   }
 
   close() {

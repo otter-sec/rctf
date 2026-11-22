@@ -47,6 +47,20 @@ describe('BufferedOutputHandler', () => {
     expect(handler.getOutput()).toBe('before')
   })
 
+  test('notifies a listener as lines are written', () => {
+    const lines: string[] = []
+    const handler = new BufferedOutputHandler(5, undefined, line =>
+      lines.push(line)
+    )
+    handler.writeLine('first')
+    handler.writeLine('second')
+    handler.close()
+    handler.writeLine('ignored')
+
+    expect(lines).toEqual(['first', 'second'])
+    expect(handler.getOutput()).toBe('first\nsecond')
+  })
+
   test('null maxLines works as unbounded array', () => {
     const handler = new BufferedOutputHandler(null)
     for (let i = 0; i < 200; i++) {

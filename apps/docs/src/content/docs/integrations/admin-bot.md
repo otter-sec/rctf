@@ -335,6 +335,10 @@ The participant-side API uses these endpoints:
 
 Each user can have one queued or running admin bot job per challenge. Submissions are rate-limited to one request every ten seconds per user and challenge.
 
+### Test an admin bot locally
+
+Participants can download the challenge's admin bot config from its challenge page and test submissions against a locally running instance before using the real bot. See [`@rctf-v2/admin-bot-cli`](https://www.npmjs.com/package/@rctf-v2/admin-bot-cli) for installation and usage.
+
 ## Service API
 
 The worker uses the service-authenticated admin API:

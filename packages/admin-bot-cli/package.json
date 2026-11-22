@@ -1,0 +1,47 @@
+{
+  "name": "@rctf-v2/admin-bot-cli",
+  "version": "2.5.0",
+  "description": "Run rCTF browser admin bot challenge submissions locally",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "rctf-admin-bot": "dist/index.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node ./scripts/run-bun.mjs ./build.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@clack/core": "1.5.1",
+    "@clack/prompts": "1.8.1",
+    "@eslint-community/regexpp": "4.12.3",
+    "@rctf/admin-bot": "workspace:*",
+    "@types/bun": "catalog:",
+    "citty": "0.2.2",
+    "env-paths": "3.0.0",
+    "picocolors": "1.1.1",
+    "typescript": "catalog:",
+    "x11": "4.4.0",
+    "yaml": "2.9.0"
+  },
+  "optionalDependencies": {
+    "@oven/bun-darwin-aarch64": "1.4.4",
+    "@oven/bun-darwin-x64": "1.4.4",
+    "@oven/bun-linux-aarch64": "1.4.4",
+    "@oven/bun-linux-aarch64-musl": "1.4.4",
+    "@oven/bun-linux-x64": "1.4.4",
+    "@oven/bun-linux-x64-musl": "1.4.4",
+    "@oven/bun-windows-aarch64": "1.4.4",
+    "@oven/bun-windows-x64": "1.4.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
